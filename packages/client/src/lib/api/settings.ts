@@ -5,10 +5,9 @@ import type {
   AutomationSettings,
   BookmarkAddFormSettings,
   BookmarkGraphSettings,
-  CardDisplayRule,
+  CardDisplayConfig,
   CardFieldTemplate,
   ConnectorsAppSettings,
-  CreateCardDisplayRuleInput,
   CreateCardFieldTemplateInput,
   CreateCustomAspectRatioInput,
   CreateFavoriteSettingsPageInput,
@@ -40,7 +39,6 @@ import type {
   UpdateAutomationInput,
   UpdateBookmarkAddFormInput,
   UpdateBookmarkGraphInput,
-  UpdateCardDisplayRuleInput,
   UpdateConnectorsSettingsInput,
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
@@ -206,14 +204,12 @@ export const homepageSectionsApi = {
   withBookmarks: () => request<HomepageSectionBookmarks[]>("/bookmarks/homepage-sections"),
 };
 
-export const cardDisplayRulesApi = {
-  ...createCrudApi<CardDisplayRule, CreateCardDisplayRuleInput, UpdateCardDisplayRuleInput>("card-display-rules"),
-  reorder: (orderedIds: string[]) =>
-    request<undefined>("/card-display-rules/reorder", {
+export const cardDisplayConfigApi = {
+  get: () => request<CardDisplayConfig>("/card-display"),
+  update: (patch: Partial<CardDisplayConfig>) =>
+    request<CardDisplayConfig>("/card-display", {
       method: "PUT",
-      body: JSON.stringify({
-        orderedIds,
-      }),
+      body: JSON.stringify(patch),
     }),
 };
 

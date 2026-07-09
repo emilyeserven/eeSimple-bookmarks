@@ -5,7 +5,6 @@ import type { CustomProperty, EntityLayout } from "@eesimple/types";
 
 import i18n from "../../i18n";
 import { AutofillRulesList } from "../AutofillRulesList";
-import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import {
   PropertyCategoriesContent,
   PropertyCreatedView,
@@ -123,8 +122,7 @@ type PropertyFieldKey
     | "categories"
     | "mediaTypes"
     | "display"
-    | "autofillRules"
-    | "displayRules";
+    | "autofillRules";
 
 const propertyFields = {
   name: {
@@ -213,16 +211,6 @@ const propertyFields = {
       />
     ),
   },
-  displayRules: {
-    key: "displayRules",
-    label: i18n.t("Display Rules"),
-    view: ({
-      entity,
-    }) => <CardDisplayRulesList propertyId={entity.id} />,
-    edit: ({
-      entity,
-    }) => <CardDisplayRulesList propertyId={entity.id} />,
-  },
 } satisfies Record<PropertyFieldKey, WorkbenchField<CustomProperty>>;
 
 /** The code-defined default layout — the current tab list, one untitled section per tab. */
@@ -274,14 +262,6 @@ const PROPERTY_DEFAULT_LAYOUT: EntityLayout = {
       sections: [{
         key: "autofill",
         fields: ["autofillRules"] satisfies PropertyFieldKey[],
-      }],
-    },
-    {
-      key: "display-rules",
-      label: i18n.t("Display Rules"),
-      sections: [{
-        key: "display-rules",
-        fields: ["displayRules"] satisfies PropertyFieldKey[],
       }],
     },
   ],
@@ -352,12 +332,6 @@ export const propertyWorkbench: EntityWorkbench<CustomProperty> = {
     {
       key: "autofill",
       label: i18n.t("Autofill Rules"),
-      group: i18n.t("Rules"),
-    },
-    {
-      key: "display-rules",
-      label: i18n.t("Display Rules"),
-      group: i18n.t("Rules"),
     },
   ],
 };

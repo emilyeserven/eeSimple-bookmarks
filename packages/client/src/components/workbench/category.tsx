@@ -3,7 +3,6 @@ import type { Category, EntityLayout } from "@eesimple/types";
 
 import i18n from "../../i18n";
 import { AutofillRulesList } from "../AutofillRulesList";
-import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { CategoryCustomProperties } from "../CategoryCustomProperties";
 import {
   CategoryDescriptionEditField,
@@ -46,8 +45,7 @@ type CategoryFieldKey
     | "autofillSources"
     | "customProperties"
     | "display"
-    | "autofillRules"
-    | "displayRules";
+    | "autofillRules";
 
 const categoryFields = {
   details: {
@@ -171,16 +169,6 @@ const categoryFields = {
       />
     ),
   },
-  displayRules: {
-    key: "displayRules",
-    label: i18n.t("Display Rules"),
-    view: ({
-      entity,
-    }) => <CardDisplayRulesList categoryId={entity.id} />,
-    edit: ({
-      entity,
-    }) => <CardDisplayRulesList categoryId={entity.id} />,
-  },
 } satisfies Record<CategoryFieldKey, WorkbenchField<Category>>;
 
 /**
@@ -221,14 +209,6 @@ const CATEGORY_DEFAULT_LAYOUT: EntityLayout = {
       sections: [{
         key: "autofill",
         fields: ["autofillRules"] satisfies CategoryFieldKey[],
-      }],
-    },
-    {
-      key: "display-rules",
-      label: i18n.t("Display Rules"),
-      sections: [{
-        key: "display-rules",
-        fields: ["displayRules"] satisfies CategoryFieldKey[],
       }],
     },
   ],
@@ -293,12 +273,6 @@ export const categoryWorkbench: EntityWorkbench<Category> = {
     {
       key: "autofill",
       label: i18n.t("Autofill Rules"),
-      group: i18n.t("Rules"),
-    },
-    {
-      key: "display-rules",
-      label: i18n.t("Display Rules"),
-      group: i18n.t("Rules"),
     },
   ],
 };

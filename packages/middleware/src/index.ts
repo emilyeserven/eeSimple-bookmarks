@@ -3,7 +3,7 @@ import { buildApp, docsEnabled } from "@/app";
 import { maybeSeed } from "@/db/seed";
 import { ensureAppSettings, ensureDefaultPlaceTypeLevelGroups } from "@/services/appSettings";
 import { ensureDefaultGroupTypes } from "@/services/groupTypes";
-import { ensureDefaultCardDisplayRule } from "@/services/cardDisplayRules";
+import { backfillCardDisplaySections, deleteNonDefaultCardDisplayRules, ensureCardDisplayConfig } from "@/services/cardDisplayRules";
 import { ensureDefaultCategory } from "@/services/categories";
 import { ensureChaptersProperty, ensureContentStatusProperty, ensureDatePostedProperty, ensureIsbnProperty, ensurePageProgressProperty, ensurePageRangeProperty, ensurePageSectionsProperty, ensureRuntimeProperty, ensureUrlSectionsProperty } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
@@ -72,7 +72,9 @@ try {
   await maybeSeed();
   await ensureHomepageFilter();
   await ensureHomepageSections();
-  await ensureDefaultCardDisplayRule();
+  await ensureCardDisplayConfig();
+  await backfillCardDisplaySections();
+  await deleteNonDefaultCardDisplayRules();
   // A restart abandons any in-process import worker, so fail anything left queued/processing.
   await resetStalledImports();
   await resetStalledReelArchiveJobs();

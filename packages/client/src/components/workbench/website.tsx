@@ -3,7 +3,6 @@ import type { EntityLayout, Website } from "@eesimple/types";
 
 import i18n from "../../i18n";
 import { AutofillRulesList } from "../AutofillRulesList";
-import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { GenreMoodAssignmentSection } from "../GenreMoodAssignmentSection";
 import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 import { ParamRulesList } from "../ParamRulesList";
@@ -75,7 +74,6 @@ type WebsiteFieldKey
     | "paramRules"
     | "hierarchy"
     | "autofillRules"
-    | "displayRules"
     | "languages";
 
 /** The General-tab field keys whose `edit` renderer reads the shared `useWebsiteGeneralForm` controller
@@ -276,16 +274,6 @@ const websiteFields = {
       />
     ),
   },
-  displayRules: {
-    key: "displayRules",
-    label: i18n.t("Display Rules"),
-    view: ({
-      entity,
-    }) => <CardDisplayRulesList websiteId={entity.id} />,
-    edit: ({
-      entity,
-    }) => <CardDisplayRulesList websiteId={entity.id} />,
-  },
   languages: {
     key: "languages",
     label: i18n.t("Languages"),
@@ -378,14 +366,6 @@ const WEBSITE_DEFAULT_LAYOUT: EntityLayout = {
       }],
     },
     {
-      key: "display-rules",
-      label: i18n.t("Display Rules"),
-      sections: [{
-        key: "display-rules",
-        fields: ["displayRules"] satisfies WebsiteFieldKey[],
-      }],
-    },
-    {
       key: "languages",
       label: i18n.t("Languages"),
       sections: [{
@@ -473,12 +453,6 @@ export const websiteWorkbench: EntityWorkbench<Website> = {
     {
       key: "autofill",
       label: i18n.t("Autofill Rules"),
-      group: i18n.t("Rules"),
-    },
-    {
-      key: "display-rules",
-      label: i18n.t("Display Rules"),
-      group: i18n.t("Rules"),
     },
     {
       key: "languages",

@@ -2,7 +2,6 @@ import type { AnyEntityDescriptor } from "./types";
 import type { EntityRouteKind } from "../lib/entityRoutes";
 
 import { autofillDescriptor } from "./autofillRule";
-import { cardDisplayRuleDescriptor } from "./cardDisplayRule";
 import { categoryDescriptor } from "./category";
 import { genreMoodDescriptor } from "./genreMood";
 import { groupDescriptor } from "./group";
@@ -53,5 +52,4 @@ export const ENTITY_DESCRIPTORS = {
   "autofill": autofillDescriptor,
   "import-rule": importRuleDescriptor,
   "saved-filter": savedFilterDescriptor,
-  "card-display-rule": cardDisplayRuleDescriptor,
 } satisfies Record<EntityRouteKind, AnyEntityDescriptor>;

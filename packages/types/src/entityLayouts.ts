@@ -44,7 +44,6 @@ export const LAYOUTABLE_ENTITY_KINDS = [
   "autofill",
   "import-rule",
   "saved-filter",
-  "card-display-rule",
   "bookmark",
 ] as const;
 

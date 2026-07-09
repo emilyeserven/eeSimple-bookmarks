@@ -10,7 +10,6 @@ import {
   FolderOpen,
   Globe,
   Languages,
-  LayoutGrid,
   ListFilter,
   Mail,
   MapPin,
@@ -130,11 +129,6 @@ const CUSTOMIZATION_ITEMS = [
     key: "autofill",
     label: "Autofill Rules",
     icon: Wand2,
-  },
-  {
-    key: "card-display-rules",
-    label: "Card Display Rules",
-    icon: LayoutGrid,
   },
   {
     key: "import-rules",

@@ -10,7 +10,6 @@ import {
   Filter,
   FolderOpen,
   Globe,
-  LayoutGrid,
   ListFilter,
   Mail,
   MapPin,
@@ -130,12 +129,6 @@ export const TAXONOMY_LISTING_PINS: TaxonomyListingPin[] = [
     label: "Saved Filters",
     Icon: ListFilter,
     path: "/saved-filters",
-  },
-  {
-    key: "card-display-rules",
-    label: "Card Display Rules",
-    Icon: LayoutGrid,
-    path: "/card-display-rules",
   },
   {
     key: "import-rules",

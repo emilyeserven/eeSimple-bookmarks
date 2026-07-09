@@ -5,7 +5,6 @@ import type { LayoutableEntityKind } from "@eesimple/types";
 import { flattenTree } from "./tagTree";
 import { ENTITY_DESCRIPTORS } from "../entities/registry";
 import { useBookmarks } from "../hooks/useBookmarks";
-import { useCardDisplayRules } from "../hooks/useCardDisplayRules";
 
 /** Narrow an optional descriptor member we statically know is present (avoids a forbidden `!`). */
 function req<T>(value: T | undefined): T {
@@ -41,12 +40,11 @@ function treeToOptions<E extends { id: string }, N extends E & { children: N[] }
  * Real instances of every layout-driven kind, as picker options for the Page Layouts preview (#1225).
  * Mirrors `useDynamicLayoutFieldsByKind`: each source list/tree hook is called **unconditionally**
  * (Rules of Hooks) and sourced from the entity's own `ENTITY_DESCRIPTORS` listing config — flat kinds
- * via `listing.useItems`, tree kinds via `treeListing.useTree` (flattened), with bookmarks and card
- * display rules (a bespoke listing) read directly. Only exercised when the preview pane is mounted.
+ * via `listing.useItems`, tree kinds via `treeListing.useTree` (flattened), with bookmarks (a bespoke
+ * listing) read directly. Only exercised when the preview pane is mounted.
  */
 export function usePreviewInstancesByKind(): Partial<Record<LayoutableEntityKind, ComboboxOption[]>> {
   const bookmarks = useBookmarks();
-  const cardRules = useCardDisplayRules();
 
   const category = req(ENTITY_DESCRIPTORS.category.listing).useItems();
   const website = req(ENTITY_DESCRIPTORS.website.listing).useItems();
@@ -66,10 +64,6 @@ export function usePreviewInstancesByKind(): Partial<Record<LayoutableEntityKind
     "bookmark": (bookmarks.data ?? []).map(bookmark => ({
       value: bookmark.id,
       label: bookmark.title ?? bookmark.url ?? bookmark.id,
-    })),
-    "card-display-rule": (cardRules.data ?? []).map(rule => ({
-      value: rule.id,
-      label: rule.name,
     })),
     "category": toOptions(ENTITY_DESCRIPTORS.category.workbench, category.data),
     "website": toOptions(ENTITY_DESCRIPTORS.website.workbench, website.data),

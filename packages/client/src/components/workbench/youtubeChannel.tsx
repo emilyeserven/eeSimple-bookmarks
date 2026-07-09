@@ -8,7 +8,6 @@ import { useTranslation } from "react-i18next";
 
 import i18n from "../../i18n";
 import { AutofillRulesList } from "../AutofillRulesList";
-import { CardDisplayRulesList } from "../CardDisplayRulesList";
 import { EntityImagePreview } from "../EntityImageField";
 import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 import { SourceAutofillDefaults } from "../SourceAutofillDefaults";
@@ -154,7 +153,6 @@ type YouTubeChannelFieldKey
     | "labeledWebsites"
     | "genreMoods"
     | "autofillRules"
-    | "displayRules"
     | "languages";
 
 const youtubeChannelFields = {
@@ -274,16 +272,6 @@ const youtubeChannelFields = {
       />
     ),
   },
-  displayRules: {
-    key: "displayRules",
-    label: i18n.t("Display Rules"),
-    view: ({
-      entity,
-    }) => <CardDisplayRulesList channelId={entity.id} />,
-    edit: ({
-      entity,
-    }) => <CardDisplayRulesList channelId={entity.id} />,
-  },
   languages: {
     key: "languages",
     label: i18n.t("Languages"),
@@ -340,14 +328,6 @@ const YOUTUBE_CHANNEL_DEFAULT_LAYOUT: EntityLayout = {
       sections: [{
         key: "autofill",
         fields: ["autofillRules"] satisfies YouTubeChannelFieldKey[],
-      }],
-    },
-    {
-      key: "display-rules",
-      label: i18n.t("Display Rules"),
-      sections: [{
-        key: "display-rules",
-        fields: ["displayRules"] satisfies YouTubeChannelFieldKey[],
       }],
     },
     {
@@ -411,12 +391,6 @@ export const youtubeChannelWorkbench: EntityWorkbench<YouTubeChannel> = {
     {
       key: "autofill",
       label: i18n.t("Autofill Rules"),
-      group: i18n.t("Rules"),
-    },
-    {
-      key: "display-rules",
-      label: i18n.t("Display Rules"),
-      group: i18n.t("Rules"),
     },
     {
       key: "languages",

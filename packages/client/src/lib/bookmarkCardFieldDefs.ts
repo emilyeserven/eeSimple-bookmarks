@@ -20,6 +20,10 @@ export const STANDARD_CARD_FIELDS = [
     label: "Description",
   },
   {
+    key: "url",
+    label: "URL",
+  },
+  {
     key: "category",
     label: "Category",
   },
@@ -54,6 +58,14 @@ export const STANDARD_CARD_FIELDS = [
   {
     key: "groups",
     label: "Groups",
+  },
+  {
+    key: "createdAt",
+    label: "Date Added",
+  },
+  {
+    key: "updatedAt",
+    label: "Date Updated",
   },
   {
     key: "externalLink",

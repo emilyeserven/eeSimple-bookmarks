@@ -13,6 +13,7 @@ import {
   Image,
   Inbox,
   Languages,
+  LayoutGrid,
   LayoutTemplate,
   Link2,
   ListChecks,
@@ -70,6 +71,11 @@ export const displayNav: readonly SettingsTabNavItem[] = [
     to: "/settings/display/homepage",
     label: i18n.t("Homepage"),
     icon: LayoutTemplate,
+  },
+  {
+    to: "/settings/display/card-display",
+    label: i18n.t("Card Display"),
+    icon: LayoutGrid,
   },
   {
     to: "/settings/display/languages",

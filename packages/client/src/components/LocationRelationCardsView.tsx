@@ -54,8 +54,8 @@ export function LocationRelationCardsView({
         <BookmarkCard
           bookmark={bookmark}
           properties={properties ?? []}
-          fieldZones={display.fieldZones}
-          cardZoneLayouts={display.cardZoneLayouts}
+          sections={display.sections}
+          imageCorners={display.imageCorners}
           imageMode={display.imageMode}
           imageVisibility={display.imageVisibility}
           hideWebsiteForYouTube={display.hideWebsiteForYouTube}

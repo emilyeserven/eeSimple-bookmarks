@@ -9,7 +9,6 @@ import {
   Home,
   Inbox,
   Languages,
-  LayoutGrid,
   ListFilter,
   Mail,
   MapPin,
@@ -145,12 +144,6 @@ export const customizationItems = [
     title: i18n.t("Autofill Rules"),
     to: "/autofill",
     icon: Wand2,
-  },
-  {
-    key: "card-display-rules",
-    title: i18n.t("Card Display Rules"),
-    to: "/card-display-rules",
-    icon: LayoutGrid,
   },
   {
     key: "import-rules",

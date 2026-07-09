@@ -1,6 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, index, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { BookmarkAddFormAdvancedRule, BookmarkFieldSort, BookmarkGraphSettings, BookmarkSort, CardFieldZones, CardZoneLayouts, ConditionTree, EntityLayout, HomepageWidget, ImportBlacklistEntry, LabeledWebsite, LocationAlternateName, LocationBoundary, PersonSourceLabelSettings, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
+import type { BookmarkAddFormAdvancedRule, BookmarkFieldSort, BookmarkGraphSettings, BookmarkSort, CardDisplaySection, CardFieldZones, CardZoneLayouts, ConditionTree, EntityLayout, HomepageWidget, ImportBlacklistEntry, LabeledWebsite, LocationAlternateName, LocationBoundary, PersonSourceLabelSettings, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteParamRule } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -1944,6 +1944,10 @@ export const cardDisplayRules = pgTable("card_display_rules", {
   imageVisibility: text("image_visibility"),
   imageLayout: text("image_layout"),
   hideWebsiteForYouTube: boolean("hide_website_for_youtube"),
+  // The dynamic card-body sections (Card Display simplification): the single-config replacement for
+  // the four fixed body zones in field_zones. Only the Default row uses it; the four image corners
+  // continue to live in field_zones (image-* keys). Lone nullable jsonb = push-safe additive.
+  sections: jsonb("sections").$type<CardDisplaySection[]>(),
   // DEPRECATED: superseded by field_zones (which folds in visibility + corner placement). Retained
   // so the boot backfill can read it and push stays additive-only. Drop in a follow-up.
   hiddenCardFields: jsonb("hidden_card_fields").$type<string[]>(),

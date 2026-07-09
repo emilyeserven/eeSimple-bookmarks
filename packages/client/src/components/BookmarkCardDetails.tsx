@@ -1,10 +1,10 @@
 import type { BookmarkCardMenuControls } from "./BookmarkCardActions";
 import type { FieldRender } from "./bookmarkCardTaxonomyFields";
 import type { ResolvedFieldPlacement } from "../lib/bookmarkCardValues";
-import type { Bookmark, CardFieldZone, CardZoneLayout, CardZoneLayouts, Category, CustomProperty } from "@eesimple/types";
+import type { RenderBodySection } from "../lib/cardBodySections";
+import type { Bookmark, CardZoneLayouts, Category, CustomProperty } from "@eesimple/types";
 import type { ReactNode } from "react";
 
-import { CARD_BODY_ZONES, normalizeCardZoneLayout } from "@eesimple/types";
 import { useTranslation } from "react-i18next";
 
 import { BookmarkExternalLinkButton, BookmarkMoreMenu } from "./BookmarkCardActions";
@@ -14,7 +14,9 @@ import { BookmarkSecondaryNameField, BookmarkTitleLink, DescriptionOverflowDiv }
 import { useBookmarkLinkOutNodes } from "./useBookmarkLinkOutNodes";
 import { useHideWebsiteForYouTube } from "../lib/bookmarkCardFields";
 import { buildBookmarkValueItems } from "../lib/bookmarkCardValues";
-import { cardBodyContainerClass, gapClass, zoneForm } from "../lib/cardZoneLayoutClasses";
+import { bodySectionsFromZones } from "../lib/cardBodySections";
+import { cardBodyContainerClass, gapClass } from "../lib/cardZoneLayoutClasses";
+import { formatDateTimeValue } from "../lib/datetime";
 
 /** The card header field keys, rendered as a justified header row when co-located in a single zone. */
 const HEADER_FIELD_KEYS = new Set(["title", "externalLink", "more"]);
@@ -26,6 +28,12 @@ interface BookmarkCardDetailsProps {
   placements: Map<string, ResolvedFieldPlacement>;
   /** Resolved per-body-zone layout (flex vs grid); when omitted each zone uses its default arrangement. */
   cardZoneLayouts?: CardZoneLayouts;
+  /**
+   * The ordered card-body render sections. Listing cards pass the dynamic card-display config's
+   * resolved sections; when omitted the body is derived from the legacy fixed four-zone model (via
+   * `placements`/`cardZoneLayouts`), reproducing the pre-refactor render for homepage/other surfaces.
+   */
+  bodySections?: RenderBodySection[];
   /** The bookmark's resolved (non-built-in) category, used for the category pill. */
   bookmarkCategory?: Category;
   /** Resolved "hide website pill for YouTube" value; when omitted, the Default card display rule applies. */
@@ -42,21 +50,14 @@ interface BookmarkCardDetailsProps {
   onSaveRating?: (propertyId: string, value: number) => void;
 }
 
-/** The zone's layout, defaulting to its natural arrangement (Table → grid, others → flex) when unset. */
-function zoneLayout(zone: CardFieldZone, layouts: CardZoneLayouts | undefined): CardZoneLayout {
-  return normalizeCardZoneLayout(
-    layouts?.[zone as keyof CardZoneLayouts],
-    zone === "card-table" ? "grid" : "flex",
-  );
-}
-
 /**
- * The body of a bookmark card. Fields render in the four card-body sub-zones (single-top → labels →
- * table → single-bottom, in that fixed order), each field in the form its zone imposes and in the
- * order it sits within the zone (so the rule's field ordering is honored).
+ * The body of a bookmark card. Fields render in an ordered list of sections (listing cards use the
+ * dynamic card-display config; other surfaces fall back to the legacy four fixed sub-zones), each
+ * field in the form its section imposes and in the order it sits within the section (so the
+ * configured field ordering is honored).
  */
 export function BookmarkCardDetails({
-  bookmark, properties, placements, cardZoneLayouts, bookmarkCategory, hideWebsiteForYouTube,
+  bookmark, properties, placements, cardZoneLayouts, bodySections, bookmarkCategory, hideWebsiteForYouTube,
   hasImageAbove = false, menu = {}, onSaveRating,
 }: BookmarkCardDetailsProps) {
   const {
@@ -180,6 +181,47 @@ export function BookmarkCardDetails({
           tableValue: <span className="text-sm">{bookmark.description}</span>,
         };
       }
+      case "url": {
+        if (!bookmark.url) return null;
+        const urlNode = (
+          <a
+            href={bookmark.url}
+            target="_blank"
+            rel="noreferrer"
+            className="
+              block max-w-full truncate text-sm text-muted-foreground
+              underline-offset-2
+              hover:underline
+            "
+          >{bookmark.url}
+          </a>
+        );
+        return {
+          inline: urlNode,
+          block: urlNode,
+          tableName: t("URL"),
+          tableValue: urlNode,
+        };
+      }
+      case "createdAt": {
+        const node = <span className="text-sm text-muted-foreground">{formatDateTimeValue(bookmark.createdAt, "date")}</span>;
+        return {
+          inline: node,
+          block: node,
+          tableName: t("Date Added"),
+          tableValue: node,
+        };
+      }
+      case "updatedAt": {
+        if (!bookmark.updatedAt) return null;
+        const node = <span className="text-sm text-muted-foreground">{formatDateTimeValue(bookmark.updatedAt, "date")}</span>;
+        return {
+          inline: node,
+          block: node,
+          tableName: t("Date Updated"),
+          tableValue: node,
+        };
+      }
       case "category":
       case "website":
       case "mediaType":
@@ -237,19 +279,12 @@ export function BookmarkCardDetails({
     }
   }
 
-  // Group the body-placed keys by their sub-zone, preserving each zone's field order (placements is
-  // built in zone-then-array order, so Map insertion order matches).
-  const keysByZone = new Map<CardFieldZone, string[]>();
-  for (const [key, placement] of placements) {
-    if (placement.corner !== null) continue;
-    const list = keysByZone.get(placement.zone) ?? [];
-    list.push(key);
-    keysByZone.set(placement.zone, list);
-  }
+  // Listing cards pass explicit dynamic sections; other surfaces derive the legacy fixed four-zone
+  // layout from the placements (byte-identical to the pre-refactor render).
+  const sections = bodySections ?? bodySectionsFromZones(placements, cardZoneLayouts);
 
-  function renderZone(zone: CardFieldZone): ReactNode {
-    const keys = keysByZone.get(zone) ?? [];
-    const entries = keys
+  function renderSection(section: RenderBodySection): ReactNode {
+    const entries = section.fieldKeys
       .map(key => ({
         key,
         render: describeField(key),
@@ -260,13 +295,14 @@ export function BookmarkCardDetails({
         hideLabel: boolean; } => entry.render !== null);
     if (entries.length === 0) return null;
 
-    const form = zoneForm(zone);
-    const layout = zoneLayout(zone, cardZoneLayouts);
+    const {
+      key: sectionKey, form, layout,
+    } = section;
     if (form === "table") {
-      // The Table zone is always the fixed two-column `label : value` table — it has no layout rules.
+      // The Table form is always the fixed two-column `label : value` table — it has no layout rules.
       return (
         <dl
-          key={zone}
+          key={sectionKey}
           className="grid grid-cols-[auto_1fr] items-center gap-2"
         >
           {entries.map(entry => (
@@ -300,7 +336,7 @@ export function BookmarkCardDetails({
       const blockClass = layout.mode === "grid" ? "col-span-2" : "w-full";
       return (
         <div
-          key={zone}
+          key={sectionKey}
           className={containerClass}
         >
           {entries.map(entry => (
@@ -319,20 +355,20 @@ export function BookmarkCardDetails({
       );
     }
 
-    // single-top / single-bottom: full-width stacked rows. The header fields (title + action buttons),
+    // Stacked (single) form: full-width stacked rows. The header fields (title + action buttons),
     // when co-located here, render as a justified header row (title left, buttons right) reproducing the
     // old fixed card header; the remaining fields stack below.
     const titleEntry = entries.find(entry => entry.key === "title");
     const actionEntries = entries.filter(entry => entry.key === "externalLink" || entry.key === "more");
     const restEntries = entries.filter(entry => !HEADER_FIELD_KEYS.has(entry.key));
     const hasHeader = titleEntry !== undefined || actionEntries.length > 0;
-    // Grid arranges the non-header rows in two columns; flex honors the zone's resolved layout
+    // Grid arranges the non-header rows in two columns; flex honors the section's resolved layout
     // (direction defaults to `column` so an unset layout still stacks full-width like before).
     const restClass = cardBodyContainerClass("single", layout);
     return (
       <div
-        key={zone}
-        className={zone === "card-single-bottom"
+        key={sectionKey}
+        className={section.pinBottom
           ? "mt-auto space-y-2"
           : "space-y-2"}
       >
@@ -375,7 +411,7 @@ export function BookmarkCardDetails({
         ${hasImageAbove ? "mt-2" : ""}
       `}
     >
-      {CARD_BODY_ZONES.map(zone => renderZone(zone))}
+      {sections.map(section => renderSection(section))}
     </div>
   );
 }

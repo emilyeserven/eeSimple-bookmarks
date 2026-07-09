@@ -1,5 +1,6 @@
 import type {
   CardFieldZone,
+  CardSectionForm,
   CardZoneAlign,
   CardZoneDirection,
   CardZoneGap,
@@ -15,6 +16,13 @@ export type FieldForm = "single" | "label" | "table";
 export function zoneForm(zone: CardFieldZone): FieldForm {
   if (zone === "card-labels") return "label";
   if (zone === "card-table") return "table";
+  return "single";
+}
+
+/** Map a dynamic-section {@link CardSectionForm} to the render {@link FieldForm} (inline → label, stacked → single). */
+export function sectionFormToFieldForm(form: CardSectionForm): FieldForm {
+  if (form === "inline") return "label";
+  if (form === "table") return "table";
   return "single";
 }
 

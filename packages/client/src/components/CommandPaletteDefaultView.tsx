@@ -90,17 +90,15 @@ function SyncFromSourceCommandItem({
 
 /** The hovered/current bookmark's quick-edit groups, shown only when `show` is true. */
 function BookmarkQuickEditGroups({
-  show, bookmarkTaxonomiesGroup, cardDisplayRulesGroup,
+  show, bookmarkTaxonomiesGroup,
 }: {
   show: boolean;
   bookmarkTaxonomiesGroup: ReactNode;
-  cardDisplayRulesGroup: ReactNode;
 }) {
   if (!show) return null;
   return (
     <>
       {bookmarkTaxonomiesGroup}
-      {cardDisplayRulesGroup}
     </>
   );
 }
@@ -239,7 +237,6 @@ function MatchedEntityGroup({
 interface CommandPaletteDefaultViewProps {
   bookmarkFromHover: boolean;
   bookmarkTaxonomiesGroup: ReactNode;
-  cardDisplayRulesGroup: ReactNode;
   looksLikeUrl: boolean;
   inputValue: string;
   onAddBookmark: (url: string) => void;
@@ -272,7 +269,6 @@ interface CommandPaletteDefaultViewProps {
 export function CommandPaletteDefaultView({
   bookmarkFromHover,
   bookmarkTaxonomiesGroup,
-  cardDisplayRulesGroup,
   looksLikeUrl,
   inputValue,
   onAddBookmark,
@@ -299,7 +295,6 @@ export function CommandPaletteDefaultView({
       <BookmarkQuickEditGroups
         show={bookmarkFromHover}
         bookmarkTaxonomiesGroup={bookmarkTaxonomiesGroup}
-        cardDisplayRulesGroup={cardDisplayRulesGroup}
       />
 
       <QuickAddGroup
@@ -331,7 +326,6 @@ export function CommandPaletteDefaultView({
       <BookmarkQuickEditGroups
         show={!bookmarkFromHover}
         bookmarkTaxonomiesGroup={bookmarkTaxonomiesGroup}
-        cardDisplayRulesGroup={cardDisplayRulesGroup}
       />
 
       <SettingsFavoriteGroup

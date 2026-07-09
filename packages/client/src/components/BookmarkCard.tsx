@@ -1,11 +1,14 @@
 import type { BookmarkCardMenuControls } from "./BookmarkCardActions";
 import type { BookmarkImageVisibility } from "../lib/bookmarkColumns";
+import type { RenderBodySection } from "../lib/cardBodySections";
 import type { Bookmark,
+  CardDisplaySection,
   CardFieldZones,
+  CardImageCorners,
   CardZoneLayouts,
   CustomProperty } from "@eesimple/types";
 
-import { propertyAppliesToCategory } from "@eesimple/types";
+import { emptyCardImageCorners, propertyAppliesToCategory } from "@eesimple/types";
 
 import { BookmarkCardDetails } from "./BookmarkCardDetails";
 import { BookmarkCardImage } from "./BookmarkCardImage";
@@ -15,8 +18,9 @@ import { buildBookmarkCardOverlayItems } from "./bookmarkCardOverlayItems";
 import { useBookmarkCardSaves } from "./useBookmarkCardSaves";
 import { useCategories } from "../hooks/useCategories";
 import { useHideWebsiteForYouTube } from "../lib/bookmarkCardFields";
-import { buildBookmarkValueItems, fieldPlacementsForCard } from "../lib/bookmarkCardValues";
+import { buildBookmarkValueItems, fieldPlacementsForCard, fieldPlacementsForConfig } from "../lib/bookmarkCardValues";
 import { resolveBookmarkDisplayImage } from "../lib/bookmarkImage";
+import { bodySectionsFromConfig } from "../lib/cardBodySections";
 
 interface BookmarkCardProps {
   bookmark: Bookmark;
@@ -36,13 +40,21 @@ interface BookmarkCardProps {
    */
   imageVisibility?: BookmarkImageVisibility;
   /**
+   * The dynamic card-display config's resolved (already `visibleIf`-filtered) body sections and the
+   * four image corners (listing cards). When provided, these drive the card body + overlays and take
+   * precedence over `fieldZones`/`cardZoneLayouts`.
+   */
+  sections?: CardDisplaySection[];
+  imageCorners?: CardImageCorners;
+  /**
    * Per-zone field placements governing which fields show and where (card body vs. image corners).
-   * Listings pass the rule-resolved zones; when omitted every field defaults to the card body.
+   * The legacy fixed-zone model used by homepage sections; when omitted (and no `sections`) every
+   * field defaults to the card body.
    */
   fieldZones?: CardFieldZones;
   /**
-   * Per-body-zone layout (flex vs grid) for the card-body sub-zones. Listings pass the rule-resolved
-   * layouts; when omitted each zone uses its default arrangement.
+   * Per-body-zone layout (flex vs grid) for the card-body sub-zones. Homepage sections pass the
+   * resolved layouts; when omitted each zone uses its default arrangement.
    */
   cardZoneLayouts?: CardZoneLayouts;
   /** When true, hide the website pill on a bookmark that also has a YouTube channel. When omitted, the Default rule's value applies. */
@@ -56,12 +68,18 @@ interface BookmarkCardProps {
 
 export function BookmarkCard({
   bookmark, properties = [], onDelete, imageLeft = false, imageMode = "natural",
-  imageVisibility = "shown", fieldZones, cardZoneLayouts, hideWebsiteForYouTube, loading = false,
+  imageVisibility = "shown", sections, imageCorners, fieldZones, cardZoneLayouts,
+  hideWebsiteForYouTube, loading = false,
 }: BookmarkCardProps) {
   const {
     autoImage, screenshotPending, onScreenshot, saveNumber, saveBoolean, saveDateTime, saveChoices, saveTags,
   } = useBookmarkCardSaves(bookmark);
-  const placements = fieldPlacementsForCard(fieldZones, properties);
+  // The dynamic card-display config (listing cards) drives placement/body-sections; otherwise fall
+  // back to the legacy fixed-zone model (homepage sections + surfaces with no config).
+  const placements = sections
+    ? fieldPlacementsForConfig(sections, imageCorners ?? emptyCardImageCorners())
+    : fieldPlacementsForCard(fieldZones, properties);
+  const bodySections: RenderBodySection[] | undefined = sections ? bodySectionsFromConfig(sections) : undefined;
   const {
     data: allCategories = [],
   } = useCategories();
@@ -150,6 +168,7 @@ export function BookmarkCard({
       properties={properties}
       placements={placements}
       cardZoneLayouts={cardZoneLayouts}
+      bodySections={bodySections}
       bookmarkCategory={bookmarkCategory}
       hideWebsiteForYouTube={hideWebsiteForYouTube}
       hasImageAbove={showImageArea && !imageLeft}

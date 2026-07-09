@@ -2209,6 +2209,172 @@ export function emptyCardFieldZones(): CardFieldZones {
   };
 }
 
+/* -------------------------------------------------------------------------------------------------
+ * Card Display config — the dynamic-section model (card display only; homepage keeps CardFieldZones)
+ * ---------------------------------------------------------------------------------------------- */
+
+/**
+ * How a {@link CardDisplaySection} renders the fields placed in it. Reproduces the three legacy
+ * card-body forms that used to be derived from the fixed zone *name*:
+ * - `stacked` — full-width rows (the old `card-single-*` zones); the header fields (`title` +
+ *   `externalLink`/`more`) still lay out as a justified header row when co-located.
+ * - `inline` — pill/badge flow (the old `card-labels` zone); wraps as a flex row or a two-column
+ *   grid per {@link CardZoneLayout.mode}.
+ * - `table` — a fixed two-column `label : value` grid (the old `card-table` zone).
+ */
+export type CardSectionForm = "stacked" | "inline" | "table";
+
+/**
+ * One card-body section in the {@link CardDisplayConfig} dynamic-section model. Sections are an
+ * ordered array (add/rename/reorder/remove) — the card-display replacement for the four fixed
+ * {@link CardBodyZone}s. Each section owns its render {@link CardSectionForm}, its
+ * {@link CardZoneLayout} (the per-section "layout" dropdown), an optional per-bookmark visibility
+ * {@link ConditionTree} (absent/empty = always visible), and its ordered field placements.
+ */
+export interface CardDisplaySection {
+  /** Stable machine slug — render/merge identity (never shown; `title` is the editor label). */
+  key: string;
+  /** User-editable section name shown only in the editor. */
+  title?: string;
+  /** Per-bookmark visibility gate; absent or an empty group = always visible. */
+  visibleIf?: ConditionTree;
+  form: CardSectionForm;
+  layout: CardZoneLayout;
+  fields: CardFieldPlacement[];
+}
+
+/** The four image-corner overlay placements a {@link CardDisplayConfig} declares (kept separate from body sections). */
+export type CardImageCorners = Record<CardImageCorner, CardFieldPlacement[]>;
+
+/** An empty {@link CardImageCorners} with every corner present and empty. */
+export function emptyCardImageCorners(): CardImageCorners {
+  return {
+    "top-left": [],
+    "top-right": [],
+    "bottom-left": [],
+    "bottom-right": [],
+  };
+}
+
+/**
+ * The single card-display configuration governing every listing card. Replaces the multi-rule
+ * {@link CardDisplayRule} model: dynamic card-body {@link CardDisplaySection}s (each with its own
+ * form/layout/visibility) plus the four fixed image-corner overlays and the image presentation
+ * attributes. Resolved entirely client-side at render time.
+ */
+export interface CardDisplayConfig {
+  sections: CardDisplaySection[];
+  imageCorners: CardImageCorners;
+  imageMode: BookmarkImageMode;
+  imageVisibility: BookmarkImageVisibility;
+  imageLayout: HomepageSectionImageLayout;
+  hideWebsiteForYouTube: boolean;
+}
+
+/** The {@link CardSectionForm} for a legacy {@link CardBodyZone} (used by the fromFieldZones transform). */
+function bodyZoneForm(zone: CardBodyZone): CardSectionForm {
+  switch (zone) {
+    case "card-labels": return "inline";
+    case "card-table": return "table";
+    default: return "stacked";
+  }
+}
+
+/** A human title for a legacy {@link CardBodyZone}, seeded onto the derived default sections. */
+function bodyZoneTitle(zone: CardBodyZone): string {
+  switch (zone) {
+    case "card-single-top": return "Header";
+    case "card-labels": return "Labels";
+    case "card-table": return "Details table";
+    default: return "Footer";
+  }
+}
+
+/**
+ * Convert a legacy {@link CardFieldZones} (+ {@link CardZoneLayouts}) into the dynamic-section
+ * {@link CardDisplayConfig} model: one section per {@link CardBodyZone} (in render order, keyed by
+ * the zone name so identities stay stable) carrying that zone's placements/form/layout, and the
+ * four `image-*` zones lifted into {@link CardImageCorners}. Shared by the client default builder,
+ * the middleware seed, and the boot backfill so all three produce identical shapes.
+ */
+export function cardDisplayConfigFromFieldZones(
+  fieldZones: CardFieldZones,
+  cardZoneLayouts: CardZoneLayouts | null | undefined,
+  image: {
+    imageMode: BookmarkImageMode;
+    imageVisibility: BookmarkImageVisibility;
+    imageLayout: HomepageSectionImageLayout;
+    hideWebsiteForYouTube: boolean;
+  },
+): CardDisplayConfig {
+  const sections: CardDisplaySection[] = CARD_BODY_ZONES.map(zone => ({
+    key: zone,
+    title: bodyZoneTitle(zone),
+    form: bodyZoneForm(zone),
+    layout: normalizeCardZoneLayout(cardZoneLayouts?.[zone], zone === "card-table" ? "grid" : "flex"),
+    fields: fieldZones[zone].map(placement => ({
+      ...placement,
+    })),
+  }));
+  return {
+    sections,
+    imageCorners: {
+      "top-left": fieldZones["image-top-left"].map(p => ({
+        ...p,
+      })),
+      "top-right": fieldZones["image-top-right"].map(p => ({
+        ...p,
+      })),
+      "bottom-left": fieldZones["image-bottom-left"].map(p => ({
+        ...p,
+      })),
+      "bottom-right": fieldZones["image-bottom-right"].map(p => ({
+        ...p,
+      })),
+    },
+    ...image,
+  };
+}
+
+/** The {@link CardBodyZone} a {@link CardSectionForm} maps back to (for the inverse transform). */
+function sectionFormToBodyZone(form: CardSectionForm): CardBodyZone {
+  switch (form) {
+    case "inline": return "card-labels";
+    case "table": return "card-table";
+    default: return "card-single-top";
+  }
+}
+
+/**
+ * Flatten a {@link CardDisplayConfig} back into a legacy {@link CardFieldZones} — each section's fields
+ * land in the {@link CardBodyZone} its form maps to, and the four image corners fill the `image-*`
+ * zones. Used by non-listing surfaces (which still consume the fixed-zone model) to source the
+ * per-field knobs / corner placements from the single config. The exact body zone is not
+ * round-trip-exact for renamed/added sections, but the per-field placements/knobs are preserved.
+ */
+export function fieldZonesFromConfig(config: CardDisplayConfig): CardFieldZones {
+  const zones = emptyCardFieldZones();
+  for (const section of config.sections) {
+    const zone = sectionFormToBodyZone(section.form);
+    for (const placement of section.fields) zones[zone].push({
+      ...placement,
+    });
+  }
+  zones["image-top-left"] = config.imageCorners["top-left"].map(p => ({
+    ...p,
+  }));
+  zones["image-top-right"] = config.imageCorners["top-right"].map(p => ({
+    ...p,
+  }));
+  zones["image-bottom-left"] = config.imageCorners["bottom-left"].map(p => ({
+    ...p,
+  }));
+  zones["image-bottom-right"] = config.imageCorners["bottom-right"].map(p => ({
+    ...p,
+  }));
+  return zones;
+}
+
 /** A user-defined custom property that becomes a dynamic bookmark filter. */
 export interface CustomProperty {
   id: string;

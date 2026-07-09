@@ -5,7 +5,6 @@ import { resolveLayout } from "@eesimple/types";
 import { describe, expect, it } from "vitest";
 
 import { autofillWorkbench } from "./autofill";
-import { cardDisplayRuleWorkbench } from "./cardDisplayRule";
 import { importRuleWorkbench } from "./importRule";
 import { locationWorkbench } from "./location";
 import { mediaTypeWorkbench } from "./mediaType";
@@ -60,13 +59,13 @@ function shape<E extends { id: string }>(
 describe("tag default layout", () => {
   it("renders the view tabs in order (Hierarchy present)", () => {
     expect(shape(tagWorkbench, "view").map(tab => tab.key)).toEqual([
-      "general", "hierarchy", "autofill", "display-rules",
+      "general", "hierarchy", "autofill",
     ]);
   });
 
   it("renders the edit tabs in order (Hierarchy dropped, view-only)", () => {
     expect(shape(tagWorkbench, "edit").map(tab => tab.key)).toEqual([
-      "general", "autofill", "display-rules",
+      "general", "autofill",
     ]);
   });
 
@@ -94,13 +93,13 @@ describe("media type default layout", () => {
 
   it("renders the view tabs in order (Hierarchy present)", () => {
     expect(shape(mediaTypeWorkbench, "view").map(tab => tab.key)).toEqual([
-      "general", "hierarchy", "autofill", "display-rules",
+      "general", "hierarchy", "autofill",
     ]);
   });
 
   it("renders the edit tabs in order (Hierarchy dropped, view-only)", () => {
     expect(shape(mediaTypeWorkbench, "edit").map(tab => tab.key)).toEqual([
-      "general", "autofill", "display-rules",
+      "general", "autofill",
     ]);
   });
 
@@ -125,20 +124,20 @@ describe("media type default layout", () => {
 describe("location default layout", () => {
   it("renders the view tabs in order (Hierarchy present)", () => {
     expect(shape(locationWorkbench, "view").map(tab => tab.key)).toEqual([
-      "general", "hierarchy", "autofill", "display-rules",
+      "general", "hierarchy", "autofill",
     ]);
   });
 
   it("renders the edit tabs in order (Hierarchy dropped, view-only)", () => {
     expect(shape(locationWorkbench, "edit").map(tab => tab.key)).toEqual([
-      "general", "autofill", "display-rules",
+      "general", "autofill",
     ]);
   });
 });
 
 describe("custom property default layout", () => {
   const expectedTabs = [
-    "general", "options", "categories", "media-types", "display", "autofill", "display-rules",
+    "general", "options", "categories", "media-types", "display", "autofill",
   ];
 
   it("renders the view tabs in order", () => {
@@ -172,19 +171,19 @@ describe("custom property default layout", () => {
 describe("website default layout", () => {
   it("renders the view tabs in order (Hierarchy present)", () => {
     expect(shape(websiteWorkbench, "view").map(tab => tab.key)).toEqual([
-      "general", "people", "shortened-links", "param-rules", "hierarchy", "autofill", "display-rules", "languages",
+      "general", "people", "shortened-links", "param-rules", "hierarchy", "autofill", "languages",
     ]);
   });
 
   it("renders the edit tabs in order (Hierarchy dropped, view-only)", () => {
     expect(shape(websiteWorkbench, "edit").map(tab => tab.key)).toEqual([
-      "general", "people", "shortened-links", "param-rules", "autofill", "display-rules", "languages",
+      "general", "people", "shortened-links", "param-rules", "autofill", "languages",
     ]);
   });
 });
 
 describe("YouTube channel default layout", () => {
-  const expectedTabs = ["general", "autofill", "display-rules", "languages"];
+  const expectedTabs = ["general", "autofill", "languages"];
 
   it("renders the view tabs in order", () => {
     expect(shape(youtubeChannelWorkbench, "view").map(tab => tab.key)).toEqual(expectedTabs);
@@ -252,39 +251,6 @@ describe("import rule default layout", () => {
   });
 });
 
-describe("card display rule default layout", () => {
-  const expectedTabs = ["general", "conditions", "display"];
-
-  function displayFields(mode: WorkbenchMode): string[] {
-    const display = shape(cardDisplayRuleWorkbench, mode).find(tab => tab.key === "display");
-    return display?.sections.flatMap(section => section.fields) ?? [];
-  }
-
-  it("renders the view tabs in order", () => {
-    expect(shape(cardDisplayRuleWorkbench, "view").map(tab => tab.key)).toEqual(expectedTabs);
-  });
-
-  it("renders the edit tabs in order", () => {
-    expect(shape(cardDisplayRuleWorkbench, "edit").map(tab => tab.key)).toEqual(expectedTabs);
-  });
-
-  it("shows only the preview in the Display tab in view mode (the granular controls are edit-only)", () => {
-    expect(displayFields("view")).toEqual(["preview"]);
-  });
-
-  it("atomizes the Display composite into granular fields in edit mode", () => {
-    expect(displayFields("edit")).toEqual([
-      "imageVisibility",
-      "imageMode",
-      "imageLayout",
-      "hideWebsiteForYouTube",
-      "fieldZones",
-      "cardZoneLayouts",
-      "preview",
-    ]);
-  });
-});
-
 describe("saved filter default layout", () => {
   it("renders the single tab in both modes", () => {
     expect(shape(savedFilterWorkbench, "view").map(tab => tab.key)).toEqual(["general"]);
@@ -312,30 +278,5 @@ describe("stored layout rearrangement (end-to-end loop, one tree entity + one co
     expect(editKeys).toContain("extras");
     expect(viewKeys).not.toContain("autofill");
     expect(editKeys).not.toContain("autofill");
-  });
-
-  it("moves a granular card display rule field into a brand-new user-created tab in edit mode", () => {
-    const stored: EntityLayout = {
-      tabs: [
-        {
-          key: "extras",
-          label: "Extras",
-          sections: [{
-            key: "s",
-            fields: ["fieldZones"],
-          }],
-        },
-      ],
-    };
-    const editTabs = shape(cardDisplayRuleWorkbench, "edit", stored);
-    const editKeys = editTabs.map(tab => tab.key);
-    expect(editKeys).toContain("extras");
-    const extras = editTabs.find(tab => tab.key === "extras");
-    expect(extras?.sections.flatMap(section => section.fields)).toContain("fieldZones");
-    // The Display tab keeps its remaining fields — moving one field never empties it.
-    const display = editTabs.find(tab => tab.key === "display");
-    expect(display?.sections.flatMap(section => section.fields)).not.toContain("fieldZones");
-    // `fieldZones` is edit-only, so the user tab holding only it disappears in view mode.
-    expect(shape(cardDisplayRuleWorkbench, "view", stored).map(tab => tab.key)).not.toContain("extras");
   });
 });

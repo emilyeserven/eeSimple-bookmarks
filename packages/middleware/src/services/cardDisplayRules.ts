@@ -1,12 +1,17 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type {
+  BookmarkImageMode,
   BookmarkImageVisibility,
-  CardDisplayRule,
-  CreateCardDisplayRuleInput,
+  CardDisplayConfig,
+  CardFieldZones,
   HomepageSectionImageLayout,
-  UpdateCardDisplayRuleInput,
 } from "@eesimple/types";
-import { defaultCardZoneLayouts, emptyConditionTree } from "@eesimple/types";
+import {
+  cardDisplayConfigFromFieldZones,
+  defaultCardZoneLayouts,
+  emptyCardFieldZones,
+  emptyConditionTree,
+} from "@eesimple/types";
 import { db } from "@/db";
 import { cardDisplayRules } from "@/db/schema";
 import { defaultFieldZones } from "@/services/cardDisplayDefaults";
@@ -15,158 +20,113 @@ import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
 type RuleRow = typeof cardDisplayRules.$inferSelect;
 
-/** Slugs already in use on the rules table, optionally excluding one row (when renaming it). */
-const takenSlugs = (excludeId?: string) =>
-  takenSlugsOf(cardDisplayRules, cardDisplayRules.slug, cardDisplayRules.id, excludeId);
+/** Slugs already in use on the rules table (only the seeded Default row remains). */
+const takenSlugs = () => takenSlugsOf(cardDisplayRules, cardDisplayRules.slug, cardDisplayRules.id);
 
-function toRule(row: RuleRow): CardDisplayRule {
+/** The image presentation attributes of the config, resolved from a row with their concrete fallbacks. */
+function toImageAttrs(row: RuleRow): Pick<
+  CardDisplayConfig,
+  "imageMode" | "imageVisibility" | "imageLayout" | "hideWebsiteForYouTube"
+> {
   return {
-    id: row.id,
-    name: row.name,
-    slug: row.slug,
-    description: row.description,
-    conditions: row.conditions,
-    sortOrder: row.sortOrder,
-    isDefault: row.isDefault,
-    fieldZones: row.fieldZones ?? null,
-    cardZoneLayouts: row.cardZoneLayouts ?? null,
-    imageMode: row.imageMode ?? null,
-    imageVisibility: (row.imageVisibility as BookmarkImageVisibility | null) ?? null,
-    imageLayout: (row.imageLayout as HomepageSectionImageLayout | null) ?? null,
-    hideWebsiteForYouTube: row.hideWebsiteForYouTube ?? null,
-    createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
+    imageMode: (row.imageMode as BookmarkImageMode | null) ?? "natural",
+    imageVisibility: (row.imageVisibility as BookmarkImageVisibility | null) ?? "shown",
+    imageLayout: (row.imageLayout as HomepageSectionImageLayout | null) ?? "above",
+    hideWebsiteForYouTube: row.hideWebsiteForYouTube ?? false,
   };
 }
 
 /**
- * List all card display rules. Non-default rules come first, ordered by `sortOrder` ASC; the Default
- * rule (lowest priority) is pinned last via the `isDefault` sort key.
+ * Resolve the Default row into the single {@link CardDisplayConfig}: the dynamic body `sections`
+ * (from the `sections` column, or derived from `field_zones` for a not-yet-backfilled row), the four
+ * image corners (always the `image-*` keys of `field_zones`), and the image attributes.
  */
-export async function listCardDisplayRules(): Promise<CardDisplayRule[]> {
-  const rows = await db
+function toConfig(row: RuleRow): CardDisplayConfig {
+  const image = toImageAttrs(row);
+  const fieldZones = row.fieldZones ?? defaultFieldZones();
+  const derived = cardDisplayConfigFromFieldZones(fieldZones, row.cardZoneLayouts, image);
+  return {
+    sections: row.sections ?? derived.sections,
+    imageCorners: derived.imageCorners,
+    ...image,
+  };
+}
+
+/** Read the seeded Default row (the only row after teardown). */
+async function loadDefaultRow(): Promise<RuleRow | undefined> {
+  const [row] = await db
     .select()
     .from(cardDisplayRules)
-    .orderBy(
-      asc(cardDisplayRules.isDefault),
-      asc(cardDisplayRules.sortOrder),
-      asc(cardDisplayRules.createdAt),
-    );
-  return rows.map(toRule);
+    .where(eq(cardDisplayRules.isDefault, true))
+    .limit(1);
+  return row;
 }
 
-/** Create a new (non-default) card display rule. sortOrder defaults to one more than the current max. */
-export async function createCardDisplayRule(
-  input: CreateCardDisplayRuleInput,
-): Promise<CardDisplayRule> {
-  let sortOrder = input.sortOrder;
-  if (sortOrder === undefined) {
-    const [{
-      max,
-    }] = await db
-      .select({
-        max: sql<number>`COALESCE(MAX(${cardDisplayRules.sortOrder}), -1)`,
-      })
-      .from(cardDisplayRules)
-      .where(eq(cardDisplayRules.isDefault, false));
-    sortOrder = (max ?? -1) + 1;
+/** The single card-display configuration governing every listing card. */
+export async function getCardDisplayConfig(): Promise<CardDisplayConfig> {
+  const row = await loadDefaultRow();
+  if (!row) {
+    // Should not happen (the boot seed guarantees the row), but keep a concrete fallback.
+    return cardDisplayConfigFromFieldZones(defaultFieldZones(), defaultCardZoneLayouts(), {
+      imageMode: "natural",
+      imageVisibility: "shown",
+      imageLayout: "above",
+      hideWebsiteForYouTube: false,
+    });
   }
-  const [row] = await db
-    .insert(cardDisplayRules)
-    .values({
-      name: input.name,
-      slug: uniqueSlug(input.name, await takenSlugs(), "card-display-rule"),
-      description: input.description ?? null,
-      conditions: input.conditions,
-      sortOrder,
-      isDefault: false,
-      fieldZones: input.fieldZones ?? null,
-      cardZoneLayouts: input.cardZoneLayouts ?? null,
-      imageMode: input.imageMode ?? null,
-      imageVisibility: input.imageVisibility ?? null,
-      imageLayout: input.imageLayout ?? null,
-      hideWebsiteForYouTube: input.hideWebsiteForYouTube ?? null,
-    })
-    .returning();
-  return toRule(row);
+  return toConfig(row);
 }
 
-/**
- * Partially update a card display rule. Guards on `!== undefined` so an explicit `null` persists as
- * "inherit" rather than being skipped. Returns null when the id is not found.
- */
-export async function updateCardDisplayRule(
-  id: string,
-  input: UpdateCardDisplayRuleInput,
-): Promise<CardDisplayRule | null> {
+/** Merge the config's four image corners into a `field_zones` object, preserving the body zones. */
+function cornersIntoFieldZones(
+  base: CardFieldZones | null,
+  corners: CardDisplayConfig["imageCorners"],
+): CardFieldZones {
+  const zones = base
+    ? {
+      ...base,
+    }
+    : emptyCardFieldZones();
+  zones["image-top-left"] = corners["top-left"];
+  zones["image-top-right"] = corners["top-right"];
+  zones["image-bottom-left"] = corners["bottom-left"];
+  zones["image-bottom-right"] = corners["bottom-right"];
+  return zones;
+}
+
+/** Partially update the single card-display config (the Default row). Returns the resolved config. */
+export async function updateCardDisplayConfig(
+  patch: Partial<CardDisplayConfig>,
+): Promise<CardDisplayConfig> {
+  const row = await loadDefaultRow();
+  if (!row) return getCardDisplayConfig();
+
   const updates: Partial<typeof cardDisplayRules.$inferInsert> = {};
-  if (input.name !== undefined) {
-    updates.name = input.name;
-    updates.slug = uniqueSlug(input.name, await takenSlugs(id), "card-display-rule");
+  if (patch.sections !== undefined) updates.sections = patch.sections;
+  if (patch.imageCorners !== undefined) {
+    updates.fieldZones = cornersIntoFieldZones(row.fieldZones, patch.imageCorners);
   }
-  if (input.description !== undefined) updates.description = input.description ?? null;
-  if (input.conditions !== undefined) updates.conditions = input.conditions;
-  if (input.sortOrder !== undefined) updates.sortOrder = input.sortOrder;
-  if (input.fieldZones !== undefined) updates.fieldZones = input.fieldZones;
-  if (input.cardZoneLayouts !== undefined) updates.cardZoneLayouts = input.cardZoneLayouts;
-  if (input.imageMode !== undefined) updates.imageMode = input.imageMode;
-  if (input.imageVisibility !== undefined) updates.imageVisibility = input.imageVisibility;
-  if (input.imageLayout !== undefined) updates.imageLayout = input.imageLayout;
-  if (input.hideWebsiteForYouTube !== undefined) updates.hideWebsiteForYouTube = input.hideWebsiteForYouTube;
+  if (patch.imageMode !== undefined) updates.imageMode = patch.imageMode;
+  if (patch.imageVisibility !== undefined) updates.imageVisibility = patch.imageVisibility;
+  if (patch.imageLayout !== undefined) updates.imageLayout = patch.imageLayout;
+  if (patch.hideWebsiteForYouTube !== undefined) updates.hideWebsiteForYouTube = patch.hideWebsiteForYouTube;
 
-  if (Object.keys(updates).length === 0) {
-    const [existing] = await db
-      .select()
-      .from(cardDisplayRules)
-      .where(eq(cardDisplayRules.id, id));
-    return existing ? toRule(existing) : null;
-  }
+  if (Object.keys(updates).length === 0) return toConfig(row);
 
-  const [row] = await db
+  const [updated] = await db
     .update(cardDisplayRules)
     .set(updates)
-    .where(eq(cardDisplayRules.id, id))
+    .where(eq(cardDisplayRules.id, row.id))
     .returning();
-  return row ? toRule(row) : null;
+  return toConfig(updated ?? row);
 }
 
 /**
- * Delete a card display rule by id. Refuses to delete the Default rule (returns false); returns true
- * when a non-default rule was deleted, false when the id was absent or pointed at the Default rule.
+ * Seed the singleton Default card display row on boot. Idempotent — inserts the baseline row only
+ * when no default row exists, with concrete `field_zones`/`sections` (the baseline every card uses)
+ * and empty `conditions`.
  */
-export async function deleteCardDisplayRule(id: string): Promise<boolean> {
-  const deleted = await db
-    .delete(cardDisplayRules)
-    .where(and(eq(cardDisplayRules.id, id), eq(cardDisplayRules.isDefault, false)))
-    .returning({
-      id: cardDisplayRules.id,
-    });
-  return deleted.length > 0;
-}
-
-/**
- * Reorder the non-default card display rules. Accepts an ordered list of ids and writes each rule's
- * `sortOrder` as its index position. The Default rule keeps its own `sortOrder` (always pinned last
- * by the `isDefault` sort key) and any default id in the list is ignored.
- */
-export async function reorderCardDisplayRules(orderedIds: string[]): Promise<void> {
-  await db.transaction(async (tx) => {
-    for (let i = 0; i < orderedIds.length; i++) {
-      await tx
-        .update(cardDisplayRules)
-        .set({
-          sortOrder: i,
-        })
-        .where(and(eq(cardDisplayRules.id, orderedIds[i]), eq(cardDisplayRules.isDefault, false)));
-    }
-  });
-}
-
-/**
- * Seed the singleton Default card display rule on boot. Idempotent — inserts the baseline row only
- * when no default rule exists. Its display config is fully concrete (the baseline every card falls
- * back to) and its `conditions` are empty (the resolver treats the Default as an unconditional match).
- */
-export async function ensureDefaultCardDisplayRule(): Promise<void> {
+export async function ensureCardDisplayConfig(): Promise<void> {
   const [{
     count,
   }] = await db
@@ -177,19 +137,53 @@ export async function ensureDefaultCardDisplayRule(): Promise<void> {
     .where(eq(cardDisplayRules.isDefault, true));
   if (Number(count) > 0) return;
 
+  const fieldZones = defaultFieldZones();
+  const sections = cardDisplayConfigFromFieldZones(fieldZones, defaultCardZoneLayouts(), {
+    imageMode: "natural",
+    imageVisibility: "shown",
+    imageLayout: "above",
+    hideWebsiteForYouTube: false,
+  }).sections;
+
   await db.insert(cardDisplayRules).values({
     name: "Default",
     slug: uniqueSlug("Default", await takenSlugs(), "card-display-rule"),
     description: null,
     conditions: emptyConditionTree(),
-    // Pinned last regardless; a high sortOrder keeps it last even if isDefault sorting changes.
     sortOrder: 1_000_000,
     isDefault: true,
-    fieldZones: defaultFieldZones(),
+    fieldZones,
     cardZoneLayouts: defaultCardZoneLayouts(),
+    sections,
     imageMode: "natural",
     imageVisibility: "shown",
     imageLayout: "above",
     hideWebsiteForYouTube: false,
   });
+}
+
+/**
+ * Backfill the dynamic `sections` on the Default row for an existing deploy: if `sections` is null
+ * but `field_zones` holds body placements, derive `sections` from `field_zones` + `card_zone_layouts`
+ * so the operator's current Default card layout is preserved across the upgrade. Idempotent.
+ */
+export async function backfillCardDisplaySections(): Promise<void> {
+  const row = await loadDefaultRow();
+  if (!row || row.sections != null) return;
+  const fieldZones = row.fieldZones ?? defaultFieldZones();
+  const sections = cardDisplayConfigFromFieldZones(fieldZones, row.cardZoneLayouts, toImageAttrs(row)).sections;
+  await db
+    .update(cardDisplayRules)
+    .set({
+      sections,
+    })
+    .where(eq(cardDisplayRules.id, row.id));
+}
+
+/**
+ * Remove any non-default card display rules left from the retired multi-rule model. The single-config
+ * resolver only ever reads the Default row, so leftover rows are inert; this just tidies them. Idempotent.
+ */
+export async function deleteNonDefaultCardDisplayRules(): Promise<void> {
+  await db.delete(cardDisplayRules).where(eq(cardDisplayRules.isDefault, false));
 }

@@ -10,14 +10,12 @@ import {
   useUpdateDisplayPreferenceSettings,
 } from "@/hooks/useAppSettings";
 import { useBookmarks } from "@/hooks/useBookmarks";
-import { useMatchingCardDisplayRules } from "@/lib/cardDisplayRules";
 import { findSettingsPage } from "@/lib/settingsPages";
 
 /**
  * Owns the command palette's data/context wiring: the bookmark list, the hovered/URL bookmark's
  * taxonomy context, the display-preference settings (plus a `setDetailLayout` helper), the listing /
- * saved-filter page contexts, and the card display rules matching the active bookmark. Bundling these
- * here keeps `CommandPalette`'s import surface small.
+ * saved-filter page contexts. Bundling these here keeps `CommandPalette`'s import surface small.
  */
 export function useCommandPaletteData(open: boolean, targetBookmarkId: string | null) {
   const {
@@ -43,10 +41,6 @@ export function useCommandPaletteData(open: boolean, targetBookmarkId: string | 
   });
   const settingsPage = findSettingsPage(pathname) ?? null;
 
-  // Empty (no bookmark / no matches) renders nothing — CardDisplayRulesGroup returns null — so no
-  // extra guard is needed at the call sites beyond the hover/detail position check.
-  const matchingCardRules = useMatchingCardDisplayRules(open ? taxonomyContext.bookmark : undefined);
-
   const setDetailLayout = (layout: "single" | "tabbed") => {
     if (displayPrefs) {
       updateDisplayPrefs.mutate({
@@ -67,6 +61,5 @@ export function useCommandPaletteData(open: boolean, targetBookmarkId: string | 
     listingCtx,
     entityCtx,
     settingsPage,
-    matchingCardRules,
   };
 }
