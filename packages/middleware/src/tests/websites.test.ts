@@ -209,6 +209,35 @@ test("PATCH /api/websites/:id accepts a customProperty target's subField / choic
   await app.close();
 });
 
+test("PATCH /api/websites/:id accepts an image target with setMain", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "PATCH",
+    url: "/api/websites/11111111-1111-1111-1111-111111111111",
+    payload: {
+      extensionFillRules: [
+        {
+          id: "r1",
+          label: "Cover",
+          target: {
+            kind: "image",
+            setMain: true,
+          },
+          extract: {
+            selector: "img.cover",
+            read: {
+              kind: "attr",
+              name: "src",
+            },
+          },
+        },
+      ],
+    },
+  });
+  assert.notEqual(res.statusCode, 400);
+  await app.close();
+});
+
 test("PATCH /api/websites/:id rejects a customProperty subField outside the enum", async () => {
   const app = await buildApp();
   const res = await app.inject({

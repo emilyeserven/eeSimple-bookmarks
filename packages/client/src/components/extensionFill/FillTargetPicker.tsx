@@ -2,10 +2,14 @@ import type { KindOption } from "./controls";
 import type { ComboboxOption } from "../Combobox";
 import type { CustomProperty, FillTarget } from "@eesimple/types";
 
+import { useId } from "react";
+
 import { useTranslation } from "react-i18next";
 
 import { KindSelect } from "./controls";
 import { Combobox } from "../Combobox";
+import { Checkbox } from "../ui/checkbox";
+import { Label } from "../ui/label";
 
 import { coerceFillTarget } from "@/lib/extensionFillForm";
 
@@ -42,6 +46,10 @@ export function FillTargetPicker({
           {
             value: "taxonomy",
             label: t("Taxonomy"),
+          },
+          {
+            value: "image",
+            label: t("Image"),
           },
         ]}
         onValueChange={kind => onChange(coerceFillTarget(kind, target))}
@@ -115,7 +123,40 @@ function FillTargetValue({
           })}
         />
       );
+    case "image":
+      return (
+        <SetMainImageToggle
+          checked={target.setMain ?? false}
+          onChange={setMain => onChange({
+            kind: "image",
+            setMain,
+          })}
+        />
+      );
   }
+}
+
+/** "Set as main image" toggle for an image target — grabs the image and makes it the primary one. */
+function SetMainImageToggle({
+  checked, onChange,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const id = useId();
+  return (
+    <div className="flex items-center gap-2 pt-6">
+      <Checkbox
+        id={id}
+        checked={checked}
+        onCheckedChange={value => onChange(value === true)}
+      />
+      <Label htmlFor={id}>{t("Set as main image")}</Label>
+    </div>
+  );
 }
 
 /**

@@ -24,9 +24,10 @@ export type FillTarget
   = | { kind: "field";
     field: "title" | "description" | "isbn" | "year"; }
   /**
-   * Value kind is derived from the property's type; file/image properties are excluded. For a
-   * multi-value property the rule fills one specific sub-value: `subField` picks the number of a
-   * Two-Numbers (`itemInItems`) property; `choiceValue` picks the option of a `choices` property.
+   * Value kind is derived from the property's type; file/image-typed custom *properties* are
+   * excluded (grab an image via the dedicated `image` target below). For a multi-value property the
+   * rule fills one specific sub-value: `subField` picks the number of a Two-Numbers (`itemInItems`)
+   * property; `choiceValue` picks the option of a `choices` property.
    */
     | { kind: "customProperty";
       propertyId: string;
@@ -34,7 +35,14 @@ export type FillTarget
       choiceValue?: string; }
   /** Multi-value; unmatched names create a name-only stub. */
       | { kind: "taxonomy";
-        taxonomy: "people" | "groups" | "locations" | "tags"; };
+        taxonomy: "people" | "groups" | "locations" | "tags"; }
+  /**
+   * Grab an image URL off the page (typically an `<img>`'s `src` via `read: {kind:"attr"}`); the
+   * extension downloads the bytes in the browser and uploads them to the bookmark. `setMain` makes
+   * the grabbed image the bookmark's main/primary image (defaults to true in the editor).
+   */
+        | { kind: "image";
+          setMain?: boolean; };
 
 /** How to extract a rule's value(s) from the page. */
 export interface FillExtract {

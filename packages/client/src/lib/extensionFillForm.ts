@@ -108,6 +108,8 @@ export function describeFillTarget(target: FillTarget, property?: CustomProperty
       }
       return name;
     }
+    case "image":
+      return target.setMain ? "Image · Main" : "Image";
   }
 }
 
@@ -143,6 +145,11 @@ export function coerceFillTarget(kind: FillTarget["kind"], prev: FillTarget): Fi
       return {
         kind: "taxonomy",
         taxonomy: prev.kind === "taxonomy" ? prev.taxonomy : "people",
+      };
+    case "image":
+      return {
+        kind: "image",
+        setMain: prev.kind === "image" ? prev.setMain : true,
       };
   }
 }
@@ -264,6 +271,15 @@ function cleanTarget(target: FillTarget): FillTarget | null {
       return {
         kind: "taxonomy",
         taxonomy: target.taxonomy,
+      };
+    case "image":
+      return {
+        kind: "image",
+        ...(target.setMain
+          ? {
+            setMain: true,
+          }
+          : {}),
       };
   }
 }

@@ -1,5 +1,5 @@
 import type { ComboboxOption } from "../Combobox";
-import type { CustomProperty, FillExtract, WebsiteExtensionFillRule } from "@eesimple/types";
+import type { CustomProperty, FillExtract, FillTarget, WebsiteExtensionFillRule } from "@eesimple/types";
 
 import { useTranslation } from "react-i18next";
 
@@ -8,6 +8,33 @@ import { FillFilterList } from "./FillFilterList";
 import { FillReadField } from "./FillReadField";
 import { FillTargetPicker } from "./FillTargetPicker";
 import { FillTransformList } from "./FillTransformList";
+
+/**
+ * Swap a rule's target. When switching to an image target, default the read to the `<img>` `src`
+ * attribute (unless the user already chose an attribute) — the common way to grab a page image.
+ */
+function applyTargetChange(
+  rule: WebsiteExtensionFillRule,
+  target: FillTarget,
+): WebsiteExtensionFillRule {
+  if (target.kind === "image" && rule.extract.read?.kind !== "attr") {
+    return {
+      ...rule,
+      target,
+      extract: {
+        ...rule.extract,
+        read: {
+          kind: "attr",
+          name: "src",
+        },
+      },
+    };
+  }
+  return {
+    ...rule,
+    target,
+  };
+}
 
 /** The body of one extraction rule: path gate, target, selector, read mode, split, filters, transforms. */
 export function FillRuleFields({
@@ -41,10 +68,7 @@ export function FillRuleFields({
         target={rule.target}
         propertyOptions={propertyOptions}
         propertiesById={propertiesById}
-        onChange={target => onChange({
-          ...rule,
-          target,
-        })}
+        onChange={target => onChange(applyTargetChange(rule, target))}
       />
       <LabeledInput
         label={t("Path suffix")}

@@ -250,6 +250,48 @@ test("properties are trimmed to only those referenced by the website's rules, ex
   assert.deepEqual(result.properties?.map(p => p.id), ["prop-referenced"]);
 });
 
+test("an image-only rule surfaces the website rules with no properties/taxonomies", async () => {
+  resetFixtures();
+  duplicateResult = {
+    exactMatch: {
+      id: "bm-1",
+      url: "https://example.com/a",
+      title: "A",
+    },
+    pathMatch: null,
+    identityMatches: [],
+  };
+  bookmarkById = {
+    "bm-1": {
+      id: "bm-1",
+      title: "A",
+    } as unknown as Bookmark,
+  };
+  websiteForUrl = makeWebsite([
+    makeRule({
+      id: "r1",
+      target: {
+        kind: "image",
+        setMain: true,
+      },
+      extract: {
+        selector: "img.cover",
+        read: {
+          kind: "attr",
+          name: "src",
+        },
+      },
+    }),
+  ]);
+
+  const result = await getExtensionFillContext("https://example.com/a");
+  assert.equal(result.mode, "bookmark");
+  assert.equal(result.website?.extensionFillRules.length, 1);
+  assert.equal(result.website?.extensionFillRules[0]?.target.kind, "image");
+  assert.equal(result.properties, undefined);
+  assert.equal(result.taxonomies, undefined);
+});
+
 test("taxonomies are trimmed to only the kinds referenced by the website's rules", async () => {
   resetFixtures();
   duplicateResult = {
