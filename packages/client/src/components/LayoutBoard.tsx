@@ -459,6 +459,14 @@ function SectionDropArea({
           columns={section.columns ?? 1}
           onSelect={cols => onChange(setSectionColumns(value, tabKey, section.key, cols))}
         />
+        {renderSectionExtras
+          ? renderSectionExtras({
+            tabKey,
+            section,
+            value,
+            onChange,
+          })
+          : null}
         <ReorderButtons
           index={sectionIndex}
           count={sectionCount}
@@ -483,18 +491,6 @@ function SectionDropArea({
           onCommit={description => onChange(setSectionDescription(value, tabKey, section.key, description))}
         />
       </div>
-      {renderSectionExtras
-        ? (
-          <div className="mb-1.5">
-            {renderSectionExtras({
-              tabKey,
-              section,
-              value,
-              onChange,
-            })}
-          </div>
-        )
-        : null}
       <SortableContext
         items={section.fields}
         strategy={rectSortingStrategy}
