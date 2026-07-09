@@ -106,6 +106,28 @@ const multiValueProperties = [
 ];
 
 /**
+ * A site that has opted into ISBN scanning and configured source defaults, so the read-only
+ * "Built-in rules" section below the editor reflects live state (ISBN On, a default category /
+ * media type / tags), alongside the always-on scan and oEmbed rules.
+ */
+export const BuiltInRulesConfigured: Story = {
+  args: {
+    website: {
+      ...website,
+      scanUrlForIsbn: true,
+      category: {
+        id: "cat-dev",
+        name: "Development",
+        slug: "development",
+        icon: null,
+      },
+      mediaTypeId: "media-video",
+      tagIds: ["tag-dev"],
+    },
+  },
+};
+
+/**
  * Rules targeting multi-value properties: the Two-Numbers rule fills only the "Total" number, the
  * choices rule fills the "Read" option. Both are configured, so both load collapsed.
  */
