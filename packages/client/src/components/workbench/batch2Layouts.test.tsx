@@ -81,7 +81,7 @@ describe("tag default layout", () => {
     const general = shape(tagWorkbench, "edit").find(tab => tab.key === "general");
     expect(general?.sections).toEqual([{
       key: "general",
-      fields: ["name", "primaryLanguage", "description", "names", "parent", "options", "genreMoods"],
+      fields: ["name", "primaryLanguage", "description", "names", "parent", "options", "genreMoods", "promote"],
     }]);
   });
 });

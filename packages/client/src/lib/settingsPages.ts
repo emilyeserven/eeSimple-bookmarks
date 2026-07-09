@@ -39,8 +39,9 @@ const STANDALONE_PAGES: readonly SettingsPage[] = [
   },
   {
     // User-configurable taxonomies manager, reached from the sidebar Taxonomies section header.
+    // Labelled "Manage Taxonomies" to disambiguate from the built-in "Taxonomies" nav group.
     path: "/settings/taxonomies",
-    label: i18n.t("Taxonomies"),
+    label: i18n.t("Manage Taxonomies"),
     icon: Tags,
   },
   {
