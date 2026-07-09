@@ -181,18 +181,20 @@ function TaxonomyManagerRow({
                 />
               )}
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => demote.mutate({
-              id: taxonomy.id,
-            }, {
-              onSuccess: () => notifySuccess(t("Demoted to tags")),
-              onError: (err: Error) => notifyError(err.message),
-            })}
-          >
-            {t("Demote to tags")}
-          </Button>
+          {!taxonomy.builtIn && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => demote.mutate({
+                id: taxonomy.id,
+              }, {
+                onSuccess: () => notifySuccess(t("Demoted to tags")),
+                onError: (err: Error) => notifyError(err.message),
+              })}
+            >
+              {t("Demote to tags")}
+            </Button>
+          )}
           {!taxonomy.builtIn && (
             <Button
               variant="ghost"

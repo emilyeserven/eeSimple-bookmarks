@@ -246,9 +246,9 @@ async function insertTagsFromTerms(
 /**
  * Demote a taxonomy back into Tags: a parent tag (new, or the provided `parentTagId`) gets the
  * taxonomy's terms as child tags (structure preserved); bookmark assignments migrate to
- * `bookmark_tags`; the taxonomy + terms + assignments are deleted (built-in guard bypassed on
- * purpose — built-ins are demotable). Refuses when the taxonomy has non-bookmark assignments (no tag
- * equivalent). Returns the parent tag id, or `null` if the taxonomy wasn't found.
+ * `bookmark_tags`; the taxonomy + terms + assignments are deleted. Refuses to demote a **built-in**
+ * taxonomy, and refuses when the taxonomy has non-bookmark assignments (no tag equivalent). Returns
+ * the parent tag id, or `null` if the taxonomy wasn't found.
  */
 export async function demoteTaxonomy(
   taxonomyId: string,
@@ -256,6 +256,9 @@ export async function demoteTaxonomy(
 ): Promise<{ parentTagId: string } | null> {
   const [taxonomy] = await db.select().from(taxonomies).where(eq(taxonomies.id, taxonomyId));
   if (!taxonomy) return null;
+  if (taxonomy.builtIn) {
+    throw new TaxonomyConversionError("Built-in taxonomies can't be demoted to tags.");
+  }
 
   const [nonBookmark] = await db
     .select({
