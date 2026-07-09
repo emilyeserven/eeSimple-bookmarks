@@ -1,0 +1,286 @@
+import assert from "node:assert/strict";
+import { mock, test } from "node:test";
+import type {
+  Bookmark,
+  BookmarkUrlDuplicateResult,
+  CustomProperty,
+  Website,
+  WebsiteExtensionFillRule,
+} from "@eesimple/types";
+
+// getExtensionFillContext is pure composition over other services — each is mocked here as a seam
+// (their own internals are covered by their own test files / the `what-not-to-test` skill), so this
+// suite only exercises the mode resolution + referenced-only trimming this file owns.
+
+let duplicateResult: BookmarkUrlDuplicateResult = {
+  exactMatch: null,
+  pathMatch: null,
+  identityMatches: [],
+};
+let pendingImportItem: { id: string } | null = null;
+let bookmarkById: Record<string, Bookmark> = {};
+let websiteForUrl: Website | null = null;
+let allCustomProperties: CustomProperty[] = [];
+const allTaxonomyOptions = {
+  people: [{
+    id: "person-1",
+    name: "Ada Lovelace",
+  }],
+  groups: [{
+    id: "group-1",
+    name: "The Beatles",
+  }],
+  locations: [{
+    id: "location-1",
+    name: "Paris",
+  }],
+  tags: [{
+    id: "tag-1",
+    name: "cooking",
+  }],
+};
+
+mock.module("@/services/bookmarks", {
+  namedExports: {
+    checkBookmarkUrlDuplicate: async () => duplicateResult,
+    getBookmark: async (id: string) => bookmarkById[id] ?? null,
+  },
+});
+mock.module("@/services/customProperties", {
+  namedExports: {
+    listCustomProperties: async () => allCustomProperties,
+  },
+});
+mock.module("@/services/imports", {
+  namedExports: {
+    findPendingImportItemByUrl: async () => pendingImportItem,
+  },
+});
+mock.module("@/services/websites", {
+  namedExports: {
+    lookupWebsiteByUrl: async () => ({
+      domain: null,
+      website: websiteForUrl,
+      shortener: null,
+    }),
+  },
+});
+mock.module("@/services/people", {
+  namedExports: {
+    listPeopleCompact: async () => allTaxonomyOptions.people,
+  },
+});
+mock.module("@/services/groups", {
+  namedExports: {
+    listGroupsCompact: async () => allTaxonomyOptions.groups,
+  },
+});
+mock.module("@/services/locations", {
+  namedExports: {
+    listLocationsCompact: async () => allTaxonomyOptions.locations,
+  },
+});
+mock.module("@/services/tags", {
+  namedExports: {
+    listTagsCompact: async () => allTaxonomyOptions.tags,
+  },
+});
+
+const {
+  getExtensionFillContext,
+} = await import("@/services/extensionFill");
+
+function resetFixtures(): void {
+  duplicateResult = {
+    exactMatch: null,
+    pathMatch: null,
+    identityMatches: [],
+  };
+  pendingImportItem = null;
+  bookmarkById = {};
+  websiteForUrl = null;
+  allCustomProperties = [];
+}
+
+function makeWebsite(extensionFillRules: WebsiteExtensionFillRule[]): Website {
+  return {
+    id: "website-1",
+    domain: "example.com",
+    siteName: "Example",
+    slug: "example",
+    extensionFillRules,
+  } as unknown as Website;
+}
+
+function makeRule(overrides: Partial<WebsiteExtensionFillRule>): WebsiteExtensionFillRule {
+  return {
+    id: "rule-1",
+    label: "Pages",
+    target: {
+      kind: "field",
+      field: "title",
+    },
+    extract: {
+      selector: ".x",
+    },
+    ...overrides,
+  };
+}
+
+test("mode is 'bookmark' when the URL matches an existing bookmark", async () => {
+  resetFixtures();
+  duplicateResult = {
+    exactMatch: {
+      id: "bm-1",
+      url: "https://example.com/a",
+      title: "A",
+    },
+    pathMatch: null,
+    identityMatches: [],
+  };
+  bookmarkById = {
+    "bm-1": {
+      id: "bm-1",
+      title: "A",
+    } as unknown as Bookmark,
+  };
+  const result = await getExtensionFillContext("https://example.com/a");
+  assert.equal(result.mode, "bookmark");
+  assert.equal(result.bookmark?.id, "bm-1");
+});
+
+test("mode is 'bookmark' with no rules/properties/taxonomies when the matched website has no rules", async () => {
+  resetFixtures();
+  duplicateResult = {
+    exactMatch: {
+      id: "bm-1",
+      url: "https://example.com/a",
+      title: "A",
+    },
+    pathMatch: null,
+    identityMatches: [],
+  };
+  bookmarkById = {
+    "bm-1": {
+      id: "bm-1",
+      title: "A",
+    } as unknown as Bookmark,
+  };
+  websiteForUrl = makeWebsite([]);
+  const result = await getExtensionFillContext("https://example.com/a");
+  assert.equal(result.mode, "bookmark");
+  assert.equal(result.website, undefined);
+  assert.equal(result.properties, undefined);
+  assert.equal(result.taxonomies, undefined);
+});
+
+test("mode is 'inbox' when the URL has no bookmark match but is pending in the inbox", async () => {
+  resetFixtures();
+  pendingImportItem = {
+    id: "import-item-1",
+  };
+  const result = await getExtensionFillContext("https://example.com/pending");
+  assert.equal(result.mode, "inbox");
+  assert.equal(result.bookmark, undefined);
+});
+
+test("mode is 'unknown' when the URL matches neither a bookmark nor a pending inbox item", async () => {
+  resetFixtures();
+  const result = await getExtensionFillContext("https://example.com/never-seen");
+  assert.equal(result.mode, "unknown");
+});
+
+test("properties are trimmed to only those referenced by the website's rules, excluding image/file types", async () => {
+  resetFixtures();
+  duplicateResult = {
+    exactMatch: {
+      id: "bm-1",
+      url: "https://example.com/a",
+      title: "A",
+    },
+    pathMatch: null,
+    identityMatches: [],
+  };
+  bookmarkById = {
+    "bm-1": {
+      id: "bm-1",
+      title: "A",
+    } as unknown as Bookmark,
+  };
+  allCustomProperties = [
+    {
+      id: "prop-referenced",
+      name: "Pages",
+      slug: "pages",
+      type: "number",
+    } as unknown as CustomProperty,
+    {
+      id: "prop-unreferenced",
+      name: "Notes",
+      slug: "notes",
+      type: "text",
+    } as unknown as CustomProperty,
+    {
+      id: "prop-image",
+      name: "Cover",
+      slug: "cover",
+      type: "image",
+    } as unknown as CustomProperty,
+  ];
+  websiteForUrl = makeWebsite([
+    makeRule({
+      id: "r1",
+      target: {
+        kind: "customProperty",
+        propertyId: "prop-referenced",
+      },
+    }),
+    // Rules can reference file/image property targets too — they must never surface in the response.
+    makeRule({
+      id: "r2",
+      target: {
+        kind: "customProperty",
+        propertyId: "prop-image",
+      },
+    }),
+  ]);
+
+  const result = await getExtensionFillContext("https://example.com/a");
+  assert.equal(result.mode, "bookmark");
+  assert.deepEqual(result.properties?.map(p => p.id), ["prop-referenced"]);
+});
+
+test("taxonomies are trimmed to only the kinds referenced by the website's rules", async () => {
+  resetFixtures();
+  duplicateResult = {
+    exactMatch: {
+      id: "bm-1",
+      url: "https://example.com/a",
+      title: "A",
+    },
+    pathMatch: null,
+    identityMatches: [],
+  };
+  bookmarkById = {
+    "bm-1": {
+      id: "bm-1",
+      title: "A",
+    } as unknown as Bookmark,
+  };
+  websiteForUrl = makeWebsite([
+    makeRule({
+      id: "r1",
+      target: {
+        kind: "taxonomy",
+        taxonomy: "tags",
+      },
+    }),
+  ]);
+
+  const result = await getExtensionFillContext("https://example.com/a");
+  assert.equal(result.mode, "bookmark");
+  assert.deepEqual(result.taxonomies?.tags, allTaxonomyOptions.tags);
+  assert.equal(result.taxonomies?.people, undefined);
+  assert.equal(result.taxonomies?.groups, undefined);
+  assert.equal(result.taxonomies?.locations, undefined);
+});

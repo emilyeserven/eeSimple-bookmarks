@@ -176,6 +176,17 @@ function toPerson(
 const takenSlugs = (excludeId?: string) =>
   takenSlugsOf(people, people.slug, people.id, excludeId);
 
+/** Compact `{id, name}` listing of every person, for client-side match-or-create flows. */
+export async function listPeopleCompact(): Promise<{ id: string;
+  name: string; }[]> {
+  return db
+    .select({
+      id: people.id,
+      name: people.name,
+    })
+    .from(people);
+}
+
 /** List all people, ordered by name, with bookmark counts and association IDs. */
 export async function listPeople(): Promise<Person[]> {
   const rows = await db

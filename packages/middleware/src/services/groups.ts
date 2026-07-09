@@ -165,6 +165,17 @@ function toGroup(
   };
 }
 
+/** Compact `{id, name}` listing of every group, for client-side match-or-create flows. */
+export async function listGroupsCompact(): Promise<{ id: string;
+  name: string; }[]> {
+  return db
+    .select({
+      id: groups.id,
+      name: groups.name,
+    })
+    .from(groups);
+}
+
 export async function listGroups(): Promise<Group[]> {
   const rows = await db
     .select({

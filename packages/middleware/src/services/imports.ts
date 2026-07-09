@@ -1486,13 +1486,8 @@ export async function deleteOrphanedImportItems(): Promise<OrphanDeleteResult> {
  * Returns `{ id }` of the created import item, or `null` when the URL is already a saved bookmark
  * or already pending in the inbox (caller should return 409).
  */
-export async function quickSaveToInbox(
-  url: string,
-  title: string,
-): Promise<{ id: string } | null> {
-  const dup = await checkBookmarkUrlDuplicate(url);
-  if (dup.exactMatch ?? dup.pathMatch) return null;
-
+/** Looks up a pending `import_items` row for `url`, or `null` if none is queued. */
+export async function findPendingImportItemByUrl(url: string): Promise<{ id: string } | null> {
   const [existingPending] = await db
     .select({
       id: importItems.id,
@@ -1500,6 +1495,17 @@ export async function quickSaveToInbox(
     .from(importItems)
     .where(and(eq(importItems.url, url), eq(importItems.status, "pending")))
     .limit(1);
+  return existingPending ?? null;
+}
+
+export async function quickSaveToInbox(
+  url: string,
+  title: string,
+): Promise<{ id: string } | null> {
+  const dup = await checkBookmarkUrlDuplicate(url);
+  if (dup.exactMatch ?? dup.pathMatch) return null;
+
+  const existingPending = await findPendingImportItemByUrl(url);
   if (existingPending) return null;
 
   const [importRow] = await db

@@ -5,6 +5,8 @@
  * jsonb on `websites.extension_fill_rules`.
  */
 
+import type { Bookmark, CustomProperty } from "./index.js";
+
 /** One configured extraction rule for a website. */
 export interface WebsiteExtensionFillRule {
   /** Stable uuid — checkbox + editor list identity. */
@@ -77,3 +79,35 @@ export type FillTransform
       flags?: string;
       replacement: string; }
       | { kind: "trim" };
+
+/** Compact option shown in the popup's taxonomy match list. */
+export interface ExtensionFillTaxonomyOption {
+  id: string;
+  name: string;
+}
+
+/**
+ * Response of `GET /api/extension/fill-context` — tells the browser extension popup whether the
+ * current tab's URL is an existing bookmark it can offer to fill from the live page, is already
+ * pending in the Inbox, or hasn't been seen. `website`/`properties`/`taxonomies` are populated only
+ * when `mode === "bookmark"` and the matched website has configured extension fill rules.
+ */
+export interface ExtensionFillContext {
+  mode: "bookmark" | "inbox" | "unknown";
+  /** Present iff `mode === "bookmark"`. */
+  bookmark?: Bookmark;
+  website?: {
+    id: string;
+    siteName: string;
+    extensionFillRules: WebsiteExtensionFillRule[];
+  };
+  /** Custom properties referenced by the website's rules; file/image-typed properties excluded. */
+  properties?: CustomProperty[];
+  /** Compact `{id, name}` lists, only for taxonomies referenced by the website's rules. */
+  taxonomies?: {
+    people?: ExtensionFillTaxonomyOption[];
+    groups?: ExtensionFillTaxonomyOption[];
+    locations?: ExtensionFillTaxonomyOption[];
+    tags?: ExtensionFillTaxonomyOption[];
+  };
+}

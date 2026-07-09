@@ -144,6 +144,17 @@ export async function listLocationNames(): Promise<LocationTitleCandidate[]> {
   }));
 }
 
+/** Compact `{id, name}` listing of every location, for client-side match-or-create flows. */
+export async function listLocationsCompact(): Promise<{ id: string;
+  name: string; }[]> {
+  return db
+    .select({
+      id: locations.id,
+      name: locations.name,
+    })
+    .from(locations);
+}
+
 /**
  * Compute each location's distinct subtree bookmark count and its "own" (no-descendant) count.
  * Pure — operates on in-memory data so it can be unit-tested. Mirrors `computeTagBookmarkCounts`.
