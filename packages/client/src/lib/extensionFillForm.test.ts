@@ -130,6 +130,42 @@ describe("describeFillTarget", () => {
       kind: "image",
     })).toBe("Image");
   });
+
+  it("summarizes a publisher target", () => {
+    expect(describeFillTarget({
+      kind: "publisher",
+    })).toBe("Publisher");
+  });
+});
+
+describe("publisher target", () => {
+  it("coerces to the field-less publisher variant", () => {
+    expect(coerceFillTarget("publisher", {
+      kind: "field",
+      field: "title",
+    })).toEqual({
+      kind: "publisher",
+    });
+  });
+
+  it("normalizes to a clean field-less publisher target", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "publisher",
+      },
+      extract: {
+        source: "meta",
+        metaKey: "publisher",
+      },
+    })]);
+    expect(out.target).toEqual({
+      kind: "publisher",
+    });
+    expect(out.extract).toEqual({
+      source: "meta",
+      metaKey: "publisher",
+    });
+  });
 });
 
 describe("describePathMatch", () => {

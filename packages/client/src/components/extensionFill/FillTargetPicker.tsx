@@ -56,6 +56,10 @@ export function FillTargetPicker({
             label: t("Taxonomy"),
           },
           {
+            value: "publisher",
+            label: t("Publisher"),
+          },
+          {
             value: "image",
             label: t("Image"),
           },
@@ -135,6 +139,9 @@ function FillTargetValue({
           })}
         />
       );
+    case "publisher":
+      // No value control — a publisher target resolves the extracted name to the bookmark's Group.
+      return null;
     case "image":
       return (
         <SetMainImageToggle
