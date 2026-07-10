@@ -727,6 +727,65 @@ export async function ensureBuiltInWebsites(): Promise<void> {
   }
 }
 
+/** A stored extension-fill rule as it may exist on disk, including the retired `pathSuffix` field. */
+type LegacyExtensionFillRule = WebsiteExtensionFillRule & { pathSuffix?: string };
+
+/**
+ * Convert one website's rules from the retired suffix-only `pathSuffix` gate to the mode-based
+ * `pathMatch` (as a `suffix` match, preserving today's behavior). Returns the migrated array only
+ * when something changed, else `null` — the caller skips a no-op write, keeping the boot step
+ * idempotent. An already-migrated rule (`pathMatch` present, no `pathSuffix`) is left untouched.
+ */
+export function migrateExtensionFillRules(
+  rules: LegacyExtensionFillRule[],
+): WebsiteExtensionFillRule[] | null {
+  let changed = false;
+  const migrated = rules.map((rule): WebsiteExtensionFillRule => {
+    const {
+      pathSuffix, ...rest
+    } = rule;
+    if (pathSuffix === undefined) return rule;
+    changed = true;
+    // A blank legacy suffix was an always-apply gate — drop it entirely.
+    const trimmed = pathSuffix.trim();
+    if (!trimmed || rest.pathMatch) return rest;
+    return {
+      ...rest,
+      pathMatch: {
+        mode: "suffix",
+        value: trimmed,
+      },
+    };
+  });
+  return changed ? migrated : null;
+}
+
+/**
+ * Migrate any stored extension-fill rules still using the retired `pathSuffix` gate to `pathMatch`.
+ * Idempotent — only rows that actually change are written. jsonb shape change only; no drizzle
+ * migration. Websites are a small, bounded set, so loading them all for a one-time boot step is fine.
+ */
+export async function backfillExtensionFillPathMatch(): Promise<void> {
+  const rows = await db
+    .select({
+      id: websites.id,
+      extensionFillRules: websites.extensionFillRules,
+    })
+    .from(websites);
+
+  for (const row of rows) {
+    if (!row.extensionFillRules) continue;
+    const migrated = migrateExtensionFillRules(row.extensionFillRules as LegacyExtensionFillRule[]);
+    if (!migrated) continue;
+    await db
+      .update(websites)
+      .set({
+        extensionFillRules: migrated,
+      })
+      .where(eq(websites.id, row.id));
+  }
+}
+
 /**
  * Return websites flagged for redirect resolution failure, each with their associated bookmarks
  * (id, url, title, description, imageUrl). Ordered by site name; bookmarks ordered by title.

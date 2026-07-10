@@ -84,7 +84,10 @@ test("buildWebsiteScalarPatch: extensionFillRules omitted leaves it out; provide
     {
       id: "r1",
       label: "Pages",
-      pathSuffix: "/book",
+      pathMatch: {
+        mode: "prefix",
+        value: "/course/",
+      },
       target: {
         kind: "customProperty",
         propertyId: "prop-1",

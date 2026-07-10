@@ -421,6 +421,21 @@ const fillExtractSchema = {
   },
 } as const;
 
+const pathMatchSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["mode", "value"],
+  properties: {
+    mode: {
+      type: "string",
+      enum: ["prefix", "contains", "suffix", "regex"],
+    },
+    value: {
+      type: "string",
+    },
+  },
+} as const;
+
 const extensionFillRulesSchema = {
   type: "array",
   items: {
@@ -434,9 +449,7 @@ const extensionFillRulesSchema = {
       label: {
         type: "string",
       },
-      pathSuffix: {
-        type: "string",
-      },
+      pathMatch: pathMatchSchema,
       target: fillTargetSchema,
       extract: fillExtractSchema,
     },
