@@ -183,6 +183,8 @@ export function describeFillTransform(transform: FillTransform): string {
       }`;
     case "number":
       return "First number";
+    case "duration":
+      return "Duration → seconds";
     case "replace":
       return `Replace /${transform.pattern}/${transform.flags ?? ""} → "${transform.replacement}"`;
     case "trim":

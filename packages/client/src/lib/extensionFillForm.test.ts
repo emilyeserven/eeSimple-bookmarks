@@ -211,6 +211,9 @@ describe("describeFillTransform", () => {
       kind: "number",
     })).toBe("First number");
     expect(describeFillTransform({
+      kind: "duration",
+    })).toBe("Duration → seconds");
+    expect(describeFillTransform({
       kind: "replace",
       pattern: ",",
       flags: "g",
