@@ -196,7 +196,7 @@ test("mode is 'bookmark' with no rules/properties/taxonomies when the matched we
   assert.equal(result.taxonomies, undefined);
 });
 
-test("mode is 'inbox' when the URL has no bookmark match but is pending in the inbox", async () => {
+test("mode is 'inbox' with the pending item's id when the URL has no bookmark match but is pending in the inbox", async () => {
   resetFixtures();
   pendingImportItem = {
     id: "import-item-1",
@@ -204,12 +204,15 @@ test("mode is 'inbox' when the URL has no bookmark match but is pending in the i
   const result = await getExtensionFillContext("https://example.com/pending");
   assert.equal(result.mode, "inbox");
   assert.equal(result.bookmark, undefined);
+  // The popup needs the pending item id to promote it via "Move to Bookmarks".
+  assert.equal(result.inboxItemId, "import-item-1");
 });
 
 test("mode is 'unknown' when the URL matches neither a bookmark nor a pending inbox item", async () => {
   resetFixtures();
   const result = await getExtensionFillContext("https://example.com/never-seen");
   assert.equal(result.mode, "unknown");
+  assert.equal(result.inboxItemId, undefined);
 });
 
 test("properties are trimmed to only those referenced by the website's rules, excluding image/file types", async () => {

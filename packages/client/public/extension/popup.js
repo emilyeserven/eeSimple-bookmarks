@@ -20,9 +20,13 @@ const viewInboxBtn = document.getElementById("viewInboxBtn");
 const progressEl = document.getElementById("progress");
 const progressBar = document.getElementById("progressBar");
 
+// Inbox auto-saved screen (auto-save on open → Move to Bookmarks / View Inbox)
+const inboxSavedEl = document.getElementById("inboxSaved");
+const inboxSavedMsg = document.getElementById("inboxSavedMsg");
+const moveToBookmarksBtn = document.getElementById("moveToBookmarksBtn");
+const inboxSavedViewBtn = document.getElementById("inboxSavedViewBtn");
+const inboxSavedError = document.getElementById("inboxSavedError");
 // Fill-mode screens
-const inboxStateEl = document.getElementById("inboxState");
-const inboxViewBtn = document.getElementById("inboxViewBtn");
 const savedStateEl = document.getElementById("savedState");
 const savedOpenBtn = document.getElementById("savedOpenBtn");
 const fillFillingEl = document.getElementById("fillFilling");
@@ -46,7 +50,7 @@ const SCREENS = {
   setup: setupEl,
   form: formEl,
   success: successEl,
-  inbox: inboxStateEl,
+  inboxSaved: inboxSavedEl,
   saved: savedStateEl,
   filling: fillFillingEl,
   review: fillReviewEl,
@@ -128,10 +132,12 @@ urlInput?.addEventListener("keydown", (e) => {
 
 // --- Boot into the right mode ------------------------------------------
 // Reads the active tab, then asks the server what to do with this URL:
-//   unknown / fetch failure → today's quick-save-to-inbox flow (never regress saving)
-//   inbox                   → "already in your inbox"
+//   unknown                 → auto-save to the Inbox (1 click = the icon), then offer
+//                             "Move to Bookmarks" / "View Inbox"
+//   inbox                   → "already in your inbox" + the same Move to Bookmarks affordance
 //   bookmark + rules        → fill mode (scrape the page, review, apply)
 //   bookmark + no rules      → "already saved"
+//   fill-context fetch failure → the editable add form (never regress saving)
 function initForm() {
   chrome.tabs.query({
     active: true,
@@ -151,7 +157,9 @@ function initForm() {
   });
 }
 
-async function bootFillContext(url) {
+// Fetch the fill-context and route. `autoSave` gates whether an `unknown` URL is auto-saved to the
+// Inbox (true on the initial boot; false when re-routing after a 409 so we never re-POST in a loop).
+async function bootFillContext(url, autoSave = true) {
   let ctx;
   try {
     const res = await fetch(
@@ -165,23 +173,26 @@ async function bootFillContext(url) {
     quickSaveFallback();
     return;
   }
-  routeByMode(ctx, url);
+  routeByMode(ctx, url, autoSave);
 }
 
-// Show the editable add form with both choices (Add to Inbox / Add as Bookmark) instead of
-// auto-saving, so the user picks whether this page bypasses the Inbox. The URL is pre-filled from
-// the active tab (initForm), so it's still one click either way.
+// Show the editable add form with both choices (Add to Inbox / Add as Bookmark). Reached only when
+// the fill-context/inbox call fails or there's no usable URL — the manual fallback. The URL is
+// pre-filled from the active tab (initForm), so it's still one click either way.
 function quickSaveFallback() {
   show("form");
 }
 
-function routeByMode(ctx, url) {
+function routeByMode(ctx, url, autoSave = true) {
   if (!ctx || ctx.mode === "unknown") {
-    quickSaveFallback();
+    // First visit: auto-save to the Inbox so the common case is one click (the icon). After a 409
+    // re-route we don't auto-save again — fall back to the form instead of looping.
+    if (autoSave) void autoSaveToInbox(url);
+    else quickSaveFallback();
     return;
   }
   if (ctx.mode === "inbox") {
-    renderInbox();
+    renderInboxSaved(ctx.inboxItemId, url, "Already in your inbox.");
     return;
   }
   if (ctx.mode === "bookmark") {
@@ -193,8 +204,126 @@ function routeByMode(ctx, url) {
     void enterFillMode(ctx, rules);
     return;
   }
-  // Unexpected mode — stay safe and save.
+  // Unexpected mode — stay safe and fall back to the form.
   quickSaveFallback();
+}
+
+// Auto-save the current page to the Inbox on popup open (the `unknown` path). On success, show the
+// inbox-saved screen with a Move to Bookmarks affordance; on 409 the URL is already saved/pending, so
+// re-route (without auto-saving again) to land on the right screen.
+async function autoSaveToInbox(url) {
+  try {
+    const res = await fetch(`${serverUrl}/api/bookmarks/inbox`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        url,
+        title: pageTitle || url,
+      }),
+    });
+    if (res.status === 201) {
+      const data = await res.json().catch(() => ({}));
+      renderInboxSaved(data && data.id, url, "Saved to Inbox.");
+    }
+    else if (res.status === 409) {
+      // Already a bookmark or already pending — re-route from a fresh fill-context, no re-save.
+      void bootFillContext(url, false);
+    }
+    else {
+      // 400 (invalid URL) or an unexpected status — fall back to the editable form.
+      quickSaveFallback();
+    }
+  }
+  catch {
+    // Server unreachable — fall back to the editable form (manual entry / retry).
+    quickSaveFallback();
+  }
+}
+
+// Inbox-saved screen: "View Inbox" is always available; "Move to Bookmarks" appears only when we
+// know the pending import-item id (from the inbox POST response or fill-context's `inboxItemId`).
+function renderInboxSaved(itemId, url, message) {
+  inboxSavedMsg.textContent = message || "Saved to Inbox.";
+  inboxSavedError.classList.add("hidden");
+  inboxSavedError.textContent = "";
+  inboxSavedViewBtn.onclick = () => {
+    cancelCountdown();
+    chrome.tabs.create({
+      url: `${serverUrl}/inbox`,
+    });
+    window.close();
+  };
+  if (itemId) {
+    moveToBookmarksBtn.classList.remove("hidden");
+    moveToBookmarksBtn.disabled = false;
+    moveToBookmarksBtn.textContent = "Move to Bookmarks";
+    moveToBookmarksBtn.onclick = () => void moveToBookmarks(itemId, url);
+  }
+  else {
+    moveToBookmarksBtn.classList.add("hidden");
+  }
+  show("inboxSaved");
+  startCountdown();
+}
+
+// Promote the pending inbox item to a real bookmark (consumes the item, no orphan), then flow into
+// the shared post-create step (autofill fill mode if the site has rules, else the success screen).
+async function moveToBookmarks(itemId, url) {
+  cancelCountdown();
+  inboxSavedError.classList.add("hidden");
+  inboxSavedError.textContent = "";
+  moveToBookmarksBtn.disabled = true;
+  moveToBookmarksBtn.textContent = "Moving…";
+  try {
+    const res = await fetch(`${serverUrl}/api/imports/items/${itemId}/approve`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({}),
+    });
+    if (!res.ok) throw new Error(`status ${res.status}`);
+    const data = await res.json().catch(() => ({}));
+    // approved | duplicate | skipped all carry a bookmarkId; error carries none.
+    const bookmarkId = data && data.bookmarkId;
+    if (!bookmarkId) throw new Error("no bookmark id");
+    await afterBookmarkCreated(bookmarkId, url);
+  }
+  catch {
+    moveToBookmarksBtn.disabled = false;
+    moveToBookmarksBtn.textContent = "Move to Bookmarks";
+    inboxSavedError.textContent = "Couldn't move to Bookmarks. Please try again.";
+    inboxSavedError.classList.remove("hidden");
+  }
+}
+
+// Shared step after a bookmark is created (Move to Bookmarks, or the fallback form's Add as
+// Bookmark): re-check fill-context and, if the matched website has gated fill rules, flow straight
+// into the autofill review UI in the same popup; otherwise show the bookmark success screen.
+async function afterBookmarkCreated(bookmarkId, url) {
+  let ctx;
+  try {
+    const res = await fetch(
+      `${serverUrl}/api/extension/fill-context?url=${encodeURIComponent(url)}`,
+    );
+    if (!res.ok) throw new Error(`status ${res.status}`);
+    ctx = await res.json();
+  }
+  catch {
+    // Couldn't check for fill rules — just report the bookmark was created.
+    onBookmarkSuccess("Added as bookmark.", bookmarkId);
+    return;
+  }
+  if (ctx && ctx.mode === "bookmark") {
+    const rules = gateRules(ctx.website?.extensionFillRules ?? [], url);
+    if (ctx.website && rules.length > 0) {
+      void enterFillMode(ctx, rules);
+      return;
+    }
+  }
+  onBookmarkSuccess("Added as bookmark.", bookmarkId);
 }
 
 // Evaluate a rule's optional path gate against the current pathname. Absent gate (or a blank
@@ -243,16 +372,6 @@ function gateRules(rules, url) {
     pathname = "";
   }
   return rules.filter(rule => pathMatches(ruleGate(rule), pathname));
-}
-
-function renderInbox() {
-  inboxViewBtn.onclick = () => {
-    chrome.tabs.create({
-      url: `${serverUrl}/inbox`,
-    });
-    window.close();
-  };
-  show("inbox");
 }
 
 function renderSaved(bookmark) {
@@ -344,7 +463,9 @@ async function submitBookmark() {
     });
     if (res.status === 201) {
       const data = await res.json().catch(() => ({}));
-      onBookmarkSuccess("Added as bookmark.", data && data.id);
+      // Flow into fill mode when the site has rules — same as Move to Bookmarks — so the user
+      // doesn't have to reopen the popup to autofill.
+      await afterBookmarkCreated(data && data.id, url);
     }
     else if (res.status === 409) {
       onSuccess("Already saved.", true);

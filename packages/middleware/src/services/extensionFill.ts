@@ -22,9 +22,14 @@ export async function getExtensionFillContext(url: string): Promise<ExtensionFil
 
   if (!matchedBookmarkId) {
     const pending = await findPendingImportItemByUrl(url);
-    return {
-      mode: pending ? "inbox" : "unknown",
-    };
+    return pending
+      ? {
+        mode: "inbox",
+        inboxItemId: pending.id,
+      }
+      : {
+        mode: "unknown",
+      };
   }
 
   const bookmark = await getBookmark(matchedBookmarkId);

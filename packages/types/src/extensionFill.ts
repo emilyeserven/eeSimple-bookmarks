@@ -127,6 +127,12 @@ export interface ExtensionFillContext {
   mode: "bookmark" | "inbox" | "unknown";
   /** Present iff `mode === "bookmark"`. */
   bookmark?: Bookmark;
+  /**
+   * The pending import-item id backing this URL's Inbox entry. Present iff `mode === "inbox"`, so
+   * the popup can promote it to a bookmark via `POST /api/imports/items/:id/approve` (the
+   * "Move to Bookmarks" affordance) without re-querying the Inbox.
+   */
+  inboxItemId?: string;
   website?: {
     id: string;
     siteName: string;

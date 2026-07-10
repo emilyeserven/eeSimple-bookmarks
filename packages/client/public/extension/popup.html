@@ -42,8 +42,9 @@
       min-height: 14px;
     }
     #status { color: #555; }
-    #formError, #fillError { color: #b91c1c; }
+    #formError, #fillError, #inboxSavedError { color: #b91c1c; }
     #fillError { margin: 6px 0; font-size: 12px; }
+    #inboxSavedError { margin-top: 6px; font-size: 12px; }
     #successMsg { font-weight: 600; }
 
     /* --- Fill mode --------------------------------------------------- */
@@ -129,9 +130,11 @@
     <button id="viewInboxBtn">View Inbox</button>
   </div>
 
-  <div id="inboxState" class="hidden">
-    <p>This page is already in your inbox.</p>
-    <button id="inboxViewBtn">View Inbox</button>
+  <div id="inboxSaved" class="hidden">
+    <p id="inboxSavedMsg" class="fill-title">Saved to Inbox.</p>
+    <button id="moveToBookmarksBtn">Move to Bookmarks</button>
+    <button id="inboxSavedViewBtn" class="secondary" style="margin-top:6px">View Inbox</button>
+    <div id="inboxSavedError" class="hidden"></div>
   </div>
 
   <div id="savedState" class="hidden">
