@@ -10,6 +10,7 @@ import { LabeledInput, LabeledNumberInput } from "./controls";
 import { RowShell } from "./RowShell";
 
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { coerceFillTransform, moveItem, newFillTransform } from "@/lib/extensionFillForm";
 import { applyFillTransforms } from "@/lib/fillTransformPreview";
 
@@ -29,7 +30,8 @@ export function FillTransformList({
   } = useTranslation();
   return (
     <div className="space-y-2">
-      <div className="text-sm font-medium">{t("Transforms")}</div>
+      <Separator className="my-2" />
+      <div className="text-base font-semibold">{t("Transforms")}</div>
       <p className="text-xs text-muted-foreground">
         {t("Applied in order to the extracted string.")}
       </p>

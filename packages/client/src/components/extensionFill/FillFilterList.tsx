@@ -9,6 +9,7 @@ import { RowShell } from "./RowShell";
 import { TextMatchEditor } from "./TextMatchEditor";
 
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { coerceFillFilter, moveItem, newFillFilter } from "@/lib/extensionFillForm";
 
 type FilterKind = FillFilter["kind"];
@@ -28,7 +29,8 @@ export function FillFilterList({
   } = useTranslation();
   return (
     <div className="space-y-2">
-      <div className="text-sm font-medium">{t("Filters")}</div>
+      <Separator className="my-2" />
+      <div className="text-base font-semibold">{t("Filters")}</div>
       <p className="text-xs text-muted-foreground">
         {t("Applied in order; each narrows which matched nodes remain.")}
       </p>

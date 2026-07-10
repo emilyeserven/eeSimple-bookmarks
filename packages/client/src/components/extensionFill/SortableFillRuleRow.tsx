@@ -13,7 +13,6 @@ import { LabeledInput } from "./controls";
 import { FillRuleFields } from "./FillRuleFields";
 
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
   describeFillFilter,
   describeFillRead,
@@ -21,7 +20,6 @@ import {
   describeFillTransform,
   describePathMatch,
 } from "@/lib/extensionFillForm";
-import { cn } from "@/lib/utils";
 
 /**
  * One draggable rule row: a header (drag + label + duplicate/remove + a per-row Edit/Done toggle) over
@@ -195,8 +193,6 @@ function RuleDetailList({
           <DetailRow
             label={t("Filters")}
             value={<ul className="space-y-0.5">{filters.map((filter, index) => <li key={index}>{describeFillFilter(filter)}</li>)}</ul>}
-            separatorAbove
-            emphasized
           />
         )
         : null}
@@ -205,8 +201,6 @@ function RuleDetailList({
           <DetailRow
             label={t("Transforms")}
             value={<ul className="space-y-0.5">{transforms.map((transform, index) => <li key={index}>{describeFillTransform(transform)}</li>)}</ul>}
-            separatorAbove
-            emphasized
           />
         )
         : null}
@@ -214,35 +208,22 @@ function RuleDetailList({
   );
 }
 
-/** A `label : value` row inside a rule's detail list, optionally separated + emphasized (Filters/Transforms). */
+/** A `label : value` row inside a rule's detail list. */
 function DetailRow({
-  label, value, separatorAbove = false, emphasized = false,
+  label, value,
 }: {
   label: string;
   value: ReactNode;
-  /** Render a horizontal divider above this row — used to set the Filters/Transforms sections apart. */
-  separatorAbove?: boolean;
-  /** Render the label larger/bolder than a plain detail label — used for the Filters/Transforms headers. */
-  emphasized?: boolean;
 }) {
   return (
-    <>
-      {separatorAbove ? <Separator className="my-2" /> : null}
-      <div
-        className="
-          grid gap-1
-          sm:grid-cols-[8rem_1fr]
-        "
-      >
-        <dt
-          className={cn(emphasized
-            ? "text-base font-semibold text-foreground"
-            : "text-muted-foreground")}
-        >
-          {label}
-        </dt>
-        <dd className="min-w-0">{value}</dd>
-      </div>
-    </>
+    <div
+      className="
+        grid gap-1
+        sm:grid-cols-[8rem_1fr]
+      "
+    >
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="min-w-0">{value}</dd>
+    </div>
   );
 }
