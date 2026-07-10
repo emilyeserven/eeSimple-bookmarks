@@ -30,6 +30,10 @@ const SHARED_FORM_FIELD_KEYS = new Set<string>([
   "tags",
   "tagBlacklist",
   "locationBlacklist",
+  "channel",
+  "locationsBox",
+  "people",
+  "groups",
 ]);
 
 /**

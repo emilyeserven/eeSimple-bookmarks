@@ -17,6 +17,7 @@ import { withMediaSourceMatch } from "../../lib/bookmarkSearch";
 import { flattenTree } from "../../lib/tagTree";
 import { BookmarkCardGrid } from "../BookmarkCardGrid";
 import { BookmarkCategoryLink } from "../BookmarkCategoryLink";
+import { BookmarkGroupBadges } from "../BookmarkGroupsBox";
 import { BookmarkKavitaDetailRow } from "../BookmarkKavitaField";
 import { BookmarkLocationsBox } from "../BookmarkLocationsBox";
 import { BookmarkLocationsTabContent } from "../BookmarkLocationsTabContent";
@@ -235,6 +236,47 @@ export function BookmarkPeopleDetailView({
           </span>
         ))}
       </span>
+    </DetailField>
+  );
+}
+
+/** Group-credit links row, or null when the bookmark credits no groups. */
+export function BookmarkGroupsDetailView({
+  bookmark,
+}: {
+  bookmark: Bookmark;
+}) {
+  if (bookmark.groups.length === 0) return null;
+  return (
+    <DetailField label={i18n.t("Groups")}>
+      <BookmarkGroupBadges groups={bookmark.groups} />
+    </DetailField>
+  );
+}
+
+/** Genres & Moods links row, or null when the bookmark has none. */
+export function BookmarkGenreMoodsDetailView({
+  bookmark,
+}: {
+  bookmark: Bookmark;
+}) {
+  if (bookmark.genreMoods.length === 0) return null;
+  return (
+    <DetailField label={i18n.t("Genres & Moods")}>
+      <div className="flex flex-wrap gap-1">
+        {bookmark.genreMoods.map(entry => (
+          <Link
+            key={entry.id}
+            to="/taxonomies/genres-moods/$genreMoodSlug"
+            params={{
+              genreMoodSlug: entry.slug,
+            }}
+            title={entry.name}
+          >
+            <Badge variant="secondary">{entry.name}</Badge>
+          </Link>
+        ))}
+      </div>
     </DetailField>
   );
 }

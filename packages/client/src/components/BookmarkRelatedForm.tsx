@@ -4,11 +4,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
 import { BookmarkMediaIdentitySection } from "./BookmarkMediaIdentitySection";
-import { BookmarkRelatedEntitiesSection } from "./BookmarkRelatedEntitiesSection";
 import { BookmarkRelationshipsEditor } from "./BookmarkRelationshipsEditor";
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
-import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
-import { useBookmarkGeneralForm } from "./useBookmarkGeneralForm";
 
 import { Separator } from "@/components/ui/separator";
 
@@ -17,10 +14,10 @@ interface BookmarkRelatedFormProps {
 }
 
 /**
- * The bookmark "Related" edit tab: the related-entity fields moved off General (YouTube channel,
- * locations, people, groups + genres & moods), the Media identity section, and the resurfaced
- * bookmark-relationships editor. The entity fields auto-save per field (reusing the shared
- * {@link useBookmarkGeneralForm} controller); the relationships editor is submit-based (Save/Cancel).
+ * The bookmark "Related" edit field: the Media identity section and the bookmark-relationships editor.
+ * The related-entity taxonomy fields (YouTube channel, locations, people, groups) and Genres & Moods
+ * are now individually-placeable layout fields on the General tab (#1163 field extraction), no longer
+ * bundled here. The relationships editor is submit-based (Save/Cancel); Media identity auto-saves.
  */
 export function BookmarkRelatedForm({
   bookmark,
@@ -29,7 +26,6 @@ export function BookmarkRelatedForm({
     t,
   } = useTranslation();
   const navigate = useNavigate();
-  const ctrl = useBookmarkGeneralForm(bookmark);
 
   const goToView = () => void navigate({
     to: "/bookmarks/$bookmarkId",
@@ -40,21 +36,6 @@ export function BookmarkRelatedForm({
 
   return (
     <div className="space-y-6">
-      <div
-        className="
-          grid gap-4
-          md:grid-cols-2
-        "
-      >
-        <BookmarkRelatedEntitiesSection ctrl={ctrl} />
-
-        <GenreMoodAssignmentSection
-          ownerType="bookmark"
-          ownerId={bookmark.id}
-          stacked
-        />
-      </div>
-
       <CollapsibleFormSection
         title={t("Media identity")}
         description={t("Link this bookmark to a Kavita series or Plex item, and record media identity like ISBN, year, Wikidata/Wikipedia, and podcast feed details.")}
