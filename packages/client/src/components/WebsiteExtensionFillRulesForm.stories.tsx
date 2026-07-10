@@ -61,12 +61,12 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 /**
- * The tab opens read-only with the PRINT LENGTH rule shown in full detail; clicking "Edit" reveals
- * the auto-saving extraction-rules editor.
+ * The tab opens with the PRINT LENGTH rule shown in full read-only detail and its own Edit button;
+ * clicking that rule's Edit reveals its auto-saving fields without affecting any other rule.
  */
 export const Default: Story = {};
 
-/** A site with no extraction rules yet — the read-only empty state above the Edit button. */
+/** A site with no extraction rules yet — the read-only empty state, with the Add button always available. */
 export const Empty: Story = {
   args: {
     website: {
@@ -134,7 +134,7 @@ export const BuiltInRulesConfigured: Story = {
 
 /**
  * Rules targeting multi-value properties: the Two-Numbers rule fills only the "Total" number, the
- * choices rule fills the "Read" option. Both are configured, so both load collapsed.
+ * choices rule fills the "Read" option. Both are configured, so both load read-only.
  */
 export const MultiValueTargets: Story = {
   parameters: {

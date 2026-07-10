@@ -2,17 +2,13 @@ import type { UpdateWebsiteInput, Website, WebsiteExtensionFillRule } from "@ees
 
 import { useEffect, useRef, useState } from "react";
 
-import { useTranslation } from "react-i18next";
-
 import { ExtensionFillRulesEditor } from "./extensionFill/ExtensionFillRulesEditor";
-import { ExtensionFillRulesReadonly } from "./extensionFill/ExtensionFillRulesReadonly";
 import { WebsiteBuiltInFillRules } from "./extensionFill/WebsiteBuiltInFillRules";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useUpdateWebsite } from "../hooks/useWebsites";
 import i18n from "../i18n";
 import { normalizeExtensionFillRules } from "../lib/extensionFillForm";
 
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 /** Debounce window for the whole-rules auto-save (the codebase convention). */
@@ -30,12 +26,7 @@ interface Props {
 export function WebsiteExtensionFillRulesForm({
   website,
 }: Props) {
-  const {
-    t,
-  } = useTranslation();
   const updateWebsite = useUpdateWebsite();
-  // The fiddly rules open read-only so they can't be changed by accident; Edit reveals the builder.
-  const [isEditing, setIsEditing] = useState(false);
   const [rules, setRules] = useState<WebsiteExtensionFillRule[]>(() => website.extensionFillRules);
 
   const autoSave = useFieldAutoSave<UpdateWebsiteInput>({
@@ -71,36 +62,12 @@ export function WebsiteExtensionFillRulesForm({
     timer.current = setTimeout(flush, SAVE_DEBOUNCE_MS);
   }
 
-  function handleDone(): void {
-    flush();
-    setIsEditing(false);
-  }
-
   return (
     <div className="space-y-6">
-      {isEditing
-        ? (
-          <ExtensionFillRulesEditor
-            rules={rules}
-            onChange={handleChange}
-            action={(
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleDone}
-              >
-                {t("Done")}
-              </Button>
-            )}
-          />
-        )
-        : (
-          <ExtensionFillRulesReadonly
-            rules={rules}
-            onEdit={() => setIsEditing(true)}
-          />
-        )}
+      <ExtensionFillRulesEditor
+        rules={rules}
+        onChange={handleChange}
+      />
       <Separator />
       <WebsiteBuiltInFillRules website={website} />
     </div>
