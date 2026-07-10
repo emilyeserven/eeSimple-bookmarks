@@ -786,6 +786,11 @@ export async function backfillExtensionFillPathMatch(): Promise<void> {
   }
 }
 
+/** How many websites have the "Scan URL for ISBN" flag on. Powers the Scan Pipeline status page. */
+export async function countWebsitesWithScanUrlForIsbn(): Promise<number> {
+  return db.$count(websites, eq(websites.scanUrlForIsbn, true));
+}
+
 /**
  * Return websites flagged for redirect resolution failure, each with their associated bookmarks
  * (id, url, title, description, imageUrl). Ordered by site name; bookmarks ordered by title.

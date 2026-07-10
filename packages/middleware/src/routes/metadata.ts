@@ -555,6 +555,10 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
   // YouTube/oEmbed enrichment). Returns everything the Add Bookmark form needs in one round-trip,
   // replacing the separate resolve-url / websites-lookup / url-check / fetch-title / fetch-metadata
   // calls. Best-effort like /api/fetch-metadata — a partial result is still useful, never a 502.
+  //
+  // KEEP IN LOCKSTEP with `services/scanPipelineDescription.ts` — the Settings → Advanced → Scan
+  // Pipeline page describes this handler's stages/gates/precedence chains from that descriptor, so
+  // a change to the flow here must update the descriptor (and its pinned-order tests) in the same PR.
   app.get("/api/scan", {
     schema: {
       tags: ["metadata"],

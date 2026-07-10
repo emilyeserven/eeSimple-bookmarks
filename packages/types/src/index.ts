@@ -43,6 +43,7 @@ export * from "./languageUsages.js";
 export * from "./locationRelations.js";
 export * from "./locations.js";
 export * from "./podcasts.js";
+export * from "./scanPipeline.js";
 export * from "./translationSources.js";
 export * from "./oembed.js";
 export * from "./placeTypes.js";

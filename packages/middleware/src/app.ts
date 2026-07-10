@@ -40,6 +40,7 @@ import { locationRoutes } from "@/routes/locations";
 import { locationRelationRoutes } from "@/routes/locationRelations";
 import { placeTypeRoutes } from "@/routes/placeTypes";
 import { connectorsRoutes } from "@/routes/connectors";
+import { scanPipelineRoutes } from "@/routes/scanPipeline";
 import { kavitaRoutes } from "@/routes/kavita";
 import { plexRoutes } from "@/routes/plex";
 import { metadataRoutes } from "@/routes/metadata";
@@ -234,6 +235,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(extensionRoutes);
   await app.register(metadataRoutes);
   await app.register(connectorsRoutes);
+  await app.register(scanPipelineRoutes);
   await app.register(kavitaRoutes);
   await app.register(plexRoutes);
   await app.register(personRoutes);
