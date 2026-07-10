@@ -6,6 +6,8 @@ import {
   BookmarkChannelDetailView,
   BookmarkCreatedView,
   BookmarkDescriptionDetailView,
+  BookmarkGenreMoodsDetailView,
+  BookmarkGroupsDetailView,
   BookmarkHierarchyView,
   BookmarkKavitaDetailView,
   BookmarkLocationsDetailView,
@@ -25,11 +27,15 @@ import { BookmarkDetailDebug } from "../BookmarkDetailDebug";
 import { BookmarkGallery } from "../BookmarkGallery";
 import {
   BookmarkCategoryEditField,
+  BookmarkChannelEditField,
   BookmarkDescriptionEditField,
+  BookmarkGroupsEditField,
   BookmarkLocationBlacklistEditField,
+  BookmarkLocationsEditField,
   BookmarkMediaTypeEditField,
   BookmarkNameEditField,
   BookmarkNamesEditField,
+  BookmarkPeopleEditField,
   BookmarkPrimaryLanguageEditField,
   BookmarkTagBlacklistEditField,
   BookmarkTagsEditField,
@@ -45,6 +51,7 @@ import { bookmarkYouTubeMetadataField, useBookmarkDynamicFields } from "../Bookm
 import { BookmarkReelArchivePlayer } from "../BookmarkReelArchive";
 import { BookmarkRelatedForm } from "../BookmarkRelatedForm";
 import { BookmarkReelCaptureField } from "../BookmarkVideoEditForm";
+import { GenreMoodAssignmentSection } from "../GenreMoodAssignmentSection";
 import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 
 /**
@@ -78,6 +85,8 @@ export type BookmarkFieldKey
     | "locationsBox"
     | "channel"
     | "people"
+    | "groups"
+    | "genreMoods"
     | "kavitaLink"
     | "plexLink"
     | "tagBlacklist"
@@ -165,6 +174,7 @@ const bookmarkFields = {
     view: ({
       entity,
     }) => <BookmarkLocationsDetailView bookmark={entity} />,
+    edit: () => <BookmarkLocationsEditField />,
   },
   channel: {
     key: "channel",
@@ -172,6 +182,7 @@ const bookmarkFields = {
     view: ({
       entity,
     }) => <BookmarkChannelDetailView bookmark={entity} />,
+    edit: () => <BookmarkChannelEditField />,
   },
   people: {
     key: "people",
@@ -179,6 +190,31 @@ const bookmarkFields = {
     view: ({
       entity,
     }) => <BookmarkPeopleDetailView bookmark={entity} />,
+    edit: () => <BookmarkPeopleEditField />,
+  },
+  groups: {
+    key: "groups",
+    label: i18n.t("Groups"),
+    view: ({
+      entity,
+    }) => <BookmarkGroupsDetailView bookmark={entity} />,
+    edit: () => <BookmarkGroupsEditField />,
+  },
+  genreMoods: {
+    key: "genreMoods",
+    label: i18n.t("Genres & Moods"),
+    view: ({
+      entity,
+    }) => <BookmarkGenreMoodsDetailView bookmark={entity} />,
+    edit: ({
+      entity,
+    }) => (
+      <GenreMoodAssignmentSection
+        ownerType="bookmark"
+        ownerId={entity.id}
+        stacked
+      />
+    ),
   },
   kavitaLink: {
     key: "kavitaLink",
@@ -353,7 +389,7 @@ const BOOKMARK_DEFAULT_LAYOUT: EntityLayout = {
       sections: [
         {
           key: "general",
-          fields: ["name", "primaryLanguage", "names", "url", "description", "category", "mediaType", "tags", "locationsBox", "channel", "people", "kavitaLink", "plexLink"] satisfies BookmarkFieldKey[],
+          fields: ["name", "primaryLanguage", "names", "url", "description", "category", "mediaType", "tags", "locationsBox", "channel", "people", "groups", "genreMoods", "kavitaLink", "plexLink"] satisfies BookmarkFieldKey[],
         },
         {
           key: "advanced",

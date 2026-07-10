@@ -36,14 +36,14 @@ describe("sectionColumnsClass (render)", () => {
     expect(sectionColumnsClass(1)).toBe("space-y-6");
   });
 
-  it("uses a responsive grid that stacks below md for 2–4 columns", () => {
-    expect(sectionColumnsClass(2)).toBe("grid gap-6 md:grid-cols-2");
-    expect(sectionColumnsClass(3)).toBe("grid gap-6 md:grid-cols-3");
-    expect(sectionColumnsClass(4)).toBe("grid gap-6 md:grid-cols-4");
+  it("uses a container-query grid that reflows by section width for 2–4 columns", () => {
+    expect(sectionColumnsClass(2)).toBe("grid gap-6 @md:grid-cols-2");
+    expect(sectionColumnsClass(3)).toBe("grid gap-6 @md:grid-cols-2 @3xl:grid-cols-3");
+    expect(sectionColumnsClass(4)).toBe("grid gap-6 @md:grid-cols-2 @3xl:grid-cols-3 @5xl:grid-cols-4");
   });
 
   it("clamps a stale stored value to a known class", () => {
-    expect(sectionColumnsClass(7)).toBe("grid gap-6 md:grid-cols-4");
+    expect(sectionColumnsClass(7)).toBe("grid gap-6 @md:grid-cols-2 @3xl:grid-cols-3 @5xl:grid-cols-4");
   });
 });
 

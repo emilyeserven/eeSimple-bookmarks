@@ -44,19 +44,23 @@ function SectionFields<E extends { id: string }>({
   mode: WorkbenchMode;
   entity: E;
 }) {
+  // `@container` marks this wrapper as the query context so the grid's `@`-variant column classes
+  // (see `sectionColumnsClass`) reflow against the section's own width, not the viewport.
   return (
-    <div className={sectionColumnsClass(section.columns)}>
-      {fieldKeys.map((key) => {
-        const render = mode === "edit" ? fields[key]?.edit : fields[key]?.view;
-        return render
-          ? (
-            <Fragment key={key}>{render({
-              entity,
-            })}
-            </Fragment>
-          )
-          : null;
-      })}
+    <div className="@container">
+      <div className={sectionColumnsClass(section.columns)}>
+        {fieldKeys.map((key) => {
+          const render = mode === "edit" ? fields[key]?.edit : fields[key]?.view;
+          return render
+            ? (
+              <Fragment key={key}>{render({
+                entity,
+              })}
+              </Fragment>
+            )
+            : null;
+        })}
+      </div>
     </div>
   );
 }

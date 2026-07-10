@@ -53,7 +53,7 @@ const layout: EntityLayout = {
 };
 
 describe("LayoutDrivenTabBody column layout (#1220)", () => {
-  it("renders a multi-column section as a responsive grid that stacks below md", () => {
+  it("renders a multi-column section as a container-query grid that reflows by width", () => {
     const {
       container,
     } = render(
@@ -65,7 +65,7 @@ describe("LayoutDrivenTabBody column layout (#1220)", () => {
         entity={demo}
       />,
     );
-    const grid = container.querySelector(".md\\:grid-cols-2");
+    const grid = container.querySelector(".\\@md\\:grid-cols-2");
     expect(grid).not.toBeNull();
     // Both of the grid section's fields live inside that grid container, in order.
     expect(grid?.querySelector("[data-testid='field-a']")).not.toBeNull();
@@ -87,7 +87,7 @@ describe("LayoutDrivenTabBody column layout (#1220)", () => {
     // The solo field is not inside any grid container.
     const solo = container.querySelector("[data-testid='field-c']");
     expect(solo).not.toBeNull();
-    expect(solo?.closest(".md\\:grid-cols-2")).toBeNull();
+    expect(solo?.closest(".\\@md\\:grid-cols-2")).toBeNull();
     expect(solo?.parentElement?.className).toContain("space-y-6");
   });
 });

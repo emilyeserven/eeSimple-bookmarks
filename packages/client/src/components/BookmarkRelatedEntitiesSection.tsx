@@ -13,11 +13,10 @@ import { Label } from "@/components/ui/label";
 type Ctrl = ReturnType<typeof useBookmarkGeneralForm>;
 
 /**
- * The related-entity fields moved off the General tab onto the "Related" edit tab: YouTube channel,
- * locations, people, and groups (each with its inline-create modal). Media type + tags stay on
- * General in {@link BookmarkGeneralRelationsSection}.
+ * The YouTube-channel field (with its inline-create modal) — one of the related-entity fields the old
+ * `BookmarkRelatedEntitiesSection` bundled, now a standalone placeable field (#1163 field extraction).
  */
-export function BookmarkRelatedEntitiesSection({
+export function BookmarkChannelSelectField({
   ctrl,
 }: { ctrl: Ctrl }) {
   const {
@@ -25,39 +24,12 @@ export function BookmarkRelatedEntitiesSection({
   } = useTranslation();
   const {
     form,
-    locationTree,
-    people,
-    groups,
     youtubeChannels,
-    addPersonOpen,
-    setAddPersonOpen,
     saveField,
-    saveLocations,
-    saveLocationRelations,
-    savePeople,
-    saveGroups,
-    touchedRef,
   } = ctrl;
   const youtubeChannelCreate = useEntityCreateOption("youtube-channel", (channel) => {
     form.setFieldValue("youtubeChannelId", channel.id);
     saveField("youtubeChannelId", channel.id);
-  });
-  const groupCreate = useEntityCreateOption("group", (group) => {
-    const current = form.getFieldValue("groupIds");
-    if (!current.includes(group.id)) {
-      const newGroupIds = [...current, group.id];
-      form.setFieldValue("groupIds", newGroupIds);
-      saveGroups(newGroupIds);
-    }
-  });
-  const locationCreate = useEntityCreateOption("location", (location) => {
-    touchedRef.current.add("locations");
-    const current = form.getFieldValue("locationIds");
-    if (!current.includes(location.id)) {
-      const newLocationIds = [...current, location.id];
-      form.setFieldValue("locationIds", newLocationIds);
-      saveLocations(newLocationIds);
-    }
   });
   return (
     <>
@@ -78,7 +50,38 @@ export function BookmarkRelatedEntitiesSection({
         )}
       </form.AppField>
       {youtubeChannelCreate.modal}
+    </>
+  );
+}
 
+/**
+ * The Locations field — the LocationPicker plus the per-location relation editor (with inline-create) —
+ * now a standalone placeable field (#1163 field extraction).
+ */
+export function BookmarkLocationsSelectField({
+  ctrl,
+}: { ctrl: Ctrl }) {
+  const {
+    t,
+  } = useTranslation();
+  const {
+    form,
+    locationTree,
+    saveLocations,
+    saveLocationRelations,
+    touchedRef,
+  } = ctrl;
+  const locationCreate = useEntityCreateOption("location", (location) => {
+    touchedRef.current.add("locations");
+    const current = form.getFieldValue("locationIds");
+    if (!current.includes(location.id)) {
+      const newLocationIds = [...current, location.id];
+      form.setFieldValue("locationIds", newLocationIds);
+      saveLocations(newLocationIds);
+    }
+  });
+  return (
+    <>
       <form.Field name="locationIds">
         {field => (
           <div className="space-y-1">
@@ -119,7 +122,29 @@ export function BookmarkRelatedEntitiesSection({
           </form.Field>
         )}
       </form.Subscribe>
+    </>
+  );
+}
 
+/**
+ * The People field (individual creators, with the inline "Create person" modal) — now a standalone
+ * placeable field (#1163 field extraction).
+ */
+export function BookmarkPeopleSelectField({
+  ctrl,
+}: { ctrl: Ctrl }) {
+  const {
+    t,
+  } = useTranslation();
+  const {
+    form,
+    people,
+    addPersonOpen,
+    setAddPersonOpen,
+    savePeople,
+  } = ctrl;
+  return (
+    <>
       <form.Field name="personIds">
         {field => (
           <div className="space-y-1">
@@ -158,7 +183,35 @@ export function BookmarkRelatedEntitiesSection({
           }
         }}
       />
+    </>
+  );
+}
 
+/**
+ * The Groups field (group creators, with inline-create) — now a standalone placeable field
+ * (#1163 field extraction). Distinct from the singular `bookmark.group` publisher FK.
+ */
+export function BookmarkGroupsSelectField({
+  ctrl,
+}: { ctrl: Ctrl }) {
+  const {
+    t,
+  } = useTranslation();
+  const {
+    form,
+    groups,
+    saveGroups,
+  } = ctrl;
+  const groupCreate = useEntityCreateOption("group", (group) => {
+    const current = form.getFieldValue("groupIds");
+    if (!current.includes(group.id)) {
+      const newGroupIds = [...current, group.id];
+      form.setFieldValue("groupIds", newGroupIds);
+      saveGroups(newGroupIds);
+    }
+  });
+  return (
+    <>
       <form.Field name="groupIds">
         {field => (
           <div className="space-y-1">

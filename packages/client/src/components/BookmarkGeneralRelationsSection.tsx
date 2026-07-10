@@ -111,9 +111,10 @@ export function BookmarkTagsSelectField({
 
 /**
  * The General-tab taxonomy fields: media type and tags (each with its inline-create modal). The
- * remaining relationship fields (YouTube channel, locations, people, groups) live on the Related tab
- * in {@link BookmarkRelatedEntitiesSection}; tag/location blacklists live in {@link BookmarkBlacklistSection}.
- * Recomposed from the two halves above so the Related-tab consumer stays unchanged.
+ * related-entity fields (YouTube channel, locations, people, groups) are now individually-placeable
+ * layout fields (see `BookmarkRelatedEntitiesSection.tsx`'s `*SelectField` exports); tag/location
+ * blacklists live in {@link BookmarkBlacklistSection}. Recomposed from the two halves above so this
+ * component's own consumers stay unchanged.
  */
 export function BookmarkGeneralRelationsSection({
   ctrl,

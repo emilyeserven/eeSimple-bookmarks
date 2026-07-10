@@ -23,17 +23,29 @@ export function clampSectionColumns(columns: number | undefined): number {
 
 /**
  * The layout classes for a section body on the actual View/Edit pages. `1` keeps the exact current
- * full-width vertical stack (`space-y-6`, byte-identical default); `2`–`4` become a responsive grid
- * that stacks to one column below `md` and reflows to N columns at `md+`.
+ * full-width vertical stack (`space-y-6`, byte-identical default); `2`–`4` become a **container-query**
+ * grid that reflows to N columns based on the section's own available width, not the viewport.
+ *
+ * These are `@`-prefixed **container** variants (Tailwind v4 `@container` / `@md`…, the same pattern
+ * used by `BookmarkDetail.tsx` / `ui/card.tsx`), so the caller marks the section wrapper `@container`
+ * (see `SectionFields` in `LayoutDrivenTabBody`). Viewport `md:` was wrong here: these surfaces render
+ * in narrow containers (the Page Layouts preview is a 50/50 split-pane; the detail page is a single
+ * column), so a viewport-gated `md:grid-cols-2` would be "on" while the pane was far too narrow —
+ * the fields ended up cramped/stacked instead of laid out N-across. Higher counts degrade gracefully
+ * (a 4-col section drops to 3→2→1 as the container narrows). `@md` ≈ 28rem, `@3xl` ≈ 48rem,
+ * `@5xl` ≈ 64rem of container inline-size.
  */
 const RENDER_CLASS: Record<number, string> = {
   1: "space-y-6",
-  2: "grid gap-6 md:grid-cols-2",
-  3: "grid gap-6 md:grid-cols-3",
-  4: "grid gap-6 md:grid-cols-4",
+  2: "grid gap-6 @md:grid-cols-2",
+  3: "grid gap-6 @md:grid-cols-2 @3xl:grid-cols-3",
+  4: "grid gap-6 @md:grid-cols-2 @3xl:grid-cols-3 @5xl:grid-cols-4",
 };
 
-/** Section-body layout classes for a rendered page (see {@link RENDER_CLASS}). */
+/**
+ * Section-body layout classes for a rendered page (see {@link RENDER_CLASS}). Applied to the grid
+ * element; its wrapper must carry `@container` so the `@`-variants resolve against the section width.
+ */
 export function sectionColumnsClass(columns: number | undefined): string {
   return RENDER_CLASS[clampSectionColumns(columns)];
 }

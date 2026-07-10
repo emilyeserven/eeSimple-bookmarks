@@ -10,6 +10,12 @@ import { BookmarkGeneralFormProvider, useBookmarkGeneralFormContext } from "./Bo
 import { BookmarkMediaTypeField, BookmarkTagsSelectField } from "./BookmarkGeneralRelationsSection";
 import { BookmarkGeneralUrlSection } from "./BookmarkGeneralUrlSection";
 import { BookmarkNameField } from "./BookmarkNameField";
+import {
+  BookmarkChannelSelectField,
+  BookmarkGroupsSelectField,
+  BookmarkLocationsSelectField,
+  BookmarkPeopleSelectField,
+} from "./BookmarkRelatedEntitiesSection";
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { EntityNamesTabEditor } from "./entityNames/EntityNamesTab";
 import { PrimaryLanguageField } from "./entityNames/PrimaryLanguageField";
@@ -261,6 +267,38 @@ export function BookmarkLocationBlacklistEditField() {
     ctrl,
   } = useBookmarkGeneralFormContext();
   return <BookmarkLocationBlacklistField ctrl={ctrl} />;
+}
+
+/** YouTube channel combobox (with inline-create). Reads the shared controller from context. */
+export function BookmarkChannelEditField() {
+  const {
+    ctrl,
+  } = useBookmarkGeneralFormContext();
+  return <BookmarkChannelSelectField ctrl={ctrl} />;
+}
+
+/** Locations picker + per-location relations (with inline-create). Reads the shared controller. */
+export function BookmarkLocationsEditField() {
+  const {
+    ctrl,
+  } = useBookmarkGeneralFormContext();
+  return <BookmarkLocationsSelectField ctrl={ctrl} />;
+}
+
+/** People multi-select (with inline-create). Reads the shared controller from context. */
+export function BookmarkPeopleEditField() {
+  const {
+    ctrl,
+  } = useBookmarkGeneralFormContext();
+  return <BookmarkPeopleSelectField ctrl={ctrl} />;
+}
+
+/** Groups multi-select (with inline-create). Reads the shared controller from context. */
+export function BookmarkGroupsEditField() {
+  const {
+    ctrl,
+  } = useBookmarkGeneralFormContext();
+  return <BookmarkGroupsSelectField ctrl={ctrl} />;
 }
 
 interface BookmarkGeneralFormProps {
