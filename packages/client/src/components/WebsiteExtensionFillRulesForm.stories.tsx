@@ -60,10 +60,13 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-/** The auto-saving extraction-rules editor with the PRINT LENGTH rule pre-populated. */
+/**
+ * The tab opens read-only with the PRINT LENGTH rule shown in full detail; clicking "Edit" reveals
+ * the auto-saving extraction-rules editor.
+ */
 export const Default: Story = {};
 
-/** A site with no extraction rules yet. */
+/** A site with no extraction rules yet — the read-only empty state above the Edit button. */
 export const Empty: Story = {
   args: {
     website: {

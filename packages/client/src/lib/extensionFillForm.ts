@@ -123,6 +123,76 @@ export function describeFillTarget(target: FillTarget, property?: CustomProperty
 }
 
 // ---------------------------------------------------------------------------
+// Read-only detail summaries (mirror describeFillTarget; plain English, no i18n)
+// ---------------------------------------------------------------------------
+
+const PATH_MATCH_MODE_LABELS: Record<PathMatch["mode"], string> = {
+  prefix: "Starts with",
+  contains: "Contains",
+  suffix: "Ends with",
+  regex: "Matches regex",
+};
+
+/** A short summary of a rule's path gate for the read-only view, e.g. `Starts with "/course/"`. */
+export function describePathMatch(pathMatch: PathMatch): string {
+  return `${PATH_MATCH_MODE_LABELS[pathMatch.mode]} "${pathMatch.value}"`;
+}
+
+/** A short summary of how the value is read: the attribute name, or trimmed text (the default). */
+export function describeFillRead(read: FillExtract["read"]): string {
+  if (read?.kind === "attr" && read.name) return `Attribute: ${read.name}`;
+  return "Text content";
+}
+
+const TEXT_MATCH_MODE_LABELS: Record<TextMatch["mode"], string> = {
+  equals: "equals",
+  contains: "contains",
+  regex: "matches",
+};
+
+/** A short summary of a text match, e.g. `contains "PRINT LENGTH:"` (+ a case-sensitivity note). */
+function describeTextMatch(match: TextMatch): string {
+  const base = `${TEXT_MATCH_MODE_LABELS[match.mode]} "${match.value}"`;
+  return match.caseSensitive ? `${base} (case-sensitive)` : base;
+}
+
+/** A short summary of one extraction filter for the read-only view. */
+export function describeFillFilter(filter: FillFilter): string {
+  switch (filter.kind) {
+    case "selfText":
+      return `Self text ${describeTextMatch(filter.match)}`;
+    case "siblingText":
+      return `Sibling text ${describeTextMatch(filter.match)}`;
+    case "ancestorText":
+      return `Ancestor text ${describeTextMatch(filter.match)}${
+        filter.maxDepth !== undefined ? ` (max depth ${filter.maxDepth})` : ""
+      }`;
+    case "closest":
+      return `Closest ancestor "${filter.selector}"`;
+    case "nth":
+      return `Nth match #${filter.index}`;
+  }
+}
+
+/** A short summary of one string transform for the read-only view. */
+export function describeFillTransform(transform: FillTransform): string {
+  switch (transform.kind) {
+    case "regex":
+      return `Regex /${transform.pattern}/${transform.flags ?? ""}${
+        transform.group !== undefined ? ` group ${transform.group}` : ""
+      }`;
+    case "number":
+      return "First number";
+    case "duration":
+      return "Duration → seconds";
+    case "replace":
+      return `Replace /${transform.pattern}/${transform.flags ?? ""} → "${transform.replacement}"`;
+    case "trim":
+      return "Trim";
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Kind-change coercion (rebuild a variant keeping only its own fields)
 // ---------------------------------------------------------------------------
 
