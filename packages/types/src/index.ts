@@ -2409,6 +2409,8 @@ export interface CustomProperty {
   numberFormat: NumberFormat | null;
   /** What a `datetime` property captures (`date`/`time`/`datetime`); `null` for non-datetime types. */
   dateTimeFormat: DateTimeFormat | null;
+  /** When true, a `datetime` property also accepts/displays/enters month-only `"YYYY-MM"` values (alongside full `"YYYY-MM-DD"`). */
+  dateTimeAllowYearMonth: boolean;
   /**
    * Half-width of the "quick filter" window applied when filtering bookmarks from a `number` or
    * `datetime` value on the detail page: the filter spans `value ± quickFilterRange`. Stored in the
@@ -2505,6 +2507,8 @@ export interface CreateCustomPropertyInput {
   numberFormat?: NumberFormat | null;
   /** What a `datetime` property captures (`date`/`time`/`datetime`). Required for `datetime`. */
   dateTimeFormat?: DateTimeFormat | null;
+  /** When true, a `datetime` property also accepts month-only `"YYYY-MM"` values. Defaults to `false`. */
+  dateTimeAllowYearMonth?: boolean;
   /** Half-width of the `value ± range` quick-filter window for `number`/`datetime` props (value's own units; seconds for duration/datetime). `null` = exact match. */
   quickFilterRange?: number | null;
   description?: string | null;

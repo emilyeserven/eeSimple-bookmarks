@@ -130,6 +130,70 @@
     return matched ? String(Math.round(total)) : "";
   }
 
+  // Month name → 1-based number (full names + common abbreviations), lowercased keys.
+  var DATE_MONTHS = {
+    january: 1,
+    jan: 1,
+    february: 2,
+    feb: 2,
+    march: 3,
+    mar: 3,
+    april: 4,
+    apr: 4,
+    may: 5,
+    june: 6,
+    jun: 6,
+    july: 7,
+    jul: 7,
+    august: 8,
+    aug: 8,
+    september: 9,
+    sep: 9,
+    sept: 9,
+    october: 10,
+    oct: 10,
+    november: 11,
+    nov: 11,
+    december: 12,
+    dec: 12,
+  };
+
+  // Assemble "YYYY-MM-DD" (day given) or "YYYY-MM"; "" when month/day is out of range.
+  function isoDateParts(year, month, day) {
+    var m = Number(month);
+    if (!(m >= 1 && m <= 12)) return "";
+    var out = String(year).padStart(4, "0") + "-" + String(m).padStart(2, "0");
+    if (day == null || day === "") return out;
+    var d = Number(day);
+    if (!(d >= 1 && d <= 31)) return "";
+    return out + "-" + String(d).padStart(2, "0");
+  }
+
+  // Normalize a human date string to canonical "YYYY-MM-DD" / "YYYY-MM"; "" when unrecognized.
+  function parseNormalizedDate(value) {
+    var text = value.trim();
+    var m;
+    // ISO passthrough: YYYY-MM or YYYY-MM-DD.
+    m = /^(\d{4})-(\d{1,2})(?:-(\d{1,2}))?$/.exec(text);
+    if (m) return isoDateParts(m[1], m[2], m[3]);
+    // Numeric year-first: YYYY/MM or YYYY/MM/DD.
+    m = /^(\d{4})\/(\d{1,2})(?:\/(\d{1,2}))?$/.exec(text);
+    if (m) return isoDateParts(m[1], m[2], m[3]);
+    // Numeric month-first (US): MM/YYYY or MM/DD/YYYY.
+    m = /^(\d{1,2})(?:\/(\d{1,2}))?\/(\d{4})$/.exec(text);
+    if (m) return isoDateParts(m[3], m[1], m[2]);
+    // Month name + day + year: "June 21, 2026", "Jun 21 2026".
+    m = /^([A-Za-z]+)\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})$/.exec(text);
+    if (m) return DATE_MONTHS[m[1].toLowerCase()] ? isoDateParts(m[3], DATE_MONTHS[m[1].toLowerCase()], m[2]) : "";
+    // Day + month name + year: "21 June 2026", "21st Jun 2026".
+    m = /^(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+)\.?,?\s+(\d{4})$/.exec(text);
+    if (m) return DATE_MONTHS[m[2].toLowerCase()] ? isoDateParts(m[3], DATE_MONTHS[m[2].toLowerCase()], m[1]) : "";
+    // Month name + year: "June 2026", "Jun 2026".
+    m = /^([A-Za-z]+)\.?\s+(\d{4})$/.exec(text);
+    if (m) return DATE_MONTHS[m[1].toLowerCase()] ? isoDateParts(m[2], DATE_MONTHS[m[1].toLowerCase()], null) : "";
+    return "";
+  }
+
   function applyTransform(value, transform) {
     if (transform.kind === "regex") {
       var re = new RegExp(transform.pattern, transform.flags || "");
@@ -144,6 +208,9 @@
     }
     if (transform.kind === "duration") {
       return parseDurationSeconds(value);
+    }
+    if (transform.kind === "date") {
+      return parseNormalizedDate(value);
     }
     if (transform.kind === "replace") {
       return value.replace(new RegExp(transform.pattern, transform.flags || ""), transform.replacement);

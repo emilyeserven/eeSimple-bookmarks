@@ -152,6 +152,7 @@ function FillTransformFields({
       );
     case "number":
     case "duration":
+    case "date":
     case "trim":
       return null;
   }
@@ -256,6 +257,10 @@ function TRANSFORM_KIND_OPTIONS(t: (key: string) => string): KindOption<Transfor
     {
       value: "duration",
       label: t("Duration → seconds"),
+    },
+    {
+      value: "date",
+      label: t("Normalize date"),
     },
     {
       value: "replace",

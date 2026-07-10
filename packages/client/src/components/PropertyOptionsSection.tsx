@@ -559,6 +559,20 @@ function DateTimeOptions({
               />
             )}
           </form.AppField>
+          <form.AppField name="dateTimeAllowYearMonth">
+            {field => (
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id={`${idPrefix}-datetime-allow-year-month`}
+                  checked={field.state.value}
+                  onCheckedChange={checked => field.handleChange(checked === true)}
+                />
+                <Label htmlFor={`${idPrefix}-datetime-allow-year-month`}>
+                  Allow month-only (YYYY-MM) dates
+                </Label>
+              </div>
+            )}
+          </form.AppField>
           <QuickFilterRangeFields
             form={form}
             className="space-y-1"

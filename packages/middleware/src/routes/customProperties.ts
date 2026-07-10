@@ -59,6 +59,9 @@ const createPropertyBody = {
       type: ["string", "null"],
       enum: [...DATE_TIME_FORMATS, null],
     },
+    dateTimeAllowYearMonth: {
+      type: "boolean",
+    },
     quickFilterRange: {
       type: ["number", "null"],
     },
@@ -207,6 +210,7 @@ const updatePropertyBody = {
     name: createPropertyBody.properties.name,
     numberFormat: createPropertyBody.properties.numberFormat,
     dateTimeFormat: createPropertyBody.properties.dateTimeFormat,
+    dateTimeAllowYearMonth: createPropertyBody.properties.dateTimeAllowYearMonth,
     quickFilterRange: createPropertyBody.properties.quickFilterRange,
     description: createPropertyBody.properties.description,
     numberMin: createPropertyBody.properties.numberMin,

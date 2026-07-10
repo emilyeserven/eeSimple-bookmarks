@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 
-import { composeDateTime, dateToYmd, parseDatePart, parseTimePart } from "./datetime";
+import { composeDateTime, dateToYmd, formatDateTimeValue, parseDatePart, parseTimePart, parseYearMonth } from "./datetime";
 
 describe("dateToYmd", () => {
   it("formats a local date as YYYY-MM-DD with zero-padding", () => {
@@ -32,6 +32,29 @@ describe("parseTimePart", () => {
   it("returns an empty string for date-only or empty values", () => {
     expect(parseTimePart("2026-06-15")).toBe("");
     expect(parseTimePart(null)).toBe("");
+  });
+});
+
+describe("parseYearMonth", () => {
+  it("parses a bare YYYY-MM into the first of that month", () => {
+    expect(dateToYmd(parseYearMonth("2026-06")!)).toBe("2026-06-01");
+  });
+
+  it("returns undefined for full dates, empty, or malformed values", () => {
+    expect(parseYearMonth("2026-06-15")).toBeUndefined();
+    expect(parseYearMonth("2026")).toBeUndefined();
+    expect(parseYearMonth(null)).toBeUndefined();
+  });
+});
+
+describe("formatDateTimeValue", () => {
+  it("displays a month-only value as month + year (en-US)", () => {
+    expect(formatDateTimeValue("2026-06", "date", "en-US")).toBe("June 2026");
+  });
+
+  it("still displays a full date and falls back to the raw string when unparseable", () => {
+    expect(formatDateTimeValue("2026-06-15", "date", "en-US")).toBe("Jun 15, 2026");
+    expect(formatDateTimeValue("garbage", "date", "en-US")).toBe("garbage");
   });
 });
 
