@@ -85,6 +85,7 @@ function BookmarkListContent({
             bookmarks={visibleBookmarks}
             properties={properties}
             columns={columns}
+            pageKey={pageKey}
             selectionMode={selection.mode}
             isSelected={selection.isSelected}
             onToggleSelect={selection.toggle}

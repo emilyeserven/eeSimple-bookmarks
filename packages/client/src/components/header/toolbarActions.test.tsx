@@ -37,7 +37,7 @@ describe("buildToolbarActions", () => {
     expect(keys(ctx())).toEqual([]);
   });
 
-  it("adds display + create for a listing page with a create action (filters/sort now live in the on-page box)", () => {
+  it("adds create for a listing page with a create action (display controls + filters/sort now live in the on-page box)", () => {
     const createAction = vi.fn();
     expect(
       keys(ctx({
@@ -47,7 +47,7 @@ describe("buildToolbarActions", () => {
           createAction,
         },
       })),
-    ).toEqual(["display-options", "create"]);
+    ).toEqual(["create"]);
   });
 
   it("adds the bulk-select toggle when a bulk-selectable listing is mounted", () => {
@@ -56,14 +56,14 @@ describe("buildToolbarActions", () => {
     }))).toEqual(["bulk-select"]);
   });
 
-  it("places the bulk-select toggle right after display-options", () => {
+  it("shows the bulk-select toggle for a bulk-selectable listing page", () => {
     expect(keys(ctx({
       listingPage: {
         key: "categories-listing",
         hasFilters: false,
       },
       bulkSelectPageKey: "categories-listing",
-    }))).toEqual(["display-options", "bulk-select"]);
+    }))).toEqual(["bulk-select"]);
   });
 
   it("adds layout + edit for a bookmark detail", () => {
@@ -154,7 +154,6 @@ describe("buildToolbarActions", () => {
       } as unknown as ToolbarContext["pinContext"],
     });
     expect(keys(all)).toEqual([
-      "display-options",
       "edit-taxonomy",
       "create",
       "settings-favorite",

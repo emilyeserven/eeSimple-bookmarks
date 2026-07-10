@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Pin, PinOff } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { ListingDisplayControls } from "./ListingDisplayControls";
 import { ListingSearchBar } from "./ListingSearchBar";
 import { Button } from "./ui/button";
 import { RowCard } from "./ui/card";
@@ -13,6 +14,7 @@ import {
   useUpdateDisplayPreferenceSettings,
 } from "@/hooks/useAppSettings";
 import { cn } from "@/lib/utils";
+import { useUiStore } from "@/stores/uiStore";
 
 interface ListingSearchBoxProps {
   /** Sort control rendered to the right of the search input (bookmark listings only). */
@@ -29,6 +31,10 @@ interface ListingSearchBoxProps {
  * server-persisted {@link useSearchBoxPinned} preference (mirrors the right-panel pin, so the choice
  * follows the user across devices and fires a save toast). Taxonomy listings render it with just the
  * search input; bookmark listings pass the `sort` and `filters` slots.
+ *
+ * The per-listing Display controls (view mode, column count, and — on image-bearing listings — the
+ * image Aspect override) render as a block **directly beneath** the box (not inside it), keyed to the
+ * registered listing page; this replaces the former header Display popover.
  */
 export function ListingSearchBox({
   sort,
@@ -39,6 +45,7 @@ export function ListingSearchBox({
     data: displayData,
   } = useDisplayPreferenceSettings();
   const update = useUpdateDisplayPreferenceSettings();
+  const listingPage = useUiStore(state => state.listingPage);
   const {
     t,
   } = useTranslation();
@@ -56,37 +63,47 @@ export function ListingSearchBox({
   }
 
   return (
-    <RowCard
-      className={cn("space-y-3 p-3", pinned && "sticky top-0 z-30 shadow-md")}
-    >
-      <div className="flex items-center gap-2">
-        <ListingSearchBar />
-        <div className="ml-auto flex shrink-0 items-center gap-2">
-          {sort
-            ? (
-              <div
-                className="
-                  hidden
-                  md:flex
-                "
-              >{sort}
-              </div>
-            )
-            : null}
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-8"
-            aria-label={pinned ? t("Unpin search box") : t("Pin search box")}
-            aria-pressed={pinned}
-            onClick={togglePinned}
-          >
-            {pinned ? <PinOff className="size-4" /> : <Pin className="size-4" />}
-          </Button>
+    <div className="space-y-2">
+      <RowCard
+        className={cn("space-y-3 p-3", pinned && "sticky top-0 z-30 shadow-md")}
+      >
+        <div className="flex items-center gap-2">
+          <ListingSearchBar />
+          <div className="ml-auto flex shrink-0 items-center gap-2">
+            {sort
+              ? (
+                <div
+                  className="
+                    hidden
+                    md:flex
+                  "
+                >{sort}
+                </div>
+              )
+              : null}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-8"
+              aria-label={pinned ? t("Unpin search box") : t("Pin search box")}
+              aria-pressed={pinned}
+              onClick={togglePinned}
+            >
+              {pinned ? <PinOff className="size-4" /> : <Pin className="size-4" />}
+            </Button>
+          </div>
         </div>
-      </div>
-      {filters}
-    </RowCard>
+        {filters}
+      </RowCard>
+      {listingPage
+        ? (
+          <ListingDisplayControls
+            pageKey={listingPage.key}
+            showImageControls={listingPage.showsImages}
+          />
+        )
+        : null}
+    </div>
   );
 }

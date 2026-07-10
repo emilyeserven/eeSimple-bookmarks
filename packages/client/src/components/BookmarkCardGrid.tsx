@@ -17,6 +17,12 @@ interface BookmarkCardGridProps {
   bookmarks: Bookmark[];
   properties: CustomProperty[];
   columns: number;
+  /**
+   * Stable listing-page key. When set and this page carries an image-aspect override
+   * (`uiStore.bookmarkImageMode[pageKey]`), that aspect wins over each card's Card Display Rule
+   * aspect. Absent/cleared ⇒ each card keeps its resolved rule aspect.
+   */
+  pageKey?: string;
   /** When true, clicking a card selects it (instead of navigating) via an overlay. */
   selectionMode?: boolean;
   isSelected?: (id: string) => boolean;
@@ -34,6 +40,7 @@ export function BookmarkCardGrid({
   bookmarks,
   properties,
   columns,
+  pageKey,
   selectionMode = false,
   isSelected,
   onToggleSelect,
@@ -44,6 +51,8 @@ export function BookmarkCardGrid({
   } = useTranslation();
   const deleteBookmark = useDeleteBookmark();
   const setHoveredBookmarkId = useUiStore(state => state.setHoveredBookmarkId);
+  // Raw per-listing aspect override (absence = inherit each card's Card Display Rule aspect).
+  const imageModeOverride = useUiStore(state => (pageKey ? state.bookmarkImageMode[pageKey] : undefined));
   const {
     resolve: resolveDisplay, isPending: displayPending,
   } = useResolveCardDisplay();
@@ -91,7 +100,7 @@ export function BookmarkCardGrid({
                 sections={display.sections}
                 imageCorners={display.imageCorners}
                 imageLeft={(columns === 1 || columns === 2) && display.imageLayout === "side"}
-                imageMode={display.imageMode}
+                imageMode={imageModeOverride ?? display.imageMode}
                 imageVisibility={display.imageVisibility}
                 hideWebsiteForYouTube={display.hideWebsiteForYouTube}
                 loading={displayPending}

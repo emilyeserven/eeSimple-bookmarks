@@ -2,10 +2,23 @@ import type { ViewMode } from "../lib/bookmarkColumns";
 
 import { useTranslation } from "react-i18next";
 
+import { useCroppedHeight, useCroppedWidth } from "../hooks/useAppSettings";
+import { useCustomAspectRatios } from "../hooks/useCustomAspectRatios";
+import { buildAspectOptions } from "../lib/aspectOptions";
 import { COLUMN_OPTIONS } from "../lib/bookmarkColumns";
 
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+
+/** Sentinel value for the Aspect select's "Default" (inherit-from-Card-Display-Rules) option. */
+export const ASPECT_INHERIT = "__default__";
 
 /** Shared "View" cards/table toggle row used by listing + section display controls. */
 export function ViewModeToggle({
@@ -84,6 +97,50 @@ export function ColumnsSelect({
           </ToggleGroupItem>
         ))}
       </ToggleGroup>
+    </div>
+  );
+}
+
+/**
+ * Shared "Aspect" image ratio/cropping selector for listing display controls. Offers a leading
+ * "Default" option (`undefined` value = inherit the per-card Card Display Rule aspect) plus every
+ * built-in and custom aspect from {@link buildAspectOptions}.
+ */
+export function ImageAspectSelect({
+  value, onChange,
+}: { value: string | undefined;
+  onChange: (value: string | undefined) => void; }) {
+  const {
+    t,
+  } = useTranslation();
+  const croppedWidth = useCroppedWidth();
+  const croppedHeight = useCroppedHeight();
+  const {
+    data: customRatios = [],
+  } = useCustomAspectRatios();
+  const aspectOptions = buildAspectOptions(croppedWidth, croppedHeight, customRatios);
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <Label className="text-sm font-medium">{t("Aspect")}</Label>
+      <Select
+        value={value ?? ASPECT_INHERIT}
+        onValueChange={next => onChange(next === ASPECT_INHERIT ? undefined : next)}
+      >
+        <SelectTrigger className="h-8 w-40 text-sm">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={ASPECT_INHERIT}>{t("Default")}</SelectItem>
+          {aspectOptions.map(opt => (
+            <SelectItem
+              key={opt.value}
+              value={opt.value}
+            >
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }
