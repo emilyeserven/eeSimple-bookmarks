@@ -17,6 +17,7 @@ import type {
   Tag,
   Taxonomy,
   TaxonomyTerm,
+  ScanPipelineReport,
   Website,
   YouTubeChannel,
 } from "@eesimple/types";
@@ -508,6 +509,210 @@ export function makeNewsletter(overrides: Partial<Newsletter> = {}): Newsletter 
     category: null,
     tagIds: [],
     mediaTypeId: null,
+    ...overrides,
+  };
+}
+
+/**
+ * A compact but representative `ScanPipelineReport`: a plain stage, a query-param-gated stage with a
+ * first-non-null chain, a parallel node carrying a branch set, a layered-merge chain, and every
+ * `GateBadge` live state (on / off / conditional). Override the pieces a story/test cares about.
+ */
+export function makeScanPipelineReport(overrides: Partial<ScanPipelineReport> = {}): ScanPipelineReport {
+  return {
+    description: {
+      pipelineId: "scan",
+      version: 1,
+      endpoint: "GET /api/scan",
+      nodes: [
+        {
+          kind: "stage",
+          stage: {
+            id: "validate-url",
+            name: "URL validation",
+            summary: "The pasted URL must be a valid http(s) URL before any work runs.",
+            gate: {
+              kind: "always",
+            },
+            live: {
+              state: "on",
+            },
+          },
+        },
+        {
+          kind: "stage",
+          stage: {
+            id: "resolve-redirect",
+            name: "Redirect resolution",
+            summary: "Follows the URL's redirect chain to its real destination.",
+            detail: "The client turns this off per scan for ignore-listed domains.",
+            gate: {
+              kind: "queryParam",
+              param: "resolveRedirect",
+              defaultValue: true,
+            },
+            live: {
+              state: "conditional",
+              detail: "The client decides per scan (default on). 0 domains are on the redirect ignore list.",
+            },
+            precedences: [{
+              id: "redirect-resolvers",
+              title: "Redirect resolvers (first success wins)",
+              mode: "first-non-null",
+              sources: [
+                {
+                  id: "http-unwrap",
+                  label: "HTTP redirect unwrap",
+                },
+                {
+                  id: "browserless",
+                  label: "Browserless fallback",
+                  gate: {
+                    kind: "connector",
+                    connector: "hostedMetadata",
+                  },
+                  live: {
+                    state: "off",
+                    detail: "Connector not configured.",
+                  },
+                },
+              ],
+            }],
+          },
+        },
+        {
+          kind: "parallel",
+          id: "parallel-fanout",
+          label: "Run in parallel",
+          lanes: [
+            {
+              id: "lane-duplicate-check",
+              label: "Duplicate check",
+              stages: [{
+                id: "duplicate-check",
+                name: "Duplicate check",
+                summary: "Checks the resolved URL against existing bookmarks.",
+                gate: {
+                  kind: "always",
+                },
+                live: {
+                  state: "on",
+                },
+              }],
+            },
+            {
+              id: "lane-metadata",
+              label: "Page metadata",
+              stages: [],
+              branchSet: {
+                id: "metadata-branch",
+                chooser: "Is the URL a YouTube video watch page?",
+                branches: [
+                  {
+                    id: "metadata-branch-youtube",
+                    label: "YouTube video",
+                    stages: [{
+                      id: "metadata-youtube",
+                      name: "YouTube metadata",
+                      summary: "Title/thumbnail/channel via keyless oEmbed.",
+                      gate: {
+                        kind: "always",
+                      },
+                      live: {
+                        state: "on",
+                      },
+                    }],
+                  },
+                  {
+                    id: "metadata-branch-generic",
+                    label: "Any other page",
+                    stages: [{
+                      id: "metadata-generic",
+                      name: "Generic page metadata",
+                      summary: "Title, description, authors, and images from the page itself.",
+                      gate: {
+                        kind: "always",
+                      },
+                      live: {
+                        state: "on",
+                      },
+                      registryRef: "oembedProviders",
+                      precedences: [{
+                        id: "metadata-sources",
+                        title: "Metadata sources (later sources refine earlier ones)",
+                        mode: "layered-merge",
+                        sources: [
+                          {
+                            id: "html-scrape",
+                            label: "HTML scrape",
+                          },
+                          {
+                            id: "oembed",
+                            label: "oEmbed",
+                          },
+                          {
+                            id: "hosted-metadata",
+                            label: "Hosted metadata provider",
+                            gate: {
+                              kind: "connector",
+                              connector: "hostedMetadata",
+                            },
+                            live: {
+                              state: "off",
+                              detail: "Connector not configured.",
+                            },
+                          },
+                        ],
+                      }],
+                    }],
+                  },
+                ],
+              },
+            },
+            {
+              id: "lane-isbn-generic",
+              label: "Generic page ISBN",
+              stages: [{
+                id: "isbn-generic-page",
+                name: "Generic page scrape",
+                summary: "For opted-in sites, scans the page HTML for an ISBN.",
+                gate: {
+                  kind: "websiteFlag",
+                  flag: "scanUrlForIsbn",
+                },
+                live: {
+                  state: "off",
+                  detail: "No website has \"Scan URL for ISBN\" on.",
+                },
+                registryRef: "isbnHtmlStrategies",
+              }],
+            },
+          ],
+        },
+      ],
+    },
+    registries: {
+      oembedProviders: [
+        {
+          name: "Vimeo",
+        },
+        {
+          name: "Spotify",
+        },
+      ],
+      contentKinds: ["youtube-video", "book", "social-account", "web-link"],
+      isbnHtmlStrategies: [
+        "JSON-LD isbn field",
+        "ISBN-13 label in the page text",
+        "ISBN-10 label in the page text (converted to ISBN-13)",
+      ],
+    },
+    cache: {
+      entries: 0,
+      maxEntries: 500,
+      ttlMs: 60_000,
+    },
+    generatedAt: NOW,
     ...overrides,
   };
 }

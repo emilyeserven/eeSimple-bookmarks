@@ -25,6 +25,7 @@ import {
   SquarePlus,
   Wand2,
   Waypoints,
+  Workflow,
 } from "lucide-react";
 
 import i18n from "../i18n";
@@ -163,6 +164,11 @@ export const advancedNav: readonly SettingsTabNavItem[] = [
     to: "/settings/advanced/connectors",
     label: i18n.t("Connectors"),
     icon: Cable,
+  },
+  {
+    to: "/settings/advanced/scan-pipeline",
+    label: i18n.t("Scan Pipeline"),
+    icon: Workflow,
   },
   {
     to: "/settings/advanced/manage-data",

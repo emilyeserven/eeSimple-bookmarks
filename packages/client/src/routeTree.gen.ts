@@ -140,6 +140,7 @@ import { Route as SettingsAutomationsGlobalRouteImport } from './routes/settings
 import { Route as SettingsAutomationsCheckLinksRouteImport } from './routes/settings.automations.check-links'
 import { Route as SettingsAutomationsBackfillRouteImport } from './routes/settings.automations.backfill'
 import { Route as SettingsAdvancedUpdatesRouteImport } from './routes/settings.advanced.updates'
+import { Route as SettingsAdvancedScanPipelineRouteImport } from './routes/settings.advanced.scan-pipeline'
 import { Route as SettingsAdvancedManageMediaRouteImport } from './routes/settings.advanced.manage-media'
 import { Route as SettingsAdvancedManageDataRouteImport } from './routes/settings.advanced.manage-data'
 import { Route as SettingsAdvancedDatabaseUsageRouteImport } from './routes/settings.advanced.database-usage'
@@ -965,6 +966,12 @@ const SettingsAdvancedUpdatesRoute = SettingsAdvancedUpdatesRouteImport.update({
   path: '/updates',
   getParentRoute: () => SettingsAdvancedRoute,
 } as any)
+const SettingsAdvancedScanPipelineRoute =
+  SettingsAdvancedScanPipelineRouteImport.update({
+    id: '/scan-pipeline',
+    path: '/scan-pipeline',
+    getParentRoute: () => SettingsAdvancedRoute,
+  } as any)
 const SettingsAdvancedManageMediaRoute =
   SettingsAdvancedManageMediaRouteImport.update({
     id: '/manage-media',
@@ -1740,6 +1747,7 @@ export interface FileRoutesByFullPath {
   '/settings/advanced/database-usage': typeof SettingsAdvancedDatabaseUsageRoute
   '/settings/advanced/manage-data': typeof SettingsAdvancedManageDataRoute
   '/settings/advanced/manage-media': typeof SettingsAdvancedManageMediaRoute
+  '/settings/advanced/scan-pipeline': typeof SettingsAdvancedScanPipelineRoute
   '/settings/advanced/updates': typeof SettingsAdvancedUpdatesRoute
   '/settings/automations/backfill': typeof SettingsAutomationsBackfillRoute
   '/settings/automations/check-links': typeof SettingsAutomationsCheckLinksRoute
@@ -1941,6 +1949,7 @@ export interface FileRoutesByTo {
   '/settings/advanced/database-usage': typeof SettingsAdvancedDatabaseUsageRoute
   '/settings/advanced/manage-data': typeof SettingsAdvancedManageDataRoute
   '/settings/advanced/manage-media': typeof SettingsAdvancedManageMediaRoute
+  '/settings/advanced/scan-pipeline': typeof SettingsAdvancedScanPipelineRoute
   '/settings/advanced/updates': typeof SettingsAdvancedUpdatesRoute
   '/settings/automations/backfill': typeof SettingsAutomationsBackfillRoute
   '/settings/automations/check-links': typeof SettingsAutomationsCheckLinksRoute
@@ -2154,6 +2163,7 @@ export interface FileRoutesById {
   '/settings/advanced/database-usage': typeof SettingsAdvancedDatabaseUsageRoute
   '/settings/advanced/manage-data': typeof SettingsAdvancedManageDataRoute
   '/settings/advanced/manage-media': typeof SettingsAdvancedManageMediaRoute
+  '/settings/advanced/scan-pipeline': typeof SettingsAdvancedScanPipelineRoute
   '/settings/advanced/updates': typeof SettingsAdvancedUpdatesRoute
   '/settings/automations/backfill': typeof SettingsAutomationsBackfillRoute
   '/settings/automations/check-links': typeof SettingsAutomationsCheckLinksRoute
@@ -2406,6 +2416,7 @@ export interface FileRouteTypes {
     | '/settings/advanced/database-usage'
     | '/settings/advanced/manage-data'
     | '/settings/advanced/manage-media'
+    | '/settings/advanced/scan-pipeline'
     | '/settings/advanced/updates'
     | '/settings/automations/backfill'
     | '/settings/automations/check-links'
@@ -2607,6 +2618,7 @@ export interface FileRouteTypes {
     | '/settings/advanced/database-usage'
     | '/settings/advanced/manage-data'
     | '/settings/advanced/manage-media'
+    | '/settings/advanced/scan-pipeline'
     | '/settings/advanced/updates'
     | '/settings/automations/backfill'
     | '/settings/automations/check-links'
@@ -2819,6 +2831,7 @@ export interface FileRouteTypes {
     | '/settings/advanced/database-usage'
     | '/settings/advanced/manage-data'
     | '/settings/advanced/manage-media'
+    | '/settings/advanced/scan-pipeline'
     | '/settings/advanced/updates'
     | '/settings/automations/backfill'
     | '/settings/automations/check-links'
@@ -3936,6 +3949,13 @@ declare module '@tanstack/react-router' {
       path: '/updates'
       fullPath: '/settings/advanced/updates'
       preLoaderRoute: typeof SettingsAdvancedUpdatesRouteImport
+      parentRoute: typeof SettingsAdvancedRoute
+    }
+    '/settings/advanced/scan-pipeline': {
+      id: '/settings/advanced/scan-pipeline'
+      path: '/scan-pipeline'
+      fullPath: '/settings/advanced/scan-pipeline'
+      preLoaderRoute: typeof SettingsAdvancedScanPipelineRouteImport
       parentRoute: typeof SettingsAdvancedRoute
     }
     '/settings/advanced/manage-media': {
@@ -5086,6 +5106,7 @@ interface SettingsAdvancedRouteChildren {
   SettingsAdvancedDatabaseUsageRoute: typeof SettingsAdvancedDatabaseUsageRoute
   SettingsAdvancedManageDataRoute: typeof SettingsAdvancedManageDataRoute
   SettingsAdvancedManageMediaRoute: typeof SettingsAdvancedManageMediaRoute
+  SettingsAdvancedScanPipelineRoute: typeof SettingsAdvancedScanPipelineRoute
   SettingsAdvancedUpdatesRoute: typeof SettingsAdvancedUpdatesRoute
   SettingsAdvancedIndexRoute: typeof SettingsAdvancedIndexRoute
 }
@@ -5095,6 +5116,7 @@ const SettingsAdvancedRouteChildren: SettingsAdvancedRouteChildren = {
   SettingsAdvancedDatabaseUsageRoute: SettingsAdvancedDatabaseUsageRoute,
   SettingsAdvancedManageDataRoute: SettingsAdvancedManageDataRoute,
   SettingsAdvancedManageMediaRoute: SettingsAdvancedManageMediaRoute,
+  SettingsAdvancedScanPipelineRoute: SettingsAdvancedScanPipelineRoute,
   SettingsAdvancedUpdatesRoute: SettingsAdvancedUpdatesRoute,
   SettingsAdvancedIndexRoute: SettingsAdvancedIndexRoute,
 }
