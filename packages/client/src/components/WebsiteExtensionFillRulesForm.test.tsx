@@ -87,6 +87,14 @@ describe("WebsiteExtensionFillRulesForm", () => {
       name: "Edit",
     })).toHaveLength(2);
 
+    // Delete sits in each read-only row's header; no bottom Delete button is mounted yet.
+    expect(screen.getAllByRole("button", {
+      name: "Remove rule",
+    })).toHaveLength(2);
+    expect(screen.queryByRole("button", {
+      name: "Delete rule",
+    })).not.toBeInTheDocument();
+
     // Add extraction rule is always available, not gated behind entering an edit mode.
     expect(screen.getByRole("button", {
       name: "Add extraction rule",
@@ -105,6 +113,15 @@ describe("WebsiteExtensionFillRulesForm", () => {
     expect(screen.getByLabelText("Selector")).toBeInTheDocument();
     expect(screen.getAllByLabelText("Selector")).toHaveLength(1);
 
+    // The edited rule's Delete moved out of the header to a destructive button below its fields; the
+    // other (still read-only) rule keeps Delete in its header.
+    expect(screen.getAllByRole("button", {
+      name: "Remove rule",
+    })).toHaveLength(1);
+    expect(screen.getByRole("button", {
+      name: "Delete rule",
+    })).toBeInTheDocument();
+
     // The other rule is untouched: still read-only, still showing its own Edit button.
     expect(screen.getByText("Title text")).toBeInTheDocument();
     expect(screen.getByRole("button", {
@@ -120,11 +137,17 @@ describe("WebsiteExtensionFillRulesForm", () => {
       name: "Done",
     }));
 
-    // Back to read-only: both Edit buttons return, no field inputs remain.
+    // Back to read-only: both Edit buttons return, no field inputs remain, Delete is back in both headers.
     expect(screen.getAllByRole("button", {
       name: "Edit",
     })).toHaveLength(2);
     expect(screen.queryByLabelText("Selector")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", {
+      name: "Remove rule",
+    })).toHaveLength(2);
+    expect(screen.queryByRole("button", {
+      name: "Delete rule",
+    })).not.toBeInTheDocument();
 
     expect(secondEdit).toBeInTheDocument();
   });

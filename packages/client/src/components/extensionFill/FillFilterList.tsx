@@ -29,7 +29,7 @@ export function FillFilterList({
   } = useTranslation();
   return (
     <div className="space-y-2">
-      <Separator className="my-2" />
+      <Separator className="my-4" />
       <div className="text-base font-semibold">{t("Filters")}</div>
       <p className="text-xs text-muted-foreground">
         {t("Applied in order; each narrows which matched nodes remain.")}
