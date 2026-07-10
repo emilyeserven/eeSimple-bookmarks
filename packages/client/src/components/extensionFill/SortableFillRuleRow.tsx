@@ -6,7 +6,7 @@ import { useState } from "react";
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Copy, GripVertical, Pencil, X } from "lucide-react";
+import { Copy, GripVertical, Pencil, Trash2, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { LabeledInput } from "./controls";
@@ -22,10 +22,11 @@ import {
 } from "@/lib/extensionFillForm";
 
 /**
- * One draggable rule row: a header (drag + label + duplicate/remove + a per-row Edit/Done toggle) over
- * either the full read-only detail (`label : value` rows, so a fiddly rule can't change by accident)
- * or the live {@link FillRuleFields} editor for just this rule — editing one rule never affects any
- * other row's state.
+ * One draggable rule row: a header (drag + label + duplicate + a per-row Edit/Done toggle, plus
+ * Delete while read-only) over either the full read-only detail (`label : value` rows, so a fiddly rule
+ * can't change by accident) or the live {@link FillRuleFields} editor for just this rule — editing one
+ * rule never affects any other row's state. While editing, Delete moves to a destructive button below
+ * the fields instead of sitting in the header.
  */
 export function SortableFillRuleRow({
   rule, propertyOptions, propertiesById, onChange, onRemove, onDuplicate,
@@ -113,24 +114,41 @@ export function SortableFillRuleRow({
         >
           <Copy className="size-4" />
         </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label={t("Remove rule")}
-          onClick={onRemove}
-        >
-          <X className="size-4" />
-        </Button>
+        {!isEditing
+          ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={t("Remove rule")}
+              onClick={onRemove}
+            >
+              <X className="size-4" />
+            </Button>
+          )
+          : null}
       </div>
       {isEditing
         ? (
-          <FillRuleFields
-            rule={rule}
-            propertyOptions={propertyOptions}
-            propertiesById={propertiesById}
-            onChange={onChange}
-          />
+          <>
+            <FillRuleFields
+              rule={rule}
+              propertyOptions={propertyOptions}
+              propertiesById={propertiesById}
+              onChange={onChange}
+            />
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={onRemove}
+              >
+                <Trash2 className="mr-1 size-4" />
+                {t("Delete rule")}
+              </Button>
+            </div>
+          </>
         )
         : (
           <RuleDetailList

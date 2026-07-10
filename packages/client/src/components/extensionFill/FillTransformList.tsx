@@ -30,7 +30,7 @@ export function FillTransformList({
   } = useTranslation();
   return (
     <div className="space-y-2">
-      <Separator className="my-2" />
+      <Separator className="my-4" />
       <div className="text-base font-semibold">{t("Transforms")}</div>
       <p className="text-xs text-muted-foreground">
         {t("Applied in order to the extracted string.")}
