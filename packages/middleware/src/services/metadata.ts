@@ -289,8 +289,17 @@ const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
  * early-stopping fetch as the title/image lookups.
  */
 export async function fetchHeadHtml(url: string): Promise<string | null> {
-  const result = await fetchHtml(url, /<\/head>/i);
+  const result = await fetchHeadHtmlResult(url);
   return result.kind === "ok" ? result.html : null;
+}
+
+/**
+ * The typed variant of {@link fetchHeadHtml}: returns the full `FetchHtmlResult` so a caller can see
+ * *why* the head fetch failed (403/anti-bot, timeout, network) instead of only `null`. Used by the
+ * scan pipeline to record website "scanner observations".
+ */
+export async function fetchHeadHtmlResult(url: string): Promise<FetchHtmlResult> {
+  return fetchHtml(url, /<\/head>/i);
 }
 
 /**

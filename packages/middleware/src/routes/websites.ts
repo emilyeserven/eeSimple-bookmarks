@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import type { CreateWebsiteInput, UpdateWebsiteInput, WebsiteLookup } from "@eesimple/types";
-import { SOCIAL_MEDIA_PLATFORMS, TAXONOMY_ENTITY_ASSOCIATIONS, TAXONOMY_ENTITY_FIELDS } from "@eesimple/types";
+import { SOCIAL_MEDIA_PLATFORMS, TAXONOMY_ENTITY_ASSOCIATIONS, TAXONOMY_ENTITY_FIELDS, WEBSITE_SCAN_OBSERVATION_KINDS } from "@eesimple/types";
 import {
   fetchAndStoreWebsiteFavicon,
   getWebsiteFaviconRow,
@@ -500,6 +500,31 @@ const extensionFillRulesSchema = {
   },
 } as const;
 
+const scanObservationsSchema = {
+  type: "array",
+  items: {
+    type: "object",
+    additionalProperties: false,
+    required: ["kind", "source"],
+    properties: {
+      kind: {
+        type: "string",
+        enum: [...WEBSITE_SCAN_OBSERVATION_KINDS],
+      },
+      detail: {
+        type: "string",
+      },
+      source: {
+        type: "string",
+        enum: ["scanner", "manual"],
+      },
+      updatedAt: {
+        type: "string",
+      },
+    },
+  },
+} as const;
+
 const socialLinksSchema = {
   type: "array",
   items: {
@@ -562,6 +587,7 @@ const updateWebsiteBody = {
     },
     alternateNames: alternateNamesSchema,
     extensionFillRules: extensionFillRulesSchema,
+    scanObservations: scanObservationsSchema,
     redirectResolutionFailure: {
       type: "boolean",
     },

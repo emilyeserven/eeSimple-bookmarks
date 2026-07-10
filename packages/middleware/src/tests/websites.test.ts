@@ -537,3 +537,43 @@ test("PATCH /api/websites/:id rejects a taxonomyEntity target with an unknown as
   assert.equal(res.statusCode, 400);
   await app.close();
 });
+
+test("PATCH /api/websites/:id accepts a scanObservations payload", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "PATCH",
+    url: "/api/websites/11111111-1111-1111-1111-111111111111",
+    payload: {
+      scanObservations: [
+        {
+          kind: "blocks-crawlers",
+          detail: "HTTP 403",
+          source: "scanner",
+          updatedAt: "2026-07-10T00:00:00.000Z",
+        },
+        {
+          kind: "needs-hosted-metadata",
+          source: "manual",
+        },
+      ],
+    },
+  });
+  assert.notEqual(res.statusCode, 400);
+  await app.close();
+});
+
+test("PATCH /api/websites/:id rejects a scanObservations entry with an unknown kind", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "PATCH",
+    url: "/api/websites/11111111-1111-1111-1111-111111111111",
+    payload: {
+      scanObservations: [{
+        kind: "bogus-kind",
+        source: "scanner",
+      }],
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});

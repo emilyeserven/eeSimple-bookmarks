@@ -1,6 +1,6 @@
 import type { FastifyBaseLogger, FastifyInstance } from "fastify";
-import type { FetchIsbnMetadataResult, FetchMetadataResult, ResolveUrlResult, ScanResult, WebsiteLookup } from "@eesimple/types";
-import { detectContentKind, extractIsbn13FromAmazonUrl, extractIsbn13FromOreillyUrl, isAmazonProductUrl, isHontoProductUrl, isOreillyProductUrl, socialAccountFromUrl } from "@eesimple/types";
+import type { FetchIsbnMetadataResult, FetchMetadataResult, ResolveUrlResult, ScanObservationSignals, ScanResult, WebsiteLookup } from "@eesimple/types";
+import { detectContentKind, deriveScanObservations, extractIsbn13FromAmazonUrl, extractIsbn13FromOreillyUrl, isAmazonProductUrl, isHontoProductUrl, isOreillyProductUrl, socialAccountFromUrl } from "@eesimple/types";
 import { fetchAmazonIsbnFromPage } from "@/services/amazon";
 import { getImageUrlBlacklist } from "@/services/appSettings";
 import { checkBookmarkUrlDuplicate } from "@/services/bookmarks";
@@ -14,7 +14,7 @@ import {
   extractDescription,
   extractLanguage,
   extractTitle,
-  fetchHeadHtml,
+  fetchHeadHtmlResult,
   fetchPageTitle,
 } from "@/services/metadata";
 import { fetchHostedMetadata } from "@/services/hostedMetadata";
@@ -22,7 +22,7 @@ import { fetchIsbnMetadata } from "@/services/isbn";
 import { fetchOEmbedForUrl } from "@/services/oembed";
 import { unwrapRedirect, unwrapWithBrowserless } from "@/services/redirectUnwrap";
 import { getCachedScan, scanCacheKey, setCachedScan } from "@/services/scanCache";
-import { lookupWebsiteByUrl, stripSiteNameSuffix } from "@/services/websites";
+import { lookupWebsiteByUrl, recordWebsiteScanObservations, stripSiteNameSuffix } from "@/services/websites";
 import { fetchYouTubeMetadata, isYouTubeVideoUrl } from "@/services/youtube";
 import { channelKeyFromUrl, getYouTubeChannelByKey } from "@/services/youtubeChannels";
 import { normalizeLanguageCode } from "@/utils/languageCodes";
@@ -195,17 +195,29 @@ function mergeAuthorName(current: string[] | null, candidateName: string | null 
   return candidateName ? [candidateName] : current;
 }
 
-/** Build the `/api/fetch-metadata` response for a non-YouTube URL (HTML scrape + oEmbed). */
+/**
+ * Build the `/api/fetch-metadata` response for a non-YouTube URL (HTML scrape + oEmbed). When a
+ * `signals` sink is passed (the scan path), it also records *why* the direct fetch fared as it did —
+ * the head-fetch HTTP status / failure kind, and whether the hosted (headless) provider had to fill
+ * in for an empty direct scrape — so the caller can turn those into website scanner observations.
+ */
 async function buildGenericMetadataResult(
   url: string,
   siteNameHint: string | undefined,
+  signals?: ScanObservationSignals,
 ): Promise<FetchMetadataResult> {
-  const [html, {
+  const [headResult, {
     domain, website,
   }] = await Promise.all([
-    fetchHeadHtml(url),
+    fetchHeadHtmlResult(url),
     lookupWebsiteByUrl(url),
   ]);
+  const html = headResult.kind === "ok" ? headResult.html : null;
+  if (signals) {
+    if (headResult.kind === "http_error") signals.headFetchStatus = headResult.status;
+    else if (headResult.kind === "timeout") signals.headFetchFailure = "timeout";
+    else if (headResult.kind === "network_error") signals.headFetchFailure = "network_error";
+  }
   let title = stripTitleSuffixes(html ? extractTitle(html) : null, {
     siteName: siteNameHint ?? website?.siteName,
     domain,
@@ -233,6 +245,8 @@ async function buildGenericMetadataResult(
   // Optional hosted provider (Tier 2, default off): handles JS-rendered / bot-protected pages the
   // direct scrape can't. When configured (env var or DB setting), its values win; when not, this
   // is a no-op (fetchHostedMetadata returns null) and behavior is identical to the direct scrape.
+  // Whether the direct scrape (+ keyless oEmbed) produced anything, captured before the hosted merge.
+  const directHadContent = Boolean(title || description || thumbnailUrl);
   const hosted = await fetchHostedMetadata(url);
   if (hosted) {
     title = hosted.title ?? title;
@@ -240,6 +254,10 @@ async function buildGenericMetadataResult(
     thumbnailUrl = hosted.imageUrl ?? thumbnailUrl;
     datePosted = hosted.datePosted ?? datePosted;
     authorNames = mergeAuthorName(authorNames, hosted.authorName);
+    // The direct scrape came back empty but the headless provider filled it in → a "hard page".
+    if (signals && !directHadContent && (hosted.title || hosted.description || hosted.imageUrl)) {
+      signals.usedHostedFallback = true;
+    }
   }
 
   // Collect every candidate image (Instagram carousel / og / twitter / JSON-LD / article <img>),
@@ -613,11 +631,14 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
     const isbnFromAsin = scanIsbn ? extractIsbn13FromAmazonUrl(finalUrl) : null;
     const isbnFromOreilly = scanIsbn ? extractIsbn13FromOreillyUrl(finalUrl) : null;
     const isDedicatedIsbnSite = isAmazonProductUrl(finalUrl) || isHontoProductUrl(finalUrl) || isOreillyProductUrl(finalUrl);
+    // Collects the scan's fetch-outcome signals (populated inside the generic metadata build) so we
+    // can record website scanner observations after everything resolves.
+    const scanSignals: ScanObservationSignals = {};
     const [duplicate, metadata, isbnFromAmazonPage, isbnFromHontoPage, isbnFromGenericPage] = await Promise.all([
       checkBookmarkUrlDuplicate(finalUrl, identity),
       isYouTubeVideoUrl(finalUrl)
         ? buildYouTubeMetadataResult(finalUrl, req.log)
-        : buildGenericMetadataResult(finalUrl, siteNameHint),
+        : buildGenericMetadataResult(finalUrl, siteNameHint, scanSignals),
       scanIsbn && isbnFromAsin === null && isAmazonProductUrl(finalUrl)
         ? fetchAmazonIsbnFromPage(finalUrl)
         : Promise.resolve(null),
@@ -630,6 +651,25 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
     ]);
 
     const website = toWebsiteLookup(websiteRaw);
+
+    // Record what the scan learned about this site (blocks crawlers / hard page / unreachable /
+    // redirect failure) onto its Website record. Runs only on this cache-miss path, only when the
+    // URL resolved to an existing website, and never fails the scan (display-only, best-effort).
+    scanSignals.redirectError = redirect.resolveError ?? null;
+    if (websiteRaw.website) {
+      const observed = deriveScanObservations(scanSignals);
+      if (observed.length > 0) {
+        try {
+          await recordWebsiteScanObservations(websiteRaw.website.id, observed, new Date().toISOString());
+        }
+        catch (err) {
+          req.log.warn({
+            err,
+          }, "failed to record website scan observations");
+        }
+      }
+    }
+
     // The social account `finalUrl` points at, if any (pure of `finalUrl`, so cache-safe).
     const socialAccount = socialAccountFromUrl(finalUrl);
     // A checksum-valid ISBN-13 from an Amazon product URL's ASIN, or (when the ASIN itself isn't one,
