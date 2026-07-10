@@ -62,6 +62,47 @@ test("GET /api/bookmarks/url-check rejects a query with neither url nor an ident
   await app.close();
 });
 
+test("POST /api/bookmarks/quick-add accepts a well-formed url + title payload", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/bookmarks/quick-add",
+    payload: {
+      url: "https://example.com/direct",
+      title: "Direct",
+    },
+  });
+  // Passes schema validation and reaches the handler (which may then fail on the DB in this harness).
+  assert.notEqual(res.statusCode, 400);
+  await app.close();
+});
+
+test("POST /api/bookmarks/quick-add rejects a payload with no url", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/bookmarks/quick-add",
+    payload: {
+      title: "No URL",
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
+test("POST /api/bookmarks/quick-add rejects a non-http(s) url", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "POST",
+    url: "/api/bookmarks/quick-add",
+    payload: {
+      url: "ftp://example.com/file",
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
 test("isValidUrl accepts http(s) URLs and rejects everything else", () => {
   assert.equal(isValidUrl("https://example.com"), true);
   assert.equal(isValidUrl("http://example.com/path?q=1"), true);

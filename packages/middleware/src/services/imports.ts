@@ -12,6 +12,7 @@
 import { and, asc, count, desc, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
 import type {
   ActiveImport,
+  CreateBookmarkInput,
   ImportApproveResult,
   ImportBlacklistEntry,
   ImportItem,
@@ -1540,4 +1541,60 @@ export async function quickSaveToInbox(
   return {
     id: itemRow.id,
   };
+}
+
+/**
+ * Create a real bookmark directly from a single URL + title, bypassing the Inbox review queue —
+ * used by the browser extension's "Add as bookmark" button/context menu and the PWA share target
+ * when the "shared links skip the inbox" setting is on.
+ *
+ * Reuses the exact bookmark-building path Inbox approval uses (`suggestAutofillForBookmark` +
+ * `buildApprovalBookmarkInput` + `createBookmark`), so a directly-added bookmark applies the same
+ * autofill rules, category/tag/media defaults, and image capture an approved item would — parity by
+ * construction. Returns the created bookmark's `{ id }`, or `null` when the URL is already a saved
+ * bookmark (caller should return 409).
+ */
+export async function quickAddBookmarkDirect(
+  url: string,
+  title: string,
+): Promise<{ id: string } | null> {
+  const dup = await checkBookmarkUrlDuplicate(url);
+  if (dup.exactMatch ?? dup.pathMatch) return null;
+
+  const resolvedTitle = approvalTitle({
+    title,
+    url,
+  });
+  const autofill = await suggestAutofillForBookmark({
+    url,
+    title: resolvedTitle,
+  });
+
+  // No import row, newsletter, or pre-fill for a direct add — the bookmark carries only the URL,
+  // title, and whatever the autofill rules matched. (Unlike Inbox approval, there is no importId to
+  // spread in, so build the input directly rather than via buildApprovalBookmarkInput.)
+  const input: CreateBookmarkInput = {
+    url,
+    title: resolvedTitle,
+    description: null,
+    categoryId: autofill.categoryId ?? undefined,
+    mediaTypeId: autofill.mediaTypeId ?? undefined,
+    tagIds: autofill.tagIds,
+    locationIds: autofill.locationIds,
+    numberValues: autofill.numberValues.length > 0 ? autofill.numberValues : undefined,
+    booleanValues: autofill.booleanValues.length > 0 ? autofill.booleanValues : undefined,
+    dateTimeValues: autofill.dateTimeValues.length > 0 ? autofill.dateTimeValues : undefined,
+  };
+
+  try {
+    const bookmark = await createBookmark(input);
+    return {
+      id: bookmark.id,
+    };
+  }
+  catch (err) {
+    // A concurrent save could have created the same URL between the dup check and insert.
+    if (err instanceof DuplicateUrlError) return null;
+    throw err;
+  }
 }

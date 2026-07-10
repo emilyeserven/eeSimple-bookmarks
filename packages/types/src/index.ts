@@ -485,6 +485,8 @@ export interface AutomationSettings {
   autoApplyTitleTags: boolean;
   /** When on, saving a bookmark whose title contains a location's name auto-applies that location. */
   autoApplyTitleLocations: boolean;
+  /** When on, quick-saves from the PWA share target skip the Inbox and are added directly as bookmarks. */
+  shareBypassInbox: boolean;
   sidebarOpenModifier: SidebarOpenModifier;
   /** App-configured fallback category for new/uncategorized bookmarks; null = use the seeded built-in. */
   defaultCategoryId: string | null;

@@ -2,8 +2,14 @@
  * Share-target service-worker handler.
  *
  * Imported into the Workbox-generated service worker via `workbox.importScripts` (see
- * vite.config.ts). It claims the Android share-sheet POST so a shared link is saved to the Inbox
- * and confirmed with a notification — the app UI never has to open.
+ * vite.config.ts). It claims the Android share-sheet POST so a shared link is saved — either queued
+ * to the Inbox or added directly as a bookmark — and confirmed with a notification, so the app UI
+ * never has to open.
+ *
+ * The "Shared links skip the Inbox" automation setting decides the default: when on, the share is
+ * added directly as a bookmark (`/api/bookmarks/quick-add`); when off (default), it's queued to the
+ * Inbox (`/api/bookmarks/inbox`) and the confirmation page offers a one-tap "Add as bookmark now"
+ * button that promotes the just-queued item via the normal approve flow.
  *
  * The PWA manifest registers `/quick-add` (POST, multipart/form-data) as the share target. This
  * listener intercepts only that POST; the bookmarklet's GET `/quick-add?url=…` falls through to the
@@ -17,6 +23,8 @@
 
 const SHARE_PATH = "/quick-add";
 const INBOX_API = "/api/bookmarks/inbox";
+const QUICK_ADD_API = "/api/bookmarks/quick-add";
+const AUTOMATION_API = "/api/app-settings/automation";
 const INBOX_PATH = "/inbox";
 const NOTIFICATION_ICON = "/pwa-192x192.png";
 
@@ -63,7 +71,20 @@ async function readSharedInput(request) {
   });
 }
 
-/** POST the link to the Inbox API. Returns the outcome the UI/notification should reflect. */
+/** Read the "shared links skip the Inbox" setting; default false on any error. */
+async function shareBypassInbox() {
+  try {
+    const res = await fetch(AUTOMATION_API);
+    if (!res.ok) return false;
+    const data = await res.json();
+    return Boolean(data && data.shareBypassInbox);
+  }
+  catch {
+    return false;
+  }
+}
+
+/** POST the link to the Inbox API. Returns the outcome + the created item id (for promotion). */
 async function saveToInbox(url, title) {
   try {
     const res = await fetch(INBOX_API, {
@@ -76,12 +97,58 @@ async function saveToInbox(url, title) {
         title: title || url,
       }),
     });
-    if (res.ok) return "saved";
-    if (res.status === 409) return "duplicate";
-    return "error";
+    if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      return {
+        outcome: "saved",
+        itemId: data && data.id,
+      };
+    }
+    if (res.status === 409) return {
+      outcome: "duplicate",
+    };
+    return {
+      outcome: "error",
+    };
   }
   catch {
-    return "error";
+    return {
+      outcome: "error",
+    };
+  }
+}
+
+/** POST the link to the direct-add API (bypass the Inbox). Returns the outcome + new bookmark id. */
+async function addAsBookmark(url, title) {
+  try {
+    const res = await fetch(QUICK_ADD_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        url,
+        title: title || url,
+      }),
+    });
+    if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      return {
+        outcome: "added",
+        bookmarkId: data && data.id,
+      };
+    }
+    if (res.status === 409) return {
+      outcome: "duplicate",
+    };
+    return {
+      outcome: "error",
+    };
+  }
+  catch {
+    return {
+      outcome: "error",
+    };
   }
 }
 
@@ -90,9 +157,13 @@ const OUTCOME_TEXT = {
     title: "Saved to Inbox",
     body: "Review it whenever you like.",
   },
+  "added": {
+    title: "Added as bookmark",
+    body: "Open it to edit.",
+  },
   "duplicate": {
     title: "Already saved",
-    body: "This link is already in your Inbox.",
+    body: "This link is already saved.",
   },
   "error": {
     title: "Couldn’t save",
@@ -105,7 +176,7 @@ const OUTCOME_TEXT = {
 };
 
 /** Fire a notification for the outcome, if the user has granted permission. No-op otherwise. */
-async function notify(outcome, url) {
+async function notify(outcome, url, path) {
   if (!self.registration || typeof self.Notification === "undefined") return;
   if (self.Notification.permission !== "granted") return;
   const {
@@ -117,7 +188,7 @@ async function notify(outcome, url) {
     badge: NOTIFICATION_ICON,
     tag: "eesimple-share",
     data: {
-      path: INBOX_PATH,
+      path: path || INBOX_PATH,
     },
   });
 }
@@ -125,12 +196,51 @@ async function notify(outcome, url) {
 /**
  * Minimal confirmation page returned to the launched share window. When notifications are granted
  * this is barely seen (it tries to close itself); when they aren't, it's the only feedback, so it
- * stays readable with a link to the Inbox.
+ * stays readable. For an Inbox save it offers a one-tap "Add as bookmark now" button that promotes
+ * the queued item via the approve endpoint; for a direct add it links to the new bookmark.
  */
-function confirmationResponse(outcome) {
+function confirmationResponse(outcome, ctx) {
   const {
     title, body,
   } = OUTCOME_TEXT[outcome];
+  const itemId = ctx && ctx.itemId;
+  const bookmarkId = ctx && ctx.bookmarkId;
+  const linkHref = bookmarkId ? `/bookmarks/${bookmarkId}` : INBOX_PATH;
+  const linkText = bookmarkId ? "Open bookmark" : "Open Inbox";
+  // Only the Inbox save gets an interactive promote button; keep the window open for it so the tap
+  // is possible. Everything else self-closes as before.
+  const showPromote = outcome === "saved" && Boolean(itemId);
+  const promoteButton = showPromote
+    ? "<button id=\"promote\">Add as bookmark now</button>"
+    : "";
+  const promoteScript = showPromote
+    ? `<script>
+    (function () {
+      var itemId = ${JSON.stringify(itemId)};
+      var btn = document.getElementById("promote");
+      btn.addEventListener("click", function () {
+        btn.disabled = true; btn.textContent = "Adding…";
+        fetch("/api/imports/items/" + encodeURIComponent(itemId) + "/approve", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: "{}"
+        }).then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+          .then(function (data) {
+            document.getElementById("t").textContent = "Added as bookmark";
+            document.getElementById("m").textContent = "Open it to edit.";
+            var id = data && data.bookmarkId;
+            var link = document.getElementById("link");
+            if (id) { link.textContent = "Open bookmark"; link.setAttribute("href", "/bookmarks/" + id); }
+            btn.remove();
+          })
+          .catch(function () { btn.disabled = false; btn.textContent = "Add as bookmark now"; });
+      });
+    })();
+  </script>`
+    : `<script>
+    // If the OS opened this as a closable window, dismiss it; harmless otherwise.
+    setTimeout(function () { try { window.close(); } catch (e) {} }, 1500);
+  </script>`;
   const html = `<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title}</title>
@@ -142,14 +252,15 @@ function confirmationResponse(outcome) {
   p { margin:0; }
   .muted { color:#94a3b8; font-size:.875rem; }
   a { color:#f8fafc; }
+  button { font:inherit; padding:.5rem 1rem; border-radius:.5rem; border:1px solid #f8fafc;
+    background:transparent; color:#f8fafc; cursor:pointer; }
+  button:disabled { opacity:.6; cursor:default; }
 </style></head><body>
-  <p style="font-weight:600">${title}</p>
-  <p class="muted">${body}</p>
-  <a href="${INBOX_PATH}">Open Inbox</a>
-  <script>
-    // If the OS opened this as a closable window, dismiss it; harmless otherwise.
-    setTimeout(function () { try { window.close(); } catch (e) {} }, 1500);
-  </script>
+  <p id="t" style="font-weight:600">${title}</p>
+  <p id="m" class="muted">${body}</p>
+  ${promoteButton}
+  <a id="link" href="${linkHref}">${linkText}</a>
+  ${promoteScript}
 </body></html>`;
   return new Response(html, {
     headers: {
@@ -158,14 +269,20 @@ function confirmationResponse(outcome) {
   });
 }
 
-/** Save the shared link, notify, and return the minimal confirmation page. */
+/** Save the shared link (Inbox or direct, per the setting), notify, and return the confirmation. */
 async function handleShare(request) {
   const {
     url, title,
   } = await readSharedInput(request);
-  const outcome = url ? await saveToInbox(url, title) : "no-url";
-  await notify(outcome, url);
-  return confirmationResponse(outcome);
+  if (!url) {
+    await notify("no-url");
+    return confirmationResponse("no-url");
+  }
+  const bypass = await shareBypassInbox();
+  const result = bypass ? await addAsBookmark(url, title) : await saveToInbox(url, title);
+  const notifyPath = result.bookmarkId ? `/bookmarks/${result.bookmarkId}` : INBOX_PATH;
+  await notify(result.outcome, url, notifyPath);
+  return confirmationResponse(result.outcome, result);
 }
 
 self.addEventListener("fetch", (event) => {
@@ -176,7 +293,7 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(handleShare(request));
 });
 
-// Tapping the notification focuses an open app window (or opens the Inbox).
+// Tapping the notification focuses an open app window (or opens the target path).
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const path = (event.notification.data && event.notification.data.path) || INBOX_PATH;

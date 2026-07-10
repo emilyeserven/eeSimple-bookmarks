@@ -98,6 +98,7 @@ mock.module("@/services/appSettings", {
       autoFetchImage: true,
       autoApplyTitleTags: false,
       autoApplyTitleLocations: false,
+      shareBypassInbox: false,
       sidebarOpenModifier: "alt",
       defaultCategoryId: automationDefaultCategoryId,
     }),

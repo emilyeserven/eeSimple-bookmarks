@@ -10,6 +10,7 @@ const automationSettings = {
   autoFetchImage: true,
   autoApplyTitleTags: false,
   autoApplyTitleLocations: false,
+  shareBypassInbox: false,
   sidebarOpenModifier: "alt",
 };
 
