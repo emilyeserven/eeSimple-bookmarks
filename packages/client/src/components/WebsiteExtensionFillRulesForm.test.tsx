@@ -5,7 +5,7 @@ import { WebsiteExtensionFillRulesForm } from "./WebsiteExtensionFillRulesForm";
 import { makeCustomProperty, makeWebsite } from "../test-utils/factories";
 
 // The form reads custom properties (to name a target) and an update mutation (auto-save). Stub both
-// so the test focuses on the read-only ↔ edit toggle without a live API or QueryClient.
+// so the test focuses on each rule's own read-only ↔ edit toggle without a live API or QueryClient.
 vi.mock("../hooks/useCustomProperties", () => ({
   useCustomProperties: () => ({
     data: [makeCustomProperty({
@@ -53,11 +53,22 @@ const website = makeWebsite({
         }],
       },
     },
+    {
+      id: "title-text",
+      label: "Title text",
+      target: {
+        kind: "field",
+        field: "title",
+      },
+      extract: {
+        selector: ".title",
+      },
+    },
   ],
 });
 
 describe("WebsiteExtensionFillRulesForm", () => {
-  it("opens read-only with full rule detail and no editor controls", () => {
+  it("opens every rule read-only with full detail and its own Edit button", () => {
     render(<WebsiteExtensionFillRulesForm website={website} />);
 
     // Full detail is shown read-only: the label, the resolved property name, selector, filter, transform.
@@ -66,40 +77,56 @@ describe("WebsiteExtensionFillRulesForm", () => {
     expect(screen.getByText("._statBlockTitle_1ckth_86 > *")).toBeInTheDocument();
     expect(screen.getByText("Sibling text contains \"PRINT LENGTH:\"")).toBeInTheDocument();
     expect(screen.getByText("First number")).toBeInTheDocument();
+    expect(screen.getByText("Title text")).toBeInTheDocument();
 
-    // The editable builder is not mounted yet.
-    expect(screen.queryByRole("button", {
-      name: "Add extraction rule",
-    })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", {
+    // Neither rule is being edited, so no field inputs are mounted for either rule.
+    expect(screen.queryByLabelText("Selector")).not.toBeInTheDocument();
+
+    // Every rule has its own Edit button — two rules, two buttons.
+    expect(screen.getAllByRole("button", {
       name: "Edit",
+    })).toHaveLength(2);
+
+    // Add extraction rule is always available, not gated behind entering an edit mode.
+    expect(screen.getByRole("button", {
+      name: "Add extraction rule",
     })).toBeInTheDocument();
   });
 
-  it("reveals the editor after clicking Edit, and returns to read-only on Done", () => {
+  it("edits only the rule whose Edit button was clicked, leaving the others read-only", () => {
     render(<WebsiteExtensionFillRulesForm website={website} />);
 
-    fireEvent.click(screen.getByRole("button", {
+    const [firstEdit, secondEdit] = screen.getAllByRole("button", {
       name: "Edit",
+    });
+    fireEvent.click(firstEdit);
+
+    // Only one rule's fields are mounted.
+    expect(screen.getByLabelText("Selector")).toBeInTheDocument();
+    expect(screen.getAllByLabelText("Selector")).toHaveLength(1);
+
+    // The other rule is untouched: still read-only, still showing its own Edit button.
+    expect(screen.getByText("Title text")).toBeInTheDocument();
+    expect(screen.getByRole("button", {
+      name: "Edit",
+    })).toBeInTheDocument();
+
+    // Add extraction rule stays available while a rule is being edited.
+    expect(screen.getByRole("button", {
+      name: "Add extraction rule",
+    })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", {
+      name: "Done",
     }));
 
-    // The live editor is now mounted (Add + Done controls present).
-    expect(screen.getByRole("button", {
-      name: "Add extraction rule",
-    })).toBeInTheDocument();
-    const done = screen.getByRole("button", {
-      name: "Done",
-    });
-
-    fireEvent.click(done);
-
-    // Back to read-only: the Edit button returns and the editor is gone.
-    expect(screen.getByRole("button", {
+    // Back to read-only: both Edit buttons return, no field inputs remain.
+    expect(screen.getAllByRole("button", {
       name: "Edit",
-    })).toBeInTheDocument();
-    expect(screen.queryByRole("button", {
-      name: "Add extraction rule",
-    })).not.toBeInTheDocument();
+    })).toHaveLength(2);
+    expect(screen.queryByLabelText("Selector")).not.toBeInTheDocument();
+
+    expect(secondEdit).toBeInTheDocument();
   });
 
   it("shows the empty state when a site has no rules", () => {
@@ -113,5 +140,8 @@ describe("WebsiteExtensionFillRulesForm", () => {
     );
 
     expect(screen.getByText("No extension fill rules yet.")).toBeInTheDocument();
+    expect(screen.getByRole("button", {
+      name: "Add extraction rule",
+    })).toBeInTheDocument();
   });
 });

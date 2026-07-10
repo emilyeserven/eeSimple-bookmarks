@@ -1,6 +1,5 @@
 import type { DragEndEvent } from "@dnd-kit/core";
 import type { WebsiteExtensionFillRule } from "@eesimple/types";
-import type { ReactNode } from "react";
 
 import {
   closestCenter,
@@ -27,17 +26,16 @@ import { useCustomProperties } from "@/hooks/useCustomProperties";
 import { duplicateFillRule, newFillRuleDraft } from "@/lib/extensionFillForm";
 
 /**
- * The whole "Extension Fill" rules editor: a dnd-kit sortable list of {@link WebsiteExtensionFillRule}
- * cards with add/remove. The custom-property picker options are resolved **once** here (file/image
- * property types excluded) and threaded down to every rule's target picker.
+ * The whole "Extension Fill" rules list: a dnd-kit sortable list of {@link WebsiteExtensionFillRule}
+ * cards, each independently toggling between read-only detail and its own editor (see
+ * {@link SortableFillRuleRow}), with add/remove. The custom-property picker options are resolved
+ * **once** here (file/image property types excluded) and threaded down to every rule's target picker.
  */
 export function ExtensionFillRulesEditor({
-  rules, onChange, action,
+  rules, onChange,
 }: {
   rules: WebsiteExtensionFillRule[];
   onChange: (rules: WebsiteExtensionFillRule[]) => void;
-  /** Optional right-aligned control rendered at the top of the content (e.g. a "Done" button). */
-  action?: ReactNode;
 }) {
   const {
     t,
@@ -77,7 +75,9 @@ export function ExtensionFillRulesEditor({
       )}
     >
       <div className="space-y-3">
-        {action ? <div className="flex justify-end">{action}</div> : null}
+        {rules.length === 0
+          ? <p className="text-sm text-muted-foreground">{t("No extension fill rules yet.")}</p>
+          : null}
         {rules.length > 0
           ? (
             <DndContext
