@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { buildApp } from "@/app";
 import { stripChannelSelfIdSuffix } from "@/routes/metadata";
-import { checkUrl, decodeEntities, duckDuckGoIconUrl, extractSocialProfileLinks, extractTitle, fetchPageTitle } from "@/services/metadata";
+import { checkUrl, decodeEntities, duckDuckGoIconUrl, extractAuthorNames, extractSocialProfileLinks, extractTitle, fetchPageTitle, metaContents } from "@/services/metadata";
 
 // These tests cover schema validation and the pure title-parsing helpers, so
 // they run without a live network or database.
@@ -389,4 +389,54 @@ test("GET /api/scan rejects an invalid url", async () => {
   });
   assert.equal(res.statusCode, 400);
   await app.close();
+});
+
+test("metaContents collects the content of every matching meta tag (not just the first)", () => {
+  const html = `
+    <meta property="og:book:author" content="A">
+    <meta property="og:book:author" content="B">
+    <meta property="og:book:author" content="C">
+  `;
+  assert.deepEqual(metaContents(html, /(?:property|name)=["']og:book:author["']/i), ["A", "B", "C"]);
+  assert.deepEqual(metaContents(html, /(?:property|name)=["']missing["']/i), []);
+});
+
+test("extractAuthorNames collects every og:book:author (the O'Reilly multi-author case)", () => {
+  const html = `
+    <meta property="og:book:author" itemprop="author" content="Fotios Chantzis">
+    <meta property="og:book:author" itemprop="author" content="Ioannis Stais">
+    <meta property="og:book:author" itemprop="author" content="Paulino Calderon">
+  `;
+  assert.deepEqual(extractAuthorNames(html), [
+    "Fotios Chantzis",
+    "Ioannis Stais",
+    "Paulino Calderon",
+  ]);
+});
+
+test("extractAuthorNames reads the book:author spelling, article person, and name=person; decodes + dedupes", () => {
+  assert.deepEqual(
+    extractAuthorNames("<meta property=\"book:author\" content=\"Ada &amp; Grace\">"),
+    ["Ada & Grace"],
+  );
+  assert.deepEqual(
+    extractAuthorNames("<meta property=\"og:article:person\" content=\"Jane Doe\">"),
+    ["Jane Doe"],
+  );
+  assert.deepEqual(
+    extractAuthorNames("<meta name=\"person\" content=\"John Roe\">"),
+    ["John Roe"],
+  );
+  // Duplicate across properties collapses to one entry.
+  assert.deepEqual(
+    extractAuthorNames(`
+      <meta property="og:book:author" content="Same Name">
+      <meta name="person" content="Same Name">
+    `),
+    ["Same Name"],
+  );
+});
+
+test("extractAuthorNames returns an empty array when no author meta tags are present", () => {
+  assert.deepEqual(extractAuthorNames("<meta property=\"og:title\" content=\"A book\">"), []);
 });

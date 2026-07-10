@@ -596,6 +596,28 @@ describe("eesimpleFillEngine.runRules — meta-tag source (#extension-fill-meta)
     expect(runOne(rule, META_HTML).values).toEqual(["Colin O'Flynn", "Jasper van Woudenberg"]);
   });
 
+  it("collects all three og:book:author values (the O'Reilly multi-author case, no split needed)", () => {
+    const html = `
+      <head>
+        <meta property="og:book:author" itemprop="author" content="Fotios Chantzis">
+        <meta property="og:book:author" itemprop="author" content="Ioannis Stais">
+        <meta property="og:book:author" itemprop="author" content="Paulino Calderon">
+      </head>
+    `;
+    const rule = {
+      id: "oreilly-authors",
+      extract: {
+        source: "meta",
+        metaKey: "og:book:author",
+      },
+    };
+    expect(runOne(rule, html).values).toEqual([
+      "Fotios Chantzis",
+      "Ioannis Stais",
+      "Paulino Calderon",
+    ]);
+  });
+
   it("matches a microdata `itemprop` meta tag", () => {
     const rule = {
       id: "author-itemprop",
