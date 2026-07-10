@@ -96,7 +96,7 @@ const SORT_ITEMS: { value: string;
 
 /**
  * The "Current Page" display controls for the registered listing page — the palette twin of the
- * header's `ListingDisplayControls` / `DisplayOptionsPopover`. Renders nothing when the current
+ * on-page `ListingDisplayControls` (rendered under the search box). Renders nothing when the current
  * route isn't a listing page.
  */
 export function ListingPageCommandGroup({

@@ -12,10 +12,7 @@ import {
   pinAction,
   settingsFavoriteAction,
 } from "./toolbarEntityActions";
-import {
-  bulkSelectAction,
-  displayOptionsAction,
-} from "./toolbarListingActions";
+import { bulkSelectAction } from "./toolbarListingActions";
 import { syncFromSourceAction } from "./toolbarSyncAction";
 
 export type { ToolbarAction, ToolbarContext, ToolbarMobile } from "./toolbarActionTypes";
@@ -27,7 +24,6 @@ export type { ToolbarAction, ToolbarContext, ToolbarMobile } from "./toolbarActi
  */
 export function buildToolbarActions(ctx: ToolbarContext): ToolbarAction[] {
   return [
-    displayOptionsAction(ctx),
     bulkSelectAction(ctx),
     bookmarkLayoutAction(ctx),
     editTaxonomyAction(ctx),

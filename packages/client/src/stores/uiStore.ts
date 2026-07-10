@@ -69,6 +69,8 @@ interface UiState {
   /** Per-listing image display mode: "natural", "cropped", "square", "opengraph", or a custom ratio UUID. Keyed by a stable page key. */
   bookmarkImageMode: Record<string, string>;
   setBookmarkImageMode: (pageKey: string, mode: string) => void;
+  /** Clears a listing's image-mode override so the card grid inherits its per-card Card Display Rule aspect again (absence = inherit). */
+  clearBookmarkImageMode: (pageKey: string) => void;
   /**
    * Per-listing Gallery-tab image mode. "natural" = masonry (true aspect ratio); any other value
    * ("square" | "opengraph" | "cropped" | a custom ratio UUID) crops tiles to that aspect in a uniform
@@ -228,6 +230,14 @@ export const useUiStore = create<UiState>()(
           [pageKey]: mode,
         },
       })),
+      clearBookmarkImageMode: pageKey => set((state) => {
+        const {
+          [pageKey]: _removed, ...rest
+        } = state.bookmarkImageMode;
+        return {
+          bookmarkImageMode: rest,
+        };
+      }),
       galleryImageMode: {},
       setGalleryImageMode: (pageKey, mode) => set(state => ({
         galleryImageMode: {
