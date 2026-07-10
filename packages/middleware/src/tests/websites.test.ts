@@ -198,6 +198,9 @@ test("PATCH /api/websites/:id accepts a well-formed extensionFillRules payload c
                 kind: "number",
               },
               {
+                kind: "duration",
+              },
+              {
                 kind: "replace",
                 pattern: ",",
                 flags: "g",

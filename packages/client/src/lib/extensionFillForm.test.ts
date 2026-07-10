@@ -197,6 +197,15 @@ describe("coerceFillTransform", () => {
       kind: "number",
     });
   });
+
+  it("coerces to the parameter-less duration variant", () => {
+    expect(coerceFillTransform("duration", {
+      kind: "regex" as const,
+      pattern: "(\\d+)",
+    })).toEqual({
+      kind: "duration",
+    });
+  });
 });
 
 describe("moveItem", () => {

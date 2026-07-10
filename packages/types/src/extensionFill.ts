@@ -99,6 +99,12 @@ export type FillTransform
     group?: number; }
   /** First numeric run, commas stripped. */
     | { kind: "number" }
+  /**
+   * Parse a human duration string ("77h 32m", "1y 2mo 6d 23h 34m 34s", "1.5h") into a total number
+   * of seconds — the unit the built-in Runtime `duration` property stores. Over-range components
+   * (e.g. "93m 93s") simply sum; year = 365 d and month = 30 d are calendar-approximate.
+   */
+    | { kind: "duration" }
     | { kind: "replace";
       pattern: string;
       flags?: string;

@@ -100,6 +100,36 @@
     throw new Error("Unknown read kind: " + read.kind);
   }
 
+  // Seconds per unit (year = 365 d, month = 30 d — calendar-approximate). Keyed by the token's
+  // discriminating chars: "mo" for months, otherwise the first letter (y/d/h/m/s).
+  var DURATION_UNIT_SECONDS = {
+    y: 31536000,
+    mo: 2592000,
+    d: 86400,
+    h: 3600,
+    m: 60,
+    s: 1,
+  };
+  // `<number><unit>` scanner. The unit alternation lists `mo…` before `m…` so "2mo" is months and
+  // "34m" is minutes; each unit accepts its common spellings (h/hr/hour/hours, etc.).
+  var DURATION_TOKEN_RE
+    = /(\d+(?:\.\d+)?)\s*(y(?:ears?)?|mo(?:nths?)?|d(?:ays?)?|h(?:(?:ou)?rs?)?|m(?:in(?:ute)?s?)?|s(?:ec(?:ond)?s?)?)/gi;
+
+  // Parse a duration string into total seconds; "" when no <number><unit> token is present.
+  function parseDurationSeconds(value) {
+    var re = new RegExp(DURATION_TOKEN_RE.source, "gi");
+    var total = 0;
+    var matched = false;
+    var m;
+    while ((m = re.exec(value)) !== null) {
+      var unit = m[2].toLowerCase();
+      var key = unit.charAt(0) === "m" && unit.charAt(1) === "o" ? "mo" : unit.charAt(0);
+      total += parseFloat(m[1]) * DURATION_UNIT_SECONDS[key];
+      matched = true;
+    }
+    return matched ? String(Math.round(total)) : "";
+  }
+
   function applyTransform(value, transform) {
     if (transform.kind === "regex") {
       var re = new RegExp(transform.pattern, transform.flags || "");
@@ -111,6 +141,9 @@
     if (transform.kind === "number") {
       var digits = value.replace(/,/g, "").match(/\d+/);
       return digits ? digits[0] : "";
+    }
+    if (transform.kind === "duration") {
+      return parseDurationSeconds(value);
     }
     if (transform.kind === "replace") {
       return value.replace(new RegExp(transform.pattern, transform.flags || ""), transform.replacement);
