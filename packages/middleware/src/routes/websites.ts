@@ -308,7 +308,7 @@ const fillTargetSchema = {
   properties: {
     kind: {
       type: "string",
-      enum: ["field", "customProperty", "taxonomy", "image", "taxonomyEntity"],
+      enum: ["field", "customProperty", "taxonomy", "image", "taxonomyEntity", "publisher"],
     },
     field: {
       type: "string",

@@ -50,6 +50,13 @@ export type FillTarget
       | { kind: "taxonomy";
         taxonomy: "people" | "groups" | "locations" | "tags"; }
   /**
+   * Resolve the extracted value (a publisher name) to a Group via match-or-create and set the
+   * bookmark's **singular** publisher (`groupId`) — the single-valued sibling of `taxonomy: "groups"`
+   * (which fills the *plural* creator `groupIds`). E.g. `<meta name="publisher">` → the publishing
+   * house. Unmatched names create a name-only Group stub.
+   */
+        | { kind: "publisher" }
+  /**
    * Grab an image URL off the page (typically an `<img>`'s `src` via `read: {kind:"attr"}`); the
    * extension downloads the bytes in the browser and uploads them to the bookmark. `setMain` makes
    * the grabbed image the bookmark's main/primary image (defaults to true in the editor).

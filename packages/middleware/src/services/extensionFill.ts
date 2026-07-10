@@ -68,9 +68,14 @@ export async function getExtensionFillContext(url: string): Promise<ExtensionFil
     rules.flatMap(rule => (rule.target.kind === "taxonomy" ? [rule.target.taxonomy] : [])),
   );
 
+  // A `publisher` target resolves a name to a Group and sets the bookmark's singular `groupId`, so it
+  // also needs the Groups option list for match-or-create in the popup.
+  const needsGroups = taxonomyKinds.has("groups")
+    || rules.some(rule => rule.target.kind === "publisher");
+
   const taxonomies: ExtensionFillContext["taxonomies"] = {};
   if (taxonomyKinds.has("people")) taxonomies.people = await listPeopleCompact();
-  if (taxonomyKinds.has("groups")) taxonomies.groups = await listGroupsCompact();
+  if (needsGroups) taxonomies.groups = await listGroupsCompact();
   if (taxonomyKinds.has("locations")) taxonomies.locations = await listLocationsCompact();
   if (taxonomyKinds.has("tags")) taxonomies.tags = await listTagsCompact();
 

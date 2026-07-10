@@ -114,6 +114,8 @@ export function describeFillTarget(target: FillTarget, property?: CustomProperty
       return FIELD_LABELS[target.field];
     case "taxonomy":
       return TAXONOMY_LABELS[target.taxonomy];
+    case "publisher":
+      return "Publisher";
     case "customProperty": {
       const name = property?.name ?? "Custom property";
       if (target.subField) return `${name} · ${target.subField === "current" ? "Current" : "Total"}`;
@@ -239,6 +241,10 @@ export function coerceFillTarget(kind: FillTarget["kind"], prev: FillTarget): Fi
       return {
         kind: "taxonomy",
         taxonomy: prev.kind === "taxonomy" ? prev.taxonomy : "people",
+      };
+    case "publisher":
+      return {
+        kind: "publisher",
       };
     case "image":
       return {
@@ -394,6 +400,10 @@ function cleanTarget(target: FillTarget): FillTarget | null {
       return {
         kind: "taxonomy",
         taxonomy: target.taxonomy,
+      };
+    case "publisher":
+      return {
+        kind: "publisher",
       };
     case "image":
       return {
