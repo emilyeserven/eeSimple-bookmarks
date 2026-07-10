@@ -64,15 +64,17 @@ function CountSection({
   );
 }
 
-/** One editable Title/Name match row with its Remove button. */
+/** One editable text-match row (Title/Name or URL) with its Remove button. */
 function MatchConditionRow({
   match,
   onChange,
   onRemove,
+  placeholder,
 }: {
   match: MatchCondition;
   onChange: (next: MatchCondition) => void;
   onRemove: () => void;
+  placeholder?: string;
 }) {
   return (
     <div className="space-y-2 rounded-md border p-2">
@@ -89,6 +91,7 @@ function MatchConditionRow({
       <MatchConditionEditor
         value={match}
         onChange={onChange}
+        placeholder={placeholder}
       />
     </div>
   );
@@ -105,7 +108,7 @@ export function ConditionsField({
 }: ConditionsFieldProps) {
   const leaves = splitRootConditions(value);
   const {
-    matches, categoryLeaf, websiteLeaf, tagLeaf, locationLeaf, youtubeChannelLeaf, mediaTypeLeaf,
+    matches, urlMatches, categoryLeaf, websiteLeaf, tagLeaf, locationLeaf, youtubeChannelLeaf, mediaTypeLeaf,
     genreMoodLeaf, relationshipTypeLeaf, languageUsageLeaf, propertyLeaves, counts,
   } = leaves;
 
@@ -208,6 +211,46 @@ export function ConditionsField({
               website: next.domains.length > 0 ? next : null,
             })}
         />
+      </CountSection>
+
+      <CountSection
+        title={i18n.t("URL")}
+        count={urlMatches.length}
+        bareCount
+      >
+        <div className="space-y-3">
+          {urlMatches.map((match, index) => (
+            <MatchConditionRow
+              key={index}
+              match={match}
+              placeholder={i18n.t("e.g. /course/")}
+              onChange={next =>
+                commit({
+                  urlMatches: urlMatches.map((existing, current) => (current === index ? next : existing)),
+                })}
+              onRemove={() =>
+                commit({
+                  urlMatches: urlMatches.filter((_, current) => current !== index),
+                })}
+            />
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              commit({
+                urlMatches: [...urlMatches, {
+                  type: "match",
+                  field: "url",
+                  operator: "contains",
+                  pattern: "",
+                }],
+              })}
+          >
+            {i18n.t("Add URL condition")}
+          </Button>
+        </div>
       </CountSection>
 
       <CountSection

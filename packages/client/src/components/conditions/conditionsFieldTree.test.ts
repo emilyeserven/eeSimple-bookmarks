@@ -46,6 +46,8 @@ describe("splitRootConditions", () => {
   it("splits the root children into per-section leaves with counts", () => {
     const leaves = splitRootConditions(tree);
     expect(leaves.matches).toHaveLength(1);
+    expect(leaves.urlMatches).toHaveLength(0);
+    expect(leaves.otherMatches).toHaveLength(0);
     expect(leaves.categoryLeaf?.categoryIds).toEqual(["c1", "c2"]);
     expect(leaves.tagLeaf?.tagIds).toEqual(["t1"]);
     expect(leaves.propertyLeaves).toHaveLength(1);
@@ -62,6 +64,78 @@ describe("splitRootConditions", () => {
       relationshipType: 0,
       languageUsage: 0,
     });
+  });
+
+  it("partitions match leaves into title, url, and legacy passthrough buckets", () => {
+    const withUrl: ConditionTree = {
+      type: "group",
+      combinator: "and",
+      children: [
+        {
+          type: "match",
+          field: "title",
+          operator: "contains",
+          pattern: "react",
+        },
+        {
+          type: "match",
+          field: "url",
+          operator: "contains",
+          pattern: "/course/",
+        },
+        // Legacy domain-operator leaf (superseded by the Website condition) passes through untouched.
+        {
+          type: "match",
+          field: "url",
+          operator: "domain",
+          pattern: "example.com",
+        },
+      ],
+    };
+    const leaves = splitRootConditions(withUrl);
+    expect(leaves.matches).toHaveLength(1);
+    expect(leaves.matches[0]?.field).toBe("title");
+    expect(leaves.urlMatches).toHaveLength(1);
+    expect(leaves.urlMatches[0]?.pattern).toBe("/course/");
+    expect(leaves.otherMatches).toHaveLength(1);
+    expect(leaves.otherMatches[0]?.operator).toBe("domain");
+    // All three round-trip when nothing is patched.
+    expect(buildRootChildren(leaves, {})).toEqual(withUrl.children);
+  });
+
+  it("replaces only the url matches when patched, preserving title + legacy matches", () => {
+    const withUrl: ConditionTree = {
+      type: "group",
+      combinator: "and",
+      children: [
+        {
+          type: "match",
+          field: "title",
+          operator: "contains",
+          pattern: "react",
+        },
+        {
+          type: "match",
+          field: "url",
+          operator: "domain",
+          pattern: "example.com",
+        },
+      ],
+    };
+    const leaves = splitRootConditions(withUrl);
+    const children = buildRootChildren(leaves, {
+      urlMatches: [{
+        type: "match",
+        field: "url",
+        operator: "starts_with",
+        pattern: "https://x/",
+      }],
+    });
+    const matchLeaves = children.filter(child => child.type === "match");
+    expect(matchLeaves).toHaveLength(3);
+    expect(matchLeaves.some(m => m.field === "title" && m.pattern === "react")).toBe(true);
+    expect(matchLeaves.some(m => m.operator === "domain")).toBe(true);
+    expect(matchLeaves.some(m => m.operator === "starts_with" && m.pattern === "https://x/")).toBe(true);
   });
 
   it("splits a language-usage leaf and counts its languages + levels", () => {
