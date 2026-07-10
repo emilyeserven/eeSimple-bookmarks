@@ -194,7 +194,7 @@ function routeByMode(ctx, url) {
   quickSaveFallback();
 }
 
-// Evaluate a rule's optional pathMatch gate against the current pathname. Absent gate (or a blank
+// Evaluate a rule's optional path gate against the current pathname. Absent gate (or a blank
 // value) = the rule always applies. An invalid regex never throws and never matches.
 function pathMatches(pm, pathname) {
   if (!pm || !pm.value) return true;
@@ -217,7 +217,20 @@ function pathMatches(pm, pathname) {
   }
 }
 
-// Keep only rules whose optional pathMatch gate matches the current path.
+// A rule's effective path gate: the current `pathMatch`, or a legacy `pathSuffix` read as a suffix
+// gate (older/un-migrated data — mirrors the server migration `pathSuffix → {mode:"suffix"}`). Absent
+// on both = no gate = the rule applies to every path. Without this fallback a rule that still carries
+// only `pathSuffix` reads as un-gated and leaks onto every path.
+function ruleGate(rule) {
+  if (rule.pathMatch) return rule.pathMatch;
+  if (rule.pathSuffix) return {
+    mode: "suffix",
+    value: rule.pathSuffix,
+  };
+  return null;
+}
+
+// Keep only rules whose optional path gate matches the current path.
 function gateRules(rules, url) {
   let pathname = "";
   try {
@@ -226,7 +239,7 @@ function gateRules(rules, url) {
   catch {
     pathname = "";
   }
-  return rules.filter(rule => pathMatches(rule.pathMatch, pathname));
+  return rules.filter(rule => pathMatches(ruleGate(rule), pathname));
 }
 
 function renderInbox() {
