@@ -95,6 +95,10 @@ const paramRulesSchema = {
       pathSuffix: {
         type: "string",
       },
+      matchMode: {
+        type: "string",
+        enum: ["suffix", "contains"],
+      },
       params: {
         type: "array",
         items: {

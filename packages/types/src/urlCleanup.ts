@@ -83,7 +83,11 @@ function applyTemplate(template: string, parsed: URL): string {
 /** Keep only the params whitelisted for the longest path rule matching the URL; strip the rest. */
 function applyParamRules(parsed: URL, rules: WebsiteParamRule[]): void {
   const matching = rules
-    .filter(rule => rule.pathSuffix === "" || parsed.pathname.endsWith(rule.pathSuffix))
+    .filter(rule => rule.pathSuffix === "" || (
+      rule.matchMode === "contains"
+        ? parsed.pathname.includes(rule.pathSuffix)
+        : parsed.pathname.endsWith(rule.pathSuffix)
+    ))
     .sort((a, b) => b.pathSuffix.length - a.pathSuffix.length)[0];
   const keep = matching?.params ?? [];
   const next = new URLSearchParams();

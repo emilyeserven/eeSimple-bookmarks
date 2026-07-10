@@ -182,3 +182,62 @@ test("strips all params when the site has paramRules but none match the path", (
   );
   assert.equal(result.url, "https://youtube.com/feed/subscriptions");
 });
+
+test("a 'contains' rule matches a suffix that appears mid-path, unlike the default 'suffix' mode", () => {
+  const site = website({
+    domain: "example.com",
+    paramRules: [{
+      pathSuffix: "/watch",
+      matchMode: "contains",
+      params: ["v"],
+    }],
+  });
+  const result = canonicalize(
+    "https://example.com/some/watch/extra?v=abc&drop=1",
+    data({
+      websites: [site],
+    }),
+  );
+  assert.equal(result.url, "https://example.com/some/watch/extra?v=abc");
+});
+
+test("an absent matchMode behaves identically to explicit 'suffix' mode", () => {
+  const site = website({
+    domain: "example.com",
+    paramRules: [{
+      pathSuffix: "/watch",
+      params: ["v"],
+    }],
+  });
+  const result = canonicalize(
+    "https://example.com/some/watch/extra?v=abc",
+    data({
+      websites: [site],
+    }),
+  );
+  assert.equal(result.url, "https://example.com/some/watch/extra");
+});
+
+test("longest-match tie-break still applies across mixed match modes", () => {
+  const site = website({
+    domain: "example.com",
+    paramRules: [
+      {
+        pathSuffix: "/watch",
+        matchMode: "contains",
+        params: ["v"],
+      },
+      {
+        pathSuffix: "/watch/extra",
+        params: ["v", "t"],
+      },
+    ],
+  });
+  const result = canonicalize(
+    "https://example.com/some/watch/extra?v=abc&t=5&drop=1",
+    data({
+      websites: [site],
+    }),
+  );
+  assert.equal(result.url, "https://example.com/some/watch/extra?v=abc&t=5");
+});

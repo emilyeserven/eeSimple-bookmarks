@@ -87,11 +87,45 @@ describe("WebsiteParamRulesForm (auto-save)", () => {
       input: {
         paramRules: [{
           pathSuffix: "/watch",
+          matchMode: "suffix",
           params: [],
         }],
       },
     });
     expect(notifyFieldSaved).toHaveBeenCalledWith("Param Rules");
+  });
+
+  it("saves the param rules array with matchMode 'contains' when selected", async () => {
+    await renderWithRouter(<WebsiteParamRulesForm website={makeWebsite()} />);
+
+    fireEvent.click(screen.getByRole("button", {
+      name: /add rule/i,
+    }));
+    fireEvent.change(screen.getByLabelText("Path suffix"), {
+      target: {
+        value: "/watch",
+      },
+    });
+    fireEvent.click(screen.getByRole("combobox", {
+      name: "Match mode",
+    }));
+    fireEvent.click(screen.getByRole("option", {
+      name: "Contains",
+    }));
+
+    await waitFor(() => expect(updateMutate).toHaveBeenCalled());
+    const calls = updateMutate.mock.calls;
+    const lastCall = calls[calls.length - 1][0];
+    expect(lastCall).toEqual({
+      id: "site-1",
+      input: {
+        paramRules: [{
+          pathSuffix: "/watch",
+          matchMode: "contains",
+          params: [],
+        }],
+      },
+    });
   });
 
   it("saves the param rules array on change when a rule is removed", async () => {

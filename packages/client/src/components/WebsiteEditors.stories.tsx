@@ -70,6 +70,7 @@ export const ParamRules: StoryObj = {
       initial={[
         {
           pathSuffix: "/watch",
+          matchMode: "suffix",
           paramsText: "v, list",
         },
       ]}
