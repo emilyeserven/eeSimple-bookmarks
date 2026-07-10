@@ -50,7 +50,7 @@ export function useListingScaffold<E extends { id: string }>(config: EntityListi
 
   const deletableIds = (config.deletableIds ?? (all => all.map(item => item.id)))(filtered);
   const selection = useListSelection(config.pageKey, deletableIds);
-  useRegisterBulkSelect(config.pageKey);
+  useRegisterBulkSelect(config.pageKey, !config.hideBulkSelectFromHeader);
   const bulkDelete = config.useBulkDelete ? config.useBulkDelete() : null;
 
   return {

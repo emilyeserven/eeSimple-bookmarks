@@ -5,6 +5,7 @@ import type { UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types"
 
 import { youtubeChannelWorkbench } from "../components/workbench/youtubeChannel";
 import { YouTubeChannelListingControls } from "../components/YouTubeChannelListingControls";
+import { YouTubeChannelListingDisplayExtras } from "../components/YouTubeChannelListingDisplayExtras";
 import { YouTubeChannelListItem } from "../components/YouTubeChannelListItem";
 import { YouTubeChannelTable } from "../components/YouTubeChannelTable";
 import { useYouTubeChannelFacetFilter } from "../hooks/useYouTubeChannelListing";
@@ -51,6 +52,8 @@ export const youtubeChannelListingConfig: EntityListingConfig<YouTubeChannel> = 
   noun: [i18n.t("channel"), i18n.t("channels")],
   useExtraFilter: useYouTubeChannelFacetFilter,
   renderSearchSort: () => <YouTubeChannelListingControls />,
+  renderDisplayRowExtra: () => <YouTubeChannelListingDisplayExtras />,
+  hideBulkSelectFromHeader: true,
   loadingLabel: i18n.t("Loading channels…"),
   entityPlural: i18n.t("channels"),
   emptyMessage: (
