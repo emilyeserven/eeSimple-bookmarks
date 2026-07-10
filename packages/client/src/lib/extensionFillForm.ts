@@ -157,11 +157,6 @@ export function describeFillRead(read: FillExtract["read"]): string {
   return "Text content";
 }
 
-/** Whether an extract reads a `<meta>` tag rather than running a CSS selector. */
-export function isMetaExtract(extract: FillExtract): boolean {
-  return extract.source === "meta";
-}
-
 const TEXT_MATCH_MODE_LABELS: Record<TextMatch["mode"], string> = {
   equals: "equals",
   contains: "contains",
