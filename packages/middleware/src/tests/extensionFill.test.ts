@@ -63,6 +63,28 @@ mock.module("@/services/websites", {
       website: websiteForUrl,
       shortener: null,
     }),
+    // Faithful seam for the real migration (its own correctness is covered in websites.test.ts):
+    // convert a retired `pathSuffix` gate to a `suffix` pathMatch, else return null (no change).
+    migrateExtensionFillRules: (rules: (WebsiteExtensionFillRule & { pathSuffix?: string })[]) => {
+      let changed = false;
+      const migrated = rules.map((rule) => {
+        const {
+          pathSuffix, ...rest
+        } = rule;
+        if (pathSuffix === undefined) return rule;
+        changed = true;
+        const trimmed = pathSuffix.trim();
+        if (!trimmed || rest.pathMatch) return rest;
+        return {
+          ...rest,
+          pathMatch: {
+            mode: "suffix",
+            value: trimmed,
+          },
+        };
+      });
+      return changed ? migrated : null;
+    },
   },
 });
 mock.module("@/services/people", {
@@ -290,6 +312,43 @@ test("an image-only rule surfaces the website rules with no properties/taxonomie
   assert.equal(result.website?.extensionFillRules[0]?.target.kind, "image");
   assert.equal(result.properties, undefined);
   assert.equal(result.taxonomies, undefined);
+});
+
+test("a rule stored with the retired pathSuffix gate is normalized to a suffix pathMatch before returning", async () => {
+  resetFixtures();
+  duplicateResult = {
+    exactMatch: {
+      id: "bm-1",
+      url: "https://example.com/course/abc",
+      title: "A",
+    },
+    pathMatch: null,
+    identityMatches: [],
+  };
+  bookmarkById = {
+    "bm-1": {
+      id: "bm-1",
+      title: "A",
+    } as unknown as Bookmark,
+  };
+  websiteForUrl = makeWebsite([
+    // A legacy row that predates the boot backfill — gated only by `pathSuffix`, no `pathMatch`.
+    makeRule({
+      id: "legacy",
+      pathSuffix: "/course/",
+    } as Partial<WebsiteExtensionFillRule>),
+  ]);
+
+  const result = await getExtensionFillContext("https://example.com/course/abc");
+  assert.equal(result.mode, "bookmark");
+  const rule = result.website?.extensionFillRules[0] as
+    (WebsiteExtensionFillRule & { pathSuffix?: string }) | undefined;
+  assert.deepEqual(rule?.pathMatch, {
+    mode: "suffix",
+    value: "/course/",
+  });
+  // The retired field must not survive into the popup's data (it only reads `pathMatch`).
+  assert.equal(rule?.pathSuffix, undefined);
 });
 
 test("taxonomies are trimmed to only the kinds referenced by the website's rules", async () => {

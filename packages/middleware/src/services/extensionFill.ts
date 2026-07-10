@@ -14,7 +14,7 @@ import { findPendingImportItemByUrl } from "@/services/imports";
 import { listLocationsCompact } from "@/services/locations";
 import { listPeopleCompact } from "@/services/people";
 import { listTagsCompact } from "@/services/tags";
-import { lookupWebsiteByUrl } from "@/services/websites";
+import { lookupWebsiteByUrl, migrateExtensionFillRules } from "@/services/websites";
 
 export async function getExtensionFillContext(url: string): Promise<ExtensionFillContext> {
   const dup = await checkBookmarkUrlDuplicate(url);
@@ -35,7 +35,10 @@ export async function getExtensionFillContext(url: string): Promise<ExtensionFil
   const {
     website,
   } = await lookupWebsiteByUrl(url);
-  const rules = website?.extensionFillRules ?? [];
+  // Normalize any retired `pathSuffix`-only gate to `pathMatch` so the popup only ever sees the
+  // canonical shape and gates correctly, even against a row that predates the boot backfill.
+  const rawRules = website?.extensionFillRules ?? [];
+  const rules = migrateExtensionFillRules(rawRules) ?? rawRules;
   if (!website || rules.length === 0) {
     return {
       mode: "bookmark",
