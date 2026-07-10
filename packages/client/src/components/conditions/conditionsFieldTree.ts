@@ -16,7 +16,15 @@ import type {
 
 /** The root condition group split into the per-section leaves the builder UI edits. */
 export interface RootConditionLeaves {
+  /** Title / Name text matches (`field === "title"`). */
   matches: MatchCondition[];
+  /** URL matches (`field === "url"`, excluding the legacy `domain` operator). */
+  urlMatches: MatchCondition[];
+  /**
+   * Any remaining match leaves not editable in a section — currently only legacy `domain`-operator
+   * leaves (superseded by the dedicated Website condition). Preserved untouched so old trees round-trip.
+   */
+  otherMatches: MatchCondition[];
   categoryLeaf: CategoryCondition | undefined;
   websiteLeaf: WebsiteCondition | undefined;
   tagLeaf: TagCondition | undefined;
@@ -46,6 +54,7 @@ export interface RootConditionLeaves {
 /** A partial replacement for the root leaves: `undefined` keeps the current leaf, `null` clears it. */
 export interface RootConditionPatch {
   matches?: MatchCondition[];
+  urlMatches?: MatchCondition[];
   category?: CategoryCondition | null;
   website?: WebsiteCondition | null;
   tag?: TagCondition | null;
@@ -69,8 +78,11 @@ export function splitRootConditions(value: ConditionTree): RootConditionLeaves {
   const genreMoodLeaf = value.children.find((child): child is GenreMoodCondition => child.type === "genre-mood");
   const relationshipTypeLeaf = value.children.find((child): child is RelationshipTypeCondition => child.type === "relationship-type");
   const languageUsageLeaf = value.children.find((child): child is LanguageUsageCondition => child.type === "language-usage");
+  const allMatches = value.children.filter((child): child is MatchCondition => child.type === "match");
   return {
-    matches: value.children.filter((child): child is MatchCondition => child.type === "match"),
+    matches: allMatches.filter(match => match.field === "title"),
+    urlMatches: allMatches.filter(match => match.field === "url" && match.operator !== "domain"),
+    otherMatches: allMatches.filter(match => match.field !== "title" && !(match.field === "url" && match.operator !== "domain")),
     categoryLeaf,
     websiteLeaf,
     tagLeaf,
@@ -120,6 +132,8 @@ export function buildRootChildren(
 ): ConditionNode[] {
   return [
     ...(next.matches ?? current.matches),
+    ...(next.urlMatches ?? current.urlMatches),
+    ...current.otherMatches,
     ...resolveLeaf(next.category, current.categoryLeaf, leaf => leaf.categoryIds.length > 0),
     ...resolveLeaf(next.website, current.websiteLeaf, leaf => leaf.domains.length > 0),
     ...resolveLeaf(next.tag, current.tagLeaf, leaf => leaf.tagIds.length > 0),

@@ -6,7 +6,10 @@ import i18n from "@/i18n";
 export interface ConditionSummary {
   /** Number of direct child leaves (matches the headline "N filter conditions"). */
   total: number;
+  /** Number of Title / Name match leaves (`field !== "url"`). */
   match: number;
+  /** Number of URL match leaves (`field === "url"`). */
+  urlMatch: number;
   /** Number of selected category ids (a single category leaf can hold several). */
   categories: number;
   /** Number of selected website domains (a single website leaf can hold several). */
@@ -32,6 +35,7 @@ export interface ConditionSummary {
 /** Summarize a condition tree's direct children into per-type counts. */
 export function summarizeConditions(tree: ConditionTree): ConditionSummary {
   let match = 0;
+  let urlMatch = 0;
   let categories = 0;
   let websites = 0;
   let tags = 0;
@@ -43,7 +47,10 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
   let languageUsages = 0;
   let properties = 0;
   for (const child of tree.children) {
-    if (child.type === "match") match += 1;
+    if (child.type === "match") {
+      if (child.field === "url") urlMatch += 1;
+      else match += 1;
+    }
     else if (child.type === "category") categories += child.categoryIds.length;
     else if (child.type === "website") websites += child.domains.length;
     else if (child.type === "tag") tags += child.tagIds.length;
@@ -58,6 +65,7 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
   return {
     total: tree.children.length,
     match,
+    urlMatch,
     categories,
     websites,
     tags,
@@ -107,6 +115,11 @@ const BREAKDOWN_LABELS: {
     key: "match",
     singular: "title match",
     plural: "title matches",
+  },
+  {
+    key: "urlMatch",
+    singular: "URL condition",
+    plural: "URL conditions",
   },
   {
     key: "categories",

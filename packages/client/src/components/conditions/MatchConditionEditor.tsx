@@ -19,15 +19,18 @@ import {
 interface MatchConditionEditorProps {
   value: MatchCondition;
   onChange: (next: MatchCondition) => void;
+  /** Placeholder for the pattern input (defaults to a Title/Name example). */
+  placeholder?: string;
 }
 
 /**
- * Controlled editor for a single Title / Name text-match condition (operator + pattern). The
- * matched field is pinned to `title`; website matching lives in its own condition
+ * Controlled editor for a single text-match condition (operator + pattern). The matched field
+ * (`title` or `url`) is carried on `value` and preserved untouched — the caller seeds it and this
+ * editor never changes it. Domain (website) matching lives in its own condition
  * (see `WebsiteConditionEditor`).
  */
 export function MatchConditionEditor({
-  value, onChange,
+  value, onChange, placeholder,
 }: MatchConditionEditorProps) {
   const {
     t,
@@ -81,7 +84,7 @@ export function MatchConditionEditor({
         <Label>{t("Pattern")}</Label>
         <Input
           value={localPattern}
-          placeholder={t("e.g. Ponzu")}
+          placeholder={placeholder ?? t("e.g. Ponzu")}
           onChange={event => setLocalPattern(event.target.value)}
           onBlur={() => {
             if (localPattern !== value.pattern) {

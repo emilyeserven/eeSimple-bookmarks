@@ -20,6 +20,7 @@ describe("summarizeConditions", () => {
     expect(summary).toEqual({
       total: 0,
       match: 0,
+      urlMatch: 0,
       categories: 0,
       websites: 0,
       tags: 0,
@@ -34,7 +35,7 @@ describe("summarizeConditions", () => {
     });
   });
 
-  it("counts each match leaf as one and carries the combinator", () => {
+  it("counts title vs url match leaves separately and carries the combinator", () => {
     const summary = summarizeConditions(tree([
       {
         type: "match",
@@ -49,7 +50,8 @@ describe("summarizeConditions", () => {
         pattern: "b",
       },
     ], "or"));
-    expect(summary.match).toBe(2);
+    expect(summary.match).toBe(1);
+    expect(summary.urlMatch).toBe(1);
     expect(summary.total).toBe(2);
     expect(summary.combinator).toBe("or");
   });
@@ -240,9 +242,21 @@ describe("conditionsBreakdown", () => {
       },
       {
         type: "match",
+        field: "title",
+        operator: "contains",
+        pattern: "x2",
+      },
+      {
+        type: "match",
         field: "url",
         operator: "contains",
         pattern: "y",
+      },
+      {
+        type: "match",
+        field: "url",
+        operator: "contains",
+        pattern: "y2",
       },
       {
         type: "category",
@@ -272,8 +286,22 @@ describe("conditionsBreakdown", () => {
       },
     ]))).toEqual([
       "2 title matches",
+      "2 URL conditions",
       "2 categories",
       "2 custom properties",
+    ]);
+  });
+
+  it("labels a single url match as a URL condition", () => {
+    expect(conditionsBreakdown(tree([
+      {
+        type: "match",
+        field: "url",
+        operator: "contains",
+        pattern: "/course/",
+      },
+    ]))).toEqual([
+      "1 URL condition",
     ]);
   });
 
