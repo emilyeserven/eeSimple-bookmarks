@@ -1,9 +1,16 @@
 import type { KindOption } from "./controls";
 import type { ComboboxOption } from "../Combobox";
-import type { CustomProperty, FillTarget } from "@eesimple/types";
+import type { CustomProperty, FillTarget, TaxonomyEntityAssociation, TaxonomyEntityFieldKey } from "@eesimple/types";
 
 import { useId } from "react";
 
+import {
+  SOCIAL_MEDIA_PLATFORM_LABELS,
+  SOCIAL_MEDIA_PLATFORMS,
+  TAXONOMY_ENTITY_ASSOCIATIONS,
+  TAXONOMY_ENTITY_FIELD_LABELS,
+  TAXONOMY_ENTITY_SPECS,
+} from "@eesimple/types";
 import { useTranslation } from "react-i18next";
 
 import { KindSelect } from "./controls";
@@ -15,6 +22,7 @@ import { coerceFillTarget } from "@/lib/extensionFillForm";
 
 type FieldName = Extract<FillTarget, { kind: "field" }>["field"];
 type TaxonomyName = Extract<FillTarget, { kind: "taxonomy" }>["taxonomy"];
+type TaxonomyEntityTarget = Extract<FillTarget, { kind: "taxonomyEntity" }>;
 type SubField = "current" | "total";
 
 /** The `kind` select plus the variant-specific value control for a rule's {@link FillTarget}. */
@@ -50,6 +58,10 @@ export function FillTargetPicker({
           {
             value: "image",
             label: t("Image"),
+          },
+          {
+            value: "taxonomyEntity",
+            label: t("Associated taxonomy"),
           },
         ]}
         onValueChange={kind => onChange(coerceFillTarget(kind, target))}
@@ -133,7 +145,90 @@ function FillTargetValue({
           })}
         />
       );
+    case "taxonomyEntity":
+      return (
+        <TaxonomyEntityTarget
+          target={target}
+          onChange={onChange}
+        />
+      );
   }
+}
+
+/**
+ * Controls for an "Associated taxonomy" target: pick the linked taxonomy, then one of its writable
+ * fields, then (for a social link) the platform. Switching the taxonomy resets the field when the
+ * previous one doesn't apply to the new entity.
+ */
+function TaxonomyEntityTarget({
+  target, onChange,
+}: {
+  target: TaxonomyEntityTarget;
+  onChange: (target: FillTarget) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const fields = TAXONOMY_ENTITY_SPECS[target.association].fields;
+  return (
+    <div className="space-y-2">
+      <KindSelect<TaxonomyEntityAssociation>
+        label={t("Taxonomy")}
+        value={target.association}
+        options={TAXONOMY_ENTITY_ASSOCIATIONS.map(association => ({
+          value: association,
+          label: t(TAXONOMY_ENTITY_SPECS[association].label),
+        }))}
+        onValueChange={(association) => {
+          // Keep the current field if the new entity supports it, else fall back to its first field.
+          const nextFields: readonly TaxonomyEntityFieldKey[] = TAXONOMY_ENTITY_SPECS[association].fields;
+          const field = nextFields.includes(target.field) ? target.field : nextFields[0];
+          onChange({
+            kind: "taxonomyEntity",
+            association,
+            field,
+          });
+        }}
+      />
+      <KindSelect<TaxonomyEntityFieldKey>
+        label={t("Field")}
+        value={target.field}
+        options={fields.map(field => ({
+          value: field,
+          label: t(TAXONOMY_ENTITY_FIELD_LABELS[field]),
+        }))}
+        onValueChange={field => onChange({
+          kind: "taxonomyEntity",
+          association: target.association,
+          field,
+        })}
+      />
+      {target.field === "socialLink"
+        ? (
+          <Combobox
+            aria-label={t("Platform")}
+            options={SOCIAL_MEDIA_PLATFORMS.map(platform => ({
+              value: platform,
+              label: SOCIAL_MEDIA_PLATFORM_LABELS[platform],
+            }))}
+            value={target.socialPlatform || undefined}
+            placeholder={t("Select a platform")}
+            emptyText={t("No platforms found.")}
+            onValueChange={value => onChange({
+              kind: "taxonomyEntity",
+              association: target.association,
+              field: "socialLink",
+              ...(value
+                ? {
+                  socialPlatform: value as TaxonomyEntityTarget["socialPlatform"],
+                }
+                : {}),
+            })}
+          />
+        )
+        : null}
+    </div>
+  );
 }
 
 /** "Set as main image" toggle for an image target — grabs the image and makes it the primary one. */

@@ -62,6 +62,7 @@ const SCREENS = {
 // PATCH id-array field / stub endpoint.
 const {
   TAX_PATCH_KEY,
+  TAXONOMY_ENTITY_PATCH,
   resolveTaxonomyId,
   summarizeCreated,
   summarizeFailed,
@@ -626,6 +627,7 @@ function buildRow(rule, values, ctx) {
   if (kind === "customProperty") return buildPropertyRow(rule, values, ctx);
   if (kind === "taxonomy") return buildTaxonomyRow(rule, values, ctx);
   if (kind === "image") return buildImageRow(rule, values, ctx.bookmark);
+  if (kind === "taxonomyEntity") return buildTaxonomyEntityRow(rule, values, ctx);
   return baseRow(rule, "", values[0] ?? "", false, "unsupported");
 }
 
@@ -891,6 +893,163 @@ function buildTaxonomyRow(rule, values, ctx) {
   return row;
 }
 
+// taxonomyEntity: write the extracted value into a fixed field of a taxonomy term the bookmark is
+// *linked to* (not the bookmark). Auto-targets the single linked term, or shows a term picker (see
+// renderRow) when several are linked. On apply, the chosen term's field is PATCHed to that entity's
+// own endpoint after the bookmark PATCH.
+function buildTaxonomyEntityRow(rule, values, ctx) {
+  const {
+    association, field, socialPlatform,
+  } = rule.target;
+  const meta = TAXONOMY_ENTITY_PATCH[association];
+  const extracted = values[0] ?? "";
+  if (!meta || (field === "socialLink" && !socialPlatform)) {
+    return baseRow(rule, "", extracted, false, "unsupported");
+  }
+  if (!extracted) {
+    return baseRow(rule, "", "", false, "not found");
+  }
+  const terms = (ctx.associatedTerms && ctx.associatedTerms[association]) || [];
+  if (terms.length === 0) {
+    return baseRow(rule, "—", extracted, false, `no linked ${meta.noun}`);
+  }
+  // `year` must coerce to a finite number, mirroring the bookmark year field.
+  let coerced = extracted;
+  if (field === "year") {
+    const num = Number(extracted);
+    if (!Number.isFinite(num)) {
+      return baseRow(rule, "", extracted, false, "not found");
+    }
+    coerced = num;
+  }
+  const entity = {
+    association,
+    field,
+    socialPlatform,
+    meta,
+    terms,
+    extracted,
+    coerced,
+    selectedTermId: terms[0].id,
+  };
+  const display = entityFieldDisplay(entity, terms[0]);
+  // A multi-term row stays interactive even when the default term is in sync — the user may switch to
+  // a term that does need the change (renderRow shows the term picker). A single-term row that already
+  // matches is a plain "no change".
+  const multi = terms.length > 1;
+  const disabledReason = multi ? null : (display.changed ? null : "no change");
+  const row = baseRow(rule, display.currentText, display.extractedText, display.changed, disabledReason);
+  row.entity = entity;
+  row.apply = (patch, state) => {
+    accumulateEntityPatch(state, row);
+  };
+  return row;
+}
+
+// The current stored value of an entity row's target field on `term` (undefined = unset).
+function entityFieldValue(entity, term) {
+  if (entity.field === "socialLink") {
+    const link = (term.socialLinks || []).find(l => l.platform === entity.socialPlatform);
+    return link ? link.url : undefined;
+  }
+  if (entity.field === "year") return term.year == null ? undefined : term.year;
+  if (entity.field === "name") return term.name;
+  return term.description == null ? undefined : term.description; // description
+}
+
+// Current / extracted display text + changed flag for an entity row against a specific term.
+// Recomputed by the term picker (renderRow) when the user switches terms.
+function entityFieldDisplay(entity, term) {
+  const current = entityFieldValue(entity, term);
+  if (entity.field === "year") {
+    return {
+      currentText: formatScalar(current),
+      extractedText: String(entity.coerced),
+      changed: current !== entity.coerced,
+    };
+  }
+  return {
+    currentText: formatScalar(current),
+    extractedText: entity.extracted,
+    changed: (current ?? "") !== entity.extracted,
+  };
+}
+
+// Merge the chosen term's field change into a per-entity PATCH bucket, keyed by association:termId so
+// several rules targeting the same term collapse into one PATCH. socialLink upserts into a copy of the
+// term's current links so its other platforms survive.
+function accumulateEntityPatch(state, row) {
+  const e = row.entity;
+  const termId = e.selectedTermId;
+  const term = e.terms.find(t => t.id === termId) || e.terms[0];
+  const key = `${e.association}:${termId}`;
+  let bucket = state.entityPatches[key];
+  if (!bucket) {
+    bucket = {
+      path: e.meta.path,
+      id: termId,
+      patch: {},
+      socialSeeded: false,
+    };
+    state.entityPatches[key] = bucket;
+  }
+  if (e.field === "socialLink") {
+    if (!bucket.socialSeeded) {
+      bucket.patch.socialLinks = (term.socialLinks || []).map(l => ({
+        platform: l.platform,
+        url: l.url,
+      }));
+      bucket.socialSeeded = true;
+    }
+    const links = bucket.patch.socialLinks;
+    const idx = links.findIndex(l => l.platform === e.socialPlatform);
+    const next = {
+      platform: e.socialPlatform,
+      url: e.extracted,
+    };
+    if (idx >= 0) links[idx] = next;
+    else links.push(next);
+  }
+  else if (e.field === "name") {
+    bucket.patch[e.meta.nameKey] = e.extracted;
+  }
+  else if (e.field === "year") {
+    bucket.patch.year = e.coerced;
+  }
+  else {
+    bucket.patch.description = e.extracted;
+  }
+}
+
+// PATCH each accumulated taxonomy-entity bucket (best-effort, after the bookmark PATCH). Returns the
+// number of linked terms updated vs failed.
+async function applyEntityPatches(entityPatches) {
+  let updated = 0;
+  let failed = 0;
+  for (const key of Object.keys(entityPatches)) {
+    const bucket = entityPatches[key];
+    if (!bucket || Object.keys(bucket.patch).length === 0) continue;
+    try {
+      const res = await fetch(`${serverUrl}${bucket.path}/${bucket.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(bucket.patch),
+      });
+      if (res.ok) updated += 1;
+      else failed += 1;
+    }
+    catch {
+      failed += 1;
+    }
+  }
+  return {
+    updated,
+    failed,
+  };
+}
+
 // --- Value formatting / coercion ---------------------------------------
 function formatScalar(value) {
   if (value === null || value === undefined || value === "") return "—";
@@ -951,13 +1110,30 @@ function renderRow(row) {
   }
   body.appendChild(label);
 
+  // A `taxonomyEntity` row linked to more than one term gets a term picker; switching it recomputes
+  // the current → extracted display and the checkbox default in place.
+  let curSpan = null;
+  let extSpan = null;
+  if (row.entity && row.entity.terms.length > 1 && !row.disabledReason) {
+    body.appendChild(renderTermPicker(row, () => {
+      const term = row.entity.terms.find(t => t.id === row.entity.selectedTermId);
+      const display = entityFieldDisplay(row.entity, term);
+      row.currentText = display.currentText;
+      row.extractedText = display.extractedText;
+      row.changed = display.changed;
+      if (curSpan) curSpan.textContent = display.currentText;
+      if (extSpan) extSpan.textContent = display.extractedText || "(not found)";
+      row.checkbox.checked = display.changed;
+    }));
+  }
+
   const valuesEl = document.createElement("div");
   valuesEl.className = "fill-values";
   if (row.currentText) {
-    const cur = document.createElement("span");
-    cur.className = "fill-current";
-    cur.textContent = row.currentText;
-    valuesEl.appendChild(cur);
+    curSpan = document.createElement("span");
+    curSpan.className = "fill-current";
+    curSpan.textContent = row.currentText;
+    valuesEl.appendChild(curSpan);
     const arrow = document.createElement("span");
     arrow.className = "fill-arrow";
     arrow.textContent = " → ";
@@ -967,15 +1143,37 @@ function renderRow(row) {
     appendNames(valuesEl, row.extractedNames, row.newNames);
   }
   else {
-    const ext = document.createElement("span");
-    ext.className = "fill-extracted";
-    ext.textContent = row.extractedText || "(not found)";
-    valuesEl.appendChild(ext);
+    extSpan = document.createElement("span");
+    extSpan.className = "fill-extracted";
+    extSpan.textContent = row.extractedText || "(not found)";
+    valuesEl.appendChild(extSpan);
   }
   body.appendChild(valuesEl);
 
   wrap.appendChild(body);
   return wrap;
+}
+
+// A `<select>` of the linked terms for a multi-term entity row. Interacting with it must not toggle
+// the row's checkbox (the row is a <label>), so pointer events are stopped from bubbling. `onPick`
+// re-reads `selectedTermId` and refreshes the row.
+function renderTermPicker(row, onPick) {
+  const sel = document.createElement("select");
+  sel.className = "fill-term-select";
+  for (const term of row.entity.terms) {
+    const opt = document.createElement("option");
+    opt.value = term.id;
+    opt.textContent = term.name;
+    sel.appendChild(opt);
+  }
+  sel.value = row.entity.selectedTermId;
+  sel.addEventListener("mousedown", e => e.stopPropagation());
+  sel.addEventListener("click", e => e.stopPropagation());
+  sel.addEventListener("change", () => {
+    row.entity.selectedTermId = sel.value;
+    onPick();
+  });
+  return sel;
 }
 
 function appendNames(container, names, newNames) {
@@ -999,18 +1197,22 @@ function appendNames(container, names, newNames) {
 async function applyChanges(rows, bookmark) {
   const checked = rows.filter(row => row.checkbox && row.checkbox.checked);
   const imageRows = checked.filter(row => row.image);
-  const patchRows = checked.filter(row => !row.image);
+  const entityRows = checked.filter(row => row.entity);
+  // Bookmark-field rows: everything that isn't an image upload or an associated-taxonomy PATCH.
+  const patchRows = checked.filter(row => !row.image && !row.entity);
   fillApplyBtn.disabled = true;
   fillApplyBtn.textContent = "Applying…";
   fillError.classList.add("hidden");
 
   // Accumulators shared across rows: taxonomy id sets (unioned with existing), custom-property value
   // maps (seeded from existing so siblings aren't wiped), per-kind hydration flags (the wipe guard),
-  // and the created / failed taxonomy names for the post-apply summary.
+  // per-entity PATCH buckets for associated-taxonomy updates, and the created / failed taxonomy names
+  // for the post-apply summary.
   const state = {
     tax: {},
     values: {},
     taxHydrated: {},
+    entityPatches: {},
     created: [],
     failed: [],
   };
@@ -1018,6 +1220,9 @@ async function applyChanges(rows, bookmark) {
 
   try {
     for (const row of patchRows) {
+      await row.apply(patch, state);
+    }
+    for (const row of entityRows) {
       await row.apply(patch, state);
     }
     for (const kind of Object.keys(state.tax)) {
@@ -1044,8 +1249,13 @@ async function applyChanges(rows, bookmark) {
       if (!res.ok) throw new Error(`status ${res.status}`);
     }
 
-    // Image uploads run after the PATCH (best-effort): the browser downloads each grabbed image and
-    // uploads the bytes to the bookmark. A failure here surfaces a note but doesn't undo the PATCH.
+    // Associated-taxonomy PATCHes run after the bookmark PATCH (best-effort): each linked term's
+    // changed field is written to that entity's own endpoint. A failure here surfaces a note but
+    // doesn't undo the bookmark PATCH.
+    const entityResult = await applyEntityPatches(state.entityPatches);
+
+    // Image uploads run last (best-effort): the browser downloads each grabbed image and uploads the
+    // bytes to the bookmark. A failure here surfaces a note but doesn't undo the PATCH.
     const imageResult = await applyImageRows(imageRows, bookmark.id);
 
     const n = patchRows.length + imageResult.uploaded;
@@ -1057,6 +1267,12 @@ async function applyChanges(rows, bookmark) {
     }
     if (state.failed.length > 0) {
       message += ` ${summarizeFailed(state.failed)}`;
+    }
+    if (entityResult.updated > 0) {
+      message += ` Updated ${entityResult.updated} linked item${entityResult.updated === 1 ? "" : "s"}.`;
+    }
+    if (entityResult.failed > 0) {
+      message += ` ${entityResult.failed} linked item${entityResult.failed === 1 ? "" : "s"} couldn't be updated.`;
     }
     if (imageResult.failed > 0) {
       message += ` ${imageResult.failed} image${imageResult.failed === 1 ? "" : "s"} couldn't be saved.`;

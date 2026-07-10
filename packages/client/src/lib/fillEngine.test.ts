@@ -563,3 +563,72 @@ describe("eesimpleFillEngine.runRules — default document", () => {
     document.body.innerHTML = "";
   });
 });
+
+describe("eesimpleFillEngine.runRules — meta-tag source (#extension-fill-meta)", () => {
+  const META_HTML = `
+    <head>
+      <meta name="twitter:creator" content="@OReillyMedia">
+      <meta property="og:book:author" itemprop="author" content="Colin O'Flynn">
+      <meta property="og:book:author" content="Jasper van Woudenberg">
+      <meta name="citation_publication_date" content="June 21, 2026">
+    </head>
+  `;
+
+  it("reads a meta tag matched by `name`, defaulting the read to `content`", () => {
+    const rule = {
+      id: "creator",
+      extract: {
+        source: "meta",
+        metaKey: "twitter:creator",
+      },
+    };
+    expect(runOne(rule, META_HTML).values).toEqual(["@OReillyMedia"]);
+  });
+
+  it("matches by `property` (or `itemprop`) and collects every matching meta tag", () => {
+    const rule = {
+      id: "authors",
+      extract: {
+        source: "meta",
+        metaKey: "og:book:author",
+      },
+    };
+    expect(runOne(rule, META_HTML).values).toEqual(["Colin O'Flynn", "Jasper van Woudenberg"]);
+  });
+
+  it("matches a microdata `itemprop` meta tag", () => {
+    const rule = {
+      id: "author-itemprop",
+      extract: {
+        source: "meta",
+        metaKey: "author",
+      },
+    };
+    expect(runOne(rule, META_HTML).values).toEqual(["Colin O'Flynn"]);
+  });
+
+  it("still applies transforms to a meta value (date → ISO)", () => {
+    const rule = {
+      id: "pub-date",
+      extract: {
+        source: "meta",
+        metaKey: "citation_publication_date",
+        transform: [{
+          kind: "date",
+        }],
+      },
+    };
+    expect(runOne(rule, META_HTML).values).toEqual(["2026-06-21"]);
+  });
+
+  it("yields no values when no meta tag matches the key", () => {
+    const rule = {
+      id: "missing",
+      extract: {
+        source: "meta",
+        metaKey: "does:not:exist",
+      },
+    };
+    expect(runOne(rule, META_HTML).values).toEqual([]);
+  });
+});

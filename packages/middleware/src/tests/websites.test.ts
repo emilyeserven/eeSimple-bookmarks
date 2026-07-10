@@ -432,3 +432,108 @@ test("PATCH /api/websites/:id accepts a payload that omits extensionFillRules en
   assert.notEqual(res.statusCode, 400);
   await app.close();
 });
+
+test("PATCH /api/websites/:id accepts a meta-source extract with a metaKey (no selector)", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "PATCH",
+    url: "/api/websites/11111111-1111-1111-1111-111111111111",
+    payload: {
+      extensionFillRules: [
+        {
+          id: "r1",
+          label: "Author",
+          target: {
+            kind: "taxonomy",
+            taxonomy: "people",
+          },
+          extract: {
+            source: "meta",
+            metaKey: "og:book:author",
+          },
+        },
+      ],
+    },
+  });
+  assert.notEqual(res.statusCode, 400);
+  await app.close();
+});
+
+test("PATCH /api/websites/:id accepts a taxonomyEntity target (social link)", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "PATCH",
+    url: "/api/websites/11111111-1111-1111-1111-111111111111",
+    payload: {
+      extensionFillRules: [
+        {
+          id: "r1",
+          label: "Publisher X",
+          target: {
+            kind: "taxonomyEntity",
+            association: "group",
+            field: "socialLink",
+            socialPlatform: "x",
+          },
+          extract: {
+            source: "meta",
+            metaKey: "twitter:creator",
+          },
+        },
+      ],
+    },
+  });
+  assert.notEqual(res.statusCode, 400);
+  await app.close();
+});
+
+test("PATCH /api/websites/:id rejects a taxonomyEntity target missing its association", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "PATCH",
+    url: "/api/websites/11111111-1111-1111-1111-111111111111",
+    payload: {
+      extensionFillRules: [
+        {
+          id: "r1",
+          label: "Bad",
+          target: {
+            kind: "taxonomyEntity",
+            field: "description",
+          },
+          extract: {
+            selector: ".x",
+          },
+        },
+      ],
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
+test("PATCH /api/websites/:id rejects a taxonomyEntity target with an unknown association", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "PATCH",
+    url: "/api/websites/11111111-1111-1111-1111-111111111111",
+    payload: {
+      extensionFillRules: [
+        {
+          id: "r1",
+          label: "Bad",
+          target: {
+            kind: "taxonomyEntity",
+            association: "bogus",
+            field: "description",
+          },
+          extract: {
+            selector: ".x",
+          },
+        },
+      ],
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});

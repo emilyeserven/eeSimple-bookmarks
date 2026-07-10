@@ -221,17 +221,42 @@
     throw new Error("Unknown transform kind: " + transform.kind);
   }
 
+  // Extraction candidates for a rule. The `meta` source matches a `<meta>` tag by its
+  // name/property/itemprop attribute (covers og:*, twitter:*, and itemprop microdata); every other
+  // source (absent = "selector") runs the CSS selector.
+  function candidateNodes(extract, doc) {
+    if (extract.source === "meta") {
+      var key = extract.metaKey || "";
+      return Array.prototype.filter.call(
+        doc.querySelectorAll("meta[name], meta[property], meta[itemprop]"),
+        function (el) {
+          return el.getAttribute("name") === key
+            || el.getAttribute("property") === key
+            || el.getAttribute("itemprop") === key;
+        },
+      );
+    }
+    return Array.prototype.slice.call(doc.querySelectorAll(extract.selector));
+  }
+
   function runRule(rule, doc) {
     var extract = rule.extract || {};
-    var candidates = Array.prototype.slice.call(doc.querySelectorAll(extract.selector));
+    var candidates = candidateNodes(extract, doc);
 
     (extract.filters || []).forEach(function (filter) {
       candidates = applyFilter(candidates, filter);
     });
 
-    var read = extract.read || {
-      kind: "text",
-    };
+    // Meta tags carry their value in the `content` attribute — default the read to it (an explicit
+    // `read` still overrides).
+    var read = extract.read || (extract.source === "meta"
+      ? {
+        kind: "attr",
+        name: "content",
+      }
+      : {
+        kind: "text",
+      });
     var values = [];
     candidates.forEach(function (el) {
       var raw = readValue(el, read);
