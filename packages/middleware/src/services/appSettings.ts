@@ -109,6 +109,7 @@ const DEFAULT_AUTOMATION: AutomationSettings = {
   autoFetchImage: true,
   autoApplyTitleTags: false,
   autoApplyTitleLocations: false,
+  shareBypassInbox: false,
   sidebarOpenModifier: "alt",
   defaultCategoryId: null,
 };
@@ -688,6 +689,7 @@ export async function getAutomationSettings(): Promise<AutomationSettings> {
       autoFetchImage: appSettings.autoFetchImage,
       autoApplyTitleTags: appSettings.autoApplyTitleTags,
       autoApplyTitleLocations: appSettings.autoApplyTitleLocations,
+      shareBypassInbox: appSettings.shareBypassInbox,
       sidebarOpenModifier: appSettings.sidebarOpenModifier,
       defaultCategoryId: appSettings.defaultCategoryId,
     })
@@ -699,6 +701,7 @@ export async function getAutomationSettings(): Promise<AutomationSettings> {
     autoFetchImage: row.autoFetchImage,
     autoApplyTitleTags: row.autoApplyTitleTags,
     autoApplyTitleLocations: row.autoApplyTitleLocations ?? false,
+    shareBypassInbox: row.shareBypassInbox ?? false,
     sidebarOpenModifier: asModifier(row.sidebarOpenModifier),
     defaultCategoryId: row.defaultCategoryId,
   };
@@ -713,6 +716,7 @@ export async function updateAutomationSettings(
     autoFetchImage: input.autoFetchImage,
     autoApplyTitleTags: input.autoApplyTitleTags,
     autoApplyTitleLocations: input.autoApplyTitleLocations,
+    shareBypassInbox: input.shareBypassInbox,
     sidebarOpenModifier: asModifier(input.sidebarOpenModifier),
     defaultCategoryId: input.defaultCategoryId,
   };

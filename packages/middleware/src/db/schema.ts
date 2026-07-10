@@ -1752,6 +1752,10 @@ export const appSettings = pgTable("app_settings", {
   // Nullable (no NOT NULL) so `drizzle-kit push` applies it without an interactive prompt; the
   // service reads it as `?? false`.
   autoApplyTitleLocations: boolean("auto_apply_title_locations"),
+  // When on, quick-saves from the PWA share target skip the Inbox and are added directly as
+  // bookmarks. Nullable (no NOT NULL) so `drizzle-kit push` applies it without an interactive
+  // prompt; the service reads it as `?? false`.
+  shareBypassInbox: boolean("share_bypass_inbox"),
   // Modifier held while clicking Edit to open the item in the drawer: "alt" | "ctrl" | "shift" | "meta".
   sidebarOpenModifier: text("sidebar_open_modifier").notNull().default("alt"),
   // User-configurable fallback category for new/uncategorized bookmarks. Null = use the seeded

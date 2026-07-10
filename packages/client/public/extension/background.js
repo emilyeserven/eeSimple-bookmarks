@@ -1,16 +1,45 @@
 /* global chrome */
-const MENU_ID = "eesimple-add-to-inbox";
+const INBOX_MENU_ID = "eesimple-add-to-inbox";
+const BOOKMARK_MENU_ID = "eesimple-add-as-bookmark";
+
+// Each menu item maps to a save endpoint + its success wording. "Inbox" queues for review;
+// "as bookmark" bypasses the Inbox and creates a full bookmark directly.
+const MENUS = {
+  [INBOX_MENU_ID]: {
+    path: "/api/bookmarks/inbox",
+    saved: "Link queued in Inbox.",
+  },
+  [BOOKMARK_MENU_ID]: {
+    path: "/api/bookmarks/quick-add",
+    saved: "Added as bookmark.",
+  },
+};
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
-    id: MENU_ID,
+    id: INBOX_MENU_ID,
     title: "Add to eeSimple Inbox",
+    contexts: ["link"],
+  });
+  chrome.contextMenus.create({
+    id: BOOKMARK_MENU_ID,
+    title: "Add to eeSimple as bookmark",
     contexts: ["link"],
   });
 });
 
+function notify(message) {
+  chrome.notifications.create({
+    type: "basic",
+    iconUrl: "icon48.png",
+    title: "eeSimple Bookmarks",
+    message,
+  });
+}
+
 chrome.contextMenus.onClicked.addListener((info) => {
-  if (info.menuItemId !== MENU_ID) return;
+  const menu = MENUS[info.menuItemId];
+  if (!menu) return;
 
   const url = info.linkUrl ?? "";
   const title = info.linkText?.trim() || url;
@@ -19,16 +48,11 @@ chrome.contextMenus.onClicked.addListener((info) => {
     serverUrl,
   }) => {
     if (!serverUrl) {
-      chrome.notifications.create({
-        type: "basic",
-        iconUrl: "icon48.png",
-        title: "eeSimple Bookmarks",
-        message: "Click the eeSimple toolbar button first to configure your server URL.",
-      });
+      notify("Click the eeSimple toolbar button first to configure your server URL.");
       return;
     }
 
-    fetch(`${serverUrl}/api/bookmarks/inbox`, {
+    fetch(`${serverUrl}${menu.path}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -40,37 +64,17 @@ chrome.contextMenus.onClicked.addListener((info) => {
     })
       .then((res) => {
         if (res.status === 201) {
-          chrome.notifications.create({
-            type: "basic",
-            iconUrl: "icon48.png",
-            title: "eeSimple Bookmarks",
-            message: "Link queued in Inbox.",
-          });
+          notify(menu.saved);
         }
         else if (res.status === 409) {
-          chrome.notifications.create({
-            type: "basic",
-            iconUrl: "icon48.png",
-            title: "eeSimple Bookmarks",
-            message: "Link already saved.",
-          });
+          notify("Link already saved.");
         }
         else {
-          chrome.notifications.create({
-            type: "basic",
-            iconUrl: "icon48.png",
-            title: "eeSimple Bookmarks",
-            message: `Error saving link (${res.status}).`,
-          });
+          notify(`Error saving link (${res.status}).`);
         }
       })
       .catch(() => {
-        chrome.notifications.create({
-          type: "basic",
-          iconUrl: "icon48.png",
-          title: "eeSimple Bookmarks",
-          message: "Could not reach the eeSimple server.",
-        });
+        notify("Could not reach the eeSimple server.");
       });
   });
 });

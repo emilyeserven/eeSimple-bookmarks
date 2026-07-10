@@ -147,6 +147,33 @@ export function AutomationsSettings() {
 
       <Card>
         <CardHeader>
+          <CardTitle>{t("Shared links skip the Inbox")}</CardTitle>
+          <CardDescription>
+            {t("When enabled, links sent from the Android share sheet are added directly as bookmarks instead of waiting in the Inbox for review. The browser extension always offers both options with its own buttons.")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="share-bypass-inbox"
+              checked={settings.shareBypassInbox}
+              onCheckedChange={(checked) => {
+                const enabled = checked === true;
+                save(
+                  {
+                    shareBypassInbox: enabled,
+                  },
+                  enabled ? t("Shared links skip the Inbox") : t("Shared links go to the Inbox"),
+                );
+              }}
+            />
+            <Label htmlFor="share-bypass-inbox">{t("Add shared links directly as bookmarks")}</Label>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>{t("Person source-link matching")}</CardTitle>
           <CardDescription>
             {t("Which label on a Person’s linked websites is treated as their primary website / biography link — used when auto-fetching an avatar or detecting social links. Matching is case-insensitive.")}

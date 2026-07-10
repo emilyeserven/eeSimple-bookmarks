@@ -27,7 +27,7 @@ import {
   updateBookmarkRelationships,
 } from "@/services/bookmarks";
 import { getBookmarkReelArchiveRow } from "@/services/reelArchive";
-import { quickSaveToInbox } from "@/services/imports";
+import { quickAddBookmarkDirect, quickSaveToInbox } from "@/services/imports";
 import { getObjectRange, getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
 import { isValidUrl } from "@/utils/url";
 import { AppError, ImageTooLargeError, NoFileUploadedError, NotFoundError, StorageUnconfiguredError, ValidationError } from "@/utils/errors";
@@ -713,6 +713,42 @@ function registerBookmarkCrudRoutes(app: FastifyInstance): void {
       throw new AppError("This URL is already saved.", "conflict", 409);
     }
     return reply.code(201).send(item);
+  });
+
+  // Direct-add endpoint for the browser extension's "Add as bookmark" button/context-menu and the
+  // PWA share target when "shared links skip the inbox" is on: bypasses the Inbox and creates a full
+  // bookmark, applying the same autofill/defaults/image-capture Inbox approval does.
+  app.post("/api/bookmarks/quick-add", {
+    schema: {
+      tags: ["bookmarks"],
+      body: {
+        type: "object",
+        required: ["url"],
+        additionalProperties: false,
+        properties: {
+          url: {
+            type: "string",
+            format: "uri",
+          },
+          title: {
+            type: "string",
+          },
+        },
+      },
+    },
+  }, async (req, reply) => {
+    const {
+      url, title,
+    } = req.body as { url: string;
+      title?: string; };
+    if (!isValidUrl(url)) {
+      throw new ValidationError("url must be a valid http(s) URL");
+    }
+    const bookmark = await quickAddBookmarkDirect(url, title?.trim() || url);
+    if (!bookmark) {
+      throw new AppError("This URL is already saved.", "conflict", 409);
+    }
+    return reply.code(201).send(bookmark);
   });
 
   app.get("/api/bookmarks/:id", {

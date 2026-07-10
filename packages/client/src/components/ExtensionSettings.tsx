@@ -118,10 +118,17 @@ export function ExtensionSettings() {
         <CardHeader>
           <CardTitle>Browser Extension (Chrome · Edge)</CardTitle>
           <CardDescription>
-            A one-click extension that saves the current page to your Inbox the moment you click the
-            toolbar icon — no confirmation needed — then offers to open the saved bookmark to edit
-            it. No bookmarks bar needed. When the current page is already saved as a bookmark, the
-            extension switches to
+            A one-click extension for saving the current page. Click the toolbar icon and choose
+            {" "}
+            <strong>Add to Inbox</strong>
+            {" "}
+            (queue it for review) or
+            {" "}
+            <strong>Add as Bookmark</strong>
+            {" "}
+            (skip the Inbox and save it directly, applying your autofill rules). You can also
+            right-click any link and pick either option. No bookmarks bar needed. When the current
+            page is already saved as a bookmark, the extension switches to
             {" "}
             <strong>fill mode</strong>
             : it scrapes the live page using the
@@ -270,8 +277,8 @@ export function ExtensionSettings() {
               On first click: paste the server URL shown above and click
               {" "}
               <strong>Save</strong>
-              . After that, clicking the icon saves the current page to your Inbox automatically —
-              no confirmation needed.
+              . After that, clicking the icon lets you add the current page to your Inbox or
+              directly as a bookmark.
             </li>
           </ol>
           <p className="text-sm text-muted-foreground">

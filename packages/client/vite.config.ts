@@ -42,7 +42,7 @@ export default defineConfig({
         // Layer our share-target POST handler onto the generated SW. The `?v=` is part of the
         // generated sw.js bytes, so bumping it forces the SW (and the re-imported script) to
         // update — editing share-target-sw.js alone would otherwise be missed. Bump on change.
-        importScripts: ["/share-target-sw.js?v=1"],
+        importScripts: ["/share-target-sw.js?v=2"],
       },
       manifest: {
         name: "eeSimple Bookmarks",

@@ -279,7 +279,7 @@ const bookmarkAddFormBody = {
 
 const automationBody = {
   type: "object",
-  required: ["autoFetchTitle", "autoFetchImage", "autoApplyTitleTags", "autoApplyTitleLocations", "sidebarOpenModifier", "defaultCategoryId"],
+  required: ["autoFetchTitle", "autoFetchImage", "autoApplyTitleTags", "autoApplyTitleLocations", "shareBypassInbox", "sidebarOpenModifier", "defaultCategoryId"],
   additionalProperties: false,
   properties: {
     autoFetchTitle: {
@@ -292,6 +292,9 @@ const automationBody = {
       type: "boolean",
     },
     autoApplyTitleLocations: {
+      type: "boolean",
+    },
+    shareBypassInbox: {
       type: "boolean",
     },
     sidebarOpenModifier: {

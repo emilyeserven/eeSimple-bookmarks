@@ -235,6 +235,7 @@ const AUTOMATION_DEFAULTS = {
   autoFetchImage: true,
   autoApplyTitleTags: false,
   autoApplyTitleLocations: false,
+  shareBypassInbox: false,
   sidebarOpenModifier: "alt" as SidebarOpenModifier,
   defaultCategoryId: null as string | null,
 };

@@ -11,6 +11,7 @@ const statusEl = document.getElementById("status");
 
 const bmUrl = document.getElementById("bmUrl");
 const addBtn = document.getElementById("addBtn");
+const addBookmarkBtn = document.getElementById("addBookmarkBtn");
 const formError = document.getElementById("formError");
 
 const successMsg = document.getElementById("successMsg");
@@ -141,9 +142,9 @@ function initForm() {
     pageTitle = tab?.title ?? "";
     const url = (tab?.url ?? "").trim();
     if (!url) {
-      // No usable URL — fall back to the editable quick-save form.
+      // No usable URL — fall back to the editable add form for manual entry.
       show("form");
-      submit();
+      bmUrl.focus();
       return;
     }
     void bootFillContext(url);
@@ -167,9 +168,11 @@ async function bootFillContext(url) {
   routeByMode(ctx, url);
 }
 
+// Show the editable add form with both choices (Add to Inbox / Add as Bookmark) instead of
+// auto-saving, so the user picks whether this page bypasses the Inbox. The URL is pre-filled from
+// the active tab (initForm), so it's still one click either way.
 function quickSaveFallback() {
   show("form");
-  submit();
 }
 
 function routeByMode(ctx, url) {
@@ -257,10 +260,24 @@ function renderSaved(bookmark) {
   show("saved");
 }
 
-// --- Quick-save-to-inbox (unchanged legacy flow) -----------------------
+// --- Add form: quick-save-to-inbox or add-as-bookmark ------------------
 function resetAdd() {
   addBtn.disabled = false;
-  addBtn.textContent = "Add";
+  addBtn.textContent = "Add to Inbox";
+  addBookmarkBtn.disabled = false;
+  addBookmarkBtn.textContent = "Add as Bookmark";
+}
+
+// Shared error handling for a non-2xx add response. Returns true if it handled the status.
+function handleAddError(status) {
+  if (status === 400) {
+    resetAdd();
+    formError.textContent = "That doesn't look like a valid URL.";
+    return true;
+  }
+  resetAdd();
+  formError.textContent = `Error saving (${status}).`;
+  return true;
 }
 
 async function submit() {
@@ -273,6 +290,7 @@ async function submit() {
 
   addBtn.disabled = true;
   addBtn.textContent = "Adding…";
+  addBookmarkBtn.disabled = true;
   try {
     const res = await fetch(`${serverUrl}/api/bookmarks/inbox`, {
       method: "POST",
@@ -290,13 +308,49 @@ async function submit() {
     else if (res.status === 409) {
       onSuccess("Already saved.", true);
     }
-    else if (res.status === 400) {
-      resetAdd();
-      formError.textContent = "That doesn't look like a valid URL.";
+    else {
+      handleAddError(res.status);
+    }
+  }
+  catch {
+    resetAdd();
+    formError.textContent = "Could not reach the eeSimple server.";
+  }
+}
+
+// Add-as-bookmark: bypass the Inbox and create a full bookmark directly (autofill + defaults +
+// image capture applied server-side, same as approving an Inbox item).
+async function submitBookmark() {
+  const url = bmUrl.value.trim();
+  formError.textContent = "";
+  if (!url) {
+    formError.textContent = "Please enter a URL.";
+    return;
+  }
+
+  addBookmarkBtn.disabled = true;
+  addBookmarkBtn.textContent = "Adding…";
+  addBtn.disabled = true;
+  try {
+    const res = await fetch(`${serverUrl}/api/bookmarks/quick-add`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        url,
+        title: pageTitle || url,
+      }),
+    });
+    if (res.status === 201) {
+      const data = await res.json().catch(() => ({}));
+      onBookmarkSuccess("Added as bookmark.", data && data.id);
+    }
+    else if (res.status === 409) {
+      onSuccess("Already saved.", true);
     }
     else {
-      resetAdd();
-      formError.textContent = `Error saving (${res.status}).`;
+      handleAddError(res.status);
     }
   }
   catch {
@@ -306,11 +360,12 @@ async function submit() {
 }
 
 addBtn?.addEventListener("click", submit);
+addBookmarkBtn?.addEventListener("click", submitBookmark);
 bmUrl?.addEventListener("keydown", (e) => {
   if (e.key === "Enter") submit();
 });
 
-// --- Success + countdown (quick-save only) -----------------------------
+// --- Success + countdown ------------------------------------------------
 function onSuccess(message, hideViewInbox = false) {
   successMsg.textContent = message;
   if (hideViewInbox) {
@@ -318,6 +373,7 @@ function onSuccess(message, hideViewInbox = false) {
   }
   else {
     viewInboxBtn.classList.remove("hidden");
+    viewInboxBtn.textContent = "View Inbox";
     viewInboxBtn.onclick = () => {
       cancelCountdown();
       chrome.tabs.create({
@@ -326,6 +382,19 @@ function onSuccess(message, hideViewInbox = false) {
       window.close();
     };
   }
+  show("success");
+  startCountdown();
+}
+
+// Success screen for the add-as-bookmark flow: relabels the action button to open the new bookmark.
+function onBookmarkSuccess(message, bookmarkId) {
+  successMsg.textContent = message;
+  viewInboxBtn.classList.remove("hidden");
+  viewInboxBtn.textContent = "Open Bookmark";
+  viewInboxBtn.onclick = () => {
+    cancelCountdown();
+    openBookmark(bookmarkId);
+  };
   show("success");
   startCountdown();
 }
