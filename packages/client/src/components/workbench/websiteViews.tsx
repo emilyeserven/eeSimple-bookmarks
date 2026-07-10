@@ -1,5 +1,6 @@
 import type { Website } from "@eesimple/types";
 
+import { WEBSITE_SCAN_OBSERVATION_LABELS } from "@eesimple/types";
 import { ExternalLink, Globe } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -7,6 +8,7 @@ import { EntityImagePreview } from "../EntityImageField";
 import { SourceAutofillDefaults } from "../SourceAutofillDefaults";
 
 import { DetailField } from "@/components/DetailField";
+import { Badge } from "@/components/ui/badge";
 import { useYouTubeChannels } from "@/hooks/useYouTubeChannels";
 import { SOCIAL_MEDIA_PLATFORM_LABELS } from "@/lib/socialLinks";
 
@@ -90,6 +92,33 @@ export function WebsiteMetadataView({
         )
         : null}
     </>
+  );
+}
+
+/** Scanner observations (blocks crawlers, needs headless rendering, …), or null when none. */
+export function WebsiteScanObservationsView({
+  entity: website,
+}: {
+  entity: Website;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  if (website.scanObservations.length === 0) return null;
+  return (
+    <DetailField label={t("Scanner observations")}>
+      <div className="flex flex-wrap gap-1">
+        {website.scanObservations.map(obs => (
+          <Badge
+            key={obs.kind}
+            variant="secondary"
+            title={obs.detail}
+          >
+            {t(WEBSITE_SCAN_OBSERVATION_LABELS[obs.kind])}
+          </Badge>
+        ))}
+      </div>
+    </DetailField>
   );
 }
 

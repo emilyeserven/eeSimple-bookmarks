@@ -18,6 +18,7 @@ import type { LanguageUsage, UpdateLanguageUsageEntry } from "./languageUsages.j
 import type { BookmarkLocation } from "./locations.js";
 import type { SocialAccountRef, SocialLink } from "./socialMedia.js";
 import type { BookmarkTaxonomyTerm } from "./taxonomies.js";
+import type { WebsiteScanObservation } from "./websiteScanObservations.js";
 
 export * from "./autofillMerge.js";
 export * from "./amazon.js";
@@ -30,6 +31,7 @@ export * from "./entityLayouts.js";
 export * from "./conditions.js";
 export * from "./extensionFill.js";
 export * from "./extensionFillTaxonomy.js";
+export * from "./websiteScanObservations.js";
 export * from "./genreMoods.js";
 export * from "./taxonomies.js";
 export * from "./customProperties.js";
@@ -192,6 +194,12 @@ export interface Website {
    * here as `[]` (null-vs-empty is normalized at the API boundary, matching `alternateNames`).
    */
   extensionFillRules: WebsiteExtensionFillRule[];
+  /**
+   * Structural facts the server scanner has learned about this site (blocks crawlers, needs headless
+   * rendering, …), plus any the operator added by hand. A `null` stored value surfaces here as `[]`
+   * (normalized at the API boundary, matching `extensionFillRules`).
+   */
+  scanObservations: WebsiteScanObservation[];
   /** When true, redirect chains from this site resolve unreliably; its bookmarks appear in Settings → Redirect Failures. */
   redirectResolutionFailure?: boolean;
   /** When true, scanning a bookmark URL from this site reads the page for an ISBN and autofills it. Gates all scan-time ISBN detection. */
@@ -245,6 +253,8 @@ export interface UpdateWebsiteInput {
   alternateNames?: string[];
   /** Full replacement list of extension fill rules. Omit to leave unchanged. */
   extensionFillRules?: WebsiteExtensionFillRule[];
+  /** Full replacement list of scanner observations (edited by hand). Omit to leave unchanged. */
+  scanObservations?: WebsiteScanObservation[];
   /** When true, flags this site's redirect chains as unreliable. Omit to leave unchanged. */
   redirectResolutionFailure?: boolean;
   /** When true, scan-time ISBN detection runs for bookmark URLs from this site. Omit to leave unchanged. */

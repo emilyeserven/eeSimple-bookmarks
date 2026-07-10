@@ -26,6 +26,7 @@ import {
 import { WebsiteGeneralFormProvider } from "../WebsiteGeneralFormContext";
 import { WebsiteParamRulesForm } from "../WebsiteParamRulesForm";
 import { WebsitePeopleForm, WebsitePeopleView } from "../WebsitePeopleForm";
+import { WebsiteScanObservationsForm } from "../WebsiteScanObservationsForm";
 import { WebsiteShortenedLinksForm } from "../WebsiteShortenedLinksForm";
 import {
   WebsiteAlternateNamesView,
@@ -34,6 +35,7 @@ import {
   WebsiteFaviconView,
   WebsiteHierarchyView,
   WebsiteMetadataView,
+  WebsiteScanObservationsView,
   WebsiteSocialLinksView,
   WebsiteSourceDefaultsView,
   WebsiteYouTubeChannelsView,
@@ -58,6 +60,7 @@ type WebsiteFieldKey
     | "favicon"
     | "domain"
     | "metadata"
+    | "scanObservations"
     | "description"
     | "alternateNames"
     | "defaultCategory"
@@ -125,6 +128,14 @@ const websiteFields = {
     key: "metadata",
     label: i18n.t("Metadata"),
     view: WebsiteMetadataView,
+  },
+  scanObservations: {
+    key: "scanObservations",
+    label: i18n.t("Scanner observations"),
+    view: WebsiteScanObservationsView,
+    edit: ({
+      entity,
+    }) => <WebsiteScanObservationsForm website={entity} />,
   },
   description: {
     key: "description",
@@ -319,6 +330,7 @@ const WEBSITE_DEFAULT_LAYOUT: EntityLayout = {
           "favicon",
           "domain",
           "metadata",
+          "scanObservations",
           "description",
           "alternateNames",
           "defaultCategory",

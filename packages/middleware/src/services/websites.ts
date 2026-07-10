@@ -1,5 +1,6 @@
 import { and, asc, eq, inArray, ne, or, sql } from "drizzle-orm";
-import type { BulkBookmarkResult, BulkDeleteResult, CreateWebsiteInput, LabeledWebsite, RedirectFailureBookmark, RedirectFailureWebsite, ShortenedLink, SocialLink, UpdateWebsiteInput, Website, WebsiteExtensionFillRule, WebsiteNode, WebsiteParamRule } from "@eesimple/types";
+import type { BulkBookmarkResult, BulkDeleteResult, CreateWebsiteInput, DetectedScanObservation, LabeledWebsite, RedirectFailureBookmark, RedirectFailureWebsite, ShortenedLink, SocialLink, UpdateWebsiteInput, Website, WebsiteExtensionFillRule, WebsiteNode, WebsiteParamRule, WebsiteScanObservation } from "@eesimple/types";
+import { mergeScanObservations } from "@eesimple/types";
 import { getShortenerIgnoreList } from "@/services/appSettings";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { db } from "@/db";
@@ -217,6 +218,7 @@ function toWebsite(
     youtubeChannelIds,
     alternateNames: (row.alternateNames as string[] | null) ?? [],
     extensionFillRules: (row.extensionFillRules as WebsiteExtensionFillRule[] | null) ?? [],
+    scanObservations: (row.scanObservations as WebsiteScanObservation[] | null) ?? [],
     redirectResolutionFailure: row.redirectResolutionFailure ?? false,
     scanUrlForIsbn: row.scanUrlForIsbn ?? false,
   };
@@ -236,6 +238,7 @@ const websiteSelect = {
   labeledWebsites: websites.labeledWebsites,
   alternateNames: websites.alternateNames,
   extensionFillRules: websites.extensionFillRules,
+  scanObservations: websites.scanObservations,
   createdAt: websites.createdAt,
   categoryId: websites.categoryId,
   mediaTypeId: websites.mediaTypeId,
@@ -557,7 +560,7 @@ export async function updateWebsite(
     throw new BuiltInWebsiteError("A built-in website cannot be renamed or moved");
   }
 
-  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "description" | "slug" | "shortenedLinks" | "paramRules" | "categoryId" | "mediaTypeId" | "socialLinks" | "labeledWebsites" | "alternateNames" | "extensionFillRules" | "redirectResolutionFailure" | "scanUrlForIsbn">> = buildWebsiteScalarPatch(input);
+  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "description" | "slug" | "shortenedLinks" | "paramRules" | "categoryId" | "mediaTypeId" | "socialLinks" | "labeledWebsites" | "alternateNames" | "extensionFillRules" | "scanObservations" | "redirectResolutionFailure" | "scanUrlForIsbn">> = buildWebsiteScalarPatch(input);
   if (input.domain !== undefined) {
     const domain = normalizeWebsiteDomain(input.domain);
     const [clash] = await db.select({
@@ -582,6 +585,30 @@ export async function updateWebsite(
   }
 
   return getWebsite(id);
+}
+
+/**
+ * Record scanner-detected observations onto a website (the sole scanner → website write-back). Merges
+ * the freshly-detected facts into the stored list — refreshing scanner entries, preserving manual
+ * ones — and writes only when something changed. Display/diagnostic data only: it never touches the
+ * bookmark cache. `now` is an ISO-8601 timestamp supplied by the caller.
+ */
+export async function recordWebsiteScanObservations(
+  websiteId: string,
+  detected: DetectedScanObservation[],
+  now: string,
+): Promise<void> {
+  if (detected.length === 0) return;
+  const [row] = await db.select({
+    scanObservations: websites.scanObservations,
+  }).from(websites).where(eq(websites.id, websiteId));
+  if (!row) return;
+  const current = (row.scanObservations as WebsiteScanObservation[] | null) ?? [];
+  const merged = mergeScanObservations(current, detected, now);
+  if (!merged) return;
+  await db.update(websites).set({
+    scanObservations: merged,
+  }).where(eq(websites.id, websiteId));
 }
 
 /** Delete a website. Built-ins can't be deleted. Bookmarks pointing at it are set to NULL via FK. */
