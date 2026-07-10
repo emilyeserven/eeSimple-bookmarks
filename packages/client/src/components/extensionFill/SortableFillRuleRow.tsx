@@ -41,8 +41,13 @@ export function SortableFillRuleRow({
   const {
     t,
   } = useTranslation();
-  // A configured rule (has a selector) loads read-only; a fresh/blank draft opens directly into edit.
-  const [isEditing, setIsEditing] = useState(() => rule.extract.selector.trim() === "");
+  // A configured rule (has a selector / meta key) loads read-only; a fresh/blank draft opens directly
+  // into edit.
+  const [isEditing, setIsEditing] = useState(() => (
+    rule.extract.source === "meta"
+      ? (rule.extract.metaKey ?? "").trim() === ""
+      : (rule.extract.selector ?? "").trim() === ""
+  ));
   const {
     attributes, listeners, setNodeRef, transform, transition,
   } = useSortable({
@@ -186,10 +191,19 @@ function RuleDetailList({
           />
         )
         : null}
-      <DetailRow
-        label={t("Selector")}
-        value={<code className="font-mono text-xs break-all">{rule.extract.selector}</code>}
-      />
+      {rule.extract.source === "meta"
+        ? (
+          <DetailRow
+            label={t("Meta tag")}
+            value={<code className="font-mono text-xs break-all">{rule.extract.metaKey}</code>}
+          />
+        )
+        : (
+          <DetailRow
+            label={t("Selector")}
+            value={<code className="font-mono text-xs break-all">{rule.extract.selector}</code>}
+          />
+        )}
       {rule.extract.read?.kind === "attr"
         ? (
           <DetailRow

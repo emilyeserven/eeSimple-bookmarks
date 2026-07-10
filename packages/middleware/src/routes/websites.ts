@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import type { CreateWebsiteInput, UpdateWebsiteInput, WebsiteLookup } from "@eesimple/types";
-import { SOCIAL_MEDIA_PLATFORMS } from "@eesimple/types";
+import { SOCIAL_MEDIA_PLATFORMS, TAXONOMY_ENTITY_ASSOCIATIONS, TAXONOMY_ENTITY_FIELDS } from "@eesimple/types";
 import {
   fetchAndStoreWebsiteFavicon,
   getWebsiteFaviconRow,
@@ -308,11 +308,12 @@ const fillTargetSchema = {
   properties: {
     kind: {
       type: "string",
-      enum: ["field", "customProperty", "taxonomy", "image"],
+      enum: ["field", "customProperty", "taxonomy", "image", "taxonomyEntity"],
     },
     field: {
       type: "string",
-      enum: ["title", "description", "isbn", "year"],
+      // `field` is reused by both `field` (bookmark scalar) and `taxonomyEntity` targets; the
+      // per-kind `if/then` below picks which enum applies via a nested `field` schema.
     },
     propertyId: {
       type: "string",
@@ -332,6 +333,14 @@ const fillTargetSchema = {
     setMain: {
       type: "boolean",
     },
+    association: {
+      type: "string",
+      enum: [...TAXONOMY_ENTITY_ASSOCIATIONS],
+    },
+    socialPlatform: {
+      type: "string",
+      enum: SOCIAL_MEDIA_PLATFORMS,
+    },
   },
   allOf: [
     {
@@ -344,6 +353,11 @@ const fillTargetSchema = {
       },
       then: {
         required: ["kind", "field"],
+        properties: {
+          field: {
+            enum: ["title", "description", "isbn", "year"],
+          },
+        },
       },
     },
     {
@@ -368,6 +382,23 @@ const fillTargetSchema = {
       },
       then: {
         required: ["kind", "taxonomy"],
+      },
+    },
+    {
+      if: {
+        properties: {
+          kind: {
+            const: "taxonomyEntity",
+          },
+        },
+      },
+      then: {
+        required: ["kind", "association", "field"],
+        properties: {
+          field: {
+            enum: [...TAXONOMY_ENTITY_FIELDS],
+          },
+        },
       },
     },
   ],
@@ -405,9 +436,18 @@ const fillReadSchema = {
 const fillExtractSchema = {
   type: "object",
   additionalProperties: false,
-  required: ["selector"],
+  // `selector` is required only for the (default) selector source; a `meta` source uses `metaKey`
+  // instead, so neither is unconditionally required here — the client normalizer drops a rule that
+  // has neither.
   properties: {
+    source: {
+      type: "string",
+      enum: ["selector", "meta"],
+    },
     selector: {
+      type: "string",
+    },
+    metaKey: {
       type: "string",
     },
     filters: {

@@ -5,7 +5,9 @@
  * jsonb on `websites.extension_fill_rules`.
  */
 
+import type { TaxonomyEntityAssociation, TaxonomyEntityFieldKey, TaxonomyEntityTermRef } from "./extensionFillTaxonomy.js";
 import type { Bookmark, CustomProperty } from "./index.js";
+import type { SocialMediaPlatform } from "./socialMedia.js";
 
 /**
  * Optional per-rule URL-path gate. A rule with a `pathMatch` applies only when the current tab's
@@ -53,15 +55,40 @@ export type FillTarget
    * the grabbed image the bookmark's main/primary image (defaults to true in the editor).
    */
         | { kind: "image";
-          setMain?: boolean; };
+          setMain?: boolean; }
+  /**
+   * Write the extracted value into a fixed field of a taxonomy term the bookmark is **linked to**
+   * (not the bookmark itself) — e.g. put `@OReillyMedia` into the publisher Group's X social link.
+   * `association` selects which linked taxonomy provides the term(s); when the bookmark links to
+   * exactly one term the popup targets it automatically, otherwise it lets the user pick one.
+   * `field` is one of that entity's writable fields (see {@link TAXONOMY_ENTITY_SPECS});
+   * `socialPlatform` is required when `field === "socialLink"`.
+   */
+          | { kind: "taxonomyEntity";
+            association: TaxonomyEntityAssociation;
+            field: TaxonomyEntityFieldKey;
+            socialPlatform?: SocialMediaPlatform; };
 
 /** How to extract a rule's value(s) from the page. */
 export interface FillExtract {
-  /** `querySelectorAll` candidates. */
-  selector: string;
+  /**
+   * Where extraction candidates come from. Absent = `"selector"` (back-compat with every stored
+   * rule, which predates this field). `"meta"` reads a `<meta>` tag by {@link metaKey} instead —
+   * matched against the tag's `name` / `property` / `itemprop` attribute, reading `content` by
+   * default (e.g. `twitter:creator`, `og:book:author`).
+   */
+  source?: "selector" | "meta";
+  /** `querySelectorAll` candidates. Required for the `selector` source (absent = `selector`). */
+  selector?: string;
+  /**
+   * Meta-tag key matched against a `<meta>` tag's `name` / `property` / `itemprop` attribute.
+   * Required for the `meta` source; the value read is the `content` attribute unless {@link read}
+   * overrides it.
+   */
+  metaKey?: string;
   /** Applied in order, each narrows candidates. */
   filters?: FillFilter[];
-  /** Default trimmed `textContent`. */
+  /** Default trimmed `textContent` (or the `content` attribute for the `meta` source). */
   read?: { kind: "text" } | { kind: "attr";
     name: string; };
   /** String transforms applied in order. */
@@ -156,4 +183,11 @@ export interface ExtensionFillContext {
     locations?: ExtensionFillTaxonomyOption[];
     tags?: ExtensionFillTaxonomyOption[];
   };
+  /**
+   * The bookmark's currently-linked terms for each `association` referenced by a `taxonomyEntity`
+   * rule, each carrying the current values of the writable fields — so the popup can show
+   * current → extracted, auto-target a single linked term (or let the user pick among several), and
+   * upsert a social link without wiping the term's other platforms.
+   */
+  associatedTerms?: Partial<Record<TaxonomyEntityAssociation, TaxonomyEntityTermRef[]>>;
 }

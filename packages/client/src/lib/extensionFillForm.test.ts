@@ -653,3 +653,144 @@ describe("normalizeExtensionFillRules", () => {
     expect(normalizeExtensionFillRules([maximal])).toEqual([maximal]);
   });
 });
+
+describe("normalizeExtensionFillRules — meta source", () => {
+  it("keeps a meta rule with a metaKey and drops the unused selector", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      extract: {
+        source: "meta",
+        metaKey: "og:book:author",
+      },
+    })]);
+    expect(out.extract).toEqual({
+      source: "meta",
+      metaKey: "og:book:author",
+    });
+  });
+
+  it("drops a meta rule with a blank metaKey", () => {
+    expect(normalizeExtensionFillRules([rule({
+      extract: {
+        source: "meta",
+        metaKey: "   ",
+      },
+    })])).toEqual([]);
+  });
+
+  it("keeps transforms/filters/split on a meta rule but omits a text read", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "taxonomy",
+        taxonomy: "people",
+      },
+      extract: {
+        source: "meta",
+        metaKey: "og:book:author",
+        split: ", ",
+        transform: [{
+          kind: "trim",
+        }],
+        read: {
+          kind: "text",
+        },
+      },
+    })]);
+    expect(out.extract).toEqual({
+      source: "meta",
+      metaKey: "og:book:author",
+      transform: [{
+        kind: "trim",
+      }],
+      split: ", ",
+    });
+  });
+});
+
+describe("taxonomyEntity target", () => {
+  it("coerces to a website/name default and preserves a same-kind value", () => {
+    expect(coerceFillTarget("taxonomyEntity", {
+      kind: "field",
+      field: "title",
+    })).toEqual({
+      kind: "taxonomyEntity",
+      association: "website",
+      field: "name",
+    });
+    expect(coerceFillTarget("taxonomyEntity", {
+      kind: "taxonomyEntity",
+      association: "group",
+      field: "socialLink",
+      socialPlatform: "x",
+    })).toEqual({
+      kind: "taxonomyEntity",
+      association: "group",
+      field: "socialLink",
+      socialPlatform: "x",
+    });
+  });
+
+  it("normalizes a social-link target, requiring a platform", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "taxonomyEntity",
+        association: "group",
+        field: "socialLink",
+        socialPlatform: "x",
+      },
+      extract: {
+        source: "meta",
+        metaKey: "twitter:creator",
+      },
+    })]);
+    expect(out.target).toEqual({
+      kind: "taxonomyEntity",
+      association: "group",
+      field: "socialLink",
+      socialPlatform: "x",
+    });
+    // A social-link target with no platform is incomplete → the whole rule is dropped.
+    expect(normalizeExtensionFillRules([rule({
+      target: {
+        kind: "taxonomyEntity",
+        association: "group",
+        field: "socialLink",
+      },
+      extract: {
+        selector: ".x",
+      },
+    })])).toEqual([]);
+  });
+
+  it("normalizes a non-social taxonomyEntity target and strips a stray platform", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "taxonomyEntity",
+        association: "people",
+        field: "description",
+        socialPlatform: "x",
+      },
+      extract: {
+        selector: ".bio",
+      },
+    })]);
+    expect(out.target).toEqual({
+      kind: "taxonomyEntity",
+      association: "people",
+      field: "description",
+    });
+  });
+
+  it("summarizes a taxonomyEntity target with the field or social platform", () => {
+    expect(describeFillTarget({
+      kind: "taxonomyEntity",
+      association: "group",
+      field: "socialLink",
+      socialPlatform: "x",
+    })).toBe("Publisher (Group) · X");
+    expect(describeFillTarget({
+      kind: "taxonomyEntity",
+      association: "people",
+      field: "description",
+    })).toBe("People · Description");
+  });
+});

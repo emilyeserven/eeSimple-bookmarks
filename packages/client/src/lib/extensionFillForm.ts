@@ -9,6 +9,12 @@ import type {
   WebsiteExtensionFillRule,
 } from "@eesimple/types";
 
+import {
+  SOCIAL_MEDIA_PLATFORM_LABELS,
+  TAXONOMY_ENTITY_FIELD_LABELS,
+  TAXONOMY_ENTITY_SPECS,
+} from "@eesimple/types";
+
 import { randomId } from "./utils";
 
 /**
@@ -119,6 +125,13 @@ export function describeFillTarget(target: FillTarget, property?: CustomProperty
     }
     case "image":
       return target.setMain ? "Image · Main" : "Image";
+    case "taxonomyEntity": {
+      const assoc = TAXONOMY_ENTITY_SPECS[target.association].label;
+      const fieldLabel = target.field === "socialLink" && target.socialPlatform
+        ? SOCIAL_MEDIA_PLATFORM_LABELS[target.socialPlatform]
+        : TAXONOMY_ENTITY_FIELD_LABELS[target.field];
+      return `${assoc} · ${fieldLabel}`;
+    }
   }
 }
 
@@ -142,6 +155,11 @@ export function describePathMatch(pathMatch: PathMatch): string {
 export function describeFillRead(read: FillExtract["read"]): string {
   if (read?.kind === "attr" && read.name) return `Attribute: ${read.name}`;
   return "Text content";
+}
+
+/** Whether an extract reads a `<meta>` tag rather than running a CSS selector. */
+export function isMetaExtract(extract: FillExtract): boolean {
+  return extract.source === "meta";
 }
 
 const TEXT_MATCH_MODE_LABELS: Record<TextMatch["mode"], string> = {
@@ -231,6 +249,17 @@ export function coerceFillTarget(kind: FillTarget["kind"], prev: FillTarget): Fi
       return {
         kind: "image",
         setMain: prev.kind === "image" ? prev.setMain : true,
+      };
+    case "taxonomyEntity":
+      return {
+        kind: "taxonomyEntity",
+        association: prev.kind === "taxonomyEntity" ? prev.association : "website",
+        field: prev.kind === "taxonomyEntity" ? prev.field : "name",
+        ...(prev.kind === "taxonomyEntity" && prev.socialPlatform !== undefined
+          ? {
+            socialPlatform: prev.socialPlatform,
+          }
+          : {}),
       };
   }
 }
@@ -380,6 +409,19 @@ function cleanTarget(target: FillTarget): FillTarget | null {
           }
           : {}),
       };
+    case "taxonomyEntity":
+      // A social-link target without a chosen platform is incomplete — drop the rule.
+      if (target.field === "socialLink" && !target.socialPlatform) return null;
+      return {
+        kind: "taxonomyEntity",
+        association: target.association,
+        field: target.field,
+        ...(target.field === "socialLink" && target.socialPlatform
+          ? {
+            socialPlatform: target.socialPlatform,
+          }
+          : {}),
+      };
   }
 }
 
@@ -484,10 +526,15 @@ function cleanRead(read: FillExtract["read"]): FillExtract["read"] | undefined {
   return undefined;
 }
 
-/** Clean one extract; a blank selector makes the whole rule unusable (`null`). */
+/**
+ * Clean one extract. A `meta` source needs a non-blank `metaKey`; the default `selector` source
+ * needs a non-blank `selector`. Either missing makes the rule unusable (`null`).
+ */
 function cleanExtract(extract: FillExtract, isTaxonomy: boolean): FillExtract | null {
-  const selector = extract.selector.trim();
-  if (!selector) return null;
+  const isMeta = extract.source === "meta";
+  const selector = (extract.selector ?? "").trim();
+  const metaKey = (extract.metaKey ?? "").trim();
+  if (isMeta ? !metaKey : !selector) return null;
   const filters = (extract.filters ?? [])
     .map(cleanFilter)
     .filter((filter): filter is FillFilter => filter !== null);
@@ -497,12 +544,20 @@ function cleanExtract(extract: FillExtract, isTaxonomy: boolean): FillExtract | 
   const read = cleanRead(extract.read);
   const split = isTaxonomy && extract.split && extract.split.length > 0 ? extract.split : undefined;
   return {
-    selector,
+    ...(isMeta
+      ? {
+        source: "meta" as const,
+        metaKey,
+      }
+      : {
+        selector,
+      }),
     ...(filters.length
       ? {
         filters,
       }
       : {}),
+    // A meta source reads `content` by default; only keep an explicit `attr` override.
     ...(read
       ? {
         read,

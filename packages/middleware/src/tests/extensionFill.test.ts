@@ -40,6 +40,24 @@ const allTaxonomyOptions = {
   }],
 };
 
+// Full-record fixtures for the `taxonomyEntity` association loaders (getWebsite / listPeople / …).
+interface TermFixture {
+  id: string;
+  name?: string;
+  siteName?: string;
+  description?: string | null;
+  socialLinks?: { platform: string;
+    url: string; }[];
+  year?: number | null;
+}
+let peopleList: TermFixture[] = [];
+let groupsList: TermFixture[] = [];
+let tagsList: TermFixture[] = [];
+let locationsList: TermFixture[] = [];
+let categoriesList: TermFixture[] = [];
+let mediaTypesList: TermFixture[] = [];
+let websiteRecords: Record<string, TermFixture> = {};
+
 mock.module("@/services/bookmarks", {
   namedExports: {
     checkBookmarkUrlDuplicate: async () => duplicateResult,
@@ -56,8 +74,29 @@ mock.module("@/services/imports", {
     findPendingImportItemByUrl: async () => pendingImportItem,
   },
 });
+mock.module("@/services/categories", {
+  namedExports: {
+    listCategories: async () => categoriesList,
+  },
+});
+mock.module("@/services/mediaTypes", {
+  namedExports: {
+    listMediaTypes: async () => mediaTypesList,
+  },
+});
+mock.module("@/services/newsletters", {
+  namedExports: {
+    getNewsletter: async () => null,
+  },
+});
+mock.module("@/services/youtubeChannels", {
+  namedExports: {
+    getYouTubeChannel: async () => null,
+  },
+});
 mock.module("@/services/websites", {
   namedExports: {
+    getWebsite: async (id: string) => websiteRecords[id] ?? null,
     lookupWebsiteByUrl: async () => ({
       domain: null,
       website: websiteForUrl,
@@ -90,21 +129,26 @@ mock.module("@/services/websites", {
 mock.module("@/services/people", {
   namedExports: {
     listPeopleCompact: async () => allTaxonomyOptions.people,
+    listPeople: async () => peopleList,
   },
 });
 mock.module("@/services/groups", {
   namedExports: {
     listGroupsCompact: async () => allTaxonomyOptions.groups,
+    listGroups: async () => groupsList,
+    getGroupById: async (id: string) => groupsList.find(g => g.id === id) ?? null,
   },
 });
 mock.module("@/services/locations", {
   namedExports: {
     listLocationsCompact: async () => allTaxonomyOptions.locations,
+    listLocations: async () => locationsList,
   },
 });
 mock.module("@/services/tags", {
   namedExports: {
     listTagsCompact: async () => allTaxonomyOptions.tags,
+    listTags: async () => tagsList,
   },
 });
 
@@ -122,6 +166,13 @@ function resetFixtures(): void {
   bookmarkById = {};
   websiteForUrl = null;
   allCustomProperties = [];
+  peopleList = [];
+  groupsList = [];
+  tagsList = [];
+  locationsList = [];
+  categoriesList = [];
+  mediaTypesList = [];
+  websiteRecords = {};
 }
 
 function makeWebsite(extensionFillRules: WebsiteExtensionFillRule[]): Website {
@@ -387,4 +438,155 @@ test("taxonomies are trimmed to only the kinds referenced by the website's rules
   assert.equal(result.taxonomies?.people, undefined);
   assert.equal(result.taxonomies?.groups, undefined);
   assert.equal(result.taxonomies?.locations, undefined);
+});
+
+test("associatedTerms carries the linked terms (with field values) for referenced taxonomyEntity associations", async () => {
+  resetFixtures();
+  duplicateResult = {
+    exactMatch: {
+      id: "bm-1",
+      url: "https://example.com/a",
+      title: "A",
+    },
+    pathMatch: null,
+    identityMatches: [],
+  };
+  bookmarkById = {
+    "bm-1": {
+      id: "bm-1",
+      title: "A",
+      categoryId: "cat-1",
+      website: {
+        id: "website-1",
+        siteName: "Example",
+      },
+      people: [
+        {
+          id: "person-1",
+          name: "Ada Lovelace",
+        },
+        {
+          id: "person-2",
+          name: "Grace Hopper",
+        },
+      ],
+    } as unknown as Bookmark,
+  };
+  websiteRecords = {
+    "website-1": {
+      id: "website-1",
+      siteName: "Example",
+      description: "A site",
+      socialLinks: [{
+        platform: "x",
+        url: "https://x.com/example",
+      }],
+    },
+  };
+  peopleList = [
+    {
+      id: "person-1",
+      name: "Ada Lovelace",
+      description: "Mathematician",
+      socialLinks: [],
+    },
+    {
+      id: "person-2",
+      name: "Grace Hopper",
+      description: null,
+      socialLinks: [],
+    },
+    {
+      id: "person-3",
+      name: "Unlinked",
+      description: "not linked to this bookmark",
+    },
+  ];
+  websiteForUrl = makeWebsite([
+    makeRule({
+      id: "r1",
+      target: {
+        kind: "taxonomyEntity",
+        association: "people",
+        field: "description",
+      },
+    }),
+    makeRule({
+      id: "r2",
+      target: {
+        kind: "taxonomyEntity",
+        association: "website",
+        field: "socialLink",
+        socialPlatform: "x",
+      },
+    }),
+  ]);
+
+  const result = await getExtensionFillContext("https://example.com/a");
+  assert.equal(result.mode, "bookmark");
+  // Only the two linked people are sent (person-3 is excluded), each with its current description.
+  assert.deepEqual(result.associatedTerms?.people, [
+    {
+      id: "person-1",
+      name: "Ada Lovelace",
+      description: "Mathematician",
+      socialLinks: [],
+    },
+    {
+      id: "person-2",
+      name: "Grace Hopper",
+      description: null,
+      socialLinks: [],
+    },
+  ]);
+  // The single linked website carries its name/description/socialLinks.
+  assert.deepEqual(result.associatedTerms?.website, [
+    {
+      id: "website-1",
+      name: "Example",
+      description: "A site",
+      socialLinks: [{
+        platform: "x",
+        url: "https://x.com/example",
+      }],
+    },
+  ]);
+  // Associations no rule references are omitted.
+  assert.equal(result.associatedTerms?.groups, undefined);
+});
+
+test("associatedTerms omits an association whose bookmark has no linked term", async () => {
+  resetFixtures();
+  duplicateResult = {
+    exactMatch: {
+      id: "bm-1",
+      url: "https://example.com/a",
+      title: "A",
+    },
+    pathMatch: null,
+    identityMatches: [],
+  };
+  bookmarkById = {
+    "bm-1": {
+      id: "bm-1",
+      title: "A",
+      categoryId: "cat-1",
+      groups: [],
+    } as unknown as Bookmark,
+  };
+  websiteForUrl = makeWebsite([
+    makeRule({
+      id: "r1",
+      target: {
+        kind: "taxonomyEntity",
+        association: "groups",
+        field: "description",
+      },
+    }),
+  ]);
+
+  const result = await getExtensionFillContext("https://example.com/a");
+  assert.equal(result.mode, "bookmark");
+  // No linked groups → the whole associatedTerms map is absent (popup shows a disabled "no linked" row).
+  assert.equal(result.associatedTerms, undefined);
 });

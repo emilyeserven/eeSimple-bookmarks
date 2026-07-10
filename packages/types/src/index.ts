@@ -29,6 +29,7 @@ export * from "./entityNames.js";
 export * from "./entityLayouts.js";
 export * from "./conditions.js";
 export * from "./extensionFill.js";
+export * from "./extensionFillTaxonomy.js";
 export * from "./genreMoods.js";
 export * from "./taxonomies.js";
 export * from "./customProperties.js";

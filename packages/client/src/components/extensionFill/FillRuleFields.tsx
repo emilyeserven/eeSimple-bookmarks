@@ -128,21 +128,63 @@ export function FillRuleFields({
           })}
         />
       </div>
-      <LabeledInput
-        className="sm:col-span-2"
-        label={t("Selector")}
-        placeholder="._statBlockTitle_1ckth_86 > *"
-        value={rule.extract.selector}
-        onChange={selector => patchExtract({
-          selector,
-        })}
+      <KindSelect<NonNullable<FillExtract["source"]>>
+        label={t("Source")}
+        value={rule.extract.source ?? "selector"}
+        options={[
+          {
+            value: "selector",
+            label: t("CSS selector"),
+          },
+          {
+            value: "meta",
+            label: t("Meta tag"),
+          },
+        ]}
+        onValueChange={source => patchExtract(
+          // A meta tag always reads its `content`; drop any leftover attribute read from selector mode.
+          source === "meta"
+            ? {
+              source,
+              read: undefined,
+            }
+            : {
+              source,
+            },
+        )}
       />
-      <FillReadField
-        read={rule.extract.read}
-        onChange={read => patchExtract({
-          read,
-        })}
-      />
+      {rule.extract.source === "meta"
+        ? (
+          <LabeledInput
+            label={t("Meta tag name")}
+            placeholder="og:book:author"
+            value={rule.extract.metaKey ?? ""}
+            onChange={metaKey => patchExtract({
+              metaKey,
+            })}
+          />
+        )
+        : (
+          <LabeledInput
+            label={t("Selector")}
+            placeholder="._statBlockTitle_1ckth_86 > *"
+            value={rule.extract.selector ?? ""}
+            onChange={selector => patchExtract({
+              selector,
+            })}
+          />
+        )}
+      {/* A meta tag always reads its `content` attribute — the read control is selector-only. */}
+      {rule.extract.source === "meta"
+        ? null
+        : (
+          <FillReadField
+            read={rule.extract.read}
+            onChange={read => patchExtract({
+              read,
+            })}
+          />
+        )}
       {rule.target.kind === "taxonomy"
         ? (
           <LabeledInput

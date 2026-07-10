@@ -20,6 +20,63 @@
     tags: "tagIds",
   };
 
+  // Mirror of TAXONOMY_ENTITY_SPECS (packages/types/src/extensionFillTaxonomy.ts): for a
+  // `taxonomyEntity` fill target, the PATCH base path + name key + display noun of each associated
+  // taxonomy. The popup is a classic script and can't import the TS registry, so this is duplicated —
+  // keep it in sync with that file.
+  const TAXONOMY_ENTITY_PATCH = {
+    website: {
+      path: "/api/websites",
+      nameKey: "siteName",
+      noun: "website",
+    },
+    category: {
+      path: "/api/categories",
+      nameKey: "name",
+      noun: "category",
+    },
+    mediaType: {
+      path: "/api/media-types",
+      nameKey: "name",
+      noun: "media type",
+    },
+    youtubeChannel: {
+      path: "/api/youtube-channels",
+      nameKey: "name",
+      noun: "YouTube channel",
+    },
+    newsletter: {
+      path: "/api/newsletters",
+      nameKey: "name",
+      noun: "newsletter",
+    },
+    group: {
+      path: "/api/groups",
+      nameKey: "name",
+      noun: "group",
+    },
+    people: {
+      path: "/api/people",
+      nameKey: "name",
+      noun: "person",
+    },
+    groups: {
+      path: "/api/groups",
+      nameKey: "name",
+      noun: "group",
+    },
+    tags: {
+      path: "/api/tags",
+      nameKey: "name",
+      noun: "tag",
+    },
+    locations: {
+      path: "/api/locations",
+      nameKey: "name",
+      noun: "location",
+    },
+  };
+
   // Singular / plural nouns for the post-apply summary lines.
   const TAX_NOUN = {
     people: {
@@ -143,6 +200,7 @@
   globalThis.eesimpleTaxonomyFill = {
     TAX_PATCH_KEY,
     TAX_NOUN,
+    TAXONOMY_ENTITY_PATCH,
     resolveTaxonomyId,
     summarizeCreated,
     summarizeFailed,
