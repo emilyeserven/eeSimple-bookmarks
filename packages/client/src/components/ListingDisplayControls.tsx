@@ -31,7 +31,7 @@ export function ListingDisplayControls({
   const clearBookmarkImageMode = useUiStore(state => state.clearBookmarkImageMode);
 
   return (
-    <div className="flex flex-col gap-2.5">
+    <div className="flex flex-row flex-wrap items-center gap-x-6 gap-y-2">
       <ViewModeToggle
         value={viewMode}
         onChange={mode => setViewMode(pageKey, mode)}
