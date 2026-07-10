@@ -11,6 +11,7 @@ import {
   duplicateFillRule,
   moveItem,
   newFillRuleDraft,
+  newPathMatch,
   normalizeExtensionFillRules,
 } from "./extensionFillForm";
 
@@ -40,6 +41,15 @@ describe("newFillRuleDraft", () => {
     });
     expect(draft.extract).toEqual({
       selector: "",
+    });
+  });
+});
+
+describe("newPathMatch", () => {
+  it("defaults to a blank prefix match", () => {
+    expect(newPathMatch()).toEqual({
+      mode: "prefix",
+      value: "",
     });
   });
 });
@@ -255,15 +265,24 @@ describe("normalizeExtensionFillRules", () => {
     });
   });
 
-  it("strips a blank pathSuffix and trims a set one", () => {
+  it("drops a blank pathMatch and trims a set one", () => {
     const [blank] = normalizeExtensionFillRules([rule({
-      pathSuffix: "   ",
+      pathMatch: {
+        mode: "prefix",
+        value: "   ",
+      },
     })]);
-    expect(blank).not.toHaveProperty("pathSuffix");
+    expect(blank).not.toHaveProperty("pathMatch");
     const [set] = normalizeExtensionFillRules([rule({
-      pathSuffix: "  /book  ",
+      pathMatch: {
+        mode: "prefix",
+        value: "  /course/  ",
+      },
     })]);
-    expect(set.pathSuffix).toBe("/book");
+    expect(set.pathMatch).toEqual({
+      mode: "prefix",
+      value: "/course/",
+    });
   });
 
   it("drops a closest filter with a blank selector but keeps nth/text filters", () => {
@@ -444,7 +463,10 @@ describe("normalizeExtensionFillRules", () => {
     const maximal: WebsiteExtensionFillRule = {
       id: "maximal",
       label: "Everything",
-      pathSuffix: "/book",
+      pathMatch: {
+        mode: "prefix",
+        value: "/course/",
+      },
       target: {
         kind: "customProperty",
         propertyId: "22222222-2222-2222-2222-222222222222",

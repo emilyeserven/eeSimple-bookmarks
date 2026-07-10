@@ -194,7 +194,30 @@ function routeByMode(ctx, url) {
   quickSaveFallback();
 }
 
-// Keep only rules whose optional pathSuffix matches the current path (WebsiteParamRule semantics).
+// Evaluate a rule's optional pathMatch gate against the current pathname. Absent gate (or a blank
+// value) = the rule always applies. An invalid regex never throws and never matches.
+function pathMatches(pm, pathname) {
+  if (!pm || !pm.value) return true;
+  switch (pm.mode) {
+    case "prefix":
+      return pathname.startsWith(pm.value);
+    case "suffix":
+      return pathname.endsWith(pm.value);
+    case "contains":
+      return pathname.includes(pm.value);
+    case "regex":
+      try {
+        return new RegExp(pm.value).test(pathname);
+      }
+      catch {
+        return false;
+      }
+    default:
+      return true;
+  }
+}
+
+// Keep only rules whose optional pathMatch gate matches the current path.
 function gateRules(rules, url) {
   let pathname = "";
   try {
@@ -203,7 +226,7 @@ function gateRules(rules, url) {
   catch {
     pathname = "";
   }
-  return rules.filter(rule => !rule.pathSuffix || pathname.endsWith(rule.pathSuffix));
+  return rules.filter(rule => pathMatches(rule.pathMatch, pathname));
 }
 
 function renderInbox() {

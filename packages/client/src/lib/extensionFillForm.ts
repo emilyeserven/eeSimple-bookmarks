@@ -4,6 +4,7 @@ import type {
   FillFilter,
   FillTarget,
   FillTransform,
+  PathMatch,
   TextMatch,
   WebsiteExtensionFillRule,
 } from "@eesimple/types";
@@ -28,6 +29,14 @@ import { randomId } from "./utils";
 export function newTextMatch(): TextMatch {
   return {
     mode: "contains",
+    value: "",
+  };
+}
+
+/** A blank path-match gate — defaults to `prefix` (the natural fit for `/course/` vs `/library/view/`). */
+export function newPathMatch(): PathMatch {
+  return {
+    mode: "prefix",
     value: "",
   };
 }
@@ -229,6 +238,16 @@ export function moveItem<T>(arr: T[], from: number, to: number): T[] {
 // Schema-clean serialization
 // ---------------------------------------------------------------------------
 
+/** Clean a path-match gate; a blank value makes the gate meaningless, so drop it (`null`). */
+function cleanPathMatch(pathMatch: PathMatch): PathMatch | null {
+  const value = pathMatch.value.trim();
+  if (!value) return null;
+  return {
+    mode: pathMatch.mode,
+    value,
+  };
+}
+
 /** Keep only `mode`/`value`, and `caseSensitive` only when true (omit the redundant default). */
 function cleanTextMatch(match: TextMatch): TextMatch {
   return {
@@ -416,7 +435,7 @@ function cleanExtract(extract: FillExtract, isTaxonomy: boolean): FillExtract | 
 
 /**
  * Serialize editor drafts into a schema-clean rules array for the PATCH payload. Drops rules with an
- * incomplete target or blank selector, strips a blank `pathSuffix`, and normalizes each nested
+ * incomplete target or blank selector, drops a blank `pathMatch` gate, and normalizes each nested
  * variant so no stray field survives an `additionalProperties: false` validation pass.
  */
 export function normalizeExtensionFillRules(
@@ -428,13 +447,13 @@ export function normalizeExtensionFillRules(
     if (!target) continue;
     const extract = cleanExtract(rule.extract, target.kind === "taxonomy");
     if (!extract) continue;
-    const pathSuffix = rule.pathSuffix?.trim();
+    const pathMatch = rule.pathMatch ? cleanPathMatch(rule.pathMatch) : null;
     result.push({
       id: rule.id,
       label: rule.label.trim(),
-      ...(pathSuffix
+      ...(pathMatch
         ? {
-          pathSuffix,
+          pathMatch,
         }
         : {}),
       target,

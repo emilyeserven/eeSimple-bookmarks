@@ -16,7 +16,7 @@ import { ensureBuiltInLanguageUsageLevels } from "@/services/languageUsageLevels
 import { ensureBuiltInTranslationSources } from "@/services/translationSources";
 import { ensureBuiltInRelationshipTypes } from "@/services/relationshipTypes";
 import { ensureDefaultLocationRelations } from "@/services/locationRelations";
-import { ensureBuiltInWebsites } from "@/services/websites";
+import { backfillExtensionFillPathMatch, ensureBuiltInWebsites } from "@/services/websites";
 import { ensureBucket, isObjectStoreConfigured } from "@/utils/objectStore";
 
 const port = Number(process.env.PORT ?? 3001);
@@ -52,6 +52,7 @@ try {
   await ensureDefaultCategory();
   await ensureAppSettings();
   await ensureBuiltInWebsites();
+  await backfillExtensionFillPathMatch();
   await ensureDatePostedProperty();
   await ensureContentStatusProperty();
   await ensureBuiltInMediaTypes();

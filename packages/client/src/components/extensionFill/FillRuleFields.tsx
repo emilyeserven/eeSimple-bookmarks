@@ -1,13 +1,35 @@
+import type { KindOption } from "./controls";
 import type { ComboboxOption } from "../Combobox";
-import type { CustomProperty, FillExtract, FillTarget, WebsiteExtensionFillRule } from "@eesimple/types";
+import type { CustomProperty, FillExtract, FillTarget, PathMatch, WebsiteExtensionFillRule } from "@eesimple/types";
 
 import { useTranslation } from "react-i18next";
 
-import { LabeledInput } from "./controls";
+import { KindSelect, LabeledInput } from "./controls";
 import { FillFilterList } from "./FillFilterList";
 import { FillReadField } from "./FillReadField";
 import { FillTargetPicker } from "./FillTargetPicker";
 import { FillTransformList } from "./FillTransformList";
+
+import { newPathMatch } from "@/lib/extensionFillForm";
+
+const PATH_MATCH_MODE_OPTIONS: KindOption<PathMatch["mode"]>[] = [
+  {
+    value: "prefix",
+    label: "Starts with",
+  },
+  {
+    value: "contains",
+    label: "Contains",
+  },
+  {
+    value: "suffix",
+    label: "Ends with",
+  },
+  {
+    value: "regex",
+    label: "Matches regex",
+  },
+];
 
 /**
  * Swap a rule's target. When switching to an image target, default the read to the `<img>` `src`
@@ -57,6 +79,16 @@ export function FillRuleFields({
       },
     });
   }
+  function patchPathMatch(patch: Partial<PathMatch>): void {
+    onChange({
+      ...rule,
+      pathMatch: {
+        ...(rule.pathMatch ?? newPathMatch()),
+        ...patch,
+      },
+    });
+  }
+  const pathMatch = rule.pathMatch ?? newPathMatch();
   return (
     <div
       className="
@@ -70,15 +102,32 @@ export function FillRuleFields({
         propertiesById={propertiesById}
         onChange={target => onChange(applyTargetChange(rule, target))}
       />
-      <LabeledInput
-        label={t("Path suffix")}
-        placeholder="/book"
-        value={rule.pathSuffix ?? ""}
-        onChange={value => onChange({
-          ...rule,
-          pathSuffix: value,
-        })}
-      />
+      <div
+        className="
+          grid gap-3
+          sm:col-span-2 sm:grid-cols-2
+        "
+      >
+        <KindSelect
+          label={t("Path match")}
+          value={pathMatch.mode}
+          options={PATH_MATCH_MODE_OPTIONS.map(option => ({
+            ...option,
+            label: t(option.label),
+          }))}
+          onValueChange={mode => patchPathMatch({
+            mode,
+          })}
+        />
+        <LabeledInput
+          label={t("Path value")}
+          placeholder="/course/"
+          value={pathMatch.value}
+          onChange={value => patchPathMatch({
+            value,
+          })}
+        />
+      </div>
       <LabeledInput
         className="sm:col-span-2"
         label={t("Selector")}

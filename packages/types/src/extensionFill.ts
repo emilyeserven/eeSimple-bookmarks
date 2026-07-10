@@ -7,14 +7,25 @@
 
 import type { Bookmark, CustomProperty } from "./index.js";
 
+/**
+ * Optional per-rule URL-path gate. A rule with a `pathMatch` applies only when the current tab's
+ * pathname matches — letting one website carry different fill rules for different paths (e.g. an
+ * O'Reilly `/course/…` rule vs a `/library/view/…` rule). Absent = the rule always applies. No
+ * `caseSensitive` — URL paths are effectively case-sensitive.
+ */
+export interface PathMatch {
+  mode: "prefix" | "contains" | "suffix" | "regex";
+  value: string;
+}
+
 /** One configured extraction rule for a website. */
 export interface WebsiteExtensionFillRule {
   /** Stable uuid — checkbox + editor list identity. */
   id: string;
   /** Shown in the popup row + editor, e.g. "Print length". */
   label: string;
-  /** Optional path gate; `WebsiteParamRule.pathSuffix` semantics. */
-  pathSuffix?: string;
+  /** Optional path gate — the rule applies only when the current path matches (absent = always). */
+  pathMatch?: PathMatch;
   target: FillTarget;
   extract: FillExtract;
 }
