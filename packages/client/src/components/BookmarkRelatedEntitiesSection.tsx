@@ -239,21 +239,3 @@ export function BookmarkGroupsSelectField({
     </>
   );
 }
-
-/**
- * The related-entity fields that used to live on the "Related" edit tab as one bundle: YouTube channel,
- * locations, people, and groups. Each is now its own placeable layout field (see the exports above);
- * this recomposes them from the halves so any existing consumer/story renders unchanged.
- */
-export function BookmarkRelatedEntitiesSection({
-  ctrl,
-}: { ctrl: Ctrl }) {
-  return (
-    <>
-      <BookmarkChannelSelectField ctrl={ctrl} />
-      <BookmarkLocationsSelectField ctrl={ctrl} />
-      <BookmarkPeopleSelectField ctrl={ctrl} />
-      <BookmarkGroupsSelectField ctrl={ctrl} />
-    </>
-  );
-}
