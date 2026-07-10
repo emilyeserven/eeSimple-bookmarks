@@ -66,19 +66,35 @@ describe("normalizeRules", () => {
   it("trims the path suffix and splits/trims/filters the params", () => {
     expect(normalizeRules([{
       pathSuffix: "  /watch ",
+      matchMode: "suffix",
       paramsText: " v , , t ",
     }])).toEqual([{
       pathSuffix: "/watch",
+      matchMode: "suffix",
       params: ["v", "t"],
+    }]);
+  });
+
+  it("carries the match mode through unchanged", () => {
+    expect(normalizeRules([{
+      pathSuffix: "/watch",
+      matchMode: "contains",
+      paramsText: "v",
+    }])).toEqual([{
+      pathSuffix: "/watch",
+      matchMode: "contains",
+      params: ["v"],
     }]);
   });
 
   it("keeps a rule that has only params (empty path suffix)", () => {
     expect(normalizeRules([{
       pathSuffix: "  ",
+      matchMode: "suffix",
       paramsText: "id",
     }])).toEqual([{
       pathSuffix: "",
+      matchMode: "suffix",
       params: ["id"],
     }]);
   });
@@ -87,14 +103,17 @@ describe("normalizeRules", () => {
     expect(normalizeRules([
       {
         pathSuffix: "   ",
+        matchMode: "suffix",
         paramsText: " , ",
       },
       {
         pathSuffix: "/keep",
+        matchMode: "suffix",
         paramsText: "",
       },
     ])).toEqual([{
       pathSuffix: "/keep",
+      matchMode: "suffix",
       params: [],
     }]);
   });

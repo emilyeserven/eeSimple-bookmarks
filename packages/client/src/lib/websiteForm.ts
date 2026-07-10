@@ -3,6 +3,7 @@ import type { ShortenedLink, WebsiteParamRule } from "@eesimple/types";
 /** Local draft of a param rule, with params edited as a comma-separated string. */
 export interface ParamRuleDraft {
   pathSuffix: string;
+  matchMode: "suffix" | "contains";
   paramsText: string;
 }
 
@@ -22,6 +23,7 @@ export function normalizeRules(rules: ParamRuleDraft[]): WebsiteParamRule[] {
   return rules
     .map(rule => ({
       pathSuffix: rule.pathSuffix.trim(),
+      matchMode: rule.matchMode,
       params: rule.paramsText.split(",").map(part => part.trim()).filter(Boolean),
     }))
     .filter(rule => rule.pathSuffix.length > 0 || rule.params.length > 0);

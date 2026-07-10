@@ -25,6 +25,7 @@ export function WebsiteParamRulesForm({
   const [rules, setRules] = useState<ParamRuleDraft[]>(() =>
     website.paramRules.map(rule => ({
       pathSuffix: rule.pathSuffix,
+      matchMode: rule.matchMode ?? "suffix",
       paramsText: rule.params.join(", "),
     })));
 
@@ -36,6 +37,7 @@ export function WebsiteParamRulesForm({
       paramRules: normalizeRules(
         website.paramRules.map(rule => ({
           pathSuffix: rule.pathSuffix,
+          matchMode: rule.matchMode ?? "suffix",
           paramsText: rule.params.join(", "),
         })),
       ),

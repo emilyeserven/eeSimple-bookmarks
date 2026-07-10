@@ -9,6 +9,13 @@ import { LabeledSection } from "./LabeledSection";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 /** Editor for a website's verified shortened-link domains (with optional expansion templates). */
 export function ShortenedLinksEditor({
@@ -129,7 +136,7 @@ export function ParamRulesEditor({
     <LabeledSection
       title={t("Keep-param rules")}
       description={t(
-        "For URLs whose path ends with the suffix, keep only these query params (comma-separated) and strip the rest. Leave the path blank to match any path. With rules set, params aren’t kept unless whitelisted.",
+        "For URLs whose path ends with (or contains, per the match mode) the suffix, keep only these query params (comma-separated) and strip the rest. Leave the path blank to match any path. With rules set, params aren’t kept unless whitelisted.",
       )}
     >
       <div className="space-y-2">
@@ -138,7 +145,7 @@ export function ParamRulesEditor({
             key={index}
             className="
               grid gap-2 rounded-md border p-2
-              sm:grid-cols-[1fr_2fr_auto] sm:items-center
+              sm:grid-cols-[1fr_auto_2fr_auto] sm:items-center
             "
           >
             <Input
@@ -149,6 +156,20 @@ export function ParamRulesEditor({
                 pathSuffix: event.target.value,
               })}
             />
+            <Select
+              value={rule.matchMode}
+              onValueChange={value => update(index, {
+                matchMode: value as ParamRuleDraft["matchMode"],
+              })}
+            >
+              <SelectTrigger aria-label={t("Match mode")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="suffix">{t("Ends with")}</SelectItem>
+                <SelectItem value="contains">{t("Contains")}</SelectItem>
+              </SelectContent>
+            </Select>
             <Input
               aria-label={t("Kept params")}
               placeholder="v, list"
@@ -175,6 +196,7 @@ export function ParamRulesEditor({
           size="sm"
           onClick={() => onChange([...rules, {
             pathSuffix: "",
+            matchMode: "suffix",
             paramsText: "",
           }])}
         >

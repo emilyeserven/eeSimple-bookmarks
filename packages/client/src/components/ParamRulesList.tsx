@@ -28,6 +28,12 @@ export function ParamRulesList({
           key={index}
           className="rounded-md border p-2"
         >
+          {rule.pathSuffix && (
+            <span className="text-muted-foreground">
+              {rule.matchMode === "contains" ? t("contains") : t("ends with")}
+              {" "}
+            </span>
+          )}
           <span className="font-mono">{rule.pathSuffix || t("any path")}</span>
           <span className="text-muted-foreground"> → </span>
           <span className="font-mono">

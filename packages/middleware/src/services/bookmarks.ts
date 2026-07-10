@@ -1195,7 +1195,11 @@ export async function checkBookmarkUrlDuplicate(
   // Find the most-specific matching rule (longest pathSuffix wins, mirrors urlCleanup applyParamRules).
   const matchingRule = website?.paramRules.length
     ? website.paramRules
-      .filter(r => r.pathSuffix === "" || parsed.pathname.endsWith(r.pathSuffix))
+      .filter(r => r.pathSuffix === "" || (
+        r.matchMode === "contains"
+          ? parsed.pathname.includes(r.pathSuffix)
+          : parsed.pathname.endsWith(r.pathSuffix)
+      ))
       .sort((a, b) => b.pathSuffix.length - a.pathSuffix.length)[0] ?? null
     : null;
 

@@ -121,8 +121,10 @@ export interface UpdateTagInput {
  * everything else (and strips all params when the site has rules but none match the path).
  */
 export interface WebsiteParamRule {
-  /** Path suffix the rule matches (e.g. `"/watch"`, `"/playlist"`); `""` matches any path. */
+  /** Path suffix (or substring, when matchMode is "contains") the rule matches (e.g. `"/watch"`, `"/playlist"`); `""` matches any path. */
   pathSuffix: string;
+  /** How pathSuffix is matched against the URL path. Defaults to "suffix" when absent. */
+  matchMode?: "suffix" | "contains";
   /** Query params kept on a matching path; all others are stripped. */
   params: string[];
 }
