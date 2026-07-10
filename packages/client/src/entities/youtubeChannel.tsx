@@ -1,19 +1,16 @@
-/* eslint-disable react-refresh/only-export-components -- this module pairs a small filter component with the entity's route/palette/listing config constants, not a component-only module */
 import type { EntityDescriptor, EntityListingConfig } from "./types";
 import type { EntityPaletteConfig } from "../lib/entityPaletteRegistry";
 import type { EntityRoute } from "../lib/entityRoutes";
 import type { UpdateYouTubeChannelInput, YouTubeChannel } from "@eesimple/types";
 
-import { Combobox } from "../components/Combobox";
 import { youtubeChannelWorkbench } from "../components/workbench/youtubeChannel";
+import { YouTubeChannelListingControls } from "../components/YouTubeChannelListingControls";
 import { YouTubeChannelListItem } from "../components/YouTubeChannelListItem";
 import { YouTubeChannelTable } from "../components/YouTubeChannelTable";
+import { useYouTubeChannelFacetFilter } from "../hooks/useYouTubeChannelListing";
 import { useBulkDeleteYouTubeChannels, useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import i18n from "../i18n";
 import { youtubeChannelsApi } from "../lib/api/taxonomies";
-import { iconComboboxOptions } from "../lib/comboboxOptions";
-
-import { useCategories } from "@/hooks/useCategories";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
@@ -45,32 +42,6 @@ const YOUTUBE_CHANNEL_PALETTE: EntityPaletteConfig = {
   ],
 };
 
-/** The category-filter combobox shown above the YouTube channels listing, reproducing the pre-scaffold filter UI. */
-function CategoryFilterCombobox({
-  value,
-  onChange,
-}: {
-  value: string | null;
-  onChange: (value: string | null) => void;
-}) {
-  const {
-    data: categories,
-  } = useCategories();
-  const categoryOptions = iconComboboxOptions(categories ?? []);
-
-  return (
-    <Combobox
-      options={categoryOptions}
-      value={value ?? undefined}
-      onValueChange={next => onChange(next ?? null)}
-      placeholder={i18n.t("Filter by category…")}
-      searchPlaceholder={i18n.t("Search categories…")}
-      className="max-w-sm"
-      aria-label={i18n.t("Filter channels by category")}
-    />
-  );
-}
-
 export const youtubeChannelListingConfig: EntityListingConfig<YouTubeChannel> = {
   pageKey: "youtube-channels-listing",
   useItems: useYouTubeChannels,
@@ -78,17 +49,8 @@ export const youtubeChannelListingConfig: EntityListingConfig<YouTubeChannel> = 
     channel.name.toLowerCase().includes(query) || channel.channelKey.toLowerCase().includes(query),
   useBulkDelete: useBulkDeleteYouTubeChannels,
   noun: [i18n.t("channel"), i18n.t("channels")],
-  secondaryFilter: {
-    render: ({
-      value, onChange,
-    }) => (
-      <CategoryFilterCombobox
-        value={value}
-        onChange={onChange}
-      />
-    ),
-    matches: (channel, categoryId) => !categoryId || channel.category?.id === categoryId,
-  },
+  useExtraFilter: useYouTubeChannelFacetFilter,
+  renderSearchSort: () => <YouTubeChannelListingControls />,
   loadingLabel: i18n.t("Loading channels…"),
   entityPlural: i18n.t("channels"),
   emptyMessage: (

@@ -158,6 +158,9 @@ interface UiState {
   /** Websites listing facet: can vs cannot extract ISBNs (the `scanUrlForIsbn` flag). */
   websiteIsbnFilter: WebsiteIsbnFilter;
   setWebsiteIsbnFilter: (value: WebsiteIsbnFilter) => void;
+  /** YouTube Channels listing facet: category id to filter by, or `null` for all. */
+  youtubeChannelCategoryFilter: string | null;
+  setYoutubeChannelCategoryFilter: (id: string | null) => void;
   /**
    * Whether location maps hide the base tiles' own country/prefecture/state administrative border
    * lines (switches to a borderless tile style). Shared across every location map.
@@ -373,6 +376,10 @@ export const useUiStore = create<UiState>()(
       websiteIsbnFilter: "all",
       setWebsiteIsbnFilter: value => set({
         websiteIsbnFilter: value,
+      }),
+      youtubeChannelCategoryFilter: null,
+      setYoutubeChannelCategoryFilter: id => set({
+        youtubeChannelCategoryFilter: id,
       }),
       hideLocationMapAdminBorders: false,
       setHideLocationMapAdminBorders: hide => set({
