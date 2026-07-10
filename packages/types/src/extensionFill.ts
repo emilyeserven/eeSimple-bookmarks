@@ -105,6 +105,15 @@ export type FillTransform
    * (e.g. "93m 93s") simply sum; year = 365 d and month = 30 d are calendar-approximate.
    */
     | { kind: "duration" }
+  /**
+   * Normalize a human date string into the canonical ISO shape a Date/Time property stores —
+   * `"YYYY-MM-DD"`, or `"YYYY-MM"` when the day is absent (pair with a Date/Time property's
+   * "allow month-only dates" option). Recognizes English month names in any order
+   * ("June 2026", "June 21, 2026", "21 June 2026", "Jun 2026"), already-ISO values
+   * ("2026-06-21" / "2026-06"), and numeric slash forms (US month-first "06/21/2026", year-first
+   * "2026/06/21"). Yields `""` on no match or an out-of-range month/day.
+   */
+    | { kind: "date" }
     | { kind: "replace";
       pattern: string;
       flags?: string;

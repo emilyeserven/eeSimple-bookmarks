@@ -214,6 +214,9 @@ describe("describeFillTransform", () => {
       kind: "duration",
     })).toBe("Duration → seconds");
     expect(describeFillTransform({
+      kind: "date",
+    })).toBe("Date → YYYY-MM-DD");
+    expect(describeFillTransform({
       kind: "replace",
       pattern: ",",
       flags: "g",
@@ -301,6 +304,15 @@ describe("coerceFillTransform", () => {
       pattern: "(\\d+)",
     })).toEqual({
       kind: "duration",
+    });
+  });
+
+  it("coerces to the parameter-less date variant", () => {
+    expect(coerceFillTransform("date", {
+      kind: "regex" as const,
+      pattern: "(\\d+)",
+    })).toEqual({
+      kind: "date",
     });
   });
 });

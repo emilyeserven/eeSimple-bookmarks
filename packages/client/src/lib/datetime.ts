@@ -19,6 +19,15 @@ export function parseDatePart(value: string | null | undefined): Date | undefine
   return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
+/** Parse a bare month-only value (`"YYYY-MM"`, no day) into a local `Date` at the 1st, or `undefined`. */
+export function parseYearMonth(value: string | null | undefined): Date | undefined {
+  if (!value) return undefined;
+  const match = /^(\d{4})-(\d{2})$/.exec(value);
+  if (!match) return undefined;
+  const date = new Date(Number(match[1]), Number(match[2]) - 1, 1);
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
 /** Extract the `"HH:MM"` time portion of a canonical value (time-only or datetime), or `""` when absent. */
 export function parseTimePart(value: string | null | undefined): string {
   if (!value) return "";
@@ -64,6 +73,14 @@ export function formatDateTimeValue(
     return date.toLocaleTimeString(locales, {
       hour: "numeric",
       minute: "2-digit",
+    });
+  }
+  // Month-only value (from the "allow YYYY-MM" option): show month + year, e.g. "June 2026".
+  const yearMonth = parseYearMonth(value);
+  if (yearMonth) {
+    return yearMonth.toLocaleDateString(locales, {
+      year: "numeric",
+      month: "long",
     });
   }
   const date = parseDatePart(value);

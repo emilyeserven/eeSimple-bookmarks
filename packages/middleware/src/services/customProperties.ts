@@ -71,6 +71,7 @@ function toCustomProperty(
     builtIn: row.builtIn,
     numberFormat: (row.numberFormat as CustomProperty["numberFormat"]) ?? null,
     dateTimeFormat: (row.dateTimeFormat as CustomProperty["dateTimeFormat"]) ?? null,
+    dateTimeAllowYearMonth: row.dateTimeAllowYearMonth ?? false,
     quickFilterRange: row.quickFilterRange ?? null,
     description: row.description,
     numberMin: row.numberMin,
@@ -313,6 +314,7 @@ export function buildInsertValues(
     slug,
     type: input.type,
     dateTimeFormat: input.type === "datetime" ? (input.dateTimeFormat ?? "date") : null,
+    dateTimeAllowYearMonth: input.type === "datetime" ? (input.dateTimeAllowYearMonth ?? false) : false,
     ratingMax: isRating ? normalizeRatingMax(input.ratingMax) : null,
     ratingAllowZero: isRating ? (input.ratingAllowZero ?? null) : null,
     ratingAllowHalf: isRating ? (input.ratingAllowHalf ?? null) : null,
@@ -355,6 +357,7 @@ export type UpdatePatch = Partial<
     | "slug"
     | "numberFormat"
     | "dateTimeFormat"
+    | "dateTimeAllowYearMonth"
     | "quickFilterRange"
     | "description"
     | "numberMin"
@@ -412,6 +415,7 @@ const COPYABLE_FIELDS = [
   "name",
   "numberFormat",
   "dateTimeFormat",
+  "dateTimeAllowYearMonth",
   "quickFilterRange",
   "description",
   "numberMin",

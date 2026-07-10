@@ -185,6 +185,8 @@ export function describeFillTransform(transform: FillTransform): string {
       return "First number";
     case "duration":
       return "Duration → seconds";
+    case "date":
+      return "Date → YYYY-MM-DD";
     case "replace":
       return `Replace /${transform.pattern}/${transform.flags ?? ""} → "${transform.replacement}"`;
     case "trim":
@@ -287,6 +289,10 @@ export function coerceFillTransform(kind: FillTransform["kind"], prev: FillTrans
     case "duration":
       return {
         kind: "duration",
+      };
+    case "date":
+      return {
+        kind: "date",
       };
     case "trim":
       return {
@@ -455,6 +461,10 @@ function cleanTransform(transform: FillTransform): FillTransform | null {
     case "duration":
       return {
         kind: "duration",
+      };
+    case "date":
+      return {
+        kind: "date",
       };
     case "trim":
       return {

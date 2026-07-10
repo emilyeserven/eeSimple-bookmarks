@@ -44,6 +44,7 @@ export function makeCustomProperty(overrides: Partial<CustomProperty> = {}): Cus
     builtIn: false,
     numberFormat: null,
     dateTimeFormat: null,
+    dateTimeAllowYearMonth: false,
     quickFilterRange: null,
     description: null,
     numberMin: null,

@@ -3,7 +3,7 @@ import type { FillTransform } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
 
-import { applyFillTransform, applyFillTransforms, parseDurationSeconds } from "./fillTransformPreview";
+import { applyFillTransform, applyFillTransforms, normalizeDateValue, parseDurationSeconds } from "./fillTransformPreview";
 
 describe("applyFillTransform", () => {
   it("regex — extracts the capture group; invalid pattern yields empty (never throws)", () => {
@@ -53,6 +53,45 @@ describe("applyFillTransform", () => {
     expect(applyFillTransform("1y 2mo 6d 23h 34m 34s", {
       kind: "duration",
     })).toBe("37323274");
+  });
+
+  it("date — normalizes to YYYY-MM / YYYY-MM-DD; unrecognized yields empty", () => {
+    expect(applyFillTransform("June 2026", {
+      kind: "date",
+    })).toBe("2026-06");
+    expect(applyFillTransform("June 21, 2026", {
+      kind: "date",
+    })).toBe("2026-06-21");
+    expect(applyFillTransform("not a date", {
+      kind: "date",
+    })).toBe("");
+  });
+});
+
+describe("normalizeDateValue", () => {
+  it("month names in any order, with abbreviations, suffixes, and commas", () => {
+    expect(normalizeDateValue("June 2026")).toBe("2026-06");
+    expect(normalizeDateValue("Jun 2026")).toBe("2026-06");
+    expect(normalizeDateValue("June 21, 2026")).toBe("2026-06-21");
+    expect(normalizeDateValue("June 21 2026")).toBe("2026-06-21");
+    expect(normalizeDateValue("21 June 2026")).toBe("2026-06-21");
+    expect(normalizeDateValue("21st Jun 2026")).toBe("2026-06-21");
+    expect(normalizeDateValue("Sept 3, 2026")).toBe("2026-09-03");
+  });
+
+  it("ISO passthrough and numeric slash forms", () => {
+    expect(normalizeDateValue("2026-06-21")).toBe("2026-06-21");
+    expect(normalizeDateValue("2026-06")).toBe("2026-06");
+    expect(normalizeDateValue("2026/6/21")).toBe("2026-06-21");
+    expect(normalizeDateValue("06/21/2026")).toBe("2026-06-21");
+    expect(normalizeDateValue("06/2026")).toBe("2026-06");
+  });
+
+  it("returns empty for unrecognized input or out-of-range month/day", () => {
+    expect(normalizeDateValue("Junuary 2026")).toBe("");
+    expect(normalizeDateValue("2026-13")).toBe("");
+    expect(normalizeDateValue("June 32, 2026")).toBe("");
+    expect(normalizeDateValue("")).toBe("");
   });
 });
 

@@ -1,5 +1,7 @@
 import type { DateTimeFormat } from "@eesimple/types";
 
+import { useState } from "react";
+
 import { CalendarIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -8,12 +10,14 @@ import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useAppLocale } from "@/hooks/useAppLocale";
 import {
   composeDateTime,
   formatDateTimeValue,
   parseDatePart,
   parseTimePart,
+  parseYearMonth,
 } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +31,11 @@ interface DateTimePickerProps {
   id?: string;
   placeholder?: string;
   className?: string;
+  /**
+   * When true (only meaningful for `format === "date"`), offer a Full date / Month toggle so the
+   * user can enter a month-only `"YYYY-MM"` value via a native month input.
+   */
+  allowYearMonth?: boolean;
 }
 
 /**
@@ -35,7 +44,7 @@ interface DateTimePickerProps {
  * Shared by the bookmark form, the card inline editor, and condition range bounds.
  */
 export function DateTimePicker({
-  format, value, onChange, id, placeholder, className,
+  format, value, onChange, id, placeholder, className, allowYearMonth = false,
 }: DateTimePickerProps) {
   const {
     t,
@@ -43,6 +52,9 @@ export function DateTimePicker({
   const locale = useAppLocale();
   const datePart = parseDatePart(value);
   const timePart = parseTimePart(value);
+  // Month-precision entry is a `date`-only affordance; seed it from a stored month-only value.
+  const monthEntry = allowYearMonth && format === "date";
+  const [monthMode, setMonthMode] = useState(() => monthEntry && parseYearMonth(value) !== undefined);
 
   // Time-only: a bare native time input is the whole control.
   if (format === "time") {
@@ -59,48 +71,111 @@ export function DateTimePicker({
 
   const label = value ? formatDateTimeValue(value, format, locale) : (placeholder ?? t("Pick a date"));
 
+  if (monthEntry) {
+    return (
+      <div className={cn("space-y-2", className)}>
+        <ToggleGroup
+          type="single"
+          size="sm"
+          value={monthMode ? "month" : "date"}
+          onValueChange={(next) => {
+            if (next) setMonthMode(next === "month");
+          }}
+        >
+          <ToggleGroupItem value="date">{t("Full date")}</ToggleGroupItem>
+          <ToggleGroupItem value="month">{t("Month")}</ToggleGroupItem>
+        </ToggleGroup>
+        {monthMode
+          ? (
+            <Input
+              id={id}
+              type="month"
+              value={value ? value.slice(0, 7) : ""}
+              onChange={event => onChange(event.target.value ? event.target.value : null)}
+            />
+          )
+          : (
+            <DateCalendarControl
+              id={id}
+              format={format}
+              label={label}
+              hasValue={value != null}
+              datePart={datePart}
+              timePart={timePart}
+              onChange={onChange}
+            />
+          )}
+      </div>
+    );
+  }
+
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            id={id}
-            type="button"
-            variant="outline"
-            className={cn(
-              "flex-1 justify-start text-left font-normal",
-              value ? "" : "text-muted-foreground",
-            )}
-          >
-            <CalendarIcon className="size-4" />
-            {label}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          className="w-auto p-0"
-          align="start"
-        >
-          <Calendar
-            mode="single"
-            autoFocus
-            selected={datePart}
-            onSelect={date => onChange(composeDateTime(format, date, timePart))}
-          />
-          {format === "datetime"
-            ? (
-              <div className="border-t p-3">
-                <Input
-                  type="time"
-                  value={timePart}
-                  onChange={event =>
-                    onChange(composeDateTime(format, datePart, event.target.value))}
-                />
-              </div>
-            )
-            : null}
-        </PopoverContent>
-      </Popover>
+      <DateCalendarControl
+        id={id}
+        format={format}
+        label={label}
+        hasValue={value != null}
+        datePart={datePart}
+        timePart={timePart}
+        onChange={onChange}
+      />
     </div>
+  );
+}
+
+/** The calendar-popover trigger + body shared by the default `date`/`datetime` control and month mode. */
+function DateCalendarControl({
+  id, format, label, hasValue, datePart, timePart, onChange,
+}: {
+  id?: string;
+  format: DateTimeFormat;
+  label: string;
+  hasValue: boolean;
+  datePart: Date | undefined;
+  timePart: string;
+  onChange: (value: string | null) => void;
+}) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          id={id}
+          type="button"
+          variant="outline"
+          className={cn(
+            "flex-1 justify-start text-left font-normal",
+            hasValue ? "" : "text-muted-foreground",
+          )}
+        >
+          <CalendarIcon className="size-4" />
+          {label}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-auto p-0"
+        align="start"
+      >
+        <Calendar
+          mode="single"
+          autoFocus
+          selected={datePart}
+          onSelect={date => onChange(composeDateTime(format, date, timePart))}
+        />
+        {format === "datetime"
+          ? (
+            <div className="border-t p-3">
+              <Input
+                type="time"
+                value={timePart}
+                onChange={event =>
+                  onChange(composeDateTime(format, datePart, event.target.value))}
+              />
+            </div>
+          )
+          : null}
+      </PopoverContent>
+    </Popover>
   );
 }
 

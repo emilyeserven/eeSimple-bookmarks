@@ -1366,6 +1366,9 @@ export const customProperties = pgTable("custom_properties", {
   // What a `datetime` property captures: "date" | "time" | "datetime". NULL for non-datetime types.
   // Nullable/text so it's an additive, push-safe column.
   dateTimeFormat: text("date_time_format"),
+  // When true, a `datetime` property also accepts/displays/enters month-only "YYYY-MM" values
+  // (alongside full "YYYY-MM-DD"). Lone defaulted boolean = additive, push-safe (no migrate step).
+  dateTimeAllowYearMonth: boolean("date_time_allow_year_month").notNull().default(false),
   // Half-width of the `value ± range` quick-filter window for `number`/`datetime` props, in the
   // value's own units (seconds for duration/datetime). NULL = exact-value match. Nullable/additive.
   quickFilterRange: real("quick_filter_range"),

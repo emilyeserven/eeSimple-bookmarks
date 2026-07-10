@@ -49,6 +49,7 @@ export function renderPropertyScalarInput({
         <DateTimePicker
           id={htmlId}
           format={property.dateTimeFormat ?? "date"}
+          allowYearMonth={property.dateTimeAllowYearMonth}
           value={dateTimeInputs[property.id] ?? null}
           onChange={value => onDateTimeChange(property.id, value ?? "")}
         />
