@@ -37,7 +37,10 @@ export function ListingScaffold<E extends { id: string }>({
 
   return (
     <div className="space-y-4">
-      <ListingSearchBox sort={config.renderSearchSort?.()} />
+      <ListingSearchBox
+        sort={config.renderSearchSort?.()}
+        displayRowExtra={config.renderDisplayRowExtra?.()}
+      />
 
       {config.secondaryFilter
         ? config.secondaryFilter.render({

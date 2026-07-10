@@ -4,7 +4,6 @@ import { SlidersHorizontal } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Combobox } from "./Combobox";
-import { PruneEmptyButton } from "./PruneEmptyButton";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { ResponsivePopover } from "./ui/responsive-popover";
@@ -18,7 +17,6 @@ import {
 
 import { useCategories } from "@/hooks/useCategories";
 import { useMediaTypeTree } from "@/hooks/useMediaTypes";
-import { useBulkDeleteWebsites, useWebsites } from "@/hooks/useWebsites";
 import { iconComboboxOptions, mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
 import { cn } from "@/lib/utils";
 import { useUiStore } from "@/stores/uiStore";
@@ -28,6 +26,7 @@ import { useUiStore } from "@/stores/uiStore";
  * (config `renderSearchSort`). Sort writes `uiStore.websiteSortMode` (consumed by `useWebsiteSortedItems`);
  * the popover writes the four facet prefs (consumed by `useWebsiteFacetFilter`). Category/Media Type are
  * relational comboboxes (like the YouTube Channels category filter); Built-in and Has-bookmarks are selects.
+ * The Prune-empty + Multiselect controls render separately, in `WebsiteListingDisplayExtras`.
  */
 export function WebsiteListingControls() {
   const {
@@ -53,13 +52,6 @@ export function WebsiteListingControls() {
   const {
     data: mediaTypeTree,
   } = useMediaTypeTree();
-  const {
-    data: websites,
-  } = useWebsites();
-  const bulkDelete = useBulkDeleteWebsites();
-  const emptyIds = (websites ?? [])
-    .filter(w => !w.builtIn && (w.bookmarkCount ?? 0) === 0)
-    .map(w => w.id);
 
   const sortOptions: { value: WebsiteSortMode;
     label: string; }[] = [
@@ -208,13 +200,6 @@ export function WebsiteListingControls() {
           </div>
         </div>
       </ResponsivePopover>
-
-      <PruneEmptyButton
-        ids={emptyIds}
-        isPending={bulkDelete.isPending}
-        onPrune={(ids, cb) => bulkDelete.mutate(ids, cb)}
-        noun={[t("website"), t("websites")]}
-      />
     </div>
   );
 }

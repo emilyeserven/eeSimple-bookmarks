@@ -5,6 +5,7 @@ import type { UpdateWebsiteInput, Website } from "@eesimple/types";
 
 import { WebsiteBulkActions } from "../components/bulk/WebsiteBulkActions";
 import { WebsiteListingControls } from "../components/WebsiteListingControls";
+import { WebsiteListingDisplayExtras } from "../components/WebsiteListingDisplayExtras";
 import { WebsiteListItem } from "../components/WebsiteListItem";
 import { WebsiteTable } from "../components/WebsiteTable";
 import { websiteWorkbench } from "../components/workbench/website";
@@ -61,6 +62,8 @@ export const websiteListingConfig: EntityListingConfig<Website> = {
   useExtraFilter: useWebsiteFacetFilter,
   useSortedItems: useWebsiteSortedItems,
   renderSearchSort: () => <WebsiteListingControls />,
+  renderDisplayRowExtra: () => <WebsiteListingDisplayExtras />,
+  hideBulkSelectFromHeader: true,
   renderBulkActions: ({
     selectedIds, onDone,
   }) => (

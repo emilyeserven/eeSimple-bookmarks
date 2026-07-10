@@ -21,6 +21,11 @@ interface ListingSearchBoxProps {
   sort?: ReactNode;
   /** Filter pills rendered below the search row (bookmark listings only). */
   filters?: ReactNode;
+  /**
+   * Extra content rendered in the same row as `ListingDisplayControls`, opposite it (right-aligned) —
+   * e.g. Website/YouTube Channel's Prune + Multiselect controls (config `renderDisplayRowExtra`).
+   */
+  displayRowExtra?: ReactNode;
 }
 
 /**
@@ -39,6 +44,7 @@ interface ListingSearchBoxProps {
 export function ListingSearchBox({
   sort,
   filters,
+  displayRowExtra,
 }: ListingSearchBoxProps) {
   const pinned = useSearchBoxPinned();
   const {
@@ -98,10 +104,13 @@ export function ListingSearchBox({
       </RowCard>
       {listingPage
         ? (
-          <ListingDisplayControls
-            pageKey={listingPage.key}
-            showImageControls={listingPage.showsImages}
-          />
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <ListingDisplayControls
+              pageKey={listingPage.key}
+              showImageControls={listingPage.showsImages}
+            />
+            {displayRowExtra}
+          </div>
         )
         : null}
     </div>
