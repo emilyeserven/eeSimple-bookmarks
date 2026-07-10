@@ -313,6 +313,22 @@ export function metaContent(html: string, attrMatch: RegExp): string | undefined
   return undefined;
 }
 
+/**
+ * Find the `content` of **every** `<meta>` tag whose attributes match `attrMatch`, in document order.
+ * The collect-all counterpart of {@link metaContent} (mirrors `linkHrefs` for `<link>`) — needed for
+ * repeated properties like `og:book:author` (one tag per author), which `metaContent` would collapse
+ * to the first.
+ */
+export function metaContents(html: string, attrMatch: RegExp): string[] {
+  const results: string[] = [];
+  for (const [tag] of html.matchAll(/<meta\b[^>]*>/gi)) {
+    if (!attrMatch.test(tag)) continue;
+    const content = /content=["']([^"']*)["']/i.exec(tag);
+    if (content?.[1]) results.push(content[1]);
+  }
+  return results;
+}
+
 /** Find the `href` of the first `<link>` tag whose attributes match `attrMatch`. */
 function linkHref(html: string, attrMatch: RegExp): string | undefined {
   for (const [tag] of html.matchAll(/<link\b[^>]*>/gi)) {
@@ -354,14 +370,18 @@ export function extractDescription(html: string): string | null {
 }
 
 /**
- * Pull person name(s) from an HTML document's `<head>`. Reads the Open Graph article person
- * (`og:article:person`) and the standard `<meta name="person">`. Returns a deduplicated list of
- * non-empty names, or an empty array when none are found. Pure — unit-testable like `extractTitle`.
+ * Pull person name(s) from an HTML document's `<head>`. Reads the Open Graph book authors
+ * (`og:book:author` / `book:author`, one tag per author — so **all** are collected), the Open Graph
+ * article person (`og:article:person`), and the standard `<meta name="person">`. Returns a
+ * deduplicated list of non-empty names in document order (book authors first), or an empty array when
+ * none are found. Pure — unit-testable like `extractTitle`.
  */
 export function extractAuthorNames(html: string): string[] {
   const candidates = [
-    metaContent(html, /(?:property|name)=["']og:article:person["']/i),
-    metaContent(html, /name=["']person["']/i),
+    ...metaContents(html, /(?:property|name)=["']og:book:author["']/i),
+    ...metaContents(html, /(?:property|name)=["']book:author["']/i),
+    ...metaContents(html, /(?:property|name)=["']og:article:person["']/i),
+    ...metaContents(html, /name=["']person["']/i),
   ];
   const seen = new Set<string>();
   const result: string[] = [];
