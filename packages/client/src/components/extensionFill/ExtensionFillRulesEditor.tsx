@@ -1,5 +1,6 @@
 import type { DragEndEvent } from "@dnd-kit/core";
 import type { WebsiteExtensionFillRule } from "@eesimple/types";
+import type { ReactNode } from "react";
 
 import {
   closestCenter,
@@ -31,10 +32,12 @@ import { duplicateFillRule, newFillRuleDraft } from "@/lib/extensionFillForm";
  * property types excluded) and threaded down to every rule's target picker.
  */
 export function ExtensionFillRulesEditor({
-  rules, onChange,
+  rules, onChange, action,
 }: {
   rules: WebsiteExtensionFillRule[];
   onChange: (rules: WebsiteExtensionFillRule[]) => void;
+  /** Optional right-aligned control rendered at the top of the content (e.g. a "Done" button). */
+  action?: ReactNode;
 }) {
   const {
     t,
@@ -74,6 +77,7 @@ export function ExtensionFillRulesEditor({
       )}
     >
       <div className="space-y-3">
+        {action ? <div className="flex justify-end">{action}</div> : null}
         {rules.length > 0
           ? (
             <DndContext

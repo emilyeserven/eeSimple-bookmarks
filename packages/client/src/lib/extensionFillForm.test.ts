@@ -7,7 +7,11 @@ import {
   coerceFillFilter,
   coerceFillTarget,
   coerceFillTransform,
+  describeFillFilter,
+  describeFillRead,
   describeFillTarget,
+  describeFillTransform,
+  describePathMatch,
   duplicateFillRule,
   moveItem,
   newFillRuleDraft,
@@ -125,6 +129,96 @@ describe("describeFillTarget", () => {
     expect(describeFillTarget({
       kind: "image",
     })).toBe("Image");
+  });
+});
+
+describe("describePathMatch", () => {
+  it("labels the mode and quotes the value", () => {
+    expect(describePathMatch({
+      mode: "prefix",
+      value: "/course/",
+    })).toBe("Starts with \"/course/\"");
+    expect(describePathMatch({
+      mode: "regex",
+      value: "^/x",
+    })).toBe("Matches regex \"^/x\"");
+  });
+});
+
+describe("describeFillRead", () => {
+  it("names an attribute read and falls back to text otherwise", () => {
+    expect(describeFillRead({
+      kind: "attr",
+      name: "src",
+    })).toBe("Attribute: src");
+    expect(describeFillRead({
+      kind: "text",
+    })).toBe("Text content");
+    expect(describeFillRead(undefined)).toBe("Text content");
+    // An attr read with no name is incomplete → treated as the default text read.
+    expect(describeFillRead({
+      kind: "attr",
+      name: "",
+    })).toBe("Text content");
+  });
+});
+
+describe("describeFillFilter", () => {
+  it("summarizes each filter variant, noting case-sensitivity and depth", () => {
+    expect(describeFillFilter({
+      kind: "selfText",
+      match: {
+        mode: "contains",
+        value: "PRINT LENGTH:",
+      },
+    })).toBe("Self text contains \"PRINT LENGTH:\"");
+    expect(describeFillFilter({
+      kind: "siblingText",
+      match: {
+        mode: "equals",
+        value: "B",
+        caseSensitive: true,
+      },
+    })).toBe("Sibling text equals \"B\" (case-sensitive)");
+    expect(describeFillFilter({
+      kind: "ancestorText",
+      match: {
+        mode: "regex",
+        value: "^C$",
+      },
+      maxDepth: 3,
+    })).toBe("Ancestor text matches \"^C$\" (max depth 3)");
+    expect(describeFillFilter({
+      kind: "closest",
+      selector: ".stat-block",
+    })).toBe("Closest ancestor \".stat-block\"");
+    expect(describeFillFilter({
+      kind: "nth",
+      index: 1,
+    })).toBe("Nth match #1");
+  });
+});
+
+describe("describeFillTransform", () => {
+  it("summarizes each transform variant", () => {
+    expect(describeFillTransform({
+      kind: "regex",
+      pattern: "(\\d+)",
+      flags: "i",
+      group: 1,
+    })).toBe("Regex /(\\d+)/i group 1");
+    expect(describeFillTransform({
+      kind: "number",
+    })).toBe("First number");
+    expect(describeFillTransform({
+      kind: "replace",
+      pattern: ",",
+      flags: "g",
+      replacement: "",
+    })).toBe("Replace /,/g → \"\"");
+    expect(describeFillTransform({
+      kind: "trim",
+    })).toBe("Trim");
   });
 });
 
