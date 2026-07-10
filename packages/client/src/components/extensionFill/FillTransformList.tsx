@@ -1,6 +1,8 @@
 import type { KindOption } from "./controls";
 import type { FillTransform } from "@eesimple/types";
 
+import { useState } from "react";
+
 import { Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -9,6 +11,7 @@ import { RowShell } from "./RowShell";
 
 import { Button } from "@/components/ui/button";
 import { coerceFillTransform, moveItem, newFillTransform } from "@/lib/extensionFillForm";
+import { applyFillTransforms } from "@/lib/fillTransformPreview";
 
 type TransformKind = FillTransform["kind"];
 type RegexTransform = Extract<FillTransform, { kind: "regex" }>;
@@ -50,6 +53,45 @@ export function FillTransformList({
         <Plus className="mr-1 size-4" />
         {t("Add transform")}
       </Button>
+      {transforms.length > 0 ? <TransformPreview transforms={transforms} /> : null}
+    </div>
+  );
+}
+
+/**
+ * Live preview: run the rule's transforms (in order) over user-supplied sample text so the user can
+ * test them without a live page. Mirrors the extension's per-value pipeline via
+ * {@link applyFillTransforms}; runs the transforms only (not the selector/read/split stages).
+ */
+function TransformPreview({
+  transforms,
+}: {
+  transforms: FillTransform[];
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const [sample, setSample] = useState("");
+  const result = applyFillTransforms(sample, transforms);
+  return (
+    <div className="mt-2 space-y-1 rounded-md border border-dashed p-2">
+      <LabeledInput
+        label={t("Sample text")}
+        placeholder="77h 32m"
+        value={sample}
+        onChange={setSample}
+      />
+      <p className="text-xs text-muted-foreground">
+        {sample && result
+          ? (
+            <>
+              {t("Result")}
+              {": "}
+              <span className="font-mono text-foreground">{result}</span>
+            </>
+          )
+          : t("Type sample text to preview the transformed result.")}
+      </p>
     </div>
   );
 }
@@ -109,6 +151,7 @@ function FillTransformFields({
         />
       );
     case "number":
+    case "duration":
     case "trim":
       return null;
   }
@@ -209,6 +252,10 @@ function TRANSFORM_KIND_OPTIONS(t: (key: string) => string): KindOption<Transfor
     {
       value: "number",
       label: t("First number"),
+    },
+    {
+      value: "duration",
+      label: t("Duration → seconds"),
     },
     {
       value: "replace",

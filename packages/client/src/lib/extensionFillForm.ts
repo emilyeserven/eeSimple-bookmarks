@@ -214,6 +214,10 @@ export function coerceFillTransform(kind: FillTransform["kind"], prev: FillTrans
       return {
         kind: "number",
       };
+    case "duration":
+      return {
+        kind: "duration",
+      };
     case "trim":
       return {
         kind: "trim",
@@ -377,6 +381,10 @@ function cleanTransform(transform: FillTransform): FillTransform | null {
     case "number":
       return {
         kind: "number",
+      };
+    case "duration":
+      return {
+        kind: "duration",
       };
     case "trim":
       return {

@@ -254,7 +254,7 @@ const fillTransformSchema = {
   properties: {
     kind: {
       type: "string",
-      enum: ["regex", "number", "replace", "trim"],
+      enum: ["regex", "number", "duration", "replace", "trim"],
     },
     pattern: {
       type: "string",

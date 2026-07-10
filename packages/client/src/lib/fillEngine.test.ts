@@ -341,6 +341,33 @@ describe("eesimpleFillEngine.runRules — transforms", () => {
     }]), html("no digits here")).values).toEqual([]);
   });
 
+  it("duration — sums each unit into total seconds (77h 32m → 279120)", () => {
+    const dur = withTransforms([{
+      kind: "duration",
+    }]);
+    expect(runOne(dur, html("77h 32m")).values).toEqual(["279120"]);
+    expect(runOne(dur, html("77 hours and 32 minutes")).values).toEqual(["279120"]);
+    expect(runOne(dur, html("1h30m")).values).toEqual(["5400"]);
+    expect(runOne(dur, html("90m")).values).toEqual(["5400"]);
+    expect(runOne(dur, html("1.5h")).values).toEqual(["5400"]);
+  });
+
+  it("duration — parses years/months and over-range components", () => {
+    const dur = withTransforms([{
+      kind: "duration",
+    }]);
+    // "mo" is months, "m" is minutes — 1y 2mo 6d 23h 34m 34s.
+    expect(runOne(dur, html("1y 2mo 6d 23h 34m 34s")).values).toEqual(["37323274"]);
+    // Over-range components simply sum (93m, 93s).
+    expect(runOne(dur, html("1y 23mo 343d 90h 93m 93s")).values).toEqual(["121116873"]);
+  });
+
+  it("duration — no unit tokens yields no value", () => {
+    expect(runOne(withTransforms([{
+      kind: "duration",
+    }]), html("no duration here")).values).toEqual([]);
+  });
+
   it("replace — passing rewrites the matched substring", () => {
     const rule = withTransforms([{
       kind: "replace",
