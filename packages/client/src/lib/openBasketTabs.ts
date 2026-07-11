@@ -1,25 +1,24 @@
 /**
- * Open each url in its own new browser tab. Must be called from within a user-gesture click handler.
+ * Open each url in its own new browser tab. Must be called **synchronously from the real click
+ * handler** so every open runs under the click's transient user activation.
  *
- * Uses a programmatic anchor click per url rather than `window.open(url, "_blank", "noopener")`:
- * passing a window-features string (e.g. `"noopener"`) makes browsers treat the call as a **popup
- * window** request instead of a new tab — in Arc this surfaces as a "Little Arc" mini-window — and
- * popup blockers throttle rapid `window.open` calls so only the first one or two actually open. A
- * synchronous `<a target="_blank" rel="noopener noreferrer">` click per url opens a real tab and is
- * reliably allowed for several tabs from a single user gesture, while `rel="noopener noreferrer"`
- * preserves the security posture that `window.open`'s `"noopener"` gave.
+ * Two earlier approaches failed in Arc:
+ *  - `window.open(url, "_blank", "noopener")` — passing a window-features string makes the browser
+ *    open a *popup window* rather than a tab (Arc shows these as "Little Arc" mini-windows), and the
+ *    popup blocker then throttles the rest so only one or two land.
+ *  - a synthetic `<a target="_blank">` `.click()` — a programmatic click dispatches an *untrusted*
+ *    event (`isTrusted === false`), which Arc also routes to Little Arc.
+ *
+ * Calling `window.open(url, "_blank")` with **no features string** directly in the trusted handler
+ * opens a real tab and, because every call shares the one user activation, isn't popup-blocked. We
+ * then null the returned window's `opener` to keep the isolation the old `"noopener"` provided
+ * (severing `opener` this way does not re-trigger the popup path).
  *
  * Callers pass only non-empty urls (basketed bookmarks with a null/empty url are skipped upstream).
  */
 export function openBasketTabs(urls: string[]): void {
   for (const url of urls) {
-    const link = document.createElement("a");
-    link.href = url;
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    link.style.display = "none";
-    document.body.append(link);
-    link.click();
-    link.remove();
+    const opened = window.open(url, "_blank");
+    if (opened) opened.opener = null;
   }
 }
