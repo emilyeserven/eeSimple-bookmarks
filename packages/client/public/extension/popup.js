@@ -1126,10 +1126,20 @@ function entityWriteMode(field) {
   };
 }
 
+// Sentinel selectedTermId meaning "apply to every linked term" (term ids are UUIDs, never "*"). A
+// multi-term taxonomyEntity row defaults to this; the term picker (renderRow) can narrow it to one id.
+const ALL_TERMS = "*";
+
+// The terms an entity row applies to: every linked term in "all" mode, else the single picked term.
+function entityTargetTerms(e) {
+  if (e.selectedTermId === ALL_TERMS) return e.terms;
+  return [e.terms.find(t => t.id === e.selectedTermId) || e.terms[0]];
+}
+
 // taxonomyEntity: write the extracted value into a taxonomy term the bookmark is *linked to* (not the
 // bookmark). Dispatches on the target's write mode: a scalar field, a relation (id-array union), or a
 // linked-term primary-language write. Auto-targets the single linked term, or shows a term picker (see
-// renderRow) when several are linked.
+// renderRow) when several are linked — defaulting to all of them.
 function buildTaxonomyEntityRow(rule, values, ctx) {
   const {
     association,
@@ -1168,6 +1178,8 @@ function buildEntityScalarRow(rule, values, ctx, meta) {
     }
     coerced = num;
   }
+  // A multi-term row defaults to "all terms" (see ALL_TERMS); a single-term row auto-targets its term.
+  const multi = terms.length > 1;
   const entity = {
     mode: "scalar",
     association,
@@ -1177,13 +1189,11 @@ function buildEntityScalarRow(rule, values, ctx, meta) {
     terms,
     extracted,
     coerced,
-    selectedTermId: terms[0].id,
+    selectedTermId: multi ? ALL_TERMS : terms[0].id,
   };
-  const display = entityFieldDisplay(entity, terms[0]);
-  // A multi-term row stays interactive even when the default term is in sync — the user may switch to
-  // a term that does need the change (renderRow shows the term picker). A single-term row that already
-  // matches is a plain "no change".
-  const multi = terms.length > 1;
+  const display = multi ? entityAllTermsDisplay(entity) : entityFieldDisplay(entity, terms[0]);
+  // A multi-term row stays interactive even when every term is in sync — the user may narrow to one
+  // term via the picker (renderRow). A single-term row that already matches is a plain "no change".
   const disabledReason = multi ? null : (display.changed ? null : "no change");
   const row = baseRow(rule, display.currentText, display.extractedText, display.changed, disabledReason);
   row.entity = entity;
@@ -1208,6 +1218,7 @@ function buildEntityRelationRow(rule, values, ctx, meta, key) {
     return baseRow(rule, "—", "", false, "not found");
   }
   const optionList = (ctx.relationOptions && ctx.relationOptions[relSpec.optionKey]) || [];
+  const multi = terms.length > 1;
   const entity = {
     mode: "relation",
     association: rule.target.association,
@@ -1216,15 +1227,15 @@ function buildEntityRelationRow(rule, values, ctx, meta, key) {
     optionList,
     terms,
     extractedNames,
-    selectedTermId: terms[0].id,
+    selectedTermId: multi ? ALL_TERMS : terms[0].id,
   };
-  const display = entityRelationDisplay(entity, terms[0]);
-  const multi = terms.length > 1;
+  const display = multi ? entityAllTermsDisplay(entity) : entityRelationDisplay(entity, terms[0]);
   const disabledReason = multi ? null : (display.changed ? null : "no change");
   const row = baseRow(rule, display.currentText, "", display.changed, disabledReason);
-  // Render the extracted names with new/unmatched badges (like a bookmark taxonomy row).
+  // Render the extracted names with new/unmatched badges (like a bookmark taxonomy row). Badges are
+  // advisory and computed from the first term (as before) — they don't refresh on a term switch.
   row.extractedNames = extractedNames;
-  row.newNames = display.newNames;
+  row.newNames = entityRelationDisplay(entity, terms[0]).newNames;
   row.entity = entity;
   row.apply = async (patch, state) => {
     await accumulateRelationPatch(state, row);
@@ -1249,6 +1260,7 @@ function buildEntityLanguageRow(rule, values, ctx, meta) {
   if (terms.length === 0) {
     return baseRow(rule, "—", extracted, false, `no linked ${meta.noun}`);
   }
+  const multi = terms.length > 1;
   const entity = {
     mode: "language",
     association: rule.target.association,
@@ -1258,10 +1270,9 @@ function buildEntityLanguageRow(rule, values, ctx, meta) {
     extracted,
     languages: ctx.languages || [],
     primaryLevelId: ctx.primaryLanguageLevelId,
-    selectedTermId: terms[0].id,
+    selectedTermId: multi ? ALL_TERMS : terms[0].id,
   };
-  const display = entityLanguageDisplay(entity, terms[0]);
-  const multi = terms.length > 1;
+  const display = multi ? entityAllTermsDisplay(entity) : entityLanguageDisplay(entity, terms[0]);
   const disabledReason = multi ? null : display.disabledReason;
   const row = baseRow(rule, display.currentText, display.extractedText, display.changed, disabledReason);
   row.entity = entity;
@@ -1300,13 +1311,17 @@ function entityFieldDisplay(entity, term) {
   };
 }
 
-// Merge the chosen term's field change into a per-entity PATCH bucket, keyed by association:termId so
-// several rules targeting the same term collapse into one PATCH. socialLink upserts into a copy of the
-// term's current links so its other platforms survive.
+// Merge a row's field change into each targeted term's PATCH bucket (every linked term in "all" mode,
+// else the one picked term). Keyed by association:termId so several rules targeting the same term
+// collapse into one PATCH; socialLink upserts into a copy of that term's current links so its other
+// platforms survive.
 function accumulateEntityPatch(state, row) {
   const e = row.entity;
-  const termId = e.selectedTermId;
-  const term = e.terms.find(t => t.id === termId) || e.terms[0];
+  for (const term of entityTargetTerms(e)) writeEntityBucket(state, e, term);
+}
+
+function writeEntityBucket(state, e, term) {
+  const termId = term.id;
   const key = `${e.association}:${termId}`;
   let bucket = state.entityPatches[key];
   if (!bucket) {
@@ -1707,41 +1722,21 @@ function entityRelationDisplay(entity, term) {
   };
 }
 
-// Merge a relation row's resolved ids into the per-term entity PATCH bucket (unioned with the term's
-// current ids, seeded once). Reuses the same bucket as scalar/socialLink writes so a term getting a
-// relation + a scalar is one PATCH. Skips a term whose current ids weren't hydrated (wipe guard).
+// Merge a relation row's resolved ids into each targeted term's entity PATCH bucket (unioned with that
+// term's current ids, seeded once). Reuses the same bucket as scalar/socialLink writes so a term
+// getting a relation + a scalar is one PATCH. Skips a term whose current ids weren't hydrated (wipe
+// guard). In "all" mode every linked term gets the same ids; the extracted names are resolved ONCE
+// (term-independent) so created/failed are recorded once rather than duplicated per term.
 async function accumulateRelationPatch(state, row) {
   const e = row.entity;
-  const termId = e.selectedTermId;
-  const term = e.terms.find(t => t.id === termId) || e.terms[0];
   const relSpec = e.relSpec;
-  const currentIds = Array.isArray(term[relSpec.patchKey]) ? term[relSpec.patchKey] : null;
-  if (currentIds === null) return; // not hydrated — don't risk wiping unseen links
-  const key = `${e.association}:${termId}`;
-  let bucket = state.entityPatches[key];
-  if (!bucket) {
-    bucket = {
-      path: e.meta.path,
-      id: termId,
-      patch: {},
-      socialSeeded: false,
-      relationSeeded: {},
-    };
-    state.entityPatches[key] = bucket;
-  }
-  if (!bucket.relationSeeded) bucket.relationSeeded = {};
-  if (!bucket.relationSeeded[relSpec.patchKey]) {
-    bucket.patch[relSpec.patchKey] = currentIds.slice();
-    bucket.relationSeeded[relSpec.patchKey] = true;
-  }
-  const idSet = new Set(bucket.patch[relSpec.patchKey]);
-  const display = entityRelationDisplay(e, term);
-  for (const name of display.toAdd) {
+  const resolvedIds = [];
+  for (const name of e.extractedNames) {
     const {
       id, created,
     } = await resolveRelationId(serverUrl, relSpec, name, e.optionList);
     if (id) {
-      idSet.add(id);
+      resolvedIds.push(id);
       if (created) state.created.push({
         kind: relSpec.optionKey,
         name,
@@ -1755,7 +1750,30 @@ async function accumulateRelationPatch(state, row) {
       });
     }
   }
-  bucket.patch[relSpec.patchKey] = Array.from(idSet);
+  for (const term of entityTargetTerms(e)) {
+    const currentIds = Array.isArray(term[relSpec.patchKey]) ? term[relSpec.patchKey] : null;
+    if (currentIds === null) continue; // not hydrated — don't risk wiping unseen links
+    const key = `${e.association}:${term.id}`;
+    let bucket = state.entityPatches[key];
+    if (!bucket) {
+      bucket = {
+        path: e.meta.path,
+        id: term.id,
+        patch: {},
+        socialSeeded: false,
+        relationSeeded: {},
+      };
+      state.entityPatches[key] = bucket;
+    }
+    if (!bucket.relationSeeded) bucket.relationSeeded = {};
+    if (!bucket.relationSeeded[relSpec.patchKey]) {
+      bucket.patch[relSpec.patchKey] = currentIds.slice();
+      bucket.relationSeeded[relSpec.patchKey] = true;
+    }
+    const idSet = new Set(bucket.patch[relSpec.patchKey]);
+    for (const id of resolvedIds) idSet.add(id); // union — already-linked ids are a no-op
+    bucket.patch[relSpec.patchKey] = Array.from(idSet);
+  }
 }
 
 // --- Language taxonomyEntity write -------------------------------------
@@ -1809,7 +1827,8 @@ async function applyLanguageWrites(languageRows) {
   let failed = 0;
   for (const row of languageRows) {
     const e = row.entity;
-    const term = e.terms.find(t => t.id === e.selectedTermId) || e.terms[0];
+    // Resolve the language ONCE (term-independent), then PUT for each targeted term (all linked terms
+    // in "all" mode). Terms already carrying a primary language are skipped so counts stay honest.
     const {
       id,
     } = await resolveLanguageId(serverUrl, e.extracted, e.languages);
@@ -1817,33 +1836,36 @@ async function applyLanguageWrites(languageRows) {
       failed += 1;
       continue;
     }
-    const existing = Array.isArray(term.languageUsages) ? term.languageUsages : [];
-    const entries = existing.map(u => ({
-      languageId: u.languageId,
-      usageLevelId: u.usageLevelId,
-    }));
-    const key = `${id}:${e.primaryLevelId}`;
-    if (!entries.some(en => `${en.languageId}:${en.usageLevelId}` === key)) {
-      entries.push({
-        languageId: id,
-        usageLevelId: e.primaryLevelId,
-      });
-    }
-    try {
-      const res = await fetch(`${serverUrl}/api/language-usages/${e.ownerType}/${term.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          entries,
-        }),
-      });
-      if (res.ok) updated += 1;
-      else failed += 1;
-    }
-    catch {
-      failed += 1;
+    for (const term of entityTargetTerms(e)) {
+      if (!entityLanguageDisplay(e, term).changed) continue; // already set / nothing to do for this term
+      const existing = Array.isArray(term.languageUsages) ? term.languageUsages : [];
+      const entries = existing.map(u => ({
+        languageId: u.languageId,
+        usageLevelId: u.usageLevelId,
+      }));
+      const key = `${id}:${e.primaryLevelId}`;
+      if (!entries.some(en => `${en.languageId}:${en.usageLevelId}` === key)) {
+        entries.push({
+          languageId: id,
+          usageLevelId: e.primaryLevelId,
+        });
+      }
+      try {
+        const res = await fetch(`${serverUrl}/api/language-usages/${e.ownerType}/${term.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            entries,
+          }),
+        });
+        if (res.ok) updated += 1;
+        else failed += 1;
+      }
+      catch {
+        failed += 1;
+      }
     }
   }
   return {
@@ -1865,6 +1887,26 @@ function entityDisplayForTerm(entity, term) {
     return entityLanguageDisplay(entity, term);
   }
   return entityFieldDisplay(entity, term);
+}
+
+// Aggregate current/extracted display when the row targets ALL linked terms. `changed` is true when
+// ANY term would change (drives the checkbox default); `extractedText` is term-independent (same value
+// for every term), so borrow the first term's — `undefined` for relation rows, which render
+// `extractedNames` instead. `currentText` summarizes the count since per-term current values diverge.
+function entityAllTermsDisplay(entity) {
+  let changed = false;
+  for (const t of entity.terms) {
+    if (entityDisplayForTerm(entity, t).changed) {
+      changed = true;
+      break;
+    }
+  }
+  const base = entityDisplayForTerm(entity, entity.terms[0]);
+  return {
+    currentText: `${entity.terms.length} terms`,
+    extractedText: base.extractedText,
+    changed,
+  };
 }
 
 // --- Value formatting / coercion ---------------------------------------
@@ -1935,8 +1977,9 @@ function renderRow(row) {
   let extSpan = null;
   if (row.entity && row.entity.terms.length > 1 && !row.disabledReason) {
     body.appendChild(renderTermPicker(row, () => {
-      const term = row.entity.terms.find(t => t.id === row.entity.selectedTermId);
-      const display = entityDisplayForTerm(row.entity, term);
+      const display = row.entity.selectedTermId === ALL_TERMS
+        ? entityAllTermsDisplay(row.entity)
+        : entityDisplayForTerm(row.entity, row.entity.terms.find(t => t.id === row.entity.selectedTermId));
       row.currentText = display.currentText;
       row.changed = display.changed;
       if (curSpan) curSpan.textContent = display.currentText;
@@ -1982,6 +2025,11 @@ function renderRow(row) {
 function renderTermPicker(row, onPick) {
   const sel = document.createElement("select");
   sel.className = "fill-term-select";
+  // "All terms" (the default) applies the value to every linked term; the per-term options narrow it.
+  const all = document.createElement("option");
+  all.value = ALL_TERMS;
+  all.textContent = `All terms (${row.entity.terms.length})`;
+  sel.appendChild(all);
   for (const term of row.entity.terms) {
     const opt = document.createElement("option");
     opt.value = term.id;
