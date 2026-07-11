@@ -975,11 +975,14 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       tags: ["app-settings"],
       body: {
         type: "object",
-        required: ["aiSummarizationPrompt"],
+        required: ["aiSummarizationPrompt", "aiSummarizationSuggestTags"],
         additionalProperties: false,
         properties: {
           aiSummarizationPrompt: {
             type: "string",
+          },
+          aiSummarizationSuggestTags: {
+            type: "boolean",
           },
         },
       },

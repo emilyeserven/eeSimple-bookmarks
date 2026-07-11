@@ -1837,6 +1837,9 @@ export const appSettings = pgTable("app_settings", {
   }),
   // Prompt text used to instruct an AI to summarize bookmarks in the AI Summary Queue.
   aiSummarizationPrompt: text("ai_summarization_prompt").notNull().default(""),
+  // When on, the generated summarization prompt also asks the AI to suggest tags per bookmark.
+  // Lone nullable column = push-safe additive (null coalesced to false in the service).
+  aiSummarizationSuggestTags: boolean("ai_summarization_suggest_tags"),
   // Hosted metadata provider (Microlink-compatible) configured from Settings → Connectors.
   // Nullable = push-safe additive; env vars are used as fallback when these are null.
   hostedMetadataEndpoint: text("hosted_metadata_endpoint"),

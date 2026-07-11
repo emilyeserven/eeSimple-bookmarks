@@ -175,6 +175,7 @@ export function resolvePersonSourceLabels(raw: unknown): PersonSourceLabelSettin
 /** Default AI summarization settings (empty prompt), used when seeding / when row absent. */
 const DEFAULT_AI_SUMMARIZATION: AiSummarizationSettings = {
   aiSummarizationPrompt: "",
+  aiSummarizationSuggestTags: false,
 };
 
 /** Default display/detail preferences, used when seeding / when row absent. */
@@ -381,12 +382,14 @@ export async function getAiSummarizationSettings(): Promise<AiSummarizationSetti
   const [row] = await db
     .select({
       aiSummarizationPrompt: appSettings.aiSummarizationPrompt,
+      aiSummarizationSuggestTags: appSettings.aiSummarizationSuggestTags,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
   if (!row) return DEFAULT_AI_SUMMARIZATION;
   return {
     aiSummarizationPrompt: row.aiSummarizationPrompt,
+    aiSummarizationSuggestTags: row.aiSummarizationSuggestTags ?? false,
   };
 }
 
@@ -396,6 +399,7 @@ export async function updateAiSummarizationSettings(
 ): Promise<AiSummarizationSettings> {
   const next: AiSummarizationSettings = {
     aiSummarizationPrompt: input.aiSummarizationPrompt,
+    aiSummarizationSuggestTags: input.aiSummarizationSuggestTags,
   };
   await db
     .insert(appSettings)

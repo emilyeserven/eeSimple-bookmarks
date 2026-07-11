@@ -723,6 +723,8 @@ export type UpdateHomepageContentInput = HomepageContentSettings;
 /** The AI summarization settings: a stored prompt used to summarize queued bookmarks. */
 export interface AiSummarizationSettings {
   aiSummarizationPrompt: string;
+  /** When true, the generated prompt also asks the AI to suggest tags for each bookmark. */
+  aiSummarizationSuggestTags: boolean;
 }
 
 /** Payload for replacing the AI summarization settings. */
@@ -733,6 +735,28 @@ export interface AiSummaryQueueItem {
   id: string;
   url: string | null;
   title: string;
+}
+
+/** One AI-returned summary (and optional suggested tags) keyed by the bookmark's id. */
+export interface AiSummaryApplyItem {
+  id: string;
+  summary: string;
+  tags?: string[];
+}
+
+/** Payload for applying a batch of AI-returned summaries to their bookmarks. */
+export interface AiSummaryApplyInput {
+  items: AiSummaryApplyItem[];
+}
+
+/** Outcome of applying AI summaries: how many bookmarks were updated, which ids matched nothing, and how many tags were newly created. */
+export interface AiSummaryApplyResult {
+  /** Bookmarks whose description was written and status set to "Summarized by AI". */
+  updated: number;
+  /** Ids present in the pasted JSON that matched no bookmark. */
+  notFound: string[];
+  /** Tags newly created while resolving suggested tag names. */
+  tagsCreated: number;
 }
 
 /**

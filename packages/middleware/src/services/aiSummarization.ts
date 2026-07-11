@@ -1,9 +1,13 @@
-import type { AiSummaryQueueItem } from "@eesimple/types";
-import { and, eq, sql } from "drizzle-orm";
+import type { AiSummaryApplyInput, AiSummaryApplyResult, AiSummaryQueueItem, UpdateBookmarkInput } from "@eesimple/types";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { bookmarkChoicesValues, bookmarks, customProperties } from "@/db/schema";
+import { bookmarkChoicesValues, bookmarks, bookmarkTags, customProperties, tags } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
+import { updateBookmark } from "@/services/bookmarks";
 import { CONTENT_STATUS_SLUG } from "@/services/customProperties";
+import { createTag } from "@/services/tags";
+
+const SUMMARIZED_BY_AI_VALUE = "summarized-by-ai";
 
 /** Return the id, url, and title of all bookmarks whose Content Status is "AI Summary Queue". */
 export async function getAiSummaryQueueBookmarks(): Promise<AiSummaryQueueItem[]> {
@@ -63,4 +67,123 @@ export async function markAiQueueSummarized(): Promise<{ count: number }> {
   return {
     count,
   };
+}
+
+/** Resolve tag names to tag ids, creating any that don't yet exist (case-insensitive match). */
+async function resolveTagIdsByName(
+  names: string[],
+  created: { count: number },
+): Promise<string[]> {
+  const cleaned = [...new Set(names.map(name => name.trim()).filter(Boolean))];
+  if (cleaned.length === 0) return [];
+
+  const existing = await db
+    .select({
+      id: tags.id,
+      name: tags.name,
+    })
+    .from(tags);
+  const idByLowerName = new Map(existing.map(tag => [tag.name.toLowerCase(), tag.id]));
+
+  const ids: string[] = [];
+  for (const name of cleaned) {
+    const hit = idByLowerName.get(name.toLowerCase());
+    if (hit) {
+      ids.push(hit);
+      continue;
+    }
+    const tag = await createTag({
+      name,
+    });
+    idByLowerName.set(name.toLowerCase(), tag.id);
+    created.count += 1;
+    ids.push(tag.id);
+  }
+  return ids;
+}
+
+/**
+ * Apply a batch of AI-returned summaries to their bookmarks: overwrite each bookmark's description
+ * with its summary, mark it "Summarized by AI", and (when tags are supplied) union the suggested
+ * tags — matched by name, creating any that don't exist — onto the bookmark's existing tags.
+ * Ids that match no bookmark are collected in `notFound` rather than failing the whole batch.
+ */
+export async function applyAiSummaries(input: AiSummaryApplyInput): Promise<AiSummaryApplyResult> {
+  const result: AiSummaryApplyResult = {
+    updated: 0,
+    notFound: [],
+    tagsCreated: 0,
+  };
+  if (input.items.length === 0) return result;
+
+  // Resolve the Content Status property once so each applied bookmark can be marked "Summarized by AI".
+  const [prop] = await db
+    .select({
+      id: customProperties.id,
+    })
+    .from(customProperties)
+    .where(eq(customProperties.slug, CONTENT_STATUS_SLUG));
+
+  // Validate all referenced ids in one query.
+  const ids = [...new Set(input.items.map(item => item.id))];
+  const existingRows = await db
+    .select({
+      id: bookmarks.id,
+    })
+    .from(bookmarks)
+    .where(inArray(bookmarks.id, ids));
+  const existingIds = new Set(existingRows.map(row => row.id));
+
+  const tagsCreated = {
+    count: 0,
+  };
+  let changed = false;
+
+  for (const item of input.items) {
+    if (!existingIds.has(item.id)) {
+      result.notFound.push(item.id);
+      continue;
+    }
+
+    // Description: overwrite with the AI summary. Tags: union suggested onto existing (never remove).
+    const patch: UpdateBookmarkInput = {
+      description: item.summary,
+    };
+    if (item.tags && item.tags.length > 0) {
+      const suggestedIds = await resolveTagIdsByName(item.tags, tagsCreated);
+      const current = await db
+        .select({
+          tagId: bookmarkTags.tagId,
+        })
+        .from(bookmarkTags)
+        .where(eq(bookmarkTags.bookmarkId, item.id));
+      patch.tagIds = [...new Set([...current.map(row => row.tagId), ...suggestedIds])];
+    }
+    await updateBookmark(item.id, patch);
+
+    // Mark "Summarized by AI" by upserting only the Content Status row — leaves other choices values intact.
+    if (prop) {
+      await db
+        .insert(bookmarkChoicesValues)
+        .values({
+          bookmarkId: item.id,
+          propertyId: prop.id,
+          values: [SUMMARIZED_BY_AI_VALUE],
+        })
+        .onConflictDoUpdate({
+          target: [bookmarkChoicesValues.bookmarkId, bookmarkChoicesValues.propertyId],
+          set: {
+            values: [SUMMARIZED_BY_AI_VALUE],
+          },
+        });
+    }
+
+    result.updated += 1;
+    changed = true;
+  }
+
+  result.tagsCreated = tagsCreated.count;
+  // Descriptions, tags, and content status are all matchable — refresh once after the content-status writes.
+  if (changed) invalidateBookmarkCache();
+  return result;
 }

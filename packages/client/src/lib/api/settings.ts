@@ -1,6 +1,8 @@
 import type {
   AdvancedSettings,
   AiSummarizationSettings,
+  AiSummaryApplyInput,
+  AiSummaryApplyResult,
   AiSummaryQueueItem,
   AutomationSettings,
   BookmarkAddFormSettings,
@@ -189,6 +191,11 @@ export const aiSummarizationApi = {
   markSummarized: () =>
     request<{ count: number }>("/ai-summarization/mark-summarized", {
       method: "POST",
+    }),
+  apply: (input: AiSummaryApplyInput) =>
+    request<AiSummaryApplyResult>("/ai-summarization/apply", {
+      method: "POST",
+      body: JSON.stringify(input),
     }),
 };
 
