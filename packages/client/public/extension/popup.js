@@ -71,6 +71,9 @@ const {
   TAX_PATCH_KEY,
   TAXONOMY_ENTITY_PATCH,
   resolveTaxonomyId,
+  resolveRelationId,
+  resolveLanguageId,
+  normalizeLanguageCode,
   summarizeCreated,
   summarizeFailed,
 } = globalThis.eesimpleTaxonomyFill;
@@ -1061,17 +1064,46 @@ function buildPublisherRow(rule, values, ctx) {
   return row;
 }
 
-// taxonomyEntity: write the extracted value into a fixed field of a taxonomy term the bookmark is
-// *linked to* (not the bookmark). Auto-targets the single linked term, or shows a term picker (see
-// renderRow) when several are linked. On apply, the chosen term's field is PATCHed to that entity's
-// own endpoint after the bookmark PATCH.
+// Parse a `taxonomyEntity` target's `field` into its write mode (mirrors the server-side helper).
+function entityWriteMode(field) {
+  if (field === "language") return {
+    kind: "language",
+  };
+  if (typeof field === "string" && field.indexOf("relation:") === 0) {
+    return {
+      kind: "relation",
+      key: field.slice("relation:".length),
+    };
+  }
+  return {
+    kind: "scalar",
+  };
+}
+
+// taxonomyEntity: write the extracted value into a taxonomy term the bookmark is *linked to* (not the
+// bookmark). Dispatches on the target's write mode: a scalar field, a relation (id-array union), or a
+// linked-term primary-language write. Auto-targets the single linked term, or shows a term picker (see
+// renderRow) when several are linked.
 function buildTaxonomyEntityRow(rule, values, ctx) {
+  const {
+    association,
+  } = rule.target;
+  const meta = TAXONOMY_ENTITY_PATCH[association];
+  if (!meta) return baseRow(rule, "", values[0] ?? "", false, "unsupported");
+  const mode = entityWriteMode(rule.target.field);
+  if (mode.kind === "relation") return buildEntityRelationRow(rule, values, ctx, meta, mode.key);
+  if (mode.kind === "language") return buildEntityLanguageRow(rule, values, ctx, meta);
+  return buildEntityScalarRow(rule, values, ctx, meta);
+}
+
+// Scalar taxonomyEntity write (name/description/year/socialLink) — the original behavior. On apply,
+// the chosen term's field is PATCHed to that entity's own endpoint after the bookmark PATCH.
+function buildEntityScalarRow(rule, values, ctx, meta) {
   const {
     association, field, socialPlatform,
   } = rule.target;
-  const meta = TAXONOMY_ENTITY_PATCH[association];
   const extracted = values[0] ?? "";
-  if (!meta || (field === "socialLink" && !socialPlatform)) {
+  if (field === "socialLink" && !socialPlatform) {
     return baseRow(rule, "", extracted, false, "unsupported");
   }
   if (!extracted) {
@@ -1091,6 +1123,7 @@ function buildTaxonomyEntityRow(rule, values, ctx) {
     coerced = num;
   }
   const entity = {
+    mode: "scalar",
     association,
     field,
     socialPlatform,
@@ -1110,6 +1143,84 @@ function buildTaxonomyEntityRow(rule, values, ctx) {
   row.entity = entity;
   row.apply = (patch, state) => {
     accumulateEntityPatch(state, row);
+  };
+  return row;
+}
+
+// Relation taxonomyEntity write: resolve the extracted name(s) to related-taxonomy id(s) and UNION
+// them into the linked term's id-array (e.g. add a Group to a linked Person's groups). Unmatched
+// names for a match-only relation (websites/youtube-channels) surface as failures on apply.
+function buildEntityRelationRow(rule, values, ctx, meta, key) {
+  const relSpec = (meta.relations || []).find(r => r.key === key);
+  if (!relSpec) return baseRow(rule, "", values[0] ?? "", false, "unsupported");
+  const extractedNames = values;
+  const terms = (ctx.associatedTerms && ctx.associatedTerms[rule.target.association]) || [];
+  if (terms.length === 0) {
+    return baseRow(rule, "—", extractedNames.join(", "), false, `no linked ${meta.noun}`);
+  }
+  if (!extractedNames.length) {
+    return baseRow(rule, "—", "", false, "not found");
+  }
+  const optionList = (ctx.relationOptions && ctx.relationOptions[relSpec.optionKey]) || [];
+  const entity = {
+    mode: "relation",
+    association: rule.target.association,
+    meta,
+    relSpec,
+    optionList,
+    terms,
+    extractedNames,
+    selectedTermId: terms[0].id,
+  };
+  const display = entityRelationDisplay(entity, terms[0]);
+  const multi = terms.length > 1;
+  const disabledReason = multi ? null : (display.changed ? null : "no change");
+  const row = baseRow(rule, display.currentText, "", display.changed, disabledReason);
+  // Render the extracted names with new/unmatched badges (like a bookmark taxonomy row).
+  row.extractedNames = extractedNames;
+  row.newNames = display.newNames;
+  row.entity = entity;
+  row.apply = async (patch, state) => {
+    await accumulateRelationPatch(state, row);
+  };
+  return row;
+}
+
+// Primary-language taxonomyEntity write: resolve the extracted page-language code to a Language and
+// attach it at the "Primary Language" level on the linked term. Applied in a dedicated phase (a PUT to
+// the language-usages endpoint), merged with the term's existing usages.
+function buildEntityLanguageRow(rule, values, ctx, meta) {
+  const ownerType = meta.languageOwnerType;
+  const extracted = values[0] ?? "";
+  if (!ownerType) return baseRow(rule, "", extracted, false, "unsupported");
+  if (ctx.primaryLanguageLevelId == null) {
+    return baseRow(rule, "—", extracted, false, "no Primary Language level");
+  }
+  if (!extracted) {
+    return baseRow(rule, "", "", false, "not found");
+  }
+  const terms = (ctx.associatedTerms && ctx.associatedTerms[rule.target.association]) || [];
+  if (terms.length === 0) {
+    return baseRow(rule, "—", extracted, false, `no linked ${meta.noun}`);
+  }
+  const entity = {
+    mode: "language",
+    association: rule.target.association,
+    meta,
+    ownerType,
+    terms,
+    extracted,
+    languages: ctx.languages || [],
+    primaryLevelId: ctx.primaryLanguageLevelId,
+    selectedTermId: terms[0].id,
+  };
+  const display = entityLanguageDisplay(entity, terms[0]);
+  const multi = terms.length > 1;
+  const disabledReason = multi ? null : display.disabledReason;
+  const row = baseRow(rule, display.currentText, display.extractedText, display.changed, disabledReason);
+  row.entity = entity;
+  row.apply = (patch, state) => {
+    accumulateLanguageWrite(state, row);
   };
   return row;
 }
@@ -1218,6 +1329,203 @@ async function applyEntityPatches(entityPatches) {
   };
 }
 
+// --- Relation taxonomyEntity write -------------------------------------
+// Current/extracted display for a relation row against a specific term: which extracted names are
+// already linked, which will be created (creatable relation), and which have no match (match-only).
+function entityRelationDisplay(entity, term) {
+  const relSpec = entity.relSpec;
+  const currentIds = Array.isArray(term[relSpec.patchKey]) ? term[relSpec.patchKey] : [];
+  const optByLower = {};
+  const optById = {};
+  for (const o of entity.optionList) {
+    optByLower[o.name.toLowerCase()] = o;
+    optById[o.id] = o;
+  }
+  const currentIdSet = {};
+  currentIds.forEach((id) => {
+    currentIdSet[id] = true;
+  });
+  const currentNames = currentIds
+    .map(id => (optById[id] ? optById[id].name : null))
+    .filter(name => name !== null);
+  const toAdd = [];
+  const newNames = [];
+  const unmatchedNames = [];
+  for (const name of entity.extractedNames) {
+    const opt = optByLower[name.toLowerCase()];
+    if (opt && currentIdSet[opt.id]) continue; // already linked — skip
+    toAdd.push(name);
+    if (!opt) (relSpec.matchOnly ? unmatchedNames : newNames).push(name);
+  }
+  return {
+    currentText: currentNames.join(", ") || "—",
+    changed: toAdd.length > 0,
+    toAdd,
+    newNames,
+    unmatchedNames,
+  };
+}
+
+// Merge a relation row's resolved ids into the per-term entity PATCH bucket (unioned with the term's
+// current ids, seeded once). Reuses the same bucket as scalar/socialLink writes so a term getting a
+// relation + a scalar is one PATCH. Skips a term whose current ids weren't hydrated (wipe guard).
+async function accumulateRelationPatch(state, row) {
+  const e = row.entity;
+  const termId = e.selectedTermId;
+  const term = e.terms.find(t => t.id === termId) || e.terms[0];
+  const relSpec = e.relSpec;
+  const currentIds = Array.isArray(term[relSpec.patchKey]) ? term[relSpec.patchKey] : null;
+  if (currentIds === null) return; // not hydrated — don't risk wiping unseen links
+  const key = `${e.association}:${termId}`;
+  let bucket = state.entityPatches[key];
+  if (!bucket) {
+    bucket = {
+      path: e.meta.path,
+      id: termId,
+      patch: {},
+      socialSeeded: false,
+      relationSeeded: {},
+    };
+    state.entityPatches[key] = bucket;
+  }
+  if (!bucket.relationSeeded) bucket.relationSeeded = {};
+  if (!bucket.relationSeeded[relSpec.patchKey]) {
+    bucket.patch[relSpec.patchKey] = currentIds.slice();
+    bucket.relationSeeded[relSpec.patchKey] = true;
+  }
+  const idSet = new Set(bucket.patch[relSpec.patchKey]);
+  const display = entityRelationDisplay(e, term);
+  for (const name of display.toAdd) {
+    const {
+      id, created,
+    } = await resolveRelationId(serverUrl, relSpec, name, e.optionList);
+    if (id) {
+      idSet.add(id);
+      if (created) state.created.push({
+        kind: relSpec.optionKey,
+        name,
+      });
+    }
+    else {
+      // Match-only miss (or a create failure) — surface it instead of silently dropping.
+      state.failed.push({
+        kind: relSpec.optionKey,
+        name,
+      });
+    }
+  }
+  bucket.patch[relSpec.patchKey] = Array.from(idSet);
+}
+
+// --- Language taxonomyEntity write -------------------------------------
+// Current/extracted display for a language row against a term: the term's existing primary-language
+// (if any) vs the resolved incoming language. Never clobbers an existing pick ("already set").
+function entityLanguageDisplay(entity, term) {
+  const usages = Array.isArray(term.languageUsages) ? term.languageUsages : [];
+  const existingPrimary = usages.find(u => u.usageLevelId === entity.primaryLevelId);
+  const languageName = (id) => {
+    const lang = entity.languages.find(l => l.id === id);
+    return lang ? lang.name : null;
+  };
+  const currentText = existingPrimary ? formatScalar(languageName(existingPrimary.languageId)) : "—";
+  const normalized = normalizeLanguageCode(entity.extracted);
+  const match = normalized ? entity.languages.find(l => l.isoCode === normalized) : null;
+  const extractedText = match ? match.name : (normalized || entity.extracted);
+  if (existingPrimary) {
+    return {
+      currentText,
+      extractedText,
+      changed: false,
+      disabledReason: "already set",
+    };
+  }
+  if (!normalized) {
+    return {
+      currentText,
+      extractedText,
+      changed: false,
+      disabledReason: "not found",
+    };
+  }
+  return {
+    currentText,
+    extractedText,
+    changed: true,
+    disabledReason: null,
+  };
+}
+
+// Queue a language row for the dedicated language-write phase (a PUT to the language-usages endpoint).
+function accumulateLanguageWrite(state, row) {
+  if (!state.languageWrites) state.languageWrites = [];
+  state.languageWrites.push(row);
+}
+
+// Apply each checked language row: resolve the code to a Language, merge the primary-level entry into
+// the term's existing usages (the PUT is replace-all), and PUT. Returns updated/failed counts.
+async function applyLanguageWrites(languageRows) {
+  let updated = 0;
+  let failed = 0;
+  for (const row of languageRows) {
+    const e = row.entity;
+    const term = e.terms.find(t => t.id === e.selectedTermId) || e.terms[0];
+    const {
+      id,
+    } = await resolveLanguageId(serverUrl, e.extracted, e.languages);
+    if (!id) {
+      failed += 1;
+      continue;
+    }
+    const existing = Array.isArray(term.languageUsages) ? term.languageUsages : [];
+    const entries = existing.map(u => ({
+      languageId: u.languageId,
+      usageLevelId: u.usageLevelId,
+    }));
+    const key = `${id}:${e.primaryLevelId}`;
+    if (!entries.some(en => `${en.languageId}:${en.usageLevelId}` === key)) {
+      entries.push({
+        languageId: id,
+        usageLevelId: e.primaryLevelId,
+      });
+    }
+    try {
+      const res = await fetch(`${serverUrl}/api/language-usages/${e.ownerType}/${term.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          entries,
+        }),
+      });
+      if (res.ok) updated += 1;
+      else failed += 1;
+    }
+    catch {
+      failed += 1;
+    }
+  }
+  return {
+    updated,
+    failed,
+  };
+}
+
+// Mode-aware current/extracted display for an entity row against a term (used by the term picker).
+function entityDisplayForTerm(entity, term) {
+  if (entity.mode === "relation") {
+    const d = entityRelationDisplay(entity, term);
+    return {
+      currentText: d.currentText,
+      changed: d.changed,
+    };
+  }
+  if (entity.mode === "language") {
+    return entityLanguageDisplay(entity, term);
+  }
+  return entityFieldDisplay(entity, term);
+}
+
 // --- Value formatting / coercion ---------------------------------------
 function formatScalar(value) {
   if (value === null || value === undefined || value === "") return "—";
@@ -1285,12 +1593,15 @@ function renderRow(row) {
   if (row.entity && row.entity.terms.length > 1 && !row.disabledReason) {
     body.appendChild(renderTermPicker(row, () => {
       const term = row.entity.terms.find(t => t.id === row.entity.selectedTermId);
-      const display = entityFieldDisplay(row.entity, term);
+      const display = entityDisplayForTerm(row.entity, term);
       row.currentText = display.currentText;
-      row.extractedText = display.extractedText;
       row.changed = display.changed;
       if (curSpan) curSpan.textContent = display.currentText;
-      if (extSpan) extSpan.textContent = display.extractedText || "(not found)";
+      // A relation row renders extracted names (no extractedText); only refresh it when present.
+      if (display.extractedText !== undefined) {
+        row.extractedText = display.extractedText;
+        if (extSpan) extSpan.textContent = display.extractedText || "(not found)";
+      }
       row.checkbox.checked = display.changed;
     }));
   }
@@ -1308,7 +1619,7 @@ function renderRow(row) {
     valuesEl.appendChild(arrow);
   }
   if (row.extractedNames) {
-    appendNames(valuesEl, row.extractedNames, row.newNames);
+    appendNames(valuesEl, row.extractedNames, row.newNames, row.unmatchedNames);
   }
   else {
     extSpan = document.createElement("span");
@@ -1344,8 +1655,9 @@ function renderTermPicker(row, onPick) {
   return sel;
 }
 
-function appendNames(container, names, newNames) {
+function appendNames(container, names, newNames, unmatchedNames) {
   const newLower = new Set((newNames || []).map(n => n.toLowerCase()));
+  const unmatchedLower = new Set((unmatchedNames || []).map(n => n.toLowerCase()));
   names.forEach((name, i) => {
     if (i > 0) container.appendChild(document.createTextNode(", "));
     const span = document.createElement("span");
@@ -1357,6 +1669,13 @@ function appendNames(container, names, newNames) {
       badge.className = "badge-new";
       badge.textContent = "new";
       container.appendChild(badge);
+    }
+    else if (unmatchedLower.has(name.toLowerCase())) {
+      // A match-only relation (website / YouTube channel) with no existing match — won't be created.
+      const note = document.createElement("span");
+      note.className = "fill-note";
+      note.textContent = " (no match)";
+      container.appendChild(note);
     }
   });
 }
@@ -1381,6 +1700,7 @@ async function applyChanges(rows, bookmark) {
     values: {},
     taxHydrated: {},
     entityPatches: {},
+    languageWrites: [],
     created: [],
     failed: [],
   };
@@ -1418,9 +1738,13 @@ async function applyChanges(rows, bookmark) {
     }
 
     // Associated-taxonomy PATCHes run after the bookmark PATCH (best-effort): each linked term's
-    // changed field is written to that entity's own endpoint. A failure here surfaces a note but
-    // doesn't undo the bookmark PATCH.
+    // changed field / relation is written to that entity's own endpoint. A failure here surfaces a
+    // note but doesn't undo the bookmark PATCH.
     const entityResult = await applyEntityPatches(state.entityPatches);
+
+    // Language writes run next (best-effort): each linked term's primary language is merged into its
+    // language usages via the language-usages endpoint.
+    const languageResult = await applyLanguageWrites(state.languageWrites);
 
     // Image uploads run last (best-effort): the browser downloads each grabbed image and uploads the
     // bytes to the bookmark. A failure here surfaces a note but doesn't undo the PATCH.
@@ -1441,6 +1765,12 @@ async function applyChanges(rows, bookmark) {
     }
     if (entityResult.failed > 0) {
       message += ` ${entityResult.failed} linked item${entityResult.failed === 1 ? "" : "s"} couldn't be updated.`;
+    }
+    if (languageResult.updated > 0) {
+      message += ` Set language on ${languageResult.updated} linked item${languageResult.updated === 1 ? "" : "s"}.`;
+    }
+    if (languageResult.failed > 0) {
+      message += ` ${languageResult.failed} language${languageResult.failed === 1 ? "" : "s"} couldn't be set.`;
     }
     if (imageResult.failed > 0) {
       message += ` ${imageResult.failed} image${imageResult.failed === 1 ? "" : "s"} couldn't be saved.`;

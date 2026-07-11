@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import type { CreateWebsiteInput, UpdateWebsiteInput, WebsiteLookup } from "@eesimple/types";
-import { SOCIAL_MEDIA_PLATFORMS, TAXONOMY_ENTITY_ASSOCIATIONS, TAXONOMY_ENTITY_FIELDS, WEBSITE_SCAN_OBSERVATION_KINDS } from "@eesimple/types";
+import { SOCIAL_MEDIA_PLATFORMS, TAXONOMY_ENTITY_ASSOCIATIONS, TAXONOMY_ENTITY_WRITE_KEYS, WEBSITE_SCAN_OBSERVATION_KINDS } from "@eesimple/types";
 import {
   fetchAndStoreWebsiteFavicon,
   getWebsiteFaviconRow,
@@ -410,7 +410,8 @@ const fillTargetSchema = {
         required: ["kind", "association", "field"],
         properties: {
           field: {
-            enum: [...TAXONOMY_ENTITY_FIELDS],
+            // Scalar fields + `relation:<key>` relations + `language` (see TAXONOMY_ENTITY_WRITE_KEYS).
+            enum: [...TAXONOMY_ENTITY_WRITE_KEYS],
           },
         },
       },

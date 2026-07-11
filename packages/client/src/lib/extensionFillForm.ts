@@ -5,6 +5,11 @@ import type {
   FillTarget,
   FillTransform,
   PathMatch,
+  TaxonomyEntityAssociation,
+  TaxonomyEntityAssociationSpec,
+  TaxonomyEntityFieldKey,
+  TaxonomyEntityRelationKey,
+  TaxonomyEntityWriteKey,
   TextMatch,
   WebsiteExtensionFillRule,
 } from "@eesimple/types";
@@ -12,6 +17,7 @@ import type {
 import {
   SOCIAL_MEDIA_PLATFORM_LABELS,
   TAXONOMY_ENTITY_FIELD_LABELS,
+  TAXONOMY_ENTITY_RELATION_LABELS,
   TAXONOMY_ENTITY_SPECS,
 } from "@eesimple/types";
 
@@ -105,6 +111,32 @@ const TAXONOMY_LABELS: Record<Extract<FillTarget, { kind: "taxonomy" }>["taxonom
 };
 
 /**
+ * Every legal `taxonomyEntity` write-key for an association: its scalar fields, its relation targets
+ * (`relation:<key>`), and — when it's a language-usage owner — `language`. Drives the editor's Field
+ * dropdown and the association-switch keep-field logic.
+ */
+export function taxonomyEntityWriteKeys(
+  association: TaxonomyEntityAssociation,
+): TaxonomyEntityWriteKey[] {
+  const spec: TaxonomyEntityAssociationSpec = TAXONOMY_ENTITY_SPECS[association];
+  return [
+    ...spec.fields,
+    ...(spec.relations ?? []).map(relation => `relation:${relation.key}` as const),
+    ...(spec.languageOwnerType ? (["language"] as const) : []),
+  ];
+}
+
+/** Raw (un-i18n'd) label for a `taxonomyEntity` write-key — scalar field, relation, or language. */
+export function taxonomyEntityFieldLabel(field: TaxonomyEntityWriteKey): string {
+  if (field === "language") return "Primary language";
+  if (field.startsWith("relation:")) {
+    const key = field.slice("relation:".length) as TaxonomyEntityRelationKey;
+    return TAXONOMY_ENTITY_RELATION_LABELS[key];
+  }
+  return TAXONOMY_ENTITY_FIELD_LABELS[field as TaxonomyEntityFieldKey];
+}
+
+/**
  * A short human summary of a rule's target for the collapsed rule card. Resolves the custom-property
  * name (and the chosen sub-value) from `property` when available.
  */
@@ -131,7 +163,7 @@ export function describeFillTarget(target: FillTarget, property?: CustomProperty
       const assoc = TAXONOMY_ENTITY_SPECS[target.association].label;
       const fieldLabel = target.field === "socialLink" && target.socialPlatform
         ? SOCIAL_MEDIA_PLATFORM_LABELS[target.socialPlatform]
-        : TAXONOMY_ENTITY_FIELD_LABELS[target.field];
+        : taxonomyEntityFieldLabel(target.field);
       return `${assoc} · ${fieldLabel}`;
     }
     case "sections": {

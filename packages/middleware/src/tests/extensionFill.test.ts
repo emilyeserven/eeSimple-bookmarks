@@ -50,6 +50,9 @@ interface TermFixture {
   socialLinks?: { platform: string;
     url: string; }[];
   year?: number | null;
+  groupIds?: string[];
+  websiteIds?: string[];
+  youtubeChannelIds?: string[];
 }
 let peopleList: TermFixture[] = [];
 let groupsList: TermFixture[] = [];
@@ -58,6 +61,19 @@ let locationsList: TermFixture[] = [];
 let categoriesList: TermFixture[] = [];
 let mediaTypesList: TermFixture[] = [];
 let websiteRecords: Record<string, TermFixture> = {};
+let websitesCompact: { id: string;
+  name: string; }[] = [];
+let youtubeChannelsCompact: { id: string;
+  name: string; }[] = [];
+let languagesList: { id: string;
+  name: string;
+  isoCode: string | null; }[] = [];
+let usageLevelsList: { id: string;
+  name: string;
+  kind: string; }[] = [];
+// Keyed by `${ownerType}:${ownerId}` → the denormalized LanguageUsage[] shape getLanguageUsages returns.
+let languageUsagesByOwner: Record<string, { language: { id: string };
+  level: { id: string }; }[]> = {};
 
 mock.module("@/services/bookmarks", {
   namedExports: {
@@ -94,11 +110,30 @@ mock.module("@/services/newsletters", {
 mock.module("@/services/youtubeChannels", {
   namedExports: {
     getYouTubeChannel: async () => null,
+    listYouTubeChannelsCompact: async () => youtubeChannelsCompact,
+  },
+});
+mock.module("@/services/languages", {
+  namedExports: {
+    listLanguages: async () => languagesList,
+  },
+});
+mock.module("@/services/languageUsageLevels", {
+  namedExports: {
+    listLanguageUsageLevels: async (kind?: string) =>
+      (kind ? usageLevelsList.filter(l => l.kind === kind) : usageLevelsList),
+  },
+});
+mock.module("@/services/languageUsages", {
+  namedExports: {
+    getLanguageUsages: async (ownerType: string, ownerId: string) =>
+      languageUsagesByOwner[`${ownerType}:${ownerId}`] ?? [],
   },
 });
 mock.module("@/services/websites", {
   namedExports: {
     getWebsite: async (id: string) => websiteRecords[id] ?? null,
+    listWebsitesCompact: async () => websitesCompact,
     lookupWebsiteByUrl: async () => ({
       domain: null,
       website: websiteForUrl,
@@ -176,6 +211,11 @@ function resetFixtures(): void {
   categoriesList = [];
   mediaTypesList = [];
   websiteRecords = {};
+  websitesCompact = [];
+  youtubeChannelsCompact = [];
+  languagesList = [];
+  usageLevelsList = [];
+  languageUsagesByOwner = {};
 }
 
 function makeWebsite(extensionFillRules: WebsiteExtensionFillRule[]): Website {
@@ -656,4 +696,211 @@ test("associatedTerms omits an association whose bookmark has no linked term", a
   assert.equal(result.mode, "bookmark");
   // No linked groups → the whole associatedTerms map is absent (popup shows a disabled "no linked" row).
   assert.equal(result.associatedTerms, undefined);
+});
+
+test("a relation target hydrates the term's relation ids + loads only the referenced relation option list", async () => {
+  resetFixtures();
+  duplicateResult = {
+    exactMatch: {
+      id: "bm-1",
+      url: "https://example.com/a",
+      title: "A",
+    },
+    pathMatch: null,
+    identityMatches: [],
+  };
+  bookmarkById = {
+    "bm-1": {
+      id: "bm-1",
+      title: "A",
+      people: [{
+        id: "person-1",
+        name: "Ada Lovelace",
+      }],
+    } as unknown as Bookmark,
+  };
+  peopleList = [
+    {
+      id: "person-1",
+      name: "Ada Lovelace",
+      description: "Mathematician",
+      socialLinks: [],
+      groupIds: ["group-1"],
+      websiteIds: ["w-1"],
+    },
+  ];
+  websitesCompact = [{
+    id: "w-1",
+    name: "Example",
+  }];
+  websiteForUrl = makeWebsite([
+    makeRule({
+      id: "r1",
+      target: {
+        kind: "taxonomyEntity",
+        association: "people",
+        field: "relation:groups",
+      },
+    }),
+  ]);
+
+  const result = await getExtensionFillContext("https://example.com/a");
+  assert.equal(result.mode, "bookmark");
+  // The linked person carries its current groupIds (for union), but NOT websiteIds (that relation
+  // isn't referenced by any rule).
+  assert.deepEqual(result.associatedTerms?.people, [
+    {
+      id: "person-1",
+      name: "Ada Lovelace",
+      description: "Mathematician",
+      socialLinks: [],
+      groupIds: ["group-1"],
+    },
+  ]);
+  // Only the referenced relation's option list is loaded.
+  assert.deepEqual(result.relationOptions?.groups, allTaxonomyOptions.groups);
+  assert.equal(result.relationOptions?.websites, undefined);
+  assert.equal(result.relationOptions?.youtubeChannels, undefined);
+  // No language target → no language block.
+  assert.equal(result.languages, undefined);
+  assert.equal(result.primaryLanguageLevelId, undefined);
+});
+
+test("a language target loads the languages list + primary level id and hydrates the term's usages", async () => {
+  resetFixtures();
+  duplicateResult = {
+    exactMatch: {
+      id: "bm-1",
+      url: "https://example.com/a",
+      title: "A",
+    },
+    pathMatch: null,
+    identityMatches: [],
+  };
+  bookmarkById = {
+    "bm-1": {
+      id: "bm-1",
+      title: "A",
+      website: {
+        id: "website-1",
+        siteName: "Example",
+      },
+    } as unknown as Bookmark,
+  };
+  websiteRecords = {
+    "website-1": {
+      id: "website-1",
+      siteName: "Example",
+      description: "A site",
+      socialLinks: [],
+    },
+  };
+  languagesList = [{
+    id: "lang-en",
+    name: "English",
+    isoCode: "en",
+  }];
+  usageLevelsList = [
+    {
+      id: "level-primary",
+      name: "Primary Language",
+      kind: "availability",
+    },
+    {
+      id: "level-dub",
+      name: "Dub",
+      kind: "availability",
+    },
+  ];
+  languageUsagesByOwner = {
+    "website:website-1": [{
+      language: {
+        id: "lang-en",
+      },
+      level: {
+        id: "level-primary",
+      },
+    }],
+  };
+  websiteForUrl = makeWebsite([
+    makeRule({
+      id: "r1",
+      target: {
+        kind: "taxonomyEntity",
+        association: "website",
+        field: "language",
+      },
+      extract: {
+        source: "meta",
+        metaKey: "og:locale",
+      },
+    }),
+  ]);
+
+  const result = await getExtensionFillContext("https://example.com/a");
+  assert.equal(result.mode, "bookmark");
+  assert.deepEqual(result.languages, [{
+    id: "lang-en",
+    name: "English",
+    isoCode: "en",
+  }]);
+  assert.equal(result.primaryLanguageLevelId, "level-primary");
+  // The linked website term carries its current language usages (compact) for the merge.
+  assert.deepEqual(result.associatedTerms?.website?.[0].languageUsages, [{
+    languageId: "lang-en",
+    usageLevelId: "level-primary",
+  }]);
+});
+
+test("a language target reports primaryLanguageLevelId: null when no Primary Language level exists", async () => {
+  resetFixtures();
+  duplicateResult = {
+    exactMatch: {
+      id: "bm-1",
+      url: "https://example.com/a",
+      title: "A",
+    },
+    pathMatch: null,
+    identityMatches: [],
+  };
+  bookmarkById = {
+    "bm-1": {
+      id: "bm-1",
+      title: "A",
+      website: {
+        id: "website-1",
+        siteName: "Example",
+      },
+    } as unknown as Bookmark,
+  };
+  websiteRecords = {
+    "website-1": {
+      id: "website-1",
+      siteName: "Example",
+      description: null,
+      socialLinks: [],
+    },
+  };
+  languagesList = [];
+  usageLevelsList = [{
+    id: "level-dub",
+    name: "Dub",
+    kind: "availability",
+  }];
+  websiteForUrl = makeWebsite([
+    makeRule({
+      id: "r1",
+      target: {
+        kind: "taxonomyEntity",
+        association: "website",
+        field: "language",
+      },
+    }),
+  ]);
+
+  const result = await getExtensionFillContext("https://example.com/a");
+  assert.equal(result.mode, "bookmark");
+  // The block is present (a language rule exists) but the level couldn't be resolved.
+  assert.deepEqual(result.languages, []);
+  assert.equal(result.primaryLanguageLevelId, null);
 });
