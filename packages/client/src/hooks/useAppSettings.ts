@@ -757,6 +757,7 @@ export function useCroppedHeight(): number {
 
 const AI_SUMMARIZATION_DEFAULTS: AiSummarizationSettings = {
   aiSummarizationPrompt: "",
+  aiSummarizationSuggestTags: false,
 };
 
 /** The stored AI summarization prompt and related settings. */

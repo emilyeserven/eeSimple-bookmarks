@@ -1,5 +1,36 @@
+import type { AiSummaryApplyInput } from "@eesimple/types";
 import type { FastifyInstance } from "fastify";
-import { getAiSummaryQueueBookmarks, markAiQueueSummarized } from "@/services/aiSummarization";
+import { applyAiSummaries, getAiSummaryQueueBookmarks, markAiQueueSummarized } from "@/services/aiSummarization";
+
+const applyBody = {
+  type: "object",
+  additionalProperties: false,
+  required: ["items"],
+  properties: {
+    items: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["id", "summary"],
+        properties: {
+          id: {
+            type: "string",
+          },
+          summary: {
+            type: "string",
+          },
+          tags: {
+            type: "array",
+            items: {
+              type: "string",
+            },
+          },
+        },
+      },
+    },
+  },
+} as const;
 
 export async function aiSummarizationRoutes(app: FastifyInstance): Promise<void> {
   app.get("/api/ai-summarization/queue", {
@@ -13,4 +44,11 @@ export async function aiSummarizationRoutes(app: FastifyInstance): Promise<void>
       tags: ["ai-summarization"],
     },
   }, async () => markAiQueueSummarized());
+
+  app.post("/api/ai-summarization/apply", {
+    schema: {
+      tags: ["ai-summarization"],
+      body: applyBody,
+    },
+  }, async req => applyAiSummaries(req.body as AiSummaryApplyInput));
 }

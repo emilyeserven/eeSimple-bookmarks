@@ -1,4 +1,6 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import type { AiSummaryApplyInput } from "@eesimple/types";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { aiSummarizationApi } from "../lib/api/settings";
 
@@ -16,5 +18,24 @@ export function useAiSummaryQueue() {
 export function useMarkAiQueueSummarized() {
   return useMutation({
     mutationFn: () => aiSummarizationApi.markSummarized(),
+  });
+}
+
+/** Apply pasted AI summaries: write descriptions, mark summarized, and attach suggested tags. */
+export function useApplyAiSummaries() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: AiSummaryApplyInput) => aiSummarizationApi.apply(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: AI_SUMMARY_QUEUE_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ["bookmarks"],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ["tags"],
+      });
+    },
   });
 }

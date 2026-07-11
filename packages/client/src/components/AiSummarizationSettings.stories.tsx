@@ -6,6 +6,7 @@ import { AiSummarizationSettings } from "./AiSummarizationSettings";
 
 const settingsHandler = http.get("/api/app-settings/ai-summarization", () => HttpResponse.json({
   aiSummarizationPrompt: "Summarize each linked page in two sentences for a busy reader.",
+  aiSummarizationSuggestTags: false,
 }));
 
 const emptyQueueHandlers = [
@@ -17,10 +18,12 @@ const filledQueueHandlers = [
   settingsHandler,
   http.get("/api/ai-summarization/queue", () => HttpResponse.json([
     {
+      id: "11111111-1111-1111-1111-111111111111",
       url: "https://example.com/article",
       title: "An interesting article",
     },
     {
+      id: "22222222-2222-2222-2222-222222222222",
       url: "https://example.com/talk",
       title: "A conference talk worth watching",
     },
