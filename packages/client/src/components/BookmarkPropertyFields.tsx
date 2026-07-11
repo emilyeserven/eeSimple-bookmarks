@@ -405,13 +405,12 @@ function RemoveEntryButton({
   );
 }
 
-/** One tier-1 section entry, with an indented child editor when the property is tiered. */
+/** One tier-1 section entry, with an indented child editor for its second-tier items. */
 function SectionRow({
-  entry, allowedTypes, tiered, defaultType, onChange, onRemove,
+  entry, allowedTypes, defaultType, onChange, onRemove,
 }: {
   entry: SectionEntry;
   allowedTypes: SectionEntryType[];
-  tiered: boolean;
   defaultType: SectionEntryType;
   onChange: (entry: SectionEntry) => void;
   onRemove: () => void;
@@ -441,55 +440,53 @@ function SectionRow({
           onClick={onRemove}
         />
       </div>
-      {tiered && (
-        <div
-          className="ml-4 space-y-2 border-l pl-3"
-        >
-          {children.map(child => (
-            <div
-              key={child.id}
-              className="grid items-start gap-2"
-              style={{
-                gridTemplateColumns: "1fr auto",
-              }}
-            >
-              <SectionEntryInputs
-                entry={child}
-                allowedTypes={allowedTypes}
-                onPatch={patch => onChange({
-                  ...entry,
-                  children: children.map(c => c.id === child.id
-                    ? {
-                      ...c,
-                      ...patch,
-                    }
-                    : c),
-                })}
-              />
-              <RemoveEntryButton
-                label={t("Remove item")}
-                onClick={() => onChange({
-                  ...entry,
-                  children: children.filter(c => c.id !== child.id),
-                })}
-              />
-            </div>
-          ))}
-          <button
-            type="button"
-            className="
-              text-xs text-primary
-              hover:underline
-            "
-            onClick={() => onChange({
-              ...entry,
-              children: [...children, newSectionEntry(defaultType)],
-            })}
+      <div
+        className="ml-4 space-y-2 border-l pl-3"
+      >
+        {children.map(child => (
+          <div
+            key={child.id}
+            className="grid items-start gap-2"
+            style={{
+              gridTemplateColumns: "1fr auto",
+            }}
           >
-            {t("+ Add sub-item")}
-          </button>
-        </div>
-      )}
+            <SectionEntryInputs
+              entry={child}
+              allowedTypes={allowedTypes}
+              onPatch={patch => onChange({
+                ...entry,
+                children: children.map(c => c.id === child.id
+                  ? {
+                    ...c,
+                    ...patch,
+                  }
+                  : c),
+              })}
+            />
+            <RemoveEntryButton
+              label={t("Remove item")}
+              onClick={() => onChange({
+                ...entry,
+                children: children.filter(c => c.id !== child.id),
+              })}
+            />
+          </div>
+        ))}
+        <button
+          type="button"
+          className="
+            text-xs text-primary
+            hover:underline
+          "
+          onClick={() => onChange({
+            ...entry,
+            children: [...children, newSectionEntry(defaultType)],
+          })}
+        >
+          {t("+ Add sub-item")}
+        </button>
+      </div>
     </div>
   );
 }
@@ -511,7 +508,6 @@ export function SectionsPropertyField({
   } = useTranslation();
   const allowedTypes = property.sectionsAllowedTypes ?? [...SECTION_ENTRY_TYPES];
   const defaultType: SectionEntryType = (property.sectionsDefaultType ?? allowedTypes[0] ?? "url") as SectionEntryType;
-  const tiered = property.sectionsTiered ?? false;
 
   function addSection(): void {
     onChange({
@@ -546,7 +542,6 @@ export function SectionsPropertyField({
               key={entry.id}
               entry={entry}
               allowedTypes={allowedTypes}
-              tiered={tiered}
               defaultType={defaultType}
               onChange={updateEntry}
               onRemove={() => removeEntry(entry.id)}
