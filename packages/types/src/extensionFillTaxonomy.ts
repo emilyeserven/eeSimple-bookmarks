@@ -30,12 +30,22 @@ export type TaxonomyEntityAssociation = typeof TAXONOMY_ENTITY_ASSOCIATIONS[numb
 export const TAXONOMY_ENTITY_FIELDS = ["name", "description", "year", "socialLink"] as const;
 export type TaxonomyEntityFieldKey = typeof TAXONOMY_ENTITY_FIELDS[number];
 
+/**
+ * A fillable field for the `taxonomyDirect` target — the JSON-PATCH fields above plus `image`. `image`
+ * is deliberately **not** in {@link TAXONOMY_ENTITY_FIELDS} (that list is "fields the JSON PATCH route
+ * accepts"): an image is uploaded to a separate multipart endpoint (`` `${apiPath}/${id}/image` ``), so
+ * it must never leak into the JSON `taxonomyEntity` target or its Fastify `field` enum. Valid only when
+ * the association's spec has `image: true`.
+ */
+export type TaxonomyDirectFieldKey = TaxonomyEntityFieldKey | "image";
+
 /** Human labels for the writable fields (wrapped in `t()` at UI sites; used verbatim in the popup). */
-export const TAXONOMY_ENTITY_FIELD_LABELS: Record<TaxonomyEntityFieldKey, string> = {
+export const TAXONOMY_ENTITY_FIELD_LABELS: Record<TaxonomyDirectFieldKey, string> = {
   name: "Name",
   description: "Description",
   year: "Year",
   socialLink: "Social link",
+  image: "Image",
 };
 
 /** Static description of one association: its label, REST path, cardinality, and writable fields. */
@@ -50,6 +60,13 @@ export interface TaxonomyEntityAssociationSpec {
   nameKey: "name" | "siteName";
   /** Which writable fields this entity's update route accepts. */
   fields: TaxonomyEntityFieldKey[];
+  /**
+   * True when the entity exposes a `POST ${apiPath}/${id}/image` multipart avatar/poster endpoint
+   * (website favicon / YouTube avatar / person / group image) — enabling the `taxonomyDirect` target's
+   * `field: "image"`. **Sync point:** must match the image-capability map in the popup's
+   * `taxonomyFill.js` mirror and the picker's field list.
+   */
+  image?: boolean;
 }
 
 /**
@@ -64,6 +81,7 @@ export const TAXONOMY_ENTITY_SPECS = {
     single: true,
     nameKey: "siteName",
     fields: ["name", "description", "socialLink"],
+    image: true,
   },
   category: {
     label: "Category",
@@ -85,6 +103,7 @@ export const TAXONOMY_ENTITY_SPECS = {
     single: true,
     nameKey: "name",
     fields: ["name", "description"],
+    image: true,
   },
   newsletter: {
     label: "Newsletter",
@@ -99,6 +118,7 @@ export const TAXONOMY_ENTITY_SPECS = {
     single: true,
     nameKey: "name",
     fields: ["name", "description", "year", "socialLink"],
+    image: true,
   },
   people: {
     label: "People",
@@ -107,6 +127,7 @@ export const TAXONOMY_ENTITY_SPECS = {
     nameKey: "name",
     // People's update route accepts name/description/socialLinks but not year (unlike Groups).
     fields: ["name", "description", "socialLink"],
+    image: true,
   },
   groups: {
     label: "Groups (creators)",
@@ -114,6 +135,7 @@ export const TAXONOMY_ENTITY_SPECS = {
     single: false,
     nameKey: "name",
     fields: ["name", "description", "year", "socialLink"],
+    image: true,
   },
   tags: {
     label: "Tags",
@@ -143,4 +165,10 @@ export interface TaxonomyEntityTermRef {
   description?: string | null;
   socialLinks?: SocialLink[];
   year?: number | null;
+  /**
+   * The entity's current avatar/poster URL, sent only for image-capable associations so the
+   * `taxonomyDirect` image row can show whether an image is already set. Absent = no image / not
+   * image-capable.
+   */
+  imageUrl?: string | null;
 }

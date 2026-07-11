@@ -301,6 +301,67 @@ const fillTransformSchema = {
   ],
 } as const;
 
+const fillReadSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["kind"],
+  properties: {
+    kind: {
+      type: "string",
+      enum: ["text", "attr"],
+    },
+    name: {
+      type: "string",
+    },
+  },
+  allOf: [
+    {
+      if: {
+        properties: {
+          kind: {
+            const: "attr",
+          },
+        },
+      },
+      then: {
+        required: ["kind", "name"],
+      },
+    },
+  ],
+} as const;
+
+const fillExtractSchema = {
+  type: "object",
+  additionalProperties: false,
+  // `selector` is required only for the (default) selector source; a `meta` source uses `metaKey`
+  // instead, so neither is unconditionally required here — the client normalizer drops a rule that
+  // has neither.
+  properties: {
+    source: {
+      type: "string",
+      enum: ["selector", "meta"],
+    },
+    selector: {
+      type: "string",
+    },
+    metaKey: {
+      type: "string",
+    },
+    filters: {
+      type: "array",
+      items: fillFilterSchema,
+    },
+    read: fillReadSchema,
+    transform: {
+      type: "array",
+      items: fillTransformSchema,
+    },
+    split: {
+      type: "string",
+    },
+  },
+} as const;
+
 const fillTargetSchema = {
   type: "object",
   additionalProperties: false,
@@ -308,12 +369,40 @@ const fillTargetSchema = {
   properties: {
     kind: {
       type: "string",
-      enum: ["field", "customProperty", "taxonomy", "image", "taxonomyEntity", "publisher", "sections"],
+      enum: ["field", "customProperty", "taxonomy", "image", "taxonomyEntity", "taxonomyDirect", "publisher", "sections"],
     },
     field: {
       type: "string",
-      // `field` is reused by both `field` (bookmark scalar) and `taxonomyEntity` targets; the
-      // per-kind `if/then` below picks which enum applies via a nested `field` schema.
+      // `field` is reused by the `field` (bookmark scalar), `taxonomyEntity`, and `taxonomyDirect`
+      // targets; the per-kind `if/then` below picks which enum applies via a nested `field` schema.
+    },
+    // `taxonomyDirect` target: how the entity is resolved from the page. `select` (match mode) is a
+    // full extract sub-schema; declared here because the body is `additionalProperties: false`.
+    resolve: {
+      type: "object",
+      additionalProperties: false,
+      required: ["mode"],
+      properties: {
+        mode: {
+          type: "string",
+          enum: ["url", "match"],
+        },
+        select: fillExtractSchema,
+      },
+      allOf: [
+        {
+          if: {
+            properties: {
+              mode: {
+                const: "match",
+              },
+            },
+          },
+          then: {
+            required: ["mode", "select"],
+          },
+        },
+      ],
     },
     propertyId: {
       type: "string",
@@ -419,6 +508,24 @@ const fillTargetSchema = {
       if: {
         properties: {
           kind: {
+            const: "taxonomyDirect",
+          },
+        },
+      },
+      then: {
+        required: ["kind", "association", "resolve", "field"],
+        properties: {
+          field: {
+            // `image` is fillable here (multipart endpoint) but not in the JSON `taxonomyEntity` set.
+            enum: [...TAXONOMY_ENTITY_FIELDS, "image"],
+          },
+        },
+      },
+    },
+    {
+      if: {
+        properties: {
+          kind: {
             const: "sections",
           },
         },
@@ -428,67 +535,6 @@ const fillTargetSchema = {
       },
     },
   ],
-} as const;
-
-const fillReadSchema = {
-  type: "object",
-  additionalProperties: false,
-  required: ["kind"],
-  properties: {
-    kind: {
-      type: "string",
-      enum: ["text", "attr"],
-    },
-    name: {
-      type: "string",
-    },
-  },
-  allOf: [
-    {
-      if: {
-        properties: {
-          kind: {
-            const: "attr",
-          },
-        },
-      },
-      then: {
-        required: ["kind", "name"],
-      },
-    },
-  ],
-} as const;
-
-const fillExtractSchema = {
-  type: "object",
-  additionalProperties: false,
-  // `selector` is required only for the (default) selector source; a `meta` source uses `metaKey`
-  // instead, so neither is unconditionally required here — the client normalizer drops a rule that
-  // has neither.
-  properties: {
-    source: {
-      type: "string",
-      enum: ["selector", "meta"],
-    },
-    selector: {
-      type: "string",
-    },
-    metaKey: {
-      type: "string",
-    },
-    filters: {
-      type: "array",
-      items: fillFilterSchema,
-    },
-    read: fillReadSchema,
-    transform: {
-      type: "array",
-      items: fillTransformSchema,
-    },
-    split: {
-      type: "string",
-    },
-  },
 } as const;
 
 const pathMatchSchema = {

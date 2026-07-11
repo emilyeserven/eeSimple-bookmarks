@@ -1,6 +1,11 @@
-// Side-effect import: the classic extension script assigns `globalThis.eesimpleFillEngine`.
+// Side-effect imports: the classic extension scripts assign `globalThis.eesimpleFillEngine` /
+// `globalThis.eesimpleTaxonomyFill`.
 import "../../public/extension/fillEngine.js";
+import "../../public/extension/taxonomyFill.js";
 
+import type { TaxonomyEntityAssociationSpec } from "@eesimple/types";
+
+import { TAXONOMY_ENTITY_SPECS } from "@eesimple/types";
 import { describe, expect, it } from "vitest";
 
 interface FillResult {
@@ -859,5 +864,79 @@ describe("eesimpleFillEngine.runRules — sections target", () => {
     )[0] as FillResult & { entries?: unknown };
     expect(result.entries).toBeUndefined();
     expect(result.values).toEqual(["One"]);
+  });
+});
+
+interface TaxonomyFill {
+  TAXONOMY_ENTITY_PATCH: Record<string, { path: string;
+    nameKey: string;
+    noun: string;
+    image?: boolean; }>;
+}
+
+const taxonomyFill = (globalThis as unknown as { eesimpleTaxonomyFill: TaxonomyFill }).eesimpleTaxonomyFill;
+
+describe("eesimpleFillEngine.runRules — taxonomyDirect resolve.select (match mode)", () => {
+  const HTML = `
+    <main>
+      <h1 class="creator">Veritasium</h1>
+      <p class="bio">Science videos.</p>
+    </main>
+  `;
+
+  it("attaches resolveValue (the scraped entity name) for a match-mode direct rule", () => {
+    const rule = {
+      id: "d1",
+      target: {
+        kind: "taxonomyDirect",
+        association: "people",
+        resolve: {
+          mode: "match",
+          select: {
+            selector: "h1.creator",
+          },
+        },
+        field: "description",
+      },
+      extract: {
+        selector: "p.bio",
+      },
+    };
+    const result = engine.runRules([rule], docFrom(HTML))[0] as FillResult & { resolveValue?: string };
+    // The field value comes from the top-level extract; the entity identifier from resolve.select.
+    expect(result.values).toEqual(["Science videos."]);
+    expect(result.resolveValue).toBe("Veritasium");
+  });
+
+  it("does not attach resolveValue for a url-mode direct rule", () => {
+    const rule = {
+      id: "d2",
+      target: {
+        kind: "taxonomyDirect",
+        association: "website",
+        resolve: {
+          mode: "url",
+        },
+        field: "name",
+      },
+      extract: {
+        selector: "h1.creator",
+      },
+    };
+    const result = engine.runRules([rule], docFrom(HTML))[0] as FillResult & { resolveValue?: string };
+    expect(result.values).toEqual(["Veritasium"]);
+    expect(result.resolveValue).toBeUndefined();
+  });
+});
+
+describe("taxonomyFill.js TAXONOMY_ENTITY_PATCH mirror stays aligned with the TS registry", () => {
+  it("marks image: true exactly on the image-capable associations (sync-point guard)", () => {
+    const specs = Object.entries(TAXONOMY_ENTITY_SPECS) as [string, TaxonomyEntityAssociationSpec][];
+    for (const [association, spec] of specs) {
+      const mirror = taxonomyFill.TAXONOMY_ENTITY_PATCH[association];
+      expect(mirror, `missing mirror for ${association}`).toBeDefined();
+      expect(mirror.path).toBe(spec.apiPath);
+      expect(!!mirror.image, `image capability drift for ${association}`).toBe(!!spec.image);
+    }
   });
 });

@@ -574,6 +574,126 @@ test("PATCH /api/websites/:id rejects a taxonomyEntity target with an unknown as
   await app.close();
 });
 
+test("PATCH /api/websites/:id accepts a taxonomyDirect target (url-mode image)", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "PATCH",
+    url: "/api/websites/11111111-1111-1111-1111-111111111111",
+    payload: {
+      extensionFillRules: [
+        {
+          id: "r1",
+          label: "Channel avatar",
+          target: {
+            kind: "taxonomyDirect",
+            association: "youtubeChannel",
+            resolve: {
+              mode: "url",
+            },
+            field: "image",
+          },
+          extract: {
+            selector: "img#avatar",
+            read: {
+              kind: "attr",
+              name: "src",
+            },
+          },
+        },
+      ],
+    },
+  });
+  assert.notEqual(res.statusCode, 400);
+  await app.close();
+});
+
+test("PATCH /api/websites/:id accepts a taxonomyDirect target (match-mode with a select extract)", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "PATCH",
+    url: "/api/websites/11111111-1111-1111-1111-111111111111",
+    payload: {
+      extensionFillRules: [
+        {
+          id: "r1",
+          label: "Person description",
+          target: {
+            kind: "taxonomyDirect",
+            association: "people",
+            resolve: {
+              mode: "match",
+              select: {
+                selector: "h1.name",
+              },
+            },
+            field: "description",
+          },
+          extract: {
+            selector: ".bio",
+          },
+        },
+      ],
+    },
+  });
+  assert.notEqual(res.statusCode, 400);
+  await app.close();
+});
+
+test("PATCH /api/websites/:id rejects a taxonomyDirect target missing its resolve", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "PATCH",
+    url: "/api/websites/11111111-1111-1111-1111-111111111111",
+    payload: {
+      extensionFillRules: [
+        {
+          id: "r1",
+          label: "Bad",
+          target: {
+            kind: "taxonomyDirect",
+            association: "website",
+            field: "name",
+          },
+          extract: {
+            selector: ".x",
+          },
+        },
+      ],
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
+test("PATCH /api/websites/:id rejects a taxonomyDirect match-mode target missing its select extract", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "PATCH",
+    url: "/api/websites/11111111-1111-1111-1111-111111111111",
+    payload: {
+      extensionFillRules: [
+        {
+          id: "r1",
+          label: "Bad",
+          target: {
+            kind: "taxonomyDirect",
+            association: "people",
+            resolve: {
+              mode: "match",
+            },
+            field: "description",
+          },
+          extract: {
+            selector: ".x",
+          },
+        },
+      ],
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
 test("PATCH /api/websites/:id accepts a scanObservations payload", async () => {
   const app = await buildApp();
   const res = await app.inject({

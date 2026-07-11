@@ -152,6 +152,41 @@ describe("WebsiteExtensionFillRulesForm", () => {
     expect(secondEdit).toBeInTheDocument();
   });
 
+  it("renders a taxonomyDirect rule's summary read-only", () => {
+    render(
+      <WebsiteExtensionFillRulesForm
+        website={makeWebsite({
+          id: "site-3",
+          extensionFillRules: [
+            {
+              id: "channel-avatar",
+              label: "Channel avatar",
+              target: {
+                kind: "taxonomyDirect",
+                association: "youtubeChannel",
+                resolve: {
+                  mode: "url",
+                },
+                field: "image",
+              },
+              extract: {
+                selector: "img#avatar",
+                read: {
+                  kind: "attr",
+                  name: "src",
+                },
+              },
+            },
+          ],
+        })}
+      />,
+    );
+
+    expect(screen.getByText("Channel avatar")).toBeInTheDocument();
+    // The target summary from describeFillTarget: association · field (resolution source).
+    expect(screen.getByText("YouTube channel · Image (from URL)")).toBeInTheDocument();
+  });
+
   it("shows the empty state when a site has no rules", () => {
     render(
       <WebsiteExtensionFillRulesForm

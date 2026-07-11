@@ -58,6 +58,9 @@ let locationsList: TermFixture[] = [];
 let categoriesList: TermFixture[] = [];
 let mediaTypesList: TermFixture[] = [];
 let websiteRecords: Record<string, TermFixture> = {};
+// url→channelKey (settable per test) + key→channel fixtures for the `taxonomyDirect` youtube resolver.
+let youtubeChannelKey: string | null = null;
+let youtubeChannelByKey: Record<string, TermFixture & { imageUrl?: string | null }> = {};
 
 mock.module("@/services/bookmarks", {
   namedExports: {
@@ -94,6 +97,8 @@ mock.module("@/services/newsletters", {
 mock.module("@/services/youtubeChannels", {
   namedExports: {
     getYouTubeChannel: async () => null,
+    channelKeyFromUrl: () => youtubeChannelKey,
+    getYouTubeChannelByKey: async (key: string) => youtubeChannelByKey[key] ?? null,
   },
 });
 mock.module("@/services/websites", {
@@ -176,16 +181,41 @@ function resetFixtures(): void {
   categoriesList = [];
   mediaTypesList = [];
   websiteRecords = {};
+  youtubeChannelKey = null;
+  youtubeChannelByKey = {};
 }
 
-function makeWebsite(extensionFillRules: WebsiteExtensionFillRule[]): Website {
+function makeWebsite(
+  extensionFillRules: WebsiteExtensionFillRule[],
+  overrides: Partial<Website> = {},
+): Website {
   return {
     id: "website-1",
     domain: "example.com",
     siteName: "Example",
     slug: "example",
     extensionFillRules,
+    ...overrides,
   } as unknown as Website;
+}
+
+/** A `taxonomyDirect` rule (defaults: website entity, name field, resolved from the URL). */
+function makeDirectRule(
+  overrides: Partial<WebsiteExtensionFillRule> = {},
+): WebsiteExtensionFillRule {
+  return makeRule({
+    id: "direct-1",
+    label: "Site name",
+    target: {
+      kind: "taxonomyDirect",
+      association: "website",
+      resolve: {
+        mode: "url",
+      },
+      field: "name",
+    },
+    ...overrides,
+  });
 }
 
 function makeRule(overrides: Partial<WebsiteExtensionFillRule>): WebsiteExtensionFillRule {
@@ -656,4 +686,171 @@ test("associatedTerms omits an association whose bookmark has no linked term", a
   assert.equal(result.mode, "bookmark");
   // No linked groups → the whole associatedTerms map is absent (popup shows a disabled "no linked" row).
   assert.equal(result.associatedTerms, undefined);
+});
+
+test("mode is 'taxonomy' when the URL matches a website with a taxonomyDirect rule but no bookmark", async () => {
+  resetFixtures();
+  websiteForUrl = makeWebsite([makeDirectRule()], {
+    description: "A site",
+    socialLinks: [{
+      platform: "x",
+      url: "https://x.com/example",
+    }],
+    imageUrl: "https://cdn/example/favicon.png",
+  } as Partial<Website>);
+
+  const result = await getExtensionFillContext("https://example.com/");
+  assert.equal(result.mode, "taxonomy");
+  assert.equal(result.bookmark, undefined);
+  assert.equal(result.website?.id, "website-1");
+  assert.equal(result.website?.extensionFillRules.length, 1);
+  // The URL-resolved website entity is shipped with its current field values for the popup diff.
+  assert.deepEqual(result.associatedTerms?.website, [
+    {
+      id: "website-1",
+      name: "Example",
+      description: "A site",
+      socialLinks: [{
+        platform: "x",
+        url: "https://x.com/example",
+      }],
+      imageUrl: "https://cdn/example/favicon.png",
+    },
+  ]);
+});
+
+test("mode 'taxonomy' resolves a youtubeChannel by channelKey for a url-mode direct rule", async () => {
+  resetFixtures();
+  youtubeChannelKey = "@veritasium";
+  youtubeChannelByKey = {
+    "@veritasium": {
+      id: "yt-1",
+      name: "Veritasium",
+      description: "Science",
+      imageUrl: "https://cdn/yt/avatar.png",
+    },
+  };
+  websiteForUrl = makeWebsite([
+    makeDirectRule({
+      target: {
+        kind: "taxonomyDirect",
+        association: "youtubeChannel",
+        resolve: {
+          mode: "url",
+        },
+        field: "image",
+      },
+    }),
+  ]);
+
+  const result = await getExtensionFillContext("https://www.youtube.com/@veritasium");
+  assert.equal(result.mode, "taxonomy");
+  assert.deepEqual(result.associatedTerms?.youtubeChannel, [
+    {
+      id: "yt-1",
+      name: "Veritasium",
+      description: "Science",
+      imageUrl: "https://cdn/yt/avatar.png",
+    },
+  ]);
+});
+
+test("a website with only non-direct rules and no bookmark stays 'unknown' (no direct-taxonomy fill)", async () => {
+  resetFixtures();
+  // Website matched, but its rule targets a bookmark field — nothing to fill without a bookmark.
+  websiteForUrl = makeWebsite([makeRule({
+    id: "r1",
+    target: {
+      kind: "field",
+      field: "title",
+    },
+  })]);
+  const result = await getExtensionFillContext("https://example.com/new");
+  assert.equal(result.mode, "unknown");
+});
+
+test("a url-mode direct rule that resolves no entity falls through to unknown (page still savable)", async () => {
+  resetFixtures();
+  // A youtube.com-style site whose only direct rule targets a channel by URL, but this URL isn't a
+  // channel page (channelKeyFromUrl → null), so nothing resolves — must not hijack the inbox path.
+  youtubeChannelKey = null;
+  websiteForUrl = makeWebsite([
+    makeDirectRule({
+      target: {
+        kind: "taxonomyDirect",
+        association: "youtubeChannel",
+        resolve: {
+          mode: "url",
+        },
+        field: "name",
+      },
+    }),
+  ]);
+  const result = await getExtensionFillContext("https://www.youtube.com/watch?v=abc");
+  assert.equal(result.mode, "unknown");
+});
+
+test("a match-mode direct rule enters taxonomy mode even when nothing pre-resolves", async () => {
+  resetFixtures();
+  // Match-mode entities are resolved in-browser, so the server can't pre-resolve — it still offers
+  // taxonomy mode (the popup path-gates and falls back to the Inbox if the rule gates to nothing).
+  websiteForUrl = makeWebsite([
+    makeDirectRule({
+      target: {
+        kind: "taxonomyDirect",
+        association: "people",
+        resolve: {
+          mode: "match",
+          select: {
+            selector: "h1",
+          },
+        },
+        field: "description",
+      },
+    }),
+  ]);
+  const result = await getExtensionFillContext("https://example.com/author/ada");
+  assert.equal(result.mode, "taxonomy");
+  // Nothing pre-resolved server-side.
+  assert.equal(result.associatedTerms, undefined);
+});
+
+test("a taxonomyDirect rule takes precedence over a pending inbox item (no auto-inbox)", async () => {
+  resetFixtures();
+  pendingImportItem = {
+    id: "import-item-1",
+  };
+  websiteForUrl = makeWebsite([makeDirectRule()]);
+  const result = await getExtensionFillContext("https://example.com/");
+  // The direct-taxonomy path wins so the page opens to fill the entity, not "already in your inbox".
+  assert.equal(result.mode, "taxonomy");
+  assert.equal(result.inboxItemId, undefined);
+});
+
+test("a bookmark visit folds the url-resolved direct entity into associatedTerms", async () => {
+  resetFixtures();
+  duplicateResult = {
+    exactMatch: {
+      id: "bm-1",
+      url: "https://example.com/a",
+      title: "A",
+    },
+    pathMatch: null,
+    identityMatches: [],
+  };
+  bookmarkById = {
+    "bm-1": {
+      id: "bm-1",
+      title: "A",
+    } as unknown as Bookmark,
+  };
+  websiteForUrl = makeWebsite([makeDirectRule()], {
+    description: "A site",
+  } as Partial<Website>);
+
+  const result = await getExtensionFillContext("https://example.com/a");
+  assert.equal(result.mode, "bookmark");
+  // The taxonomyDirect url-mode website entity is available even on a saved-bookmark visit.
+  assert.deepEqual(result.associatedTerms?.website?.[0]?.id, "website-1");
+  assert.equal(result.associatedTerms?.website?.[0]?.description, "A site");
 });

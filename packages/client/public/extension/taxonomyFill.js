@@ -21,14 +21,17 @@
   };
 
   // Mirror of TAXONOMY_ENTITY_SPECS (packages/types/src/extensionFillTaxonomy.ts): for a
-  // `taxonomyEntity` fill target, the PATCH base path + name key + display noun of each associated
-  // taxonomy. The popup is a classic script and can't import the TS registry, so this is duplicated —
-  // keep it in sync with that file.
+  // `taxonomyEntity` / `taxonomyDirect` fill target, the PATCH base path + name key + display noun of
+  // each associated taxonomy, plus `image: true` when the entity exposes a `${path}/image` multipart
+  // avatar/poster endpoint (drives `taxonomyDirect` `field: "image"`). The popup is a classic script
+  // and can't import the TS registry, so this is duplicated — keep `path`/`nameKey`/`image` in sync
+  // with that file (the fillEngine.test.ts side-effect import asserts the image alignment).
   const TAXONOMY_ENTITY_PATCH = {
     website: {
       path: "/api/websites",
       nameKey: "siteName",
       noun: "website",
+      image: true,
     },
     category: {
       path: "/api/categories",
@@ -44,6 +47,7 @@
       path: "/api/youtube-channels",
       nameKey: "name",
       noun: "YouTube channel",
+      image: true,
     },
     newsletter: {
       path: "/api/newsletters",
@@ -54,16 +58,19 @@
       path: "/api/groups",
       nameKey: "name",
       noun: "group",
+      image: true,
     },
     people: {
       path: "/api/people",
       nameKey: "name",
       noun: "person",
+      image: true,
     },
     groups: {
       path: "/api/groups",
       nameKey: "name",
       noun: "group",
+      image: true,
     },
     tags: {
       path: "/api/tags",

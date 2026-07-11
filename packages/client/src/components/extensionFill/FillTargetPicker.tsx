@@ -1,6 +1,6 @@
 import type { KindOption } from "./controls";
 import type { ComboboxOption } from "../Combobox";
-import type { CustomProperty, FillTarget, TaxonomyEntityAssociation, TaxonomyEntityFieldKey } from "@eesimple/types";
+import type { CustomProperty, FillTarget, TaxonomyDirectFieldKey, TaxonomyEntityAssociation, TaxonomyEntityAssociationSpec, TaxonomyEntityFieldKey } from "@eesimple/types";
 
 import { useId } from "react";
 
@@ -18,12 +18,17 @@ import { Combobox } from "../Combobox";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
 
-import { coerceFillTarget } from "@/lib/extensionFillForm";
+import { coerceFillTarget, directFieldSupported } from "@/lib/extensionFillForm";
 
 type FieldName = Extract<FillTarget, { kind: "field" }>["field"];
 type TaxonomyName = Extract<FillTarget, { kind: "taxonomy" }>["taxonomy"];
 type TaxonomyEntityTarget = Extract<FillTarget, { kind: "taxonomyEntity" }>;
+type TaxonomyDirectTargetT = Extract<FillTarget, { kind: "taxonomyDirect" }>;
+type ResolveMode = TaxonomyDirectTargetT["resolve"]["mode"];
 type SubField = "current" | "total";
+
+/** The two associations the server can resolve straight from the tab URL (domain / channelKey). */
+const URL_RESOLVABLE_ASSOCIATIONS: TaxonomyEntityAssociation[] = ["website", "youtubeChannel"];
 
 /** The `kind` select plus the variant-specific value control for a rule's {@link FillTarget}. */
 export function FillTargetPicker({
@@ -66,6 +71,10 @@ export function FillTargetPicker({
           {
             value: "taxonomyEntity",
             label: t("Associated taxonomy"),
+          },
+          {
+            value: "taxonomyDirect",
+            label: t("Taxonomy entity (direct)"),
           },
           {
             value: "sections",
@@ -159,6 +168,13 @@ function FillTargetValue({
     case "taxonomyEntity":
       return (
         <TaxonomyEntityTarget
+          target={target}
+          onChange={onChange}
+        />
+      );
+    case "taxonomyDirect":
+      return (
+        <TaxonomyDirectTarget
           target={target}
           onChange={onChange}
         />
@@ -347,6 +363,154 @@ function TaxonomyEntityTarget({
                 }
                 : {}),
             })}
+          />
+        )
+        : null}
+    </div>
+  );
+}
+
+/** Build a `taxonomyDirect` target from parts, clamping `field` to one the association supports. */
+function buildDirectTarget(
+  association: TaxonomyEntityAssociation,
+  resolve: TaxonomyDirectTargetT["resolve"],
+  field: TaxonomyDirectFieldKey,
+  socialPlatform?: TaxonomyDirectTargetT["socialPlatform"],
+): TaxonomyDirectTargetT {
+  const nextField = directFieldSupported(association, field)
+    ? field
+    : TAXONOMY_ENTITY_SPECS[association].fields[0];
+  return {
+    kind: "taxonomyDirect",
+    association,
+    resolve,
+    field: nextField,
+    ...(nextField === "socialLink" && socialPlatform
+      ? {
+        socialPlatform,
+      }
+      : {}),
+  };
+}
+
+/** The fillable fields for an association: its writable JSON fields plus `image` when supported. */
+function directFieldKeys(association: TaxonomyEntityAssociation): TaxonomyDirectFieldKey[] {
+  const spec: TaxonomyEntityAssociationSpec = TAXONOMY_ENTITY_SPECS[association];
+  return spec.image ? [...spec.fields, "image"] : [...spec.fields];
+}
+
+/**
+ * Controls for a "Taxonomy entity (direct)" target: how the entity is resolved from the page (its tab
+ * URL, or a scraped identifier), which taxonomy + field to write, and the platform for a social link.
+ * Switching the resolve mode narrows the association list (URL mode only resolves website/YouTube
+ * channel); switching the association re-clamps the field.
+ */
+function TaxonomyDirectTarget({
+  target, onChange,
+}: {
+  target: TaxonomyDirectTargetT;
+  onChange: (target: FillTarget) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const associations = target.resolve.mode === "url"
+    ? URL_RESOLVABLE_ASSOCIATIONS
+    : TAXONOMY_ENTITY_ASSOCIATIONS;
+  const fields = directFieldKeys(target.association);
+  return (
+    <div className="space-y-2">
+      <KindSelect<ResolveMode>
+        label={t("Resolve entity by")}
+        value={target.resolve.mode}
+        options={[
+          {
+            value: "url",
+            label: t("Page URL"),
+          },
+          {
+            value: "match",
+            label: t("Scraped name"),
+          },
+        ]}
+        onValueChange={(mode) => {
+          // URL mode only resolves website/YouTube channel — fall back to website when switching.
+          const association = mode === "url" && !URL_RESOLVABLE_ASSOCIATIONS.includes(target.association)
+            ? "website"
+            : target.association;
+          const resolve: TaxonomyDirectTargetT["resolve"] = mode === "url"
+            ? {
+              mode: "url",
+            }
+            : {
+              mode: "match",
+              select: target.resolve.mode === "match"
+                ? target.resolve.select
+                : {
+                  selector: "",
+                },
+            };
+          onChange(buildDirectTarget(association, resolve, target.field, target.socialPlatform));
+        }}
+      />
+      {target.resolve.mode === "match"
+        ? (
+          <LabeledInput
+            label={t("Entity name selector")}
+            placeholder="h1.entry-title"
+            value={target.resolve.select.selector ?? ""}
+            onChange={selector => onChange(buildDirectTarget(
+              target.association,
+              {
+                mode: "match",
+                select: {
+                  ...target.resolve.mode === "match" ? target.resolve.select : {},
+                  selector,
+                },
+              },
+              target.field,
+              target.socialPlatform,
+            ))}
+          />
+        )
+        : null}
+      <KindSelect<TaxonomyEntityAssociation>
+        label={t("Taxonomy")}
+        value={target.association}
+        options={associations.map(association => ({
+          value: association,
+          label: t(TAXONOMY_ENTITY_SPECS[association].label),
+        }))}
+        onValueChange={association =>
+          onChange(buildDirectTarget(association, target.resolve, target.field, target.socialPlatform))}
+      />
+      <KindSelect<TaxonomyDirectFieldKey>
+        label={t("Field")}
+        value={target.field}
+        options={fields.map(field => ({
+          value: field,
+          label: t(TAXONOMY_ENTITY_FIELD_LABELS[field]),
+        }))}
+        onValueChange={field =>
+          onChange(buildDirectTarget(target.association, target.resolve, field, target.socialPlatform))}
+      />
+      {target.field === "socialLink"
+        ? (
+          <Combobox
+            aria-label={t("Platform")}
+            options={SOCIAL_MEDIA_PLATFORMS.map(platform => ({
+              value: platform,
+              label: SOCIAL_MEDIA_PLATFORM_LABELS[platform],
+            }))}
+            value={target.socialPlatform || undefined}
+            placeholder={t("Select a platform")}
+            emptyText={t("No platforms found.")}
+            onValueChange={value => onChange(buildDirectTarget(
+              target.association,
+              target.resolve,
+              "socialLink",
+              (value as TaxonomyDirectTargetT["socialPlatform"]) || undefined,
+            ))}
           />
         )
         : null}

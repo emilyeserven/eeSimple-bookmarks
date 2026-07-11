@@ -32,14 +32,17 @@ const PATH_MATCH_MODE_OPTIONS: KindOption<PathMatch["mode"]>[] = [
 ];
 
 /**
- * Swap a rule's target. When switching to an image target, default the read to the `<img>` `src`
- * attribute (unless the user already chose an attribute) — the common way to grab a page image.
+ * Swap a rule's target. When switching to an image target (the `image` kind, or a `taxonomyDirect`
+ * entity image field), default the read to the `<img>` `src` attribute (unless the user already chose
+ * an attribute) — the common way to grab a page image.
  */
 function applyTargetChange(
   rule: WebsiteExtensionFillRule,
   target: FillTarget,
 ): WebsiteExtensionFillRule {
-  if (target.kind === "image" && rule.extract.read?.kind !== "attr") {
+  const grabsImage = target.kind === "image"
+    || (target.kind === "taxonomyDirect" && target.field === "image");
+  if (grabsImage && rule.extract.read?.kind !== "attr") {
     return {
       ...rule,
       target,
