@@ -159,9 +159,14 @@ export interface FillExtract {
   metaKey?: string;
   /** Applied in order, each narrows candidates. */
   filters?: FillFilter[];
-  /** Default trimmed `textContent` (or the `content` attribute for the `meta` source). */
+  /**
+   * Default trimmed `textContent` (or the `content` attribute for the `meta` source).
+   * `backgroundImage` reads the element's **computed `background-image`** and pulls the first
+   * `url(…)` out of it — how you grab an image painted via CSS rather than an `<img src>` (pair it
+   * with an `image` / `taxonomyDirect` image target).
+   */
   read?: { kind: "text" } | { kind: "attr";
-    name: string; };
+    name: string; } | { kind: "backgroundImage" };
   /** String transforms applied in order. */
   transform?: FillTransform[];
   /** Taxonomy targets only: split one value into many. */

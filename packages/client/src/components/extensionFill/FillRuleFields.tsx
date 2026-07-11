@@ -34,7 +34,8 @@ const PATH_MATCH_MODE_OPTIONS: KindOption<PathMatch["mode"]>[] = [
 /**
  * Swap a rule's target. When switching to an image target (the `image` kind, or a `taxonomyDirect`
  * entity image field), default the read to the `<img>` `src` attribute (unless the user already chose
- * an attribute) — the common way to grab a page image. When switching to a `taxonomyEntity`
+ * an attribute or a CSS `background-image` read) — the common way to grab a page image. When switching
+ * to a `taxonomyEntity`
  * primary-language target with a still-blank extract, default to the `og:locale` meta tag — the usual
  * page-language signal.
  */
@@ -44,7 +45,11 @@ function applyTargetChange(
 ): WebsiteExtensionFillRule {
   const grabsImage = target.kind === "image"
     || (target.kind === "taxonomyDirect" && target.field === "image");
-  if (grabsImage && rule.extract.read?.kind !== "attr") {
+  // Keep an already-image-oriented read (an attribute like `src`, or a CSS `background-image`);
+  // otherwise default to the common `<img>` `src`.
+  const keepsImageRead = rule.extract.read?.kind === "attr"
+    || rule.extract.read?.kind === "backgroundImage";
+  if (grabsImage && !keepsImageRead) {
     return {
       ...rule,
       target,

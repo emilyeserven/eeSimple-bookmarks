@@ -52,3 +52,19 @@ export const Attribute: Story = {
     );
   },
 };
+
+export const BackgroundImage: Story = {
+  render: () => {
+    const [read, setRead] = useState<FillExtract["read"]>({
+      kind: "backgroundImage",
+    });
+    return (
+      <div className="w-72">
+        <FillReadField
+          read={read}
+          onChange={setRead}
+        />
+      </div>
+    );
+  },
+};
