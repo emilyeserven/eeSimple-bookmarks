@@ -69,6 +69,7 @@ const SCREENS = {
 // PATCH id-array field / stub endpoint.
 const {
   TAX_PATCH_KEY,
+  TAX_NOUN,
   TAXONOMY_ENTITY_PATCH,
   resolveTaxonomyId,
   resolveRelationId,
@@ -204,6 +205,20 @@ function routeByMode(ctx, url, autoSave = true) {
   }
   if (ctx.mode === "inbox") {
     renderInboxSaved(ctx.inboxItemId, url, "Already in your inbox.");
+    return;
+  }
+  if (ctx.mode === "taxonomy") {
+    // The page is a taxonomy entity's source (no bookmark) — fill the entity directly. Keep only the
+    // taxonomyDirect rules whose path gate matches. If that gates to nothing, don't leave the page
+    // unsaved: fall back to the unknown behavior (auto-save to Inbox, or the manual form after a re-route).
+    const rules = gateRules(ctx.website?.extensionFillRules ?? [], url)
+      .filter(rule => rule.target?.kind === "taxonomyDirect");
+    if (!ctx.website || rules.length === 0) {
+      if (autoSave) void autoSaveToInbox(url);
+      else quickSaveFallback();
+      return;
+    }
+    void enterFillMode(ctx, rules);
     return;
   }
   if (ctx.mode === "bookmark") {
@@ -604,8 +619,10 @@ async function captureScreenshot(bookmarkId, btn, statusEl) {
 
 // --- Fill mode ----------------------------------------------------------
 async function enterFillMode(ctx, rules) {
+  // In `taxonomy` mode there's no bookmark — fall back to the tab title and the website name so the
+  // "filling" / review screens still have a heading.
   const bookmark = ctx.bookmark;
-  fillFillingTitle.textContent = bookmark?.title ?? "";
+  fillFillingTitle.textContent = bookmark?.title ?? currentTab?.title ?? ctx.website?.siteName ?? "";
   show("filling");
 
   let results;
@@ -657,11 +674,13 @@ async function injectAndRun(tabId, rules) {
 }
 
 function showReviewError(bookmark, message) {
-  fillReviewTitle.textContent = bookmark?.title ?? "";
+  fillReviewTitle.textContent = bookmark?.title ?? currentTab?.title ?? "";
   fillError.textContent = message;
   fillError.classList.remove("hidden");
   fillRows.innerHTML = "";
   fillApplyBtn.classList.add("hidden");
+  // No bookmark (taxonomy mode) → nothing to open.
+  fillReviewOpenBtn.classList.toggle("hidden", !bookmark);
   fillReviewOpenBtn.onclick = () => openBookmark(bookmark?.id);
   show("review");
 }
@@ -693,6 +712,7 @@ function buildRow(rule, result, ctx) {
   if (kind === "publisher") return buildPublisherRow(rule, values, ctx);
   if (kind === "image") return buildImageRow(rule, values, ctx.bookmark);
   if (kind === "taxonomyEntity") return buildTaxonomyEntityRow(rule, values, ctx);
+  if (kind === "taxonomyDirect") return buildTaxonomyDirectRow(rule, result, ctx);
   if (kind === "sections") return buildSectionsRow(rule, result, ctx);
   return baseRow(rule, "", values[0] ?? "", false, "unsupported");
 }
@@ -1355,6 +1375,301 @@ async function applyEntityPatches(entityPatches) {
   };
 }
 
+// --- taxonomyDirect: update a taxonomy entity resolved from the page --------
+// A `taxonomyDirect` rule updates a taxonomy *entity* identified from the current page (not via a
+// linked bookmark). Two resolution modes: `url` (the server pre-resolved the entity into
+// ctx.associatedTerms) and `match` (the engine scraped an identifier — resolveValue — resolved to an
+// id at apply-time). Fields reuse the entity-PATCH path for JSON, plus a `${path}/image` upload.
+
+// Match-mode associations that may mint a name-only stub when unmatched (the taxonomy list endpoints
+// resolveTaxonomyId targets). website/youtubeChannel/etc. are match-only — never stubbed.
+const MATCH_CREATABLE = new Set(["people", "groups", "locations", "tags"]);
+
+function buildTaxonomyDirectRow(rule, result, ctx) {
+  const {
+    association, resolve, field, socialPlatform,
+  } = rule.target;
+  const meta = TAXONOMY_ENTITY_PATCH[association];
+  const values = result?.values ?? [];
+  if (!meta || (field === "socialLink" && !socialPlatform) || (field === "image" && !meta.image)) {
+    return baseRow(rule, "", values[0] ?? "", false, "unsupported");
+  }
+
+  if (resolve?.mode === "url") {
+    const terms = (ctx.associatedTerms && ctx.associatedTerms[association]) || [];
+    if (terms.length === 0) {
+      return baseRow(rule, "—", field === "image" ? "" : (values[0] ?? ""), false, `no matching ${meta.noun}`);
+    }
+    // The server resolves a url-mode entity to exactly one term.
+    const term = terms[0];
+    if (field === "image") return buildDirectImageRow(rule, values, meta, term.id, term.imageUrl);
+    return buildDirectEntityFieldRow(rule, values, meta, association, field, socialPlatform, term);
+  }
+
+  // match mode: the entity is identified by a scraped name resolved at apply-time.
+  const name = result?.resolveValue ? result.resolveValue.trim() : "";
+  if (!name) {
+    return baseRow(rule, "—", field === "image" ? "" : (values[0] ?? ""), false, "no entity name");
+  }
+  if (field === "image") {
+    const urls = values.map(resolveImageUrl).filter(url => url !== null);
+    if (!urls.length) return baseRow(rule, "—", "", false, "not found");
+    const row = baseRow(rule, "—", `${urls.length} image → ${name}`, true, null);
+    row.directEntity = {
+      meta,
+      association,
+      resolveMode: "match",
+      resolveName: name,
+      field: "image",
+      imageUrls: urls,
+    };
+    return row;
+  }
+  const extracted = values[0] ?? "";
+  if (!extracted) return baseRow(rule, "—", "", false, "not found");
+  let coerced = extracted;
+  if (field === "year") {
+    const num = Number(extracted);
+    if (!Number.isFinite(num)) return baseRow(rule, "—", extracted, false, "not found");
+    coerced = num;
+  }
+  const row = baseRow(rule, `match: ${name}`, field === "year" ? String(coerced) : extracted, true, null);
+  row.directEntity = {
+    meta,
+    association,
+    resolveMode: "match",
+    resolveName: name,
+    field,
+    socialPlatform,
+    value: extracted,
+    coerced,
+  };
+  return row;
+}
+
+// url-mode JSON field: reuse the existing taxonomyEntity apply path (single term, no picker) so name/
+// description/year/socialLink go through accumulateEntityPatch → applyEntityPatches (socialLink seeds
+// from the term's current links, preserving other platforms).
+function buildDirectEntityFieldRow(rule, values, meta, association, field, socialPlatform, term) {
+  const extracted = values[0] ?? "";
+  if (!extracted) return baseRow(rule, "", "", false, "not found");
+  let coerced = extracted;
+  if (field === "year") {
+    const num = Number(extracted);
+    if (!Number.isFinite(num)) return baseRow(rule, "", extracted, false, "not found");
+    coerced = num;
+  }
+  const entity = {
+    mode: "scalar",
+    association,
+    field,
+    socialPlatform,
+    meta,
+    terms: [term],
+    extracted,
+    coerced,
+    selectedTermId: term.id,
+  };
+  const display = entityFieldDisplay(entity, term);
+  const row = baseRow(rule, display.currentText, display.extractedText, display.changed, display.changed ? null : "no change");
+  row.entity = entity;
+  row.apply = (patch, state) => {
+    accumulateEntityPatch(state, row);
+  };
+  return row;
+}
+
+// url-mode image field: grab image URL(s) and, on apply, upload the bytes to the entity's image endpoint.
+function buildDirectImageRow(rule, values, meta, termId, currentImageUrl) {
+  const urls = values.map(resolveImageUrl).filter(url => url !== null);
+  const currentText = currentImageUrl ? "1 image" : "—";
+  if (!urls.length) return baseRow(rule, currentText, "", false, "not found");
+  const row = baseRow(rule, currentText, `${urls.length} image`, true, null);
+  row.directEntity = {
+    meta,
+    resolveMode: "url",
+    termId,
+    field: "image",
+    imageUrls: urls,
+  };
+  return row;
+}
+
+// Apply each checked taxonomyDirect row (after the bookmark/linked-term PATCHes). Resolves the entity
+// id (url-mode: the term id; match-mode: match-or-create against the list endpoint), then PATCHes a
+// JSON field or uploads an image. Returns { updated, failed } and records created/failed stub names.
+async function applyDirectRows(rows, state) {
+  let updated = 0;
+  let failed = 0;
+  for (const row of rows) {
+    const d = row.directEntity;
+    let id = d.termId || null;
+    let record = null;
+    if (!id && d.resolveMode === "match") {
+      const resolved = await resolveEntityId(d.meta, d.resolveName, MATCH_CREATABLE.has(d.association));
+      id = resolved.id;
+      record = resolved.record;
+      // Only kinds with a plural noun (people/groups/locations/tags) are stub-creatable + summarizable.
+      if (resolved.created && TAX_NOUN[d.association]) {
+        state.created.push({
+          kind: d.association,
+          name: d.resolveName,
+        });
+      }
+    }
+    if (!id) {
+      failed += 1;
+      if (d.resolveMode === "match" && TAX_NOUN[d.association]) {
+        state.failed.push({
+          kind: d.association,
+          name: d.resolveName,
+        });
+      }
+      continue;
+    }
+    let ok;
+    if (d.field === "image") {
+      ok = false;
+      for (const url of d.imageUrls) {
+        if (await uploadEntityImageFromUrl(d.meta.path, id, url)) ok = true;
+      }
+    }
+    else {
+      ok = await patchEntity(d.meta.path, id, buildDirectPatch(d, record));
+    }
+    if (ok) updated += 1;
+    else failed += 1;
+  }
+  return {
+    updated,
+    failed,
+  };
+}
+
+// Resolve a match-mode entity by its scraped name: match an existing row (case-insensitive on the
+// entity's name key), else create a name-only stub when allowed. Returns the matched raw record too so
+// a socialLink patch can seed from its current links.
+async function resolveEntityId(meta, name, allowCreate) {
+  const lower = name.toLowerCase();
+  try {
+    const res = await fetch(`${serverUrl}${meta.path}`);
+    if (res.ok) {
+      const all = await res.json();
+      const match = Array.isArray(all)
+        ? all.find(o => o && typeof o[meta.nameKey] === "string" && o[meta.nameKey].toLowerCase() === lower)
+        : null;
+      if (match) return {
+        id: match.id,
+        created: false,
+        record: match,
+      };
+    }
+  }
+  catch {
+    // fall through
+  }
+  if (!allowCreate) return {
+    id: null,
+    created: false,
+    record: null,
+  };
+  try {
+    const res = await fetch(`${serverUrl}${meta.path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        [meta.nameKey]: name,
+      }),
+    });
+    if (res.ok) {
+      const created = await res.json();
+      if (created && created.id) return {
+        id: created.id,
+        created: true,
+        record: created,
+      };
+    }
+  }
+  catch {
+    // give up
+  }
+  return {
+    id: null,
+    created: false,
+    record: null,
+  };
+}
+
+// Build the JSON PATCH body for a match-mode direct field. socialLink upserts into the entity's
+// current links (from `record`) so other platforms survive.
+function buildDirectPatch(d, record) {
+  if (d.field === "socialLink") {
+    const links = ((record && record.socialLinks) || []).map(l => ({
+      platform: l.platform,
+      url: l.url,
+    }));
+    const idx = links.findIndex(l => l.platform === d.socialPlatform);
+    const next = {
+      platform: d.socialPlatform,
+      url: d.value,
+    };
+    if (idx >= 0) links[idx] = next;
+    else links.push(next);
+    return {
+      socialLinks: links,
+    };
+  }
+  if (d.field === "name") return {
+    [d.meta.nameKey]: d.value,
+  };
+  if (d.field === "year") return {
+    year: d.coerced,
+  };
+  return {
+    description: d.value,
+  };
+}
+
+// PATCH a taxonomy entity's JSON field. Returns true on success.
+async function patchEntity(path, id, patch) {
+  try {
+    const res = await fetch(`${serverUrl}${path}/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(patch),
+    });
+    return res.ok;
+  }
+  catch {
+    return false;
+  }
+}
+
+// Fetch an image URL and upload the bytes to a taxonomy entity's replace-style image endpoint
+// (`POST ${path}/${id}/image`, no `?main`). Returns true on success.
+async function uploadEntityImageFromUrl(path, id, url) {
+  try {
+    const imageRes = await fetch(url);
+    if (!imageRes.ok) return false;
+    const blob = await imageRes.blob();
+    if (!blob || blob.size === 0) return false;
+    const form = new FormData();
+    form.append("file", blob, "image");
+    const res = await fetch(`${serverUrl}${path}/${id}/image`, {
+      method: "POST",
+      body: form,
+    });
+    return res.ok;
+  }
+  catch {
+    return false;
+  }
+}
+
 // --- Relation taxonomyEntity write -------------------------------------
 // Current/extracted display for a relation row against a specific term: which extracted names are
 // already linked, which will be created (creatable relation), and which have no match (match-only).
@@ -1572,7 +1887,7 @@ function coerceBoolean(text) {
 
 // --- Review rendering ---------------------------------------------------
 function renderReview(bookmark, rows) {
-  fillReviewTitle.textContent = bookmark?.title ?? "";
+  fillReviewTitle.textContent = bookmark?.title ?? currentTab?.title ?? "";
   fillError.classList.add("hidden");
   fillError.textContent = "";
   fillApplyBtn.classList.remove("hidden");
@@ -1582,6 +1897,8 @@ function renderReview(bookmark, rows) {
   for (const row of rows) {
     fillRows.appendChild(renderRow(row));
   }
+  // No bookmark (taxonomy mode) → nothing to open.
+  fillReviewOpenBtn.classList.toggle("hidden", !bookmark);
   fillReviewOpenBtn.onclick = () => openBookmark(bookmark?.id);
   fillApplyBtn.onclick = () => void applyChanges(rows, bookmark);
   show("review");
@@ -1711,8 +2028,11 @@ async function applyChanges(rows, bookmark) {
   const checked = rows.filter(row => row.checkbox && row.checkbox.checked);
   const imageRows = checked.filter(row => row.image);
   const entityRows = checked.filter(row => row.entity);
-  // Bookmark-field rows: everything that isn't an image upload or an associated-taxonomy PATCH.
-  const patchRows = checked.filter(row => !row.image && !row.entity);
+  // `taxonomyDirect` rows resolved from the page (url-mode image + all match-mode): applied separately.
+  const directRows = checked.filter(row => row.directEntity);
+  // Bookmark-field rows: everything that isn't an image upload, an associated-taxonomy PATCH, or a
+  // direct taxonomy-entity update.
+  const patchRows = checked.filter(row => !row.image && !row.entity && !row.directEntity);
   fillApplyBtn.disabled = true;
   fillApplyBtn.textContent = "Applying…";
   fillError.classList.add("hidden");
@@ -1751,8 +2071,8 @@ async function applyChanges(rows, bookmark) {
       patch[key] = Array.from(state.values[key].values());
     }
 
-    // Only PATCH when there's something to change (a run of only image rows skips it).
-    if (Object.keys(patch).length > 0) {
+    // Only PATCH the bookmark when there is one (taxonomy mode has none) and there's something to change.
+    if (bookmark && Object.keys(patch).length > 0) {
       const res = await fetch(`${serverUrl}/api/bookmarks/${bookmark.id}`, {
         method: "PATCH",
         headers: {
@@ -1772,38 +2092,46 @@ async function applyChanges(rows, bookmark) {
     // language usages via the language-usages endpoint.
     const languageResult = await applyLanguageWrites(state.languageWrites);
 
+    // Direct taxonomy-entity updates (url-resolved or match-resolved) run next (best-effort).
+    const directResult = await applyDirectRows(directRows, state);
+
     // Image uploads run last (best-effort): the browser downloads each grabbed image and uploads the
     // bytes to the bookmark. A failure here surfaces a note but doesn't undo the PATCH.
-    const imageResult = await applyImageRows(imageRows, bookmark.id);
+    const imageResult = await applyImageRows(imageRows, bookmark ? bookmark.id : null);
 
     const n = patchRows.length + imageResult.uploaded;
-    let message = `Updated ${n} field${n === 1 ? "" : "s"}.`;
+    const parts = [];
+    if (n > 0) parts.push(`Updated ${n} field${n === 1 ? "" : "s"}.`);
     // Note freshly-created taxonomy stubs, then any that couldn't be created (best-effort: a taxonomy
     // failure doesn't undo the rest of the PATCH, but it must never be silently swallowed).
-    if (state.created.length > 0) {
-      message += ` ${summarizeCreated(state.created)}`;
-    }
-    if (state.failed.length > 0) {
-      message += ` ${summarizeFailed(state.failed)}`;
-    }
+    if (state.created.length > 0) parts.push(summarizeCreated(state.created));
+    if (state.failed.length > 0) parts.push(summarizeFailed(state.failed));
     if (entityResult.updated > 0) {
-      message += ` Updated ${entityResult.updated} linked item${entityResult.updated === 1 ? "" : "s"}.`;
+      parts.push(`Updated ${entityResult.updated} linked item${entityResult.updated === 1 ? "" : "s"}.`);
     }
     if (entityResult.failed > 0) {
-      message += ` ${entityResult.failed} linked item${entityResult.failed === 1 ? "" : "s"} couldn't be updated.`;
+      parts.push(`${entityResult.failed} linked item${entityResult.failed === 1 ? "" : "s"} couldn't be updated.`);
     }
     if (languageResult.updated > 0) {
-      message += ` Set language on ${languageResult.updated} linked item${languageResult.updated === 1 ? "" : "s"}.`;
+      parts.push(`Set language on ${languageResult.updated} linked item${languageResult.updated === 1 ? "" : "s"}.`);
     }
     if (languageResult.failed > 0) {
-      message += ` ${languageResult.failed} language${languageResult.failed === 1 ? "" : "s"} couldn't be set.`;
+      parts.push(`${languageResult.failed} language${languageResult.failed === 1 ? "" : "s"} couldn't be set.`);
+    }
+    if (directResult.updated > 0) {
+      parts.push(`Updated ${directResult.updated} taxonomy ${directResult.updated === 1 ? "entity" : "entities"}.`);
+    }
+    if (directResult.failed > 0) {
+      parts.push(`${directResult.failed} taxonomy ${directResult.failed === 1 ? "entity" : "entities"} couldn't be updated.`);
     }
     if (imageResult.failed > 0) {
-      message += ` ${imageResult.failed} image${imageResult.failed === 1 ? "" : "s"} couldn't be saved.`;
+      parts.push(`${imageResult.failed} image${imageResult.failed === 1 ? "" : "s"} couldn't be saved.`);
     }
-    fillAppliedMsg.textContent = message;
-    fillAppliedOpenBtn.onclick = () => openBookmark(bookmark.id);
-    wireCaptureButton(captureAppliedBtn, captureAppliedStatus, bookmark.id);
+    fillAppliedMsg.textContent = parts.join(" ") || "No changes applied.";
+    // No bookmark (taxonomy mode) → nothing to open or screenshot.
+    fillAppliedOpenBtn.classList.toggle("hidden", !bookmark);
+    fillAppliedOpenBtn.onclick = () => openBookmark(bookmark?.id);
+    wireCaptureButton(captureAppliedBtn, captureAppliedStatus, bookmark?.id);
     show("applied");
   }
   catch {

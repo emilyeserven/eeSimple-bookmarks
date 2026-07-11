@@ -5,7 +5,7 @@
  * jsonb on `websites.extension_fill_rules`.
  */
 
-import type { TaxonomyEntityAssociation, TaxonomyEntityTermRef, TaxonomyEntityWriteKey } from "./extensionFillTaxonomy.js";
+import type { TaxonomyDirectFieldKey, TaxonomyEntityAssociation, TaxonomyEntityTermRef, TaxonomyEntityWriteKey } from "./extensionFillTaxonomy.js";
 import type { Bookmark, CustomProperty } from "./index.js";
 import type { SocialMediaPlatform } from "./socialMedia.js";
 
@@ -31,6 +31,20 @@ export interface WebsiteExtensionFillRule {
   target: FillTarget;
   extract: FillExtract;
 }
+
+/**
+ * How a `taxonomyDirect` rule resolves *which* taxonomy entity to update from the current page.
+ * - `"url"` — the server auto-matches the entity from the tab URL. Valid only for `website` (by
+ *   `domain`) and `youtubeChannel` (by `channelKey`) — the two URL-matchable associations. The matched
+ *   entity arrives in {@link ExtensionFillContext.associatedTerms} for the popup to diff.
+ * - `"match"` — the engine scrapes an identifier/name off the page via `select` (its own
+ *   {@link FillExtract}); the popup then match-or-creates the entity against the association's REST
+ *   list. Use this for entities with no URL-matchable key (e.g. a person/group on an arbitrary page).
+ */
+export type EntityResolution
+  = | { mode: "url" }
+    | { mode: "match";
+      select: FillExtract; };
 
 /** What a rule's extracted value(s) are applied to. */
 export type FillTarget
@@ -83,6 +97,21 @@ export type FillTarget
             field: TaxonomyEntityWriteKey;
             socialPlatform?: SocialMediaPlatform; }
   /**
+   * Update a taxonomy **entity** resolved from the current page directly (not via a linked bookmark).
+   * `resolve` selects the entity (see {@link EntityResolution}); `field` is one of the entity's writable
+   * fields *plus* `"image"` (an avatar/poster upload — see {@link TaxonomyDirectFieldKey}), constrained
+   * to what {@link TAXONOMY_ENTITY_SPECS} lists (`image` requires the spec's `image: true`). The rule's
+   * top-level `extract` produces the field value (or, for `field: "image"`, the image URL);
+   * `resolve.select` (match mode) separately produces the entity identifier. `socialPlatform` is
+   * required when `field === "socialLink"`. This is what lets Extension Fill fire on a page that is a
+   * taxonomy entity's source rather than a saved bookmark.
+   */
+            | { kind: "taxonomyDirect";
+              association: TaxonomyEntityAssociation;
+              resolve: EntityResolution;
+              field: TaxonomyDirectFieldKey;
+              socialPlatform?: SocialMediaPlatform; }
+  /**
    * Build a `sections`-typed custom property's value from the page. Unlike the scalar targets this
    * produces a **structured** result (a list of `SectionEntry`s, optionally two-tier). `extract` is
    * interpreted by `entryType`:
@@ -100,13 +129,13 @@ export type FillTarget
    *   a flat entry whose `startValue` is the total number of **seconds**. `container`/`header`/
    *   `itemName` are ignored.
    */
-            | { kind: "sections";
-              propertyId: string;
-              entryType: SectionFillEntryType;
-              container?: string;
-              header?: string;
-              itemName?: string;
-              itemUrl?: string; };
+              | { kind: "sections";
+                propertyId: string;
+                entryType: SectionFillEntryType;
+                container?: string;
+                header?: string;
+                itemName?: string;
+                itemUrl?: string; };
 
 /** Entry types a `sections` fill target can build. `timestamp` is parsed from a text block. */
 export type SectionFillEntryType = "url" | "page" | "timestamp";
@@ -197,12 +226,13 @@ export interface ExtensionFillTaxonomyOption {
 
 /**
  * Response of `GET /api/extension/fill-context` — tells the browser extension popup whether the
- * current tab's URL is an existing bookmark it can offer to fill from the live page, is already
- * pending in the Inbox, or hasn't been seen. `website`/`properties`/`taxonomies` are populated only
- * when `mode === "bookmark"` and the matched website has configured extension fill rules.
+ * current tab's URL is an existing bookmark it can offer to fill from the live page, is a taxonomy
+ * entity's source page it can offer to fill (`taxonomyDirect` rules, no bookmark), is already pending
+ * in the Inbox, or hasn't been seen. `website`/`properties`/`taxonomies` are populated only when
+ * `mode === "bookmark"` (or `"taxonomy"`) and the matched website has configured extension fill rules.
  */
 export interface ExtensionFillContext {
-  mode: "bookmark" | "inbox" | "unknown";
+  mode: "bookmark" | "taxonomy" | "inbox" | "unknown";
   /** Present iff `mode === "bookmark"`. */
   bookmark?: Bookmark;
   /**
@@ -229,10 +259,13 @@ export interface ExtensionFillContext {
     tags?: ExtensionFillTaxonomyOption[];
   };
   /**
-   * The bookmark's currently-linked terms for each `association` referenced by a `taxonomyEntity`
-   * rule, each carrying the current values of the writable fields — so the popup can show
-   * current → extracted, auto-target a single linked term (or let the user pick among several), and
-   * upsert a social link without wiping the term's other platforms.
+   * The terms available to update for each referenced `association`, each carrying the current values
+   * of the writable fields — so the popup can show current → extracted, auto-target a single term (or
+   * let the user pick among several), and upsert a social link without wiping the term's other
+   * platforms. Populated from two sources: a `taxonomyEntity` rule's bookmark-linked terms
+   * (`mode === "bookmark"`), and a `taxonomyDirect` rule's URL-resolved entity (`mode === "taxonomy"`,
+   * or folded into a bookmark visit) — see `services/extensionFill.ts`. `taxonomyDirect` `match`-mode
+   * associations are absent (resolved in-browser).
    */
   associatedTerms?: Partial<Record<TaxonomyEntityAssociation, TaxonomyEntityTermRef[]>>;
   /**

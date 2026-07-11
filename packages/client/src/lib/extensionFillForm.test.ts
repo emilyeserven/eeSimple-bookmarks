@@ -276,6 +276,173 @@ describe("publisher target", () => {
   });
 });
 
+describe("taxonomyDirect target", () => {
+  it("coerces to a website / url / name default from another kind", () => {
+    expect(coerceFillTarget("taxonomyDirect", {
+      kind: "field",
+      field: "title",
+    })).toEqual({
+      kind: "taxonomyDirect",
+      association: "website",
+      resolve: {
+        mode: "url",
+      },
+      field: "name",
+    });
+  });
+
+  it("preserves the association / resolve / field across a same-kind rebuild", () => {
+    expect(coerceFillTarget("taxonomyDirect", {
+      kind: "taxonomyDirect",
+      association: "people",
+      resolve: {
+        mode: "match",
+        select: {
+          selector: "h1",
+        },
+      },
+      field: "description",
+    })).toEqual({
+      kind: "taxonomyDirect",
+      association: "people",
+      resolve: {
+        mode: "match",
+        select: {
+          selector: "h1",
+        },
+      },
+      field: "description",
+    });
+  });
+
+  it("summarizes with the field label and the resolution source", () => {
+    expect(describeFillTarget({
+      kind: "taxonomyDirect",
+      association: "website",
+      resolve: {
+        mode: "url",
+      },
+      field: "name",
+    })).toBe("Website · Name (from URL)");
+    expect(describeFillTarget({
+      kind: "taxonomyDirect",
+      association: "youtubeChannel",
+      resolve: {
+        mode: "url",
+      },
+      field: "image",
+    })).toBe("YouTube channel · Image (from URL)");
+    expect(describeFillTarget({
+      kind: "taxonomyDirect",
+      association: "people",
+      resolve: {
+        mode: "match",
+        select: {
+          selector: "h1",
+        },
+      },
+      field: "description",
+    })).toBe("People · Description (from page)");
+  });
+
+  it("normalizes a url-mode image target to a clean shape", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "taxonomyDirect",
+        association: "youtubeChannel",
+        resolve: {
+          mode: "url",
+        },
+        field: "image",
+      },
+      extract: {
+        selector: "img#avatar",
+        read: {
+          kind: "attr",
+          name: "src",
+        },
+      },
+    })]);
+    expect(out.target).toEqual({
+      kind: "taxonomyDirect",
+      association: "youtubeChannel",
+      resolve: {
+        mode: "url",
+      },
+      field: "image",
+    });
+  });
+
+  it("normalizes a match-mode target, cleaning its select extract", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "taxonomyDirect",
+        association: "people",
+        resolve: {
+          mode: "match",
+          select: {
+            selector: " h1.name ",
+          },
+        },
+        field: "description",
+      },
+    })]);
+    expect(out.target).toEqual({
+      kind: "taxonomyDirect",
+      association: "people",
+      resolve: {
+        mode: "match",
+        select: {
+          selector: "h1.name",
+        },
+      },
+      field: "description",
+    });
+  });
+
+  it("drops an image target on an association with no image endpoint", () => {
+    expect(normalizeExtensionFillRules([rule({
+      target: {
+        kind: "taxonomyDirect",
+        association: "category",
+        resolve: {
+          mode: "url",
+        },
+        field: "image",
+      },
+    })])).toEqual([]);
+  });
+
+  it("drops a social-link target with no platform", () => {
+    expect(normalizeExtensionFillRules([rule({
+      target: {
+        kind: "taxonomyDirect",
+        association: "group",
+        resolve: {
+          mode: "url",
+        },
+        field: "socialLink",
+      },
+    })])).toEqual([]);
+  });
+
+  it("drops a match-mode target whose select extract is blank", () => {
+    expect(normalizeExtensionFillRules([rule({
+      target: {
+        kind: "taxonomyDirect",
+        association: "people",
+        resolve: {
+          mode: "match",
+          select: {
+            selector: "",
+          },
+        },
+        field: "description",
+      },
+    })])).toEqual([]);
+  });
+});
+
 describe("describePathMatch", () => {
   it("labels the mode and quotes the value", () => {
     expect(describePathMatch({

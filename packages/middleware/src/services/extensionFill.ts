@@ -6,7 +6,7 @@
  * interaction.
  */
 
-import type { Bookmark, ExtensionFillContext, TaxonomyEntityAssociation, TaxonomyEntityAssociationSpec, TaxonomyEntityLanguageOwnerType, TaxonomyEntityRelationKey, TaxonomyEntityTermRef, WebsiteExtensionFillRule } from "@eesimple/types";
+import type { Bookmark, ExtensionFillContext, TaxonomyEntityAssociation, TaxonomyEntityAssociationSpec, TaxonomyEntityLanguageOwnerType, TaxonomyEntityRelationKey, TaxonomyEntityTermRef, Website, WebsiteExtensionFillRule } from "@eesimple/types";
 import { isYouTubeVideoUrl, TAXONOMY_ENTITY_SPECS } from "@eesimple/types";
 import { checkBookmarkUrlDuplicate, getBookmark } from "@/services/bookmarks";
 import { listCategories } from "@/services/categories";
@@ -22,7 +22,7 @@ import { getNewsletter } from "@/services/newsletters";
 import { listPeople, listPeopleCompact } from "@/services/people";
 import { listTags, listTagsCompact } from "@/services/tags";
 import { getWebsite, listWebsitesCompact, lookupWebsiteByUrl, migrateExtensionFillRules } from "@/services/websites";
-import { getYouTubeChannel, listYouTubeChannelsCompact } from "@/services/youtubeChannels";
+import { channelKeyFromUrl, getYouTubeChannel, getYouTubeChannelByKey, listYouTubeChannelsCompact } from "@/services/youtubeChannels";
 
 /** The "Primary Language" availability-level name a `language` target attaches to (mirrors the client). */
 const PRIMARY_LANGUAGE_LEVEL_NAME = "primary language";
@@ -60,7 +60,32 @@ export async function getExtensionFillContext(url: string): Promise<ExtensionFil
   const dup = await checkBookmarkUrlDuplicate(url);
   const matchedBookmarkId = dup.exactMatch?.id ?? dup.pathMatch?.id;
 
+  // Look the website up once — both the bookmark path and the no-bookmark direct-taxonomy path use it.
+  // Normalize any retired `pathSuffix`-only gate to `pathMatch` so the popup only ever sees the
+  // canonical shape and gates correctly, even against a row that predates the boot backfill.
+  const {
+    website,
+  } = await lookupWebsiteByUrl(url);
+  const rawRules = website?.extensionFillRules ?? [];
+  const storedRules = migrateExtensionFillRules(rawRules) ?? rawRules;
+
   if (!matchedBookmarkId) {
+    // No saved bookmark: if the matched website carries `taxonomyDirect` rules that are *actionable*
+    // here, offer to update the taxonomy entity directly (`mode: "taxonomy"`). "Actionable" = a
+    // url-mode rule actually resolved an entity from this URL, or there's a match-mode rule (resolved
+    // in-browser; the popup path-gates it and falls back to the Inbox if it gates to nothing). This
+    // keeps a plain content page on a rule-carrying site (e.g. a video page vs. a channel page) on the
+    // normal inbox/unknown path so it still auto-saves.
+    const directRules = storedRules.filter(rule => rule.target.kind === "taxonomyDirect");
+    if (website && directRules.length > 0) {
+      const taxonomyContext = await buildTaxonomyMode(url, website, storedRules);
+      const hasMatchRule = directRules.some(
+        rule => rule.target.kind === "taxonomyDirect" && rule.target.resolve.mode === "match",
+      );
+      if (taxonomyContext.associatedTerms || hasMatchRule) {
+        return taxonomyContext;
+      }
+    }
     const pending = await findPendingImportItemByUrl(url);
     return pending
       ? {
@@ -77,13 +102,6 @@ export async function getExtensionFillContext(url: string): Promise<ExtensionFil
     mode: "unknown",
   };
 
-  const {
-    website,
-  } = await lookupWebsiteByUrl(url);
-  // Normalize any retired `pathSuffix`-only gate to `pathMatch` so the popup only ever sees the
-  // canonical shape and gates correctly, even against a row that predates the boot backfill.
-  const rawRules = website?.extensionFillRules ?? [];
-  const storedRules = migrateExtensionFillRules(rawRules) ?? rawRules;
   // Zero-config built-in: a saved YouTube video auto-offers its description timestamps into the
   // built-in "Chapters" sections property, with no per-site rule setup. Runtime-only (never stored).
   const rules = [...storedRules, ...(await buildYouTubeChaptersRules(url))];
@@ -137,13 +155,18 @@ export async function getExtensionFillContext(url: string): Promise<ExtensionFil
     else if (mode.kind === "language") entry.language = true;
     hydration.set(rule.target.association, entry);
   }
-  const associatedTerms = await loadAssociatedTerms(bookmark, hydration);
+  const linkedTerms = await loadAssociatedTerms(bookmark, hydration);
 
   // Relation targets match an extracted name against the related taxonomy's compact option list.
   const relationOptions = await loadRelationOptions(hydration);
   // Any `language` target needs the languages list (match-or-create by isoCode) + the primary level.
   const languageReferenced = [...hydration.values()].some(h => h.language);
   const languageBlock = languageReferenced ? await loadLanguageBlock() : undefined;
+
+  // `taxonomyDirect` url-mode rules also resolve an entity from the URL — fold those in so a saved
+  // bookmark visit can still update the site/channel entity directly.
+  const directTerms = await resolveDirectUrlTerms(url, website, rules);
+  const associatedTerms = mergeAssociatedTerms(linkedTerms, directTerms);
 
   return {
     mode: "bookmark",
@@ -208,6 +231,105 @@ async function loadLanguageBlock(): Promise<{
     })),
     primaryLanguageLevelId: primaryLevel?.id ?? null,
   };
+}
+
+/**
+ * Assemble the `mode: "taxonomy"` context for a website match with no bookmark: the website shell +
+ * rules (the popup filters to `taxonomyDirect` and path-gates) + the URL-resolved entity term(s) for
+ * each `resolve.mode: "url"` rule. Read-only composition of `lookupWebsiteByUrl` / the YouTube lookups.
+ */
+async function buildTaxonomyMode(
+  url: string,
+  website: NonNullable<Awaited<ReturnType<typeof lookupWebsiteByUrl>>["website"]>,
+  storedRules: WebsiteExtensionFillRule[],
+): Promise<ExtensionFillContext> {
+  const associatedTerms = await resolveDirectUrlTerms(url, website, storedRules);
+  return {
+    mode: "taxonomy",
+    website: {
+      id: website.id,
+      siteName: website.siteName,
+      extensionFillRules: storedRules,
+    },
+    ...(associatedTerms && {
+      associatedTerms,
+    }),
+  };
+}
+
+/**
+ * Resolve the URL-matchable entity for each `taxonomyDirect` rule with `resolve.mode: "url"` — a
+ * Website (by `domain`, already fetched) or a YouTube channel (by `channelKey`). `match`-mode rules
+ * are omitted (their entity is scraped and resolved in-browser). Returns `undefined` when none resolve.
+ */
+async function resolveDirectUrlTerms(
+  url: string,
+  website: Website | null,
+  rules: WebsiteExtensionFillRule[],
+): Promise<ExtensionFillContext["associatedTerms"]> {
+  const associations = new Set(
+    rules.flatMap(rule =>
+      (rule.target.kind === "taxonomyDirect" && rule.target.resolve.mode === "url"
+        ? [rule.target.association]
+        : [])),
+  );
+  const out: Partial<Record<TaxonomyEntityAssociation, TaxonomyEntityTermRef[]>> = {};
+  for (const association of associations) {
+    const term = await resolveDirectUrlTerm(association, url, website);
+    if (term) out[association] = [term];
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
+/** Resolve one url-mode association's entity to a term ref (website / youtubeChannel only). */
+async function resolveDirectUrlTerm(
+  association: TaxonomyEntityAssociation,
+  url: string,
+  website: Website | null,
+): Promise<TaxonomyEntityTermRef | null> {
+  if (association === "website") {
+    return website
+      ? {
+        id: website.id,
+        name: website.siteName,
+        description: website.description,
+        socialLinks: website.socialLinks,
+        imageUrl: website.imageUrl,
+      }
+      : null;
+  }
+  if (association === "youtubeChannel") {
+    const key = channelKeyFromUrl(url);
+    const channel = key ? await getYouTubeChannelByKey(key) : null;
+    return channel
+      ? {
+        id: channel.id,
+        name: channel.name,
+        description: channel.description,
+        imageUrl: channel.imageUrl,
+      }
+      : null;
+  }
+  // Other associations are not URL-resolvable (the schema/editor restrict url-mode to the two above).
+  return null;
+}
+
+/** Union two `associatedTerms` maps, de-duping each association's terms by id (linked wins ordering). */
+function mergeAssociatedTerms(
+  a: ExtensionFillContext["associatedTerms"],
+  b: ExtensionFillContext["associatedTerms"],
+): ExtensionFillContext["associatedTerms"] {
+  if (!a) return b;
+  if (!b) return a;
+  const out: Partial<Record<TaxonomyEntityAssociation, TaxonomyEntityTermRef[]>> = {
+    ...a,
+  };
+  for (const association of Object.keys(b) as TaxonomyEntityAssociation[]) {
+    const existing = out[association] ?? [];
+    const seen = new Set(existing.map(term => term.id));
+    out[association] = [...existing, ...(b[association] ?? []).filter(term => !seen.has(term.id))];
+  }
+  return out;
 }
 
 /**

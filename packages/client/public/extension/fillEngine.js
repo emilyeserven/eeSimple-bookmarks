@@ -418,10 +418,22 @@
             entries: entries,
           };
         }
-        return {
+        var out = {
           ruleId: rule.id,
           values: runRule(rule, doc),
         };
+        // A `taxonomyDirect` rule resolved by a scraped name (`resolve.mode === "match"`) needs a
+        // second extraction: the entity identifier, read via its own `resolve.select` extract. Purely
+        // additive — every other rule ignores `resolveValue`.
+        if (rule.target && rule.target.kind === "taxonomyDirect"
+          && rule.target.resolve && rule.target.resolve.mode === "match"
+          && rule.target.resolve.select) {
+          var resolved = runRule({
+            extract: rule.target.resolve.select,
+          }, doc);
+          out.resolveValue = resolved.length ? resolved[0] : "";
+        }
+        return out;
       }
       catch (err) {
         return {

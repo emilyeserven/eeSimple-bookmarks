@@ -1,10 +1,12 @@
 import type {
   CustomProperty,
+  EntityResolution,
   FillExtract,
   FillFilter,
   FillTarget,
   FillTransform,
   PathMatch,
+  TaxonomyDirectFieldKey,
   TaxonomyEntityAssociation,
   TaxonomyEntityAssociationSpec,
   TaxonomyEntityFieldKey,
@@ -166,6 +168,14 @@ export function describeFillTarget(target: FillTarget, property?: CustomProperty
         : taxonomyEntityFieldLabel(target.field);
       return `${assoc} · ${fieldLabel}`;
     }
+    case "taxonomyDirect": {
+      const assoc = TAXONOMY_ENTITY_SPECS[target.association].label;
+      const fieldLabel = target.field === "socialLink" && target.socialPlatform
+        ? SOCIAL_MEDIA_PLATFORM_LABELS[target.socialPlatform]
+        : TAXONOMY_ENTITY_FIELD_LABELS[target.field];
+      const source = target.resolve.mode === "url" ? "from URL" : "from page";
+      return `${assoc} · ${fieldLabel} (${source})`;
+    }
     case "sections": {
       const name = property?.name ?? "Sections";
       return `${name} · ${SECTION_FILL_ENTRY_TYPE_LABELS[target.entryType]}`;
@@ -259,6 +269,19 @@ export function describeFillTransform(transform: FillTransform): string {
 // Kind-change coercion (rebuild a variant keeping only its own fields)
 // ---------------------------------------------------------------------------
 
+/**
+ * Whether a `taxonomyDirect` target's `field` is valid for its association — a JSON field the update
+ * route accepts, or `image` when the entity has an image-upload endpoint (`spec.image`). Shared by the
+ * coercion (reset the field on an unsupported association) and the cleaner (drop an invalid rule).
+ */
+export function directFieldSupported(
+  association: TaxonomyEntityAssociation,
+  field: TaxonomyDirectFieldKey,
+): boolean {
+  const spec: TaxonomyEntityAssociationSpec = TAXONOMY_ENTITY_SPECS[association];
+  return field === "image" ? spec.image === true : (spec.fields as string[]).includes(field);
+}
+
 /** Rebuild a target for a newly-selected `kind`, preserving a same-kind value where possible. */
 export function coerceFillTarget(kind: FillTarget["kind"], prev: FillTarget): FillTarget {
   switch (kind) {
@@ -308,6 +331,29 @@ export function coerceFillTarget(kind: FillTarget["kind"], prev: FillTarget): Fi
           }
           : {}),
       };
+    case "taxonomyDirect": {
+      const association = prev.kind === "taxonomyDirect" ? prev.association : "website";
+      const prevField = prev.kind === "taxonomyDirect" ? prev.field : "name";
+      // Keep the field only if the (possibly new) association still supports it, else its first field.
+      const field = directFieldSupported(association, prevField)
+        ? prevField
+        : TAXONOMY_ENTITY_SPECS[association].fields[0];
+      return {
+        kind: "taxonomyDirect",
+        association,
+        resolve: prev.kind === "taxonomyDirect"
+          ? prev.resolve
+          : {
+            mode: "url",
+          },
+        field,
+        ...(prev.kind === "taxonomyDirect" && prev.socialPlatform !== undefined
+          ? {
+            socialPlatform: prev.socialPlatform,
+          }
+          : {}),
+      };
+    }
     case "sections":
       return coerceSectionsTarget(prev);
   }
@@ -497,6 +543,37 @@ function cleanTarget(target: FillTarget): FillTarget | null {
           }
           : {}),
       };
+    case "taxonomyDirect": {
+      // Drop the rule when incomplete: a field the association doesn't support (incl. image on a
+      // non-image entity), a social link with no platform, or a `match` resolver with no usable extract.
+      if (!directFieldSupported(target.association, target.field)) return null;
+      if (target.field === "socialLink" && !target.socialPlatform) return null;
+      let resolve: EntityResolution;
+      if (target.resolve.mode === "match") {
+        const select = cleanExtract(target.resolve.select, false);
+        if (!select) return null;
+        resolve = {
+          mode: "match",
+          select,
+        };
+      }
+      else {
+        resolve = {
+          mode: "url",
+        };
+      }
+      return {
+        kind: "taxonomyDirect",
+        association: target.association,
+        resolve,
+        field: target.field,
+        ...(target.field === "socialLink" && target.socialPlatform
+          ? {
+            socialPlatform: target.socialPlatform,
+          }
+          : {}),
+      };
+    }
     case "sections": {
       // No selected property = incomplete. Keep sub-selectors only when non-blank.
       if (!target.propertyId) return null;

@@ -30,12 +30,22 @@ export type TaxonomyEntityAssociation = typeof TAXONOMY_ENTITY_ASSOCIATIONS[numb
 export const TAXONOMY_ENTITY_FIELDS = ["name", "description", "year", "socialLink"] as const;
 export type TaxonomyEntityFieldKey = typeof TAXONOMY_ENTITY_FIELDS[number];
 
-/** Human labels for the writable scalar fields (wrapped in `t()` at UI sites; used verbatim in the popup). */
-export const TAXONOMY_ENTITY_FIELD_LABELS: Record<TaxonomyEntityFieldKey, string> = {
+/**
+ * A fillable field for the `taxonomyDirect` target — the JSON-PATCH scalar fields plus `image`.
+ * `image` is deliberately **not** in {@link TAXONOMY_ENTITY_FIELDS} (that list is "scalar fields the
+ * JSON PATCH route accepts"): an image is uploaded to a separate multipart endpoint
+ * (`` `${apiPath}/${id}/image` ``), so it must never leak into the JSON `taxonomyEntity` target or its
+ * Fastify `field` enum. Valid only when the association's spec has `image: true`.
+ */
+export type TaxonomyDirectFieldKey = TaxonomyEntityFieldKey | "image";
+
+/** Human labels for the writable scalar fields + `image` (wrapped in `t()` at UI sites; used verbatim in the popup). */
+export const TAXONOMY_ENTITY_FIELD_LABELS: Record<TaxonomyDirectFieldKey, string> = {
   name: "Name",
   description: "Description",
   year: "Year",
   socialLink: "Social link",
+  image: "Image",
 };
 
 /**
@@ -107,6 +117,13 @@ export interface TaxonomyEntityAssociationSpec {
   nameKey: "name" | "siteName";
   /** Which writable scalar fields this entity's update route accepts. */
   fields: TaxonomyEntityFieldKey[];
+  /**
+   * True when the entity exposes a `POST ${apiPath}/${id}/image` multipart avatar/poster endpoint
+   * (website favicon / YouTube avatar / person / group image) — enabling the `taxonomyDirect` target's
+   * `field: "image"`. **Sync point:** must match the image-capability map in the popup's
+   * `taxonomyFill.js` mirror and the picker's field list.
+   */
+  image?: boolean;
   /** Relations this association's PATCH route accepts (id-array union). Omitted = none. */
   relations?: TaxonomyEntityRelationSpec[];
   /** Set when this association is a `language_usages` owner — the owner type for the PUT. Omitted = not. */
@@ -160,6 +177,7 @@ export const TAXONOMY_ENTITY_SPECS = {
     single: true,
     nameKey: "siteName",
     fields: ["name", "description", "socialLink"],
+    image: true,
     languageOwnerType: "website",
   },
   category: {
@@ -182,6 +200,7 @@ export const TAXONOMY_ENTITY_SPECS = {
     single: true,
     nameKey: "name",
     fields: ["name", "description"],
+    image: true,
     languageOwnerType: "youtubeChannel",
   },
   newsletter: {
@@ -197,6 +216,7 @@ export const TAXONOMY_ENTITY_SPECS = {
     single: true,
     nameKey: "name",
     fields: ["name", "description", "year", "socialLink"],
+    image: true,
   },
   people: {
     label: "People",
@@ -205,6 +225,7 @@ export const TAXONOMY_ENTITY_SPECS = {
     nameKey: "name",
     // People's update route accepts name/description/socialLinks but not year (unlike Groups).
     fields: ["name", "description", "socialLink"],
+    image: true,
     // People's PATCH accepts groupIds/websiteIds/youtubeChannelIds; person is a language_usage owner.
     relations: [GROUPS_RELATION, WEBSITES_RELATION, YOUTUBE_CHANNELS_RELATION],
     languageOwnerType: "person",
@@ -215,6 +236,7 @@ export const TAXONOMY_ENTITY_SPECS = {
     single: false,
     nameKey: "name",
     fields: ["name", "description", "year", "socialLink"],
+    image: true,
     // Groups' PATCH accepts websiteIds/youtubeChannelIds only — the person↔group edge is person-owned,
     // so there is no `groups` relation here. Group is not a language_usage owner.
     relations: [WEBSITES_RELATION, YOUTUBE_CHANNELS_RELATION],
@@ -247,6 +269,12 @@ export interface TaxonomyEntityTermRef {
   description?: string | null;
   socialLinks?: SocialLink[];
   year?: number | null;
+  /**
+   * The entity's current avatar/poster URL, sent only for image-capable associations so the
+   * `taxonomyDirect` image row can show whether an image is already set. Absent = no image / not
+   * image-capable.
+   */
+  imageUrl?: string | null;
   /**
    * Current relation id-arrays, populated only for people/groups terms referenced by a `relation:<key>`
    * target — so the popup unions extracted ids with the term's existing links instead of overwriting.

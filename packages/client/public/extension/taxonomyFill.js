@@ -21,10 +21,13 @@
   };
 
   // Mirror of TAXONOMY_ENTITY_SPECS (packages/types/src/extensionFillTaxonomy.ts): for a
-  // `taxonomyEntity` fill target, the PATCH base path + name key + display noun of each associated
-  // taxonomy, plus its `relations` (id-array relation targets) and `languageOwnerType` (the
-  // language_usages owner type for a `language` target). The popup is a classic script and can't
-  // import the TS registry, so this is duplicated — keep it in sync with that file.
+  // `taxonomyEntity` / `taxonomyDirect` fill target, the PATCH base path + name key + display noun of
+  // each associated taxonomy, plus `image: true` when the entity exposes a `${path}/image` multipart
+  // avatar/poster endpoint (drives `taxonomyDirect` `field: "image"`), and its `relations` (id-array
+  // relation targets) + `languageOwnerType` (the language_usages owner type for a `language` target).
+  // The popup is a classic script and can't import the TS registry, so this is duplicated — keep
+  // `path`/`nameKey`/`image`/`relations`/`languageOwnerType` in sync with that file (the
+  // fillEngine.test.ts side-effect import asserts the image alignment).
   const RELATION_GROUPS = {
     key: "groups",
     label: "Groups",
@@ -57,6 +60,7 @@
       path: "/api/websites",
       nameKey: "siteName",
       noun: "website",
+      image: true,
       languageOwnerType: "website",
     },
     category: {
@@ -73,6 +77,7 @@
       path: "/api/youtube-channels",
       nameKey: "name",
       noun: "YouTube channel",
+      image: true,
       languageOwnerType: "youtubeChannel",
     },
     newsletter: {
@@ -84,11 +89,13 @@
       path: "/api/groups",
       nameKey: "name",
       noun: "group",
+      image: true,
     },
     people: {
       path: "/api/people",
       nameKey: "name",
       noun: "person",
+      image: true,
       relations: [RELATION_GROUPS, RELATION_WEBSITES, RELATION_YOUTUBE_CHANNELS],
       languageOwnerType: "person",
     },
@@ -96,6 +103,7 @@
       path: "/api/groups",
       nameKey: "name",
       noun: "group",
+      image: true,
       relations: [RELATION_WEBSITES, RELATION_YOUTUBE_CHANNELS],
     },
     tags: {
