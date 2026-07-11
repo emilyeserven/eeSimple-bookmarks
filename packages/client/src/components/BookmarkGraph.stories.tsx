@@ -1,11 +1,31 @@
+import type { BookmarkGraphModel } from "../lib/bookmarkGraph";
 import type { Bookmark, BookmarkGraphSettings, BookmarkPerson, BookmarkRelationship, BookmarkTag } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { useState } from "react";
 
 import { DEFAULT_BOOKMARK_GRAPH_SETTINGS } from "@eesimple/types";
 
 import { BookmarkGraph } from "./BookmarkGraph";
 import { buildBookmarkGraph } from "../lib/bookmarkGraph";
+import { toggleInSet } from "../lib/toggleInSet";
 import { makeBookmark } from "../test-utils/factories";
+
+/** Wraps the graph with real expand/select state so the live simulation + affordances are exercisable. */
+function InteractiveGraph({
+  graph,
+}: {
+  graph: BookmarkGraphModel;
+}) {
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set());
+  return (
+    <BookmarkGraph
+      graph={graph}
+      expandedIds={expandedIds}
+      toggleExpand={id => setExpandedIds(prev => toggleInSet(prev, id))}
+    />
+  );
+}
 
 const tag = (id: string): BookmarkTag => ({
   id,
@@ -128,7 +148,10 @@ const meta = {
   component: BookmarkGraph,
   args: {
     graph: variedGraph(),
+    expandedIds: new Set<string>(),
+    toggleExpand: () => {},
   },
+  render: args => <InteractiveGraph graph={args.graph} />,
 } satisfies Meta<typeof BookmarkGraph>;
 
 export default meta;
