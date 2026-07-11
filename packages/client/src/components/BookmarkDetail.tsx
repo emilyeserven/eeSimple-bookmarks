@@ -1,7 +1,7 @@
 import type { Bookmark } from "@eesimple/types";
 
 import { youtubeEmbedUrl } from "@eesimple/types";
-import { BookOpen } from "lucide-react";
+import { BookOpen, ShoppingBasket } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { BookmarkArchiveLinkButton, BookmarkArchiveNowButton } from "./BookmarkCardActions";
@@ -13,6 +13,34 @@ import { LocalizedNameLabel } from "./LocalizedNameLabel";
 import { useBookmarkDetailLayout } from "../hooks/useAppSettings";
 import { useConnectors } from "../hooks/useConnectors";
 import { kavitaSeriesUrl } from "../lib/kavita";
+import { useBasketStore } from "../stores/basketStore";
+
+import { Button } from "@/components/ui/button";
+
+/** A ghost icon toggle that adds/removes this bookmark from the Tab Basket (detail-header action). */
+function BookmarkBasketToggleButton({
+  bookmarkId,
+}: {
+  bookmarkId: string;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const inBasket = useBasketStore(s => s.bookmarkIds.includes(bookmarkId));
+  const toggle = useBasketStore(s => s.toggle);
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      aria-label={inBasket ? t("Remove from Basket") : t("Add to Basket")}
+      title={inBasket ? t("Remove from Basket") : t("Add to Basket")}
+      aria-pressed={inBasket}
+      onClick={() => toggle(bookmarkId)}
+    >
+      <ShoppingBasket className={inBasket ? "text-primary" : undefined} />
+    </Button>
+  );
+}
 
 interface BookmarkDetailProps {
   bookmark: Bookmark;
@@ -95,6 +123,7 @@ export function BookmarkDetail({
                   />
                 </>
               )}
+              <BookmarkBasketToggleButton bookmarkId={bookmark.id} />
               <DetailHeaderActions
                 onEdit={onEdit}
                 onDelete={onDelete}

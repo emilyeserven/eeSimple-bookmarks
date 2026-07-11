@@ -348,6 +348,7 @@ export function CommandPaletteDefaultView({
         onSelect={onSelect}
         onAddBookmark={() => onAddBookmark("")}
         onCreate={onCreate}
+        onClose={onClose}
       />
     </>
   );

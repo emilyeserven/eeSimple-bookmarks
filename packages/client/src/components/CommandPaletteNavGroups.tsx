@@ -1,8 +1,11 @@
 import type { CreateKind } from "./commandPaletteModals";
 import type { Bookmark } from "@eesimple/types";
 
-import { FolderIcon, PlusIcon, SettingsIcon } from "lucide-react";
+import { FolderIcon, PlusIcon, SettingsIcon, ShoppingBasket } from "lucide-react";
 import { useTranslation } from "react-i18next";
+
+import { openBasketTabs } from "../lib/openBasketTabs";
+import { useBasketStore } from "../stores/basketStore";
 
 import { CommandGroup, CommandItem, CommandSeparator } from "@/components/ui/command";
 import { SETTINGS_TAB_SECTIONS } from "@/lib/settingsNav";
@@ -91,16 +94,23 @@ export function CommandPaletteNavGroups({
   onSelect,
   onAddBookmark,
   onCreate,
+  onClose,
 }: {
   inputValue: string;
   bookmarks: Pick<Bookmark, "id" | "title" | "url">[];
   onSelect: (path: string) => void;
   onAddBookmark: () => void;
   onCreate: (kind: CreateKind) => void;
+  onClose: () => void;
 }) {
   const {
     t,
   } = useTranslation();
+  const basketIds = useBasketStore(s => s.bookmarkIds);
+  const basketUrls = basketIds.flatMap((id) => {
+    const url = bookmarks.find(b => b.id === id)?.url;
+    return url ? [url] : [];
+  });
   return (
     <>
       <CommandGroup heading={t("Actions")}>
@@ -111,6 +121,22 @@ export function CommandPaletteNavGroups({
           <PlusIcon />
           {t("Add Bookmark")}
         </CommandItem>
+        {basketIds.length > 0 && (
+          <CommandItem
+            value="Open Basket tabs"
+            onSelect={() => {
+              openBasketTabs(basketUrls);
+              onClose();
+            }}
+          >
+            <ShoppingBasket />
+            {t("Open Basket tabs")}
+            {" "}
+            (
+            {basketIds.length}
+            )
+          </CommandItem>
+        )}
         {CREATE_ITEMS.map(item => (
           <CommandItem
             key={item.kind}

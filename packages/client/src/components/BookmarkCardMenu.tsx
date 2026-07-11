@@ -1,13 +1,14 @@
 import type { Bookmark, BookmarkTag, ChoicesDisplayType, CustomProperty } from "@eesimple/types";
 
 import { CHOICES_DISPLAY_LABELS, CHOICES_DISPLAY_TYPES } from "@eesimple/types";
-import { Camera, SlidersHorizontal, Sparkles } from "lucide-react";
+import { Camera, ShoppingBasket, SlidersHorizontal, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { BookmarkCardEditMenuItem } from "./BookmarkCardEditMenuItem";
 import { CardNumberPropertyEditor } from "./CardNumberPropertyEditor";
 import { DateTimePicker } from "./DateTimePicker";
 import { StarRating } from "./StarRating";
+import { useBasketStore } from "../stores/basketStore";
 
 import {
   DropdownMenuCheckboxItem,
@@ -72,9 +73,15 @@ export function BookmarkCardMenu({
   const {
     t,
   } = useTranslation();
+  const inBasket = useBasketStore(s => s.bookmarkIds.includes(bookmark.id));
+  const toggleBasket = useBasketStore(s => s.toggle);
   return (
     <DropdownMenuContent align="end">
       <BookmarkCardEditMenuItem bookmarkId={bookmark.id} />
+      <DropdownMenuItem onClick={() => toggleBasket(bookmark.id)}>
+        <ShoppingBasket className="mr-2 size-4" />
+        {inBasket ? t("Remove from Basket") : t("Add to Basket")}
+      </DropdownMenuItem>
       {(editableTags.length > 0 || editableProperties.length > 0)
         ? (
           <>
