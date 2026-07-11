@@ -1,8 +1,10 @@
 import type { BookmarkDetailLayout } from "@eesimple/types";
 
 import { useNavigate } from "@tanstack/react-router";
-import { CheckIcon, Columns2Icon, PencilIcon } from "lucide-react";
+import { CheckIcon, Columns2Icon, PencilIcon, ShoppingBasket } from "lucide-react";
 import { useTranslation } from "react-i18next";
+
+import { useBasketStore } from "../stores/basketStore";
 
 import { CommandGroup, CommandItem, CommandSeparator } from "@/components/ui/command";
 
@@ -22,9 +24,26 @@ export function BookmarkViewPageCommandGroup({
     t,
   } = useTranslation();
   const navigate = useNavigate();
+  const inBasket = useBasketStore(s => s.bookmarkIds.includes(bookmarkId));
+  const toggleBasket = useBasketStore(s => s.toggle);
   return (
     <>
       <CommandGroup heading={t("Current Page")}>
+        <CommandItem
+          value={inBasket ? "Remove from Basket" : "Add to Basket"}
+          onSelect={() => {
+            toggleBasket(bookmarkId);
+            onClose();
+          }}
+        >
+          {inBasket && (
+            <CheckIcon
+              className="text-primary"
+            />
+          )}
+          <ShoppingBasket />
+          {inBasket ? t("Remove from Basket") : t("Add to Basket")}
+        </CommandItem>
         <CommandItem
           value="Go to Edit"
           onSelect={() => {

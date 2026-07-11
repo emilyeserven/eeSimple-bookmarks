@@ -3470,5 +3470,12 @@
   "← Back to saved filters": "← Back to saved filters",
   "← Back to website": "← Back to website",
   "← Back to {{name}}": "← Back to {{name}}",
-  "⌘K to edit": "⌘K to edit"
+  "⌘K to edit": "⌘K to edit",
+  "Add to Basket": "Add to Basket",
+  "Basket": "Basket",
+  "Basket is empty. Add bookmarks to open them all at once.": "Basket is empty. Add bookmarks to open them all at once.",
+  "Clear basket": "Clear basket",
+  "Open Basket tabs": "Open Basket tabs",
+  "Open all basket links in new tabs": "Open all basket links in new tabs",
+  "Remove from Basket": "Remove from Basket"
 }

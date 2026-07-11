@@ -1,6 +1,7 @@
 import type { ComboboxOption } from "../Combobox";
 import type { CustomProperty, UpdateBookmarkInput } from "@eesimple/types";
 
+import { ShoppingBasket } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -10,6 +11,7 @@ import {
 } from "../../hooks/useBookmarks";
 import { useCategories } from "../../hooks/useCategories";
 import { useMediaTypes } from "../../hooks/useMediaTypes";
+import { useBasketStore } from "../../stores/basketStore";
 import { CONTENT_STATUS_SLUG } from "../bookmarkFormSchema";
 import {
   BulkComboboxDialog,
@@ -18,6 +20,7 @@ import {
 } from "./BulkActionDialogs";
 import { BulkSetPropertyButton } from "./BulkSetPropertyButton";
 
+import { Button } from "@/components/ui/button";
 import { CategoryIcon } from "@/lib/icons";
 
 interface BulkActionProps {
@@ -80,10 +83,22 @@ export function BookmarkBulkActions({
   } = useMediaTypes();
   const bulkTags = useBulkBookmarkTags();
   const bulkDelete = useBulkDeleteBookmarks();
+  const addManyToBasket = useBasketStore(s => s.addMany);
   const contentStatusProperty = properties.find(p => p.slug === CONTENT_STATUS_SLUG);
 
   return (
     <>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => {
+          addManyToBasket(selectedIds);
+          onDone();
+        }}
+      >
+        <ShoppingBasket className="size-4" />
+        {t("Add to Basket")}
+      </Button>
       <SetComboboxDialog
         ids={selectedIds}
         onDone={onDone}
