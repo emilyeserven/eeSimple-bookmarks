@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { BookmarkPropertyFileField } from "./BookmarkPropertyFileField";
 import { ChoicesCheckboxList } from "./ChoicesCheckboxList";
 import { DateTimePicker } from "./DateTimePicker";
+import { SectionPasteParser } from "./SectionPasteParser";
 import { StarRating } from "./StarRating";
 
 import { Button } from "@/components/ui/button";
@@ -492,7 +493,7 @@ function SectionRow({
 }
 
 export function SectionsPropertyField({
-  property, value, onChange, onImport, isImportPending,
+  property, value, onChange, onImport, isImportPending, onAddPeople,
 }: {
   property: CustomProperty;
   value: { exhaustive: boolean;
@@ -502,6 +503,8 @@ export function SectionsPropertyField({
   /** When set, renders an "Import from Kavita" button that replaces the current sections. */
   onImport?: () => void;
   isImportPending?: boolean;
+  /** Match-or-create parsed author names into the bookmark's People (paste-to-parse). */
+  onAddPeople?: (names: string[]) => void;
 }) {
   const {
     t,
@@ -513,6 +516,13 @@ export function SectionsPropertyField({
     onChange({
       ...value,
       sections: [...value.sections, newSectionEntry(defaultType)],
+    });
+  }
+
+  function appendSections(sections: SectionEntry[]): void {
+    onChange({
+      ...value,
+      sections: [...value.sections, ...sections],
     });
   }
 
@@ -594,6 +604,12 @@ export function SectionsPropertyField({
           )
           : null}
       </div>
+      <SectionPasteParser
+        allowedTypes={allowedTypes}
+        defaultType={defaultType}
+        onAppendSections={appendSections}
+        onAddPeople={onAddPeople}
+      />
       <FieldDescription text={property.description} />
     </div>
   );

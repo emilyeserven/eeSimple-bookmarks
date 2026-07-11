@@ -66,6 +66,7 @@ export function RevealedCustomFields({
   onProgressChange,
   onSectionsChange,
   onTextChange,
+  onAddPeople,
   onIsbnFetch,
   isIsbnFetchPending,
   hiddenSlugs = DEFAULT_MAIN_HIDDEN_SLUGS,
@@ -106,6 +107,7 @@ export function RevealedCustomFields({
           onProgressChange={onProgressChange}
           onSectionsChange={onSectionsChange}
           onTextChange={onTextChange}
+          onAddPeople={onAddPeople}
           onIsbnFetch={onIsbnFetch}
           isIsbnFetchPending={isIsbnFetchPending}
         />

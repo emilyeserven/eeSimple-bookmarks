@@ -1,6 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, index, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { BookmarkAddFormAdvancedRule, BookmarkFieldSort, BookmarkGraphSettings, BookmarkSort, CardDisplaySection, CardFieldZones, CardZoneLayouts, ConditionTree, EntityLayout, HomepageWidget, ImportBlacklistEntry, LabeledWebsite, LocationAlternateName, LocationBoundary, PersonSourceLabelSettings, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteExtensionFillRule, WebsiteParamRule, WebsiteScanObservation } from "@eesimple/types";
+import type { BookmarkAddFormAdvancedRule, BookmarkFieldSort, BookmarkGraphSettings, BookmarkSort, CardDisplaySection, CardFieldZones, CardZoneLayouts, ConditionTree, EntityLayout, HomepageWidget, ImportBlacklistEntry, LabeledWebsite, LocationAlternateName, LocationBoundary, ParseTag, PersonSourceLabelSettings, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteExtensionFillRule, WebsiteParamRule, WebsiteScanObservation } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -2842,6 +2842,29 @@ export const cardFieldTemplates = pgTable("card_field_templates", {
 });
 
 export type CardFieldTemplateRow = typeof cardFieldTemplates.$inferSelect;
+
+/**
+ * `parse_templates` — user-defined reusable rules for the Sections editor's paste-to-parse feature.
+ * A template pairs a `delineator` (item separator) with a `{{tag}}` `pattern` and a `fallback_tag`.
+ * Brand-new table: pre-created in `migrate.ts` (the push new-table truncate-prompt trap), and its
+ * `name` uniqueness is a `uniqueIndex` (not a table `unique()`), declared identically here and in the
+ * migrate pre-create so push's diff for it stays empty.
+ */
+export const parseTemplates = pgTable("parse_templates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  description: text("description"),
+  delineator: text("delineator").notNull(),
+  pattern: text("pattern").notNull(),
+  fallbackTag: text("fallback_tag").$type<ParseTag>().notNull().default("name"),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+}, table => [
+  uniqueIndex("parse_templates_name_unique").on(table.name),
+]);
+
+export type ParseTemplateRow = typeof parseTemplates.$inferSelect;
 
 export const peopleRelations = relations(people, ({
   many,

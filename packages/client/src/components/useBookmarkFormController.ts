@@ -14,6 +14,7 @@ import { useBookmarkPrimaryLanguage } from "./useBookmarkPrimaryLanguage";
 import { useBookmarkPropertyPrefill } from "./useBookmarkPropertyPrefill";
 import { useBookmarkUrlProcessing } from "./useBookmarkUrlProcessing";
 import { useAppForm } from "../lib/form";
+import { resolvePeopleIds } from "../lib/peopleMatchOrCreate";
 
 export interface BookmarkFormProps {
   /** When provided, the form edits this bookmark instead of creating a new one. */
@@ -237,6 +238,16 @@ export function useBookmarkFormController({
   // scan). Assembled here because the keydown handler needs the ISBN hook's `handleLookupIsbn`.
   const handleUrlKeyDown = handlers.makeHandleUrlKeyDown(() => void handleLookupIsbn());
 
+  // Create-side "add author names to People" for the Sections editor's paste-to-parse: match-or-create
+  // each name, then append the ids into the shared form's `personIds` (submitted with the create). The
+  // edit surface uses `useAddBookmarkPeopleByNames` (a per-field PATCH) instead.
+  async function onAddPropertyPeople(names: string[]): Promise<void> {
+    const ids = await resolvePeopleIds(names, people ?? [], createPerson);
+    if (ids.length === 0) return;
+    const current = form.getFieldValue("personIds") ?? [];
+    form.setFieldValue("personIds", [...new Set([...current, ...ids])]);
+  }
+
   return {
     form,
     isEdit,
@@ -297,6 +308,7 @@ export function useBookmarkFormController({
     socialAccountOffer: ui.socialAccountOffer,
     setSocialAccountOffer: ui.setSocialAccountOffer,
     createPersonFromSocialAccount,
+    onAddPropertyPeople,
     // The coarse content kind the last scan detected, for the "Detected content type" badge.
     detectedContentKind: ui.detectedContentKind,
     // "Set as default" context for the source-default checkboxes (rendered under their fields).

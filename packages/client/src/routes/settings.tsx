@@ -43,6 +43,10 @@ function SettingsLayout() {
       label: t("Page Layouts"),
     },
     {
+      to: "/settings/parse-templates",
+      label: t("Parse Templates"),
+    },
+    {
       to: "/settings/advanced",
       label: t("Advanced"),
     },

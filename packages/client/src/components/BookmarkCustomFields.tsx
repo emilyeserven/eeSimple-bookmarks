@@ -52,6 +52,8 @@ interface CustomPropertyInputBundle extends CustomPropertyInputs {
   /** Called when the user clicks "Import from Kavita" on the Page Sections field. */
   onSectionsImport?: (propertyId: string) => void;
   isSectionsImportPending?: boolean;
+  /** Match-or-create author names parsed from a pasted list into the bookmark's People. */
+  onAddPeople?: (names: string[]) => void;
 }
 
 interface CategoryCustomFieldsProps extends CustomPropertyInputBundle {
@@ -247,7 +249,7 @@ function ItemInItemsField({
 }
 
 function SectionsField({
-  property, sectionsInputs, onSectionsChange, onSectionsImport, isSectionsImportPending,
+  property, sectionsInputs, onSectionsChange, onSectionsImport, isSectionsImportPending, onAddPeople,
 }: CategoryPropertyFieldProps) {
   return (
     <SectionsPropertyField
@@ -261,6 +263,7 @@ function SectionsField({
         ? () => onSectionsImport(property.id)
         : undefined}
       isImportPending={property.slug === PAGE_SECTIONS_SLUG ? isSectionsImportPending : undefined}
+      onAddPeople={onAddPeople}
     />
   );
 }

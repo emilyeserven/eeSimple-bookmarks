@@ -72,6 +72,31 @@ const migrations: RuntimeMigration[] = [
       sql`CREATE UNIQUE INDEX IF NOT EXISTS "entity_layouts_entity_kind_unique" ON "entity_layouts" ("entity_kind")`,
     ),
   },
+  {
+    // `parse_templates` (paste-to-parse Parse Templates) is a brand-new table. Same push new-table
+    // trap as `entity_layouts` above — pre-create it here so push's diff stays empty. Idempotent
+    // (`IF NOT EXISTS`). No FK columns.
+    name: "create parse_templates table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "parse_templates" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+        "name" text NOT NULL,
+        "description" text,
+        "delineator" text NOT NULL,
+        "pattern" text NOT NULL,
+        "fallback_tag" text DEFAULT 'name' NOT NULL,
+        "created_at" timestamp with time zone DEFAULT now() NOT NULL
+      )
+    `),
+  },
+  {
+    // `parse_templates.name` is declared as a `uniqueIndex` (not a table `unique()`) in schema.ts —
+    // pre-create it identically so push's diff for it stays empty.
+    name: "create parse_templates name unique index",
+    run: db => db.execute(
+      sql`CREATE UNIQUE INDEX IF NOT EXISTS "parse_templates_name_unique" ON "parse_templates" ("name")`,
+    ),
+  },
   // User-configurable taxonomies (`taxonomies` / `taxonomy_terms` / `taxonomy_assignments`) are brand
   // -new tables. Same push new-table trap as `entity_layouts` above — pre-create each here (and its
   // indexes) so push's diff stays empty. FK columns are declared as plain `uuid` with NO `REFERENCES`

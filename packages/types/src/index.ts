@@ -44,6 +44,7 @@ export * from "./labeledWebsites.js";
 export * from "./languageUsages.js";
 export * from "./locationRelations.js";
 export * from "./locations.js";
+export * from "./parseTemplates.js";
 export * from "./podcasts.js";
 export * from "./scanPipeline.js";
 export * from "./translationSources.js";
