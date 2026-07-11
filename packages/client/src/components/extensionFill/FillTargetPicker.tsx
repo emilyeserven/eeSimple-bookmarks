@@ -51,34 +51,42 @@ export function FillTargetPicker({
           {
             value: "field",
             label: t("Bookmark field"),
+            description: t("A core field on this bookmark: title, description, ISBN, or year."),
           },
           {
             value: "customProperty",
             label: t("Custom property"),
+            description: t("A custom property you've defined for bookmarks."),
           },
           {
             value: "taxonomy",
-            label: t("Taxonomy"),
+            label: t("This bookmark's taxonomy (multi)"),
+            description: t("This bookmark's own people, groups, locations, or tags."),
           },
           {
             value: "publisher",
-            label: t("Publisher"),
+            label: t("This bookmark's publisher"),
+            description: t("This bookmark's single publisher Group (e.g. the publishing house)."),
           },
           {
             value: "image",
             label: t("Image"),
+            description: t("Grab an image off the page and upload it to this bookmark."),
           },
           {
             value: "taxonomyEntity",
-            label: t("Associated taxonomy"),
+            label: t("A linked term's field"),
+            description: t("Write into a taxonomy term this bookmark is linked to (e.g. its Website or Person) — not the bookmark itself."),
           },
           {
             value: "taxonomyDirect",
-            label: t("Taxonomy entity (direct)"),
+            label: t("An entity from this page"),
+            description: t("Update a taxonomy entity resolved from the page itself — no bookmark required."),
           },
           {
             value: "sections",
             label: t("Sections"),
+            description: t("Build a Sections property (chapters, timestamps) from a repeated list on the page."),
           },
         ]}
         onValueChange={kind => onChange(coerceFillTarget(kind, target))}

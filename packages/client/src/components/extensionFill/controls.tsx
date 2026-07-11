@@ -11,10 +11,12 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-/** One `{ value, label }` option for a {@link KindSelect}. */
+/** One option for a {@link KindSelect}. `description` (optional) shows as muted subtext. */
 export interface KindOption<T extends string> {
   value: T;
   label: string;
+  /** Muted one-line explanation shown under the option in the dropdown and under the select. */
+  description?: string;
 }
 
 /** A labeled shadcn `Select` bound to a string-literal union (the discriminated-union `kind`s). */
@@ -28,6 +30,7 @@ export function KindSelect<T extends string>({
   className?: string;
 }) {
   const id = useId();
+  const selectedDescription = options.find(option => option.value === value)?.description;
   return (
     <div className={cn("space-y-1", className)}>
       <Label htmlFor={id}>{label}</Label>
@@ -46,12 +49,16 @@ export function KindSelect<T extends string>({
             <SelectItem
               key={option.value}
               value={option.value}
+              description={option.description}
             >
               {option.label}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
+      {selectedDescription
+        ? <p className="text-xs text-muted-foreground">{selectedDescription}</p>
+        : null}
     </div>
   );
 }

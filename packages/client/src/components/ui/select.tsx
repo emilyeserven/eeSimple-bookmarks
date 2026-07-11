@@ -136,15 +136,21 @@ function SelectLabel({
 }
 
 function SelectItem({
-  className, children, ...props
-}: React.ComponentProps<typeof SelectPrimitive.Item>) {
+  className, children, description, ...props
+}: React.ComponentProps<typeof SelectPrimitive.Item> & {
+  /**
+   * Optional muted subtext shown under the label in the dropdown. Rendered as a sibling of
+   * `ItemText` (not inside it) so it never bleeds into the trigger's selected-value display.
+   */
+  description?: React.ReactNode;
+}) {
   return (
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
         `
-          relative flex w-full cursor-default items-center gap-2 rounded-sm
-          py-1.5 pr-8 pl-2 text-sm outline-hidden select-none
+          relative flex w-full cursor-default rounded-sm py-1.5 pr-8 pl-2
+          text-sm outline-hidden select-none
           focus:bg-accent focus:text-accent-foreground
           data-disabled:pointer-events-none data-disabled:opacity-50
           [&_svg]:pointer-events-none [&_svg]:shrink-0
@@ -152,6 +158,7 @@ function SelectItem({
           [&_svg:not([class*='text-'])]:text-muted-foreground
           *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2
         `,
+        description ? "flex-col items-start gap-0.5" : "items-center gap-2",
         className,
       )}
       {...props}
@@ -164,6 +171,9 @@ function SelectItem({
         </SelectPrimitive.ItemIndicator>
       </span>
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+      {description
+        ? <span className="text-xs text-muted-foreground">{description}</span>
+        : null}
     </SelectPrimitive.Item>
   );
 }
