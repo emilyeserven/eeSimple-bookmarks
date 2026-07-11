@@ -1,20 +1,35 @@
 import type { BookmarkSort } from "@/lib/bookmarkSort";
+import type { LucideIcon } from "lucide-react";
 
-import { CheckIcon } from "lucide-react";
+import {
+  ArrowDownAZ,
+  ArrowDownWideNarrow,
+  ArrowUpAZ,
+  ArrowUpNarrowWide,
+  CheckIcon,
+  Columns3,
+  LayoutGrid,
+  ListChecks,
+  Shuffle,
+  Table,
+  X,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { useListingPageContext } from "./useListingPageContext";
 
 import { CommandGroup, CommandItem, CommandSeparator } from "@/components/ui/command";
 
-/** A CommandItem that shows a leading check mark when `checked`. */
+/** A CommandItem with a leading identity icon and a trailing check mark when `checked`. */
 function CheckedCommandItem({
   value,
   checked,
+  icon: Icon,
   onSelect,
 }: {
   value: string;
   checked: boolean;
+  icon: LucideIcon;
   onSelect: () => void;
 }) {
   return (
@@ -22,8 +37,9 @@ function CheckedCommandItem({
       value={value}
       onSelect={onSelect}
     >
-      {checked && <CheckIcon className="text-primary" />}
+      <Icon />
       {value}
+      {checked && <CheckIcon className="ml-auto text-primary" />}
     </CommandItem>
   );
 }
@@ -31,10 +47,12 @@ function CheckedCommandItem({
 /** The fixed sort choices offered on sortable listing pages. */
 const SORT_ITEMS: { value: string;
   label: string;
+  icon: LucideIcon;
   sort: BookmarkSort; }[] = [
   {
     value: "Sort by Title A to Z",
     label: "Sort by Title (A → Z)",
+    icon: ArrowDownAZ,
     sort: {
       primary: {
         field: "title",
@@ -45,6 +63,7 @@ const SORT_ITEMS: { value: string;
   {
     value: "Sort by Title Z to A",
     label: "Sort by Title (Z → A)",
+    icon: ArrowUpAZ,
     sort: {
       primary: {
         field: "title",
@@ -55,6 +74,7 @@ const SORT_ITEMS: { value: string;
   {
     value: "Sort by Date Added Newest",
     label: "Sort by Date Added (Newest)",
+    icon: ArrowDownWideNarrow,
     sort: {
       primary: {
         field: "createdAt",
@@ -65,6 +85,7 @@ const SORT_ITEMS: { value: string;
   {
     value: "Sort by Date Added Oldest",
     label: "Sort by Date Added (Oldest)",
+    icon: ArrowUpNarrowWide,
     sort: {
       primary: {
         field: "createdAt",
@@ -75,6 +96,7 @@ const SORT_ITEMS: { value: string;
   {
     value: "Sort by Date Updated Newest",
     label: "Sort by Date Updated (Newest)",
+    icon: ArrowDownWideNarrow,
     sort: {
       primary: {
         field: "updatedAt",
@@ -85,6 +107,7 @@ const SORT_ITEMS: { value: string;
   {
     value: "Sort by Date Updated Oldest",
     label: "Sort by Date Updated (Oldest)",
+    icon: ArrowUpNarrowWide,
     sort: {
       primary: {
         field: "updatedAt",
@@ -124,11 +147,13 @@ export function ListingPageCommandGroup({
       <CommandGroup heading={t("Current Page")}>
         <CheckedCommandItem
           value={t("Cards View")}
+          icon={LayoutGrid}
           checked={listingCtx.currentViewMode === "cards"}
           onSelect={pick(() => listingCtx.setViewMode("cards"))}
         />
         <CheckedCommandItem
           value={t("Table View")}
+          icon={Table}
           checked={listingCtx.currentViewMode === "table"}
           onSelect={pick(() => listingCtx.setViewMode("table"))}
         />
@@ -138,21 +163,26 @@ export function ListingPageCommandGroup({
             value={t(n === 1 ? "{{count}} Column" : "{{count}} Columns", {
               count: n,
             })}
+            icon={Columns3}
             checked={listingCtx.currentColumns === n}
             onSelect={pick(() => listingCtx.setColumns(n))}
           />
         ))}
         {listingCtx.listingPage.hasSort && (
           <>
-            {SORT_ITEMS.map(item => (
-              <CommandItem
-                key={item.value}
-                value={item.value}
-                onSelect={pick(() => listingCtx.setSort(item.sort))}
-              >
-                {t(item.label)}
-              </CommandItem>
-            ))}
+            {SORT_ITEMS.map((item) => {
+              const Icon = item.icon;
+              return (
+                <CommandItem
+                  key={item.value}
+                  value={item.value}
+                  onSelect={pick(() => listingCtx.setSort(item.sort))}
+                >
+                  <Icon />
+                  {t(item.label)}
+                </CommandItem>
+              );
+            })}
             <CommandItem
               value="Sort Randomly"
               onSelect={pick(() => listingCtx.setSort({
@@ -160,6 +190,7 @@ export function ListingPageCommandGroup({
                 seed: Math.random(),
               }))}
             >
+              <Shuffle />
               {t("Sort Randomly")}
             </CommandItem>
             {listingCtx.currentSort != null && (
@@ -167,6 +198,7 @@ export function ListingPageCommandGroup({
                 value="Clear Sort"
                 onSelect={pick(() => listingCtx.clearSort())}
               >
+                <X />
                 {t("Clear Sort")}
               </CommandItem>
             )}
@@ -177,6 +209,7 @@ export function ListingPageCommandGroup({
             value={listingCtx.selectionMode ? disableSelectMode : enableSelectMode}
             onSelect={pick(() => listingCtx.setSelectionMode(!listingCtx.selectionMode))}
           >
+            <ListChecks />
             {listingCtx.selectionMode ? disableSelectMode : enableSelectMode}
           </CommandItem>
         )}
