@@ -6,9 +6,18 @@ import { useMemo } from "react";
 
 import {
   ArrowLeftIcon,
+  Ban,
+  Building2,
   CheckIcon,
+  Circle,
+  Clapperboard,
+  FolderOpen,
+  Mail,
+  MapPin,
   PlusIcon,
-  TagIcon,
+  Star,
+  Tags,
+  UserRound,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -19,6 +28,8 @@ import {
   CommandItem,
   CommandSeparator,
 } from "@/components/ui/command";
+import { CategoryIcon } from "@/lib/icons";
+import { CUSTOM_PROPERTY_TYPE_ICONS } from "@/lib/propertyFormat";
 import { subtreeIds } from "@/lib/tagTree";
 
 export type TaxonomyMode = "category" | "media-type" | "tags" | "locations" | "people" | "groups" | "newsletter" | "choices-property" | "rating-property";
@@ -110,10 +121,11 @@ export function CategorySubPalette({
             value={category.name}
             onSelect={() => onSelect(category.id)}
           >
-            {currentCategoryId === category.id && (
-              <CheckIcon className="text-primary" />
-            )}
+            <FolderOpen />
             {category.name}
+            {currentCategoryId === category.id && (
+              <CheckIcon className="ml-auto text-primary" />
+            )}
           </CommandItem>
         ))}
       </CommandGroup>
@@ -161,10 +173,11 @@ export function MediaTypeSubPalette({
           value="None"
           onSelect={() => onSelect(null)}
         >
-          {currentMediaTypeId == null && (
-            <CheckIcon className="text-primary" />
-          )}
+          <Ban />
           {t("None")}
+          {currentMediaTypeId == null && (
+            <CheckIcon className="ml-auto text-primary" />
+          )}
         </CommandItem>
         {flatMediaTypes.map(({
           node: mt, depth,
@@ -174,9 +187,7 @@ export function MediaTypeSubPalette({
             value={mt.name}
             onSelect={() => onSelect(mt.id)}
           >
-            {currentMediaTypeId === mt.id && (
-              <CheckIcon className="text-primary" />
-            )}
+            <Clapperboard />
             <span
               style={{
                 paddingLeft: depth > 0 ? `${depth}rem` : undefined,
@@ -184,6 +195,9 @@ export function MediaTypeSubPalette({
             >
               {mt.name}
             </span>
+            {currentMediaTypeId === mt.id && (
+              <CheckIcon className="ml-auto text-primary" />
+            )}
           </CommandItem>
         ))}
       </CommandGroup>
@@ -223,6 +237,7 @@ export function TagsSubPalette({
         value={`${tag.name} ${(tag.names ?? []).map(n => n.value).join(" ")}`.trim()}
         onSelect={() => onToggleTag(tag.id)}
       >
+        <Tags />
         <span
           style={{
             paddingLeft: depth > 0 ? `${depth}rem` : undefined,
@@ -326,6 +341,7 @@ export function LocationsSubPalette({
         value={`${location.name} ${(location.names ?? []).map(n => n.value).join(" ")}`.trim()}
         onSelect={() => onToggleLocation(location.id)}
       >
+        <MapPin />
         <span
           style={{
             paddingLeft: depth > 0 ? `${depth}rem` : undefined,
@@ -429,8 +445,9 @@ export function PeopleSubPalette({
               value={person.name}
               onSelect={() => onTogglePerson(person.id)}
             >
-              {selected && <CheckIcon className="text-primary" />}
+              <UserRound />
               {person.name}
+              {selected && <CheckIcon className="ml-auto text-primary" />}
             </CommandItem>
           );
         })}
@@ -497,8 +514,9 @@ export function GroupsSubPalette({
               value={group.name}
               onSelect={() => onToggleGroup(group.id)}
             >
-              {selected && <CheckIcon className="text-primary" />}
+              <Building2 />
               {group.name}
+              {selected && <CheckIcon className="ml-auto text-primary" />}
             </CommandItem>
           );
         })}
@@ -570,8 +588,9 @@ export function ChoicesSubPalette({
                 }
               }}
             >
-              {selected && <CheckIcon className="text-primary" />}
+              <Circle />
               {item.label}
+              {selected && <CheckIcon className="ml-auto text-primary" />}
             </CommandItem>
           );
         })}
@@ -638,10 +657,11 @@ export function RatingSubPalette({
             value="No rating"
             onSelect={() => onSelect(null)}
           >
-            {currentValue === null && (
-              <CheckIcon className="text-primary" />
-            )}
+            <Ban />
             {t("No rating")}
+            {currentValue === null && (
+              <CheckIcon className="ml-auto text-primary" />
+            )}
           </CommandItem>
         )}
         {options.map(n => (
@@ -650,9 +670,10 @@ export function RatingSubPalette({
             value={`${n.toString()} ${n === 1 ? "star" : "stars"}`}
             onSelect={() => onSelect(n)}
           >
-            {currentValue === n && <CheckIcon className="text-primary" />}
+            <Star />
             {"★".repeat(n)}
             {"☆".repeat(max - n)}
+            {currentValue === n && <CheckIcon className="ml-auto text-primary" />}
           </CommandItem>
         ))}
       </CommandGroup>
@@ -700,10 +721,11 @@ export function NewsletterSubPalette({
           value="None"
           onSelect={() => onSelect(null)}
         >
-          {currentNewsletterId == null && (
-            <CheckIcon className="text-primary" />
-          )}
+          <Ban />
           {t("None")}
+          {currentNewsletterId == null && (
+            <CheckIcon className="ml-auto text-primary" />
+          )}
         </CommandItem>
         {newsletters.map(nl => (
           <CommandItem
@@ -711,10 +733,11 @@ export function NewsletterSubPalette({
             value={nl.name}
             onSelect={() => onSelect(nl.id)}
           >
-            {currentNewsletterId === nl.id && (
-              <CheckIcon className="text-primary" />
-            )}
+            <Mail />
             {nl.name}
+            {currentNewsletterId === nl.id && (
+              <CheckIcon className="ml-auto text-primary" />
+            )}
           </CommandItem>
         ))}
       </CommandGroup>
@@ -786,7 +809,7 @@ export function BookmarkTaxonomiesGroup({
           value={changeCategory}
           onSelect={() => onEnterMode("category")}
         >
-          <TagIcon />
+          <FolderOpen />
           <span className="flex min-w-0 flex-col gap-0.5">
             <span>{changeCategory}</span>
             <span className="text-xs text-muted-foreground">
@@ -798,7 +821,7 @@ export function BookmarkTaxonomiesGroup({
           value={changeTags}
           onSelect={() => onEnterMode("tags")}
         >
-          <TagIcon />
+          <Tags />
           <span className="flex min-w-0 flex-col gap-0.5">
             <span>{changeTags}</span>
             <span className="text-xs text-muted-foreground">
@@ -812,7 +835,7 @@ export function BookmarkTaxonomiesGroup({
           value={changeLocations}
           onSelect={() => onEnterMode("locations")}
         >
-          <TagIcon />
+          <MapPin />
           <span className="flex min-w-0 flex-col gap-0.5">
             <span>{changeLocations}</span>
             <span className="text-xs text-muted-foreground">
@@ -826,7 +849,7 @@ export function BookmarkTaxonomiesGroup({
           value={changeMediaType}
           onSelect={() => onEnterMode("media-type")}
         >
-          <TagIcon />
+          <Clapperboard />
           <span className="flex min-w-0 flex-col gap-0.5">
             <span>{changeMediaType}</span>
             <span className="text-xs text-muted-foreground">
@@ -839,7 +862,7 @@ export function BookmarkTaxonomiesGroup({
             value={changePeople}
             onSelect={() => onEnterMode("people")}
           >
-            <TagIcon />
+            <UserRound />
             <span className="flex min-w-0 flex-col gap-0.5">
               <span>{changePeople}</span>
               <span className="text-xs text-muted-foreground">
@@ -855,7 +878,7 @@ export function BookmarkTaxonomiesGroup({
             value={changeGroups}
             onSelect={() => onEnterMode("groups")}
           >
-            <TagIcon />
+            <Building2 />
             <span className="flex min-w-0 flex-col gap-0.5">
               <span>{changeGroups}</span>
               <span className="text-xs text-muted-foreground">
@@ -870,7 +893,7 @@ export function BookmarkTaxonomiesGroup({
           value={changeNewsletter}
           onSelect={() => onEnterMode("newsletter")}
         >
-          <TagIcon />
+          <Mail />
           <span className="flex min-w-0 flex-col gap-0.5">
             <span>{changeNewsletter}</span>
             <span className="text-xs text-muted-foreground">
@@ -906,13 +929,14 @@ export function BookmarkTaxonomiesGroup({
                 onClose();
               }}
             >
-              {current && <CheckIcon className="text-primary" />}
+              <CategoryIcon name={CUSTOM_PROPERTY_TYPE_ICONS[p.type]} />
               <span className="flex min-w-0 flex-col gap-0.5">
                 <span>{p.name}</span>
                 <span className="text-xs text-muted-foreground">
                   {current ? t("On") : t("Off")}
                 </span>
               </span>
+              {current && <CheckIcon className="ml-auto text-primary" />}
             </CommandItem>
           );
         })}
@@ -928,6 +952,7 @@ export function BookmarkTaxonomiesGroup({
               })}
               onSelect={() => onEnterChoicesMode(p.id)}
             >
+              <CategoryIcon name={CUSTOM_PROPERTY_TYPE_ICONS[p.type]} />
               <span className="flex min-w-0 flex-col gap-0.5">
                 <span>
                   {t("Set")}
@@ -954,6 +979,7 @@ export function BookmarkTaxonomiesGroup({
               })}
               onSelect={() => onEnterRatingMode(p.id)}
             >
+              <CategoryIcon name={CUSTOM_PROPERTY_TYPE_ICONS[p.type]} />
               <span className="flex min-w-0 flex-col gap-0.5">
                 <span>
                   {t("Set")}
@@ -977,6 +1003,7 @@ export function BookmarkTaxonomiesGroup({
             })}
             onSelect={onNavigateProperties}
           >
+            <CategoryIcon name={CUSTOM_PROPERTY_TYPE_ICONS[p.type]} />
             <span className="flex min-w-0 flex-col gap-0.5">
               <span>
                 {t("Edit")}
