@@ -14,6 +14,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { KindSelect, LabeledInput } from "./controls";
+import { TextMatchEditor } from "./TextMatchEditor";
 import { Combobox } from "../Combobox";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
@@ -203,8 +204,10 @@ type SectionEntryTypeName = SectionsTarget["entryType"];
 
 /**
  * Controls for a `sections` target: pick the sections-typed property + the entry type. For url/page
- * the optional container/header/item-name selectors build a two-tier value (blank container = flat);
- * for timestamp those are hidden (the selector's text is parsed for `m:ss` lines).
+ * the optional container/header/item-name selectors build a two-tier value (blank container = flat),
+ * or the optional "section header text match" groups one flat item list by item text (items whose
+ * name matches open a top-level section; it takes precedence over the container selector). For
+ * timestamp those are hidden (the selector's text is parsed for `m:ss` lines).
  */
 function SectionsTarget({
   target, propertiesById, onChange,
@@ -305,6 +308,22 @@ function SectionsTarget({
             <p className="text-xs text-muted-foreground">
               {t("Leave the container blank for a flat list. The main Selector matches each item. With an Item URL selector, the item can be a wrapper and Item name / Item URL read from inside it; leave it blank to read the value off the item via Read/Transform.")}
             </p>
+            <div className="space-y-1">
+              <Label>{t("Section header text match")}</Label>
+              <TextMatchEditor
+                match={target.sectionMatch ?? {
+                  mode: "regex",
+                  value: "",
+                }}
+                onChange={sectionMatch => onChange({
+                  ...target,
+                  sectionMatch,
+                })}
+              />
+              <p className="text-xs text-muted-foreground">
+                {t("Optional. For a flat list with no grouping container (e.g. an O'Reilly table of contents), items whose name matches become top-level sections and the items after them nest as children. Takes precedence over the container selector.")}
+              </p>
+            </div>
           </>
         )}
     </div>

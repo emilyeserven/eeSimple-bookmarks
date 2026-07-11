@@ -1129,3 +1129,99 @@ describe("taxonomyEntity target", () => {
     })).toBe("People · Description");
   });
 });
+
+describe("sections target", () => {
+  it("starts blank when switching in from another kind", () => {
+    expect(coerceFillTarget("sections", {
+      kind: "field",
+      field: "title",
+    })).toEqual({
+      kind: "sections",
+      propertyId: "",
+      entryType: "url",
+    });
+  });
+
+  it("preserves itemUrl and sectionMatch across a same-kind rebuild", () => {
+    const target = {
+      kind: "sections" as const,
+      propertyId: "p1",
+      entryType: "url" as const,
+      itemUrl: "a",
+      sectionMatch: {
+        mode: "regex" as const,
+        value: "^Part",
+      },
+    };
+    expect(coerceFillTarget("sections", target)).toEqual(target);
+  });
+
+  it("carries itemUrl and sectionMatch through normalization (the persistence path)", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "sections",
+        propertyId: "p1",
+        entryType: "url",
+        itemName: "span",
+        itemUrl: "a",
+        sectionMatch: {
+          mode: "regex",
+          value: "^Part\\b",
+        },
+      },
+      extract: {
+        selector: ".toc li",
+      },
+    })]);
+    expect(out.target).toEqual({
+      kind: "sections",
+      propertyId: "p1",
+      entryType: "url",
+      itemName: "span",
+      itemUrl: "a",
+      sectionMatch: {
+        mode: "regex",
+        value: "^Part\\b",
+      },
+    });
+  });
+
+  it("drops a blank sectionMatch during normalization", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "sections",
+        propertyId: "p1",
+        entryType: "url",
+        sectionMatch: {
+          mode: "regex",
+          value: "   ",
+        },
+      },
+      extract: {
+        selector: ".toc li",
+      },
+    })]);
+    expect(out.target).toEqual({
+      kind: "sections",
+      propertyId: "p1",
+      entryType: "url",
+    });
+  });
+
+  it("summarizes a sections target, flagging grouped mode", () => {
+    expect(describeFillTarget({
+      kind: "sections",
+      propertyId: "p1",
+      entryType: "url",
+    })).toBe("Sections · URL");
+    expect(describeFillTarget({
+      kind: "sections",
+      propertyId: "p1",
+      entryType: "url",
+      sectionMatch: {
+        mode: "regex",
+        value: "^Part",
+      },
+    })).toBe("Sections · URL · grouped");
+  });
+});

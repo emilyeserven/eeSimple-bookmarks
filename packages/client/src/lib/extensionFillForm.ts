@@ -178,7 +178,8 @@ export function describeFillTarget(target: FillTarget, property?: CustomProperty
     }
     case "sections": {
       const name = property?.name ?? "Sections";
-      return `${name} · ${SECTION_FILL_ENTRY_TYPE_LABELS[target.entryType]}`;
+      const grouped = target.sectionMatch?.value.trim() ? " · grouped" : "";
+      return `${name} · ${SECTION_FILL_ENTRY_TYPE_LABELS[target.entryType]}${grouped}`;
     }
   }
 }
@@ -588,6 +589,10 @@ function cleanSectionsTarget(
   const container = target.container?.trim();
   const header = target.header?.trim();
   const itemName = target.itemName?.trim();
+  const itemUrl = target.itemUrl?.trim();
+  const sectionMatch = target.sectionMatch?.value.trim()
+    ? target.sectionMatch
+    : undefined;
   return {
     kind: "sections",
     propertyId: target.propertyId,
@@ -605,6 +610,16 @@ function cleanSectionsTarget(
     ...(itemName
       ? {
         itemName,
+      }
+      : {}),
+    ...(itemUrl
+      ? {
+        itemUrl,
+      }
+      : {}),
+    ...(sectionMatch
+      ? {
+        sectionMatch,
       }
       : {}),
   };

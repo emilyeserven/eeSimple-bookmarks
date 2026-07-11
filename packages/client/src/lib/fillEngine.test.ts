@@ -1044,6 +1044,105 @@ describe("eesimpleFillEngine.runRules — sections target", () => {
     ]);
   });
 
+  // An O'Reilly-style flat ToC: "Part" headers and chapter links are all sibling <a>s, no container.
+  const FLAT_TOC_HTML = `
+    <ul class="toc">
+      <li><a href="/preface">Preface</a></li>
+      <li><a href="/part-1">Part 1: Foundations</a></li>
+      <li><a href="/ch-1">Chapter 1. Getting Started</a></li>
+      <li><a href="/ch-2">Chapter 2. Workflows</a></li>
+      <li><a href="/part-2">Part 2: Advanced</a></li>
+      <li><a href="/ch-3">Chapter 3. Runners</a></li>
+    </ul>
+  `;
+
+  it("groups a flat item list into sections by item text match", () => {
+    const rule = {
+      id: "toc",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "url",
+        sectionMatch: {
+          mode: "regex",
+          value: "^Part\\b",
+        },
+      },
+      extract: {
+        selector: ".toc a",
+        read: {
+          kind: "attr",
+          name: "href",
+        },
+      },
+    };
+    expect(runSections(rule, FLAT_TOC_HTML)).toEqual([
+      // Pre-section item stays top-level.
+      {
+        name: "Preface",
+        type: "url",
+        startValue: "/preface",
+      },
+      // A matched header keeps its own value/link AND nests the following non-matching items.
+      {
+        name: "Part 1: Foundations",
+        type: "url",
+        startValue: "/part-1",
+        children: [
+          {
+            name: "Chapter 1. Getting Started",
+            type: "url",
+            startValue: "/ch-1",
+          },
+          {
+            name: "Chapter 2. Workflows",
+            type: "url",
+            startValue: "/ch-2",
+          },
+        ],
+      },
+      {
+        name: "Part 2: Advanced",
+        type: "url",
+        startValue: "/part-2",
+        children: [
+          {
+            name: "Chapter 3. Runners",
+            type: "url",
+            startValue: "/ch-3",
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("prefers the text match over the container selector when both are set", () => {
+    const rule = {
+      id: "toc",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "url",
+        container: ".acc",
+        header: ".hdr",
+        sectionMatch: {
+          mode: "regex",
+          value: "^Part\\b",
+        },
+      },
+      extract: {
+        selector: ".toc a",
+        read: {
+          kind: "attr",
+          name: "href",
+        },
+      },
+    };
+    // The container branch would find no `.acc` groups (empty); the sectionMatch branch runs instead.
+    const entries = runSections(rule, FLAT_TOC_HTML);
+    expect(entries.map(e => e.name)).toEqual(["Preface", "Part 1: Foundations", "Part 2: Advanced"]);
+  });
+
   it("leaves non-sections rules with no `entries` key", () => {
     const result = engine.runRules(
       [{

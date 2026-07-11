@@ -444,6 +444,11 @@ const fillTargetSchema = {
     itemName: {
       type: "string",
     },
+    itemUrl: {
+      type: "string",
+    },
+    // `sections` target: text-content classifier grouping a flat item list into sections/subsections.
+    sectionMatch: textMatchSchema,
   },
   allOf: [
     {
