@@ -7,6 +7,7 @@ import {
   BookmarkCreatedView,
   BookmarkDescriptionDetailView,
   BookmarkGenreMoodsDetailView,
+  BookmarkGraphView,
   BookmarkGroupsDetailView,
   BookmarkHierarchyView,
   BookmarkKavitaDetailView,
@@ -62,9 +63,10 @@ import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsage
  * the mode picks the `view`/`edit` renderer, so view/edit parity is by construction. The asymmetric
  * bookmark reconciliation (design §5) falls out of the field split:
  * - `general`/`customProperties`/`languageUsages`/`gallery`/`reel` carry **both** renderers;
- * - `relatedEdit` is **edit-only** and `relatedBookmarks`/`hierarchy`/`mediaSource`/`locationsMap`/
- *   `metadata`/`debugInfo` are **view-only** — so the Related tab shows the four view blocks in view
- *   and the one edit form in edit, and Metadata/Debug vanish in edit (no `edit` renderer).
+ * - `relatedEdit` is **edit-only** and `relatedBookmarks`/`bookmarkGraph`/`hierarchy`/`mediaSource`/
+ *   `locationsMap`/`metadata`/`debugInfo` are **view-only** — so the Related tab shows the four view
+ *   blocks in view and the one edit form in edit, and the Graph/Metadata/Debug tabs vanish in edit
+ *   (no `edit` renderer).
  *
  * Bookmarks stay **off** `ENTITY_DESCRIPTORS` (they're id-routed, not slug-routed), so this descriptor
  * feeds only `useResolvedWorkbenchLayout` + `LayoutDrivenTabBody`; the id-routed edit view is
@@ -101,6 +103,7 @@ export type BookmarkFieldKey
     | "reelPlayer"
     | "relatedEdit"
     | "relatedBookmarks"
+    | "bookmarkGraph"
     | "hierarchy"
     | "mediaSource"
     | "locationsMap"
@@ -324,6 +327,13 @@ const bookmarkFields = {
       entity,
     }) => <BookmarkRelatedBookmarksView bookmark={entity} />,
   },
+  bookmarkGraph: {
+    key: "bookmarkGraph",
+    label: i18n.t("Bookmark graph"),
+    view: ({
+      entity,
+    }) => <BookmarkGraphView bookmark={entity} />,
+  },
   hierarchy: {
     key: "hierarchy",
     label: i18n.t("Hierarchy"),
@@ -438,6 +448,14 @@ const BOOKMARK_DEFAULT_LAYOUT: EntityLayout = {
       sections: [{
         key: "related",
         fields: ["relatedEdit", "relatedBookmarks", "hierarchy", "mediaSource", "locationsMap"] satisfies BookmarkFieldKey[],
+      }],
+    },
+    {
+      key: "graph",
+      label: i18n.t("Graph"),
+      sections: [{
+        key: "graph",
+        fields: ["bookmarkGraph"] satisfies BookmarkFieldKey[],
       }],
     },
     {

@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 
 import { Link } from "@tanstack/react-router";
 
+import { useBookmarkGraph } from "../../hooks/useBookmarkGraph";
 import { useBookmarks } from "../../hooks/useBookmarks";
 import { useBookmarksSharingMediaSource } from "../../hooks/useBookmarksSharingMediaSource";
 import { useCategories } from "../../hooks/useCategories";
@@ -17,6 +18,7 @@ import { withMediaSourceMatch } from "../../lib/bookmarkSearch";
 import { flattenTree } from "../../lib/tagTree";
 import { BookmarkCardGrid } from "../BookmarkCardGrid";
 import { BookmarkCategoryLink } from "../BookmarkCategoryLink";
+import { BookmarkGraph } from "../BookmarkGraph";
 import { BookmarkGroupBadges } from "../BookmarkGroupsBox";
 import { BookmarkKavitaDetailRow } from "../BookmarkKavitaField";
 import { BookmarkLocationsBox } from "../BookmarkLocationsBox";
@@ -354,6 +356,24 @@ export function BookmarkRelatedBookmarksView({
           return relationship ? relationshipBadges(relationship) : null;
         }}
       />
+    </LabeledSection>
+  );
+}
+
+/** The one-layer relatedness graph around this bookmark, or null when nothing is related. */
+export function BookmarkGraphView({
+  bookmark,
+}: {
+  bookmark: Bookmark;
+}) {
+  const graph = useBookmarkGraph(bookmark);
+  if (graph.nodes.length <= 1) return null;
+  return (
+    <LabeledSection
+      title={i18n.t("Bookmark graph")}
+      description={i18n.t("This bookmark and its related bookmarks — a bigger node has more in common with the others, and a thicker line means two bookmarks share more. Scored by the weights in Settings → Display → Bookmark Graph.")}
+    >
+      <BookmarkGraph graph={graph} />
     </LabeledSection>
   );
 }
