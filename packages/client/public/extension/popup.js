@@ -753,6 +753,9 @@ function buildSectionsRow(rule, result, ctx) {
   // Only flag as changed when the extracted content actually differs from the stored value (id-insensitive).
   const changed = !existing || !sectionsContentEqual(entries, existing.sections);
   const row = baseRow(rule, currentText, summarizeSections(entries), changed, changed ? null : "no change");
+  // A per-section diff (added/removed/changed by name) for the review UI; renderRow shows it in place of
+  // the coarse "N sections → N sections" text when the row is changed.
+  row.sectionsDiff = diffSections(existing ? existing.sections : [], entries);
   row.apply = (patch, state) => {
     const map = seedValueMap(state, "sectionsValues", bookmark);
     map.set(property.id, {
@@ -796,6 +799,103 @@ function summarizeSections(sections) {
   const items = sections.reduce((sum, s) => sum + (s.children ? s.children.length : 0), 0);
   const base = `${count} section${count === 1 ? "" : "s"}`;
   return items > 0 ? `${base}, ${items} item${items === 1 ? "" : "s"}` : base;
+}
+
+// Render a timestamp's integer seconds as a clock (`m:ss`, or `h:mm:ss` past an hour). Mirrors the
+// web app's formatSeconds (lib/propertyFormat.ts). A non-numeric value is returned unchanged.
+function formatSectionSeconds(value) {
+  const total = Number(value);
+  if (!Number.isFinite(total)) return value;
+  const secs = Math.max(0, Math.floor(total));
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = secs % 60;
+  const pad = n => String(n).padStart(2, "0");
+  return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
+}
+
+// A section entry's positional range as text — "start–end" (or just "start"), timestamps as clocks.
+// Mirrors formatSectionValue/sectionEntryPositional: `type: "url"` has no positional value (its value
+// is the link), so it returns "".
+function formatSectionRange(entry) {
+  if (entry.type === "url") return "";
+  const display = v => (entry.type === "timestamp" ? formatSectionSeconds(v) : v);
+  const start = display(entry.startValue || "");
+  if (entry.endValue != null && entry.endValue !== "") return `${start}–${display(entry.endValue)}`;
+  return start;
+}
+
+// A one-line label for a section: its name plus its range in parens when present, e.g.
+// "Chapter 1 (1–20)" / "Intro (0:00–5:30)" / just "Preface" when there's no range.
+function sectionLineLabel(entry) {
+  const name = (entry.name || "").trim() || "(unnamed)";
+  const range = formatSectionRange(entry);
+  return range ? `${name} (${range})` : name;
+}
+
+// Content-level diff of two top-level section lists for display. Ids are regenerated on every scrape,
+// so sections are paired by normalized name (trimmed, lower-cased), consumed greedily so duplicate
+// names pair 1:1. Returns ordered items { kind, name, oldLabel?, newLabel?, oldChildren?, newChildren? }
+// where kind is "changed" | "added" | "removed" | "unchanged". Emitted order: changed, added, removed,
+// then the unchanged ones (collapsed to a count by the renderer). Child items are summarized as counts,
+// not diffed recursively.
+function diffSections(current, extracted) {
+  const cur = Array.isArray(current) ? current : [];
+  const ext = Array.isArray(extracted) ? extracted : [];
+  const norm = s => (s.name || "").trim().toLowerCase();
+
+  // Per-name queue of current sections, so an extracted section matches at most one current section.
+  const pool = new Map();
+  cur.forEach((s) => {
+    const key = norm(s);
+    if (!pool.has(key)) pool.set(key, []);
+    pool.get(key).push(s);
+  });
+
+  const changed = [];
+  const added = [];
+  let unchanged = 0;
+  for (const e of ext) {
+    const queue = pool.get(norm(e));
+    const match = queue && queue.length ? queue.shift() : null;
+    if (!match) {
+      added.push({
+        kind: "added",
+        name: e.name || "",
+        newLabel: sectionLineLabel(e),
+      });
+    }
+    else if (sectionsContentEqual([e], [match])) {
+      unchanged += 1;
+    }
+    else {
+      changed.push({
+        kind: "changed",
+        name: e.name || match.name || "",
+        oldLabel: sectionLineLabel(match),
+        newLabel: sectionLineLabel(e),
+        oldChildren: match.children ? match.children.length : 0,
+        newChildren: e.children ? e.children.length : 0,
+      });
+    }
+  }
+
+  // Anything left in the pool was in current but not extracted → removed.
+  const removed = [];
+  for (const queue of pool.values()) {
+    for (const s of queue) removed.push({
+      kind: "removed",
+      name: s.name || "",
+      oldLabel: sectionLineLabel(s),
+    });
+  }
+
+  const items = [...changed, ...added, ...removed];
+  if (unchanged > 0) items.push({
+    kind: "unchanged",
+    count: unchanged,
+  });
+  return items;
 }
 
 // A stable id for a new section entry. Prefers crypto.randomUUID, falling back for older page contexts.
@@ -1949,6 +2049,13 @@ function renderRow(row) {
     }));
   }
 
+  // A changed `sections` row renders a per-section diff instead of the coarse current → extracted text.
+  if (row.sectionsDiff && row.changed && !row.disabledReason) {
+    body.appendChild(renderSectionsDiff(row.sectionsDiff));
+    wrap.appendChild(body);
+    return wrap;
+  }
+
   const valuesEl = document.createElement("div");
   valuesEl.className = "fill-values";
   if (row.currentText) {
@@ -1974,6 +2081,39 @@ function renderRow(row) {
 
   wrap.appendChild(body);
   return wrap;
+}
+
+// Render a per-section diff (from diffSections) as a compact stack of one-line entries: changed
+// ("~ Name: old → new" + child-count note), added ("+ …"), removed ("− …"), then a muted "N unchanged".
+function renderSectionsDiff(diff) {
+  const box = document.createElement("div");
+  box.className = "fill-sections";
+  for (const item of diff) {
+    const line = document.createElement("div");
+    if (item.kind === "changed") {
+      line.className = "fill-sec-changed";
+      let text = `~ ${item.oldLabel} → ${item.newLabel}`;
+      if (item.oldChildren !== item.newChildren) {
+        const items = n => `${n} item${n === 1 ? "" : "s"}`;
+        text += ` · ${items(item.oldChildren)} → ${items(item.newChildren)}`;
+      }
+      line.textContent = text;
+    }
+    else if (item.kind === "added") {
+      line.className = "fill-sec-added";
+      line.textContent = `+ ${item.newLabel}`;
+    }
+    else if (item.kind === "removed") {
+      line.className = "fill-sec-removed";
+      line.textContent = `− ${item.oldLabel}`;
+    }
+    else {
+      line.className = "fill-sec-unchanged";
+      line.textContent = `${item.count} unchanged`;
+    }
+    box.appendChild(line);
+  }
+  return box;
 }
 
 // A `<select>` of the linked terms for a multi-term entity row. Interacting with it must not toggle
