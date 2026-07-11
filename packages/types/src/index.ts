@@ -2508,6 +2508,12 @@ export interface CustomProperty {
   sectionsDefaultType: SectionEntryType | null;
   /** Allowed section entry types for a `sections` property; `null` means all types are allowed. */
   sectionsAllowedTypes: SectionEntryType[] | null;
+  /**
+   * When true, a `sections` property opts into a second tier — a tier-1 entry may carry child
+   * entries (see {@link SectionEntry.children}). `null`/false = single-tier (the default). Only
+   * relevant for `sections`.
+   */
+  sectionsTiered: boolean | null;
   createdAt: string;
 }
 
@@ -2593,6 +2599,8 @@ export interface CreateCustomPropertyInput {
   sectionsDefaultType?: SectionEntryType | null;
   /** Allowed section entry types for a `sections` property; `null` means all types. */
   sectionsAllowedTypes?: SectionEntryType[] | null;
+  /** When true, a `sections` property opts into a second tier (child entries). Defaults to false. */
+  sectionsTiered?: boolean | null;
 }
 
 /** Payload for updating a custom property. Its `type` is immutable. */

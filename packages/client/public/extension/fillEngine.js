@@ -288,9 +288,120 @@
     return result;
   }
 
+  // --- Sections extraction -------------------------------------------------
+  // A `sections` target builds a structured (optionally two-tier) list of section entries instead of
+  // the flat string[] every other target produces. The per-rule result then carries an `entries`
+  // field alongside `values`; the popup assembles the BookmarkSectionsValue (and assigns ids).
+
+  // Read an item's display name: a relative sub-selector's text, or the item's own trimmed text.
+  function readName(el, nameSelector) {
+    if (nameSelector) {
+      var named = el.querySelector(nameSelector);
+      if (named) return trimmedText(named);
+    }
+    return trimmedText(el);
+  }
+
+  // Run the value pipeline (read + transforms) for one item element, returning its startValue string.
+  function readItemValue(el, extract) {
+    var raw = readValue(el, extract.read);
+    if (raw == null) return "";
+    var value = raw;
+    (extract.transform || []).forEach(function (transform) {
+      value = applyTransform(value, transform);
+    });
+    return value.trim();
+  }
+
+  // Build one leaf entry (a flat entry, or a tier-1 group's child) from an item element.
+  function buildSectionLeaf(el, target, extract) {
+    return {
+      name: readName(el, target.itemName),
+      type: target.entryType,
+      startValue: readItemValue(el, extract),
+    };
+  }
+
+  // Matches a line-leading "m:ss" / "h:mm:ss" timestamp, then a separator, capturing the trailing
+  // label. The separator class swallows spaces plus common dash/colon/bracket bullets ("0:00 - Intro",
+  // "0:00: Intro"); the greedy timestamp group consumes the full clock before the separator runs.
+  var TIMESTAMP_LINE_RE = /(?:^|\n)\s*(\d{1,2}(?::\d{2}){1,2})[\s\-–—:.)\]]+([^\n]+)/g;
+
+  // Convert an "m:ss" / "h:mm:ss" clock string to a total number of seconds.
+  function clockToSeconds(clock) {
+    var parts = clock.split(":").map(function (p) {
+      return parseInt(p, 10);
+    });
+    return parts.reduce(function (total, part) {
+      return total * 60 + part;
+    }, 0);
+  }
+
+  // Parse a text block (e.g. a video description) into flat timestamp entries (startValue = seconds).
+  function parseTimestampSections(text, entryType) {
+    var re = new RegExp(TIMESTAMP_LINE_RE.source, "g");
+    var entries = [];
+    var m;
+    while ((m = re.exec(text)) !== null) {
+      var label = m[2].trim();
+      if (!label) continue;
+      entries.push({
+        name: label,
+        type: entryType,
+        startValue: String(clockToSeconds(m[1])),
+      });
+    }
+    return entries;
+  }
+
+  function runSectionsRule(rule, doc) {
+    var target = rule.target || {};
+    var extract = rule.extract || {};
+
+    if (target.entryType === "timestamp") {
+      var text = candidateNodes(extract, doc)
+        .map(function (el) {
+          return trimmedText(el);
+        })
+        .join("\n");
+      return parseTimestampSections(text, target.entryType);
+    }
+
+    // Tiered: a repeated container element carries a header and its own items (the children).
+    if (target.container) {
+      return Array.prototype.slice.call(doc.querySelectorAll(target.container)).map(function (group) {
+        var items = Array.prototype.slice.call(group.querySelectorAll(extract.selector));
+        return {
+          name: target.header ? readName(group, target.header) : "",
+          type: target.entryType,
+          startValue: "",
+          children: items.map(function (item) {
+            return buildSectionLeaf(item, target, extract);
+          }),
+        };
+      });
+    }
+
+    // Flat: each matched item is one entry.
+    return candidateNodes(extract, doc).map(function (el) {
+      return buildSectionLeaf(el, target, extract);
+    });
+  }
+
   function runRules(rules, doc = document) {
     return (rules || []).map(function (rule) {
       try {
+        if (rule.target && rule.target.kind === "sections") {
+          var entries = runSectionsRule(rule, doc);
+          return {
+            ruleId: rule.id,
+            // Flat fallback list of startValues, for a graceful display if `entries` is unused.
+            values: entries.map(function (e) {
+              return e.startValue;
+            }),
+            entries: entries,
+          };
+        }
         return {
           ruleId: rule.id,
           values: runRule(rule, doc),

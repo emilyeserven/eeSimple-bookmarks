@@ -40,18 +40,47 @@ export const NUMBER_FORMAT_LABELS: Record<NumberFormat, string> = {
   duration: i18n.t("Duration"),
 };
 
+/**
+ * Render a `timestamp`-type section value (stored as integer seconds) as a clock — `m:ss` or, past an
+ * hour, `h:mm:ss`. A non-numeric value is returned unchanged so hand-entered strings still display.
+ */
+export function formatSeconds(value: string): string {
+  const total = Number(value);
+  if (!Number.isFinite(total) || value.trim() === "") return value;
+  const secs = Math.max(0, Math.floor(total));
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = secs % 60;
+  const mm = h > 0 ? String(m).padStart(2, "0") : String(m);
+  return `${h > 0 ? `${h}:` : ""}${mm}:${String(s).padStart(2, "0")}`;
+}
+
+/** Format a single section entry's positional value, rendering timestamp seconds as a clock. */
+function formatSectionValue(entry: SectionEntry): string {
+  const display = (v: string) => (entry.type === "timestamp" ? formatSeconds(v) : v);
+  return entry.endValue ? `${display(entry.startValue)}–${display(entry.endValue)}` : display(entry.startValue);
+}
+
 /** Format a single section entry as a one-line summary (e.g. "Chapter 1: pp. 1–10" or "Intro: 0:00–5:30"). */
 export function formatSectionEntry(entry: SectionEntry): string {
   const typeSuffix = SECTION_ENTRY_TYPE_LABELS[entry.type];
-  const range = entry.endValue ? `${entry.startValue}–${entry.endValue}` : entry.startValue;
-  return `${entry.name}: ${range} (${typeSuffix})`;
+  const base = `${entry.name}: ${formatSectionValue(entry)} (${typeSuffix})`;
+  const childCount = entry.children?.length ?? 0;
+  return childCount > 0 ? `${base} · ${childCount} ${childCount === 1 ? "item" : "items"}` : base;
 }
 
-/** Format a sections value as a compact summary (e.g. "3 sections (exhaustive)"). */
+/** Total leaf items across a tiered value (children count; a childless entry counts as one item). */
+function countSectionItems(value: BookmarkSectionsValue): number {
+  return value.sections.reduce((sum, s) => sum + (s.children?.length ?? 0), 0);
+}
+
+/** Format a sections value as a compact summary (e.g. "3 sections (exhaustive)" or "3 sections, 12 items"). */
 export function formatSectionsValue(value: BookmarkSectionsValue): string {
   const count = value.sections.length;
-  const label = count === 1 ? "1 section" : `${count} sections`;
-  return value.exhaustive ? `${label} (exhaustive)` : label;
+  const base = count === 1 ? "1 section" : `${count} sections`;
+  const items = countSectionItems(value);
+  const withItems = items > 0 ? `${base}, ${items} ${items === 1 ? "item" : "items"}` : base;
+  return value.exhaustive ? `${withItems} (exhaustive)` : withItems;
 }
 
 /** Default Lucide icon name for each custom-property type. */

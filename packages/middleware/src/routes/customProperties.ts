@@ -200,6 +200,9 @@ const createPropertyBody = {
         enum: ["url", "page", "timestamp"],
       },
     },
+    sectionsTiered: {
+      type: ["boolean", "null"],
+    },
   },
 } as const;
 
@@ -250,6 +253,7 @@ const updatePropertyBody = {
     itemInItemsAfterText: createPropertyBody.properties.itemInItemsAfterText,
     sectionsDefaultType: createPropertyBody.properties.sectionsDefaultType,
     sectionsAllowedTypes: createPropertyBody.properties.sectionsAllowedTypes,
+    sectionsTiered: createPropertyBody.properties.sectionsTiered,
   },
 } as const;
 

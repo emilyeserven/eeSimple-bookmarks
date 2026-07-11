@@ -632,7 +632,9 @@ function evaluateSectionsPredicate(
   }
   if (predicate.kind === "sectionType") {
     if (!value || value.sections.length === 0) return false;
-    return predicate.types.some(t => value.sections.some(s => s.type === t));
+    // A tiered value's children carry their own type, so match against them too.
+    return predicate.types.some(t =>
+      value.sections.some(s => s.type === t || (s.children ?? []).some(c => c.type === t)));
   }
   // exhaustive
   return value !== undefined && value.exhaustive === predicate.value;

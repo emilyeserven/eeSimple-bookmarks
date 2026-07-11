@@ -134,8 +134,22 @@ export function describeFillTarget(target: FillTarget, property?: CustomProperty
         : TAXONOMY_ENTITY_FIELD_LABELS[target.field];
       return `${assoc} · ${fieldLabel}`;
     }
+    case "sections": {
+      const name = property?.name ?? "Sections";
+      return `${name} · ${SECTION_FILL_ENTRY_TYPE_LABELS[target.entryType]}`;
+    }
   }
 }
+
+/** Human labels for the `sections` target's entry types. */
+export const SECTION_FILL_ENTRY_TYPE_LABELS: Record<
+  Extract<FillTarget, { kind: "sections" }>["entryType"],
+  string
+> = {
+  url: "URL",
+  page: "Page",
+  timestamp: "Timestamp",
+};
 
 // ---------------------------------------------------------------------------
 // Read-only detail summaries (mirror describeFillTarget; plain English, no i18n)
@@ -262,7 +276,31 @@ export function coerceFillTarget(kind: FillTarget["kind"], prev: FillTarget): Fi
           }
           : {}),
       };
+    case "sections":
+      return coerceSectionsTarget(prev);
   }
+}
+
+/**
+ * Rebuild a `sections` target from a previous target. A same-kind rebuild preserves the property /
+ * entry type / sub-selectors (the rest-spread carries only the keys that were set); a switch from a
+ * different kind starts blank.
+ */
+function coerceSectionsTarget(prev: FillTarget): Extract<FillTarget, { kind: "sections" }> {
+  if (prev.kind !== "sections") {
+    return {
+      kind: "sections",
+      propertyId: "",
+      entryType: "url",
+    };
+  }
+  const {
+    kind: _kind, ...rest
+  } = prev;
+  return {
+    kind: "sections",
+    ...rest,
+  };
 }
 
 /** Rebuild a filter for a newly-selected `kind`, preserving the text match across text variants. */
@@ -427,6 +465,33 @@ function cleanTarget(target: FillTarget): FillTarget | null {
           }
           : {}),
       };
+    case "sections": {
+      // No selected property = incomplete. Keep sub-selectors only when non-blank.
+      if (!target.propertyId) return null;
+      const container = target.container?.trim();
+      const header = target.header?.trim();
+      const itemName = target.itemName?.trim();
+      return {
+        kind: "sections",
+        propertyId: target.propertyId,
+        entryType: target.entryType,
+        ...(container
+          ? {
+            container,
+          }
+          : {}),
+        ...(header
+          ? {
+            header,
+          }
+          : {}),
+        ...(itemName
+          ? {
+            itemName,
+          }
+          : {}),
+      };
+    }
   }
 }
 

@@ -310,6 +310,34 @@ const createBookmarkBody = {
                 endValue: {
                   type: "string",
                 },
+                // Optional second tier — leaf children only (the leaf schema has no `children` key,
+                // so nesting is capped at depth 2).
+                children: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    required: ["id", "name", "type", "startValue"],
+                    additionalProperties: false,
+                    properties: {
+                      id: {
+                        type: "string",
+                      },
+                      name: {
+                        type: "string",
+                      },
+                      type: {
+                        type: "string",
+                        enum: ["url", "page", "timestamp"],
+                      },
+                      startValue: {
+                        type: "string",
+                      },
+                      endValue: {
+                        type: "string",
+                      },
+                    },
+                  },
+                },
               },
             },
           },

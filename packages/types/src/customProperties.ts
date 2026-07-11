@@ -123,6 +123,12 @@ export interface SectionEntry {
   type: SectionEntryType;
   startValue: string;
   endValue?: string;
+  /**
+   * Optional second tier. A tier-1 entry (a section/group header) may carry child entries; children
+   * are leaf items and must NOT carry their own `children` — the model is capped at **depth 2**. Only
+   * populated when the owning property opts in via `CustomProperty.sectionsTiered`.
+   */
+  children?: SectionEntry[];
 }
 
 export interface BookmarkSectionsValue {

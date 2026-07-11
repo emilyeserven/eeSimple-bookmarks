@@ -13,7 +13,7 @@ import {
 } from "@eesimple/types";
 import { useTranslation } from "react-i18next";
 
-import { KindSelect } from "./controls";
+import { KindSelect, LabeledInput } from "./controls";
 import { Combobox } from "../Combobox";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
@@ -66,6 +66,10 @@ export function FillTargetPicker({
           {
             value: "taxonomyEntity",
             label: t("Associated taxonomy"),
+          },
+          {
+            value: "sections",
+            label: t("Sections"),
           },
         ]}
         onValueChange={kind => onChange(coerceFillTarget(kind, target))}
@@ -159,7 +163,119 @@ function FillTargetValue({
           onChange={onChange}
         />
       );
+    case "sections":
+      return (
+        <SectionsTarget
+          target={target}
+          propertiesById={propertiesById}
+          onChange={onChange}
+        />
+      );
   }
+}
+
+type SectionsTarget = Extract<FillTarget, { kind: "sections" }>;
+type SectionEntryTypeName = SectionsTarget["entryType"];
+
+/**
+ * Controls for a `sections` target: pick the sections-typed property + the entry type. For url/page
+ * the optional container/header/item-name selectors build a two-tier value (blank container = flat);
+ * for timestamp those are hidden (the selector's text is parsed for `m:ss` lines).
+ */
+function SectionsTarget({
+  target, propertiesById, onChange,
+}: {
+  target: SectionsTarget;
+  propertiesById: Map<string, CustomProperty>;
+  onChange: (target: FillTarget) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const sectionsOptions: ComboboxOption[] = [...propertiesById.values()]
+    .filter(property => property.type === "sections")
+    .map(property => ({
+      value: property.id,
+      label: property.name,
+    }));
+  const isTimestamp = target.entryType === "timestamp";
+  return (
+    <div className="space-y-2">
+      <Combobox
+        aria-label={t("Sections property")}
+        options={sectionsOptions}
+        value={target.propertyId || undefined}
+        placeholder={t("Select a property")}
+        emptyText={t("No sections properties found.")}
+        onValueChange={value => onChange({
+          ...target,
+          propertyId: value ?? "",
+        })}
+      />
+      <KindSelect<SectionEntryTypeName>
+        label={t("Entry type")}
+        value={target.entryType}
+        options={[
+          {
+            value: "url",
+            label: t("URL"),
+          },
+          {
+            value: "page",
+            label: t("Page"),
+          },
+          {
+            value: "timestamp",
+            label: t("Timestamp"),
+          },
+        ]}
+        onValueChange={entryType => onChange({
+          ...target,
+          entryType,
+        })}
+      />
+      {isTimestamp
+        ? (
+          <p className="text-xs text-muted-foreground">
+            {t("Selector should match the element whose text holds the timestamps (e.g. a video description). Each m:ss / h:mm:ss line becomes an entry.")}
+          </p>
+        )
+        : (
+          <>
+            <LabeledInput
+              label={t("Group container selector")}
+              placeholder=".MuiAccordion-root"
+              value={target.container ?? ""}
+              onChange={container => onChange({
+                ...target,
+                container,
+              })}
+            />
+            <LabeledInput
+              label={t("Group header selector")}
+              placeholder="h3"
+              value={target.header ?? ""}
+              onChange={header => onChange({
+                ...target,
+                header,
+              })}
+            />
+            <LabeledInput
+              label={t("Item name selector")}
+              placeholder="p"
+              value={target.itemName ?? ""}
+              onChange={itemName => onChange({
+                ...target,
+                itemName,
+              })}
+            />
+            <p className="text-xs text-muted-foreground">
+              {t("Leave the container blank for a flat list. The main Selector matches each item; Read/Transform produce its value.")}
+            </p>
+          </>
+        )}
+    </div>
+  );
 }
 
 /**

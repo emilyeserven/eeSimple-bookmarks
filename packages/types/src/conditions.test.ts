@@ -779,6 +779,40 @@ test("property sections predicate: presence, sectionType, and exhaustive", () =>
   assert.equal(evaluateConditions(exhaustive, input), true);
 });
 
+test("property sections predicate: sectionType matches a child-only (tiered) type", () => {
+  const input = makeInput({
+    sectionsValues: new Map([["s", {
+      propertyId: "s",
+      exhaustive: false,
+      sections: [{
+        id: "grp",
+        name: "Chapter 1",
+        type: "url",
+        startValue: "",
+        children: [{
+          id: "c1",
+          name: "Intro",
+          type: "timestamp",
+          startValue: "0",
+        }],
+      }],
+    }]]),
+  });
+  const childType: ConditionNode = {
+    type: "property",
+    propertyId: "s",
+    predicate: {
+      valueKind: "sections",
+      predicate: {
+        kind: "sectionType",
+        types: ["timestamp"],
+      },
+    },
+  };
+  // "timestamp" appears only on the child, but the predicate flattens children when matching.
+  assert.equal(evaluateConditions(childType, input), true);
+});
+
 test("property text predicate: presence and case-insensitive contains", () => {
   const input = makeInput({
     textValues: new Map([["t", "Hello World"]]),

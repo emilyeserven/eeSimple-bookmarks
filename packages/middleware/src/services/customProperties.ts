@@ -112,6 +112,7 @@ function toCustomProperty(
     itemInItemsAfterText: row.itemInItemsAfterText ?? null,
     sectionsDefaultType: (row.sectionsDefaultType as CustomProperty["sectionsDefaultType"]) ?? null,
     sectionsAllowedTypes: (row.sectionsAllowedTypes as CustomProperty["sectionsAllowedTypes"]) ?? null,
+    sectionsTiered: row.sectionsTiered ?? null,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
@@ -395,6 +396,7 @@ export type UpdatePatch = Partial<
     | "itemInItemsAfterText"
     | "sectionsDefaultType"
     | "sectionsAllowedTypes"
+    | "sectionsTiered"
   >
 >;
 
@@ -453,6 +455,7 @@ const COPYABLE_FIELDS = [
   "itemInItemsAfterText",
   "sectionsDefaultType",
   "sectionsAllowedTypes",
+  "sectionsTiered",
 ] as const satisfies readonly CopyableField[];
 
 /**
@@ -1130,6 +1133,21 @@ export async function getContentStatusPropertyId(): Promise<string | null> {
     })
     .from(customProperties)
     .where(eq(customProperties.slug, CONTENT_STATUS_SLUG));
+  return row?.id ?? null;
+}
+
+/**
+ * Look up the built-in "Chapters" sections property id at request time, or `null` when it hasn't
+ * been seeded yet. Read-only (never seeds) — used by the extension fill-context to target the
+ * synthetic YouTube chapters rule. Mirrors {@link getContentStatusPropertyId}.
+ */
+export async function getChaptersPropertyId(): Promise<string | null> {
+  const [row] = await db
+    .select({
+      id: customProperties.id,
+    })
+    .from(customProperties)
+    .where(eq(customProperties.slug, CHAPTERS_SLUG));
   return row?.id ?? null;
 }
 

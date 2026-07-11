@@ -291,6 +291,200 @@ export function ChoicesPropertyField({
   );
 }
 
+/** A blank section entry (or child) with a stable id. */
+function newSectionEntry(defaultType: SectionEntryType): SectionEntry {
+  return {
+    id: crypto.randomUUID(),
+    name: "",
+    type: defaultType,
+    startValue: "",
+    endValue: undefined,
+  };
+}
+
+/** The shared Name / Type / Start / End input grid for a section entry or child. */
+function SectionEntryInputs({
+  entry, allowedTypes, onPatch,
+}: {
+  entry: SectionEntry;
+  allowedTypes: SectionEntryType[];
+  onPatch: (patch: Partial<SectionEntry>) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const numeric = entry.type === "page";
+  const startPlaceholder = entry.type === "page" ? t("Start page") : entry.type === "timestamp" ? t("Start time") : t("URL");
+  const endPlaceholder = entry.type === "page" ? t("End page") : entry.type === "timestamp" ? t("End time") : t("End URL (optional)");
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      <Input
+        placeholder={t("Name")}
+        value={entry.name}
+        onChange={e => onPatch({
+          name: e.target.value,
+        })}
+      />
+      {allowedTypes.length > 1
+        ? (
+          <Select
+            value={entry.type}
+            onValueChange={type => onPatch({
+              type: type as SectionEntryType,
+            })}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {allowedTypes.map(type => (
+                <SelectItem
+                  key={type}
+                  value={type}
+                >{t(SECTION_ENTRY_TYPE_LABELS[type])}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )
+        : (
+          <span
+            className="flex items-center text-sm text-muted-foreground"
+          >
+            {t(SECTION_ENTRY_TYPE_LABELS[entry.type])}
+          </span>
+        )}
+      <Input
+        placeholder={startPlaceholder}
+        value={entry.startValue}
+        type={numeric ? "number" : "text"}
+        onChange={e => onPatch({
+          startValue: e.target.value,
+        })}
+      />
+      <Input
+        placeholder={endPlaceholder}
+        value={entry.endValue ?? ""}
+        type={numeric ? "number" : "text"}
+        onChange={e => onPatch({
+          endValue: e.target.value || undefined,
+        })}
+      />
+    </div>
+  );
+}
+
+/** The "×" remove control shared by section rows and child rows. */
+function RemoveEntryButton({
+  label, onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="
+        mt-1 text-lg leading-none text-muted-foreground
+        hover:text-destructive
+      "
+      aria-label={label}
+      onClick={onClick}
+    >
+      ×
+    </button>
+  );
+}
+
+/** One tier-1 section entry, with an indented child editor when the property is tiered. */
+function SectionRow({
+  entry, allowedTypes, tiered, defaultType, onChange, onRemove,
+}: {
+  entry: SectionEntry;
+  allowedTypes: SectionEntryType[];
+  tiered: boolean;
+  defaultType: SectionEntryType;
+  onChange: (entry: SectionEntry) => void;
+  onRemove: () => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const children = entry.children ?? [];
+  return (
+    <div className="space-y-2">
+      <div
+        className="grid items-start gap-2"
+        style={{
+          gridTemplateColumns: "1fr auto",
+        }}
+      >
+        <SectionEntryInputs
+          entry={entry}
+          allowedTypes={allowedTypes}
+          onPatch={patch => onChange({
+            ...entry,
+            ...patch,
+          })}
+        />
+        <RemoveEntryButton
+          label={t("Remove section")}
+          onClick={onRemove}
+        />
+      </div>
+      {tiered && (
+        <div
+          className="ml-4 space-y-2 border-l pl-3"
+        >
+          {children.map(child => (
+            <div
+              key={child.id}
+              className="grid items-start gap-2"
+              style={{
+                gridTemplateColumns: "1fr auto",
+              }}
+            >
+              <SectionEntryInputs
+                entry={child}
+                allowedTypes={allowedTypes}
+                onPatch={patch => onChange({
+                  ...entry,
+                  children: children.map(c => c.id === child.id
+                    ? {
+                      ...c,
+                      ...patch,
+                    }
+                    : c),
+                })}
+              />
+              <RemoveEntryButton
+                label={t("Remove item")}
+                onClick={() => onChange({
+                  ...entry,
+                  children: children.filter(c => c.id !== child.id),
+                })}
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            className="
+              text-xs text-primary
+              hover:underline
+            "
+            onClick={() => onChange({
+              ...entry,
+              children: [...children, newSectionEntry(defaultType)],
+            })}
+          >
+            {t("+ Add sub-item")}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function SectionsPropertyField({
   property, value, onChange, onImport, isImportPending,
 }: {
@@ -308,32 +502,19 @@ export function SectionsPropertyField({
   } = useTranslation();
   const allowedTypes = property.sectionsAllowedTypes ?? [...SECTION_ENTRY_TYPES];
   const defaultType: SectionEntryType = (property.sectionsDefaultType ?? allowedTypes[0] ?? "url") as SectionEntryType;
+  const tiered = property.sectionsTiered ?? false;
 
   function addSection(): void {
     onChange({
       ...value,
-      sections: [
-        ...value.sections,
-        {
-          id: crypto.randomUUID(),
-          name: "",
-          type: defaultType,
-          startValue: "",
-          endValue: undefined,
-        },
-      ],
+      sections: [...value.sections, newSectionEntry(defaultType)],
     });
   }
 
-  function updateEntry(id: string, patch: Partial<SectionEntry>): void {
+  function updateEntry(next: SectionEntry): void {
     onChange({
       ...value,
-      sections: value.sections.map(entry => entry.id === id
-        ? {
-          ...entry,
-          ...patch,
-        }
-        : entry),
+      sections: value.sections.map(entry => entry.id === next.id ? next : entry),
     });
   }
 
@@ -345,10 +526,6 @@ export function SectionsPropertyField({
   }
 
   const fieldId = `property-${property.id}`;
-  const startPlaceholder = (type: SectionEntryType) =>
-    type === "page" ? t("Start page") : type === "timestamp" ? t("Start time") : t("URL");
-  const endPlaceholder = (type: SectionEntryType) =>
-    type === "page" ? t("End page") : type === "timestamp" ? t("End time") : t("End URL (optional)");
 
   return (
     <div className="col-span-full space-y-2">
@@ -356,81 +533,15 @@ export function SectionsPropertyField({
       {value.sections.length > 0 && (
         <div className="space-y-2">
           {value.sections.map(entry => (
-            <div
+            <SectionRow
               key={entry.id}
-              className="grid items-start gap-2"
-              style={{
-                gridTemplateColumns: "1fr auto",
-              }}
-            >
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  placeholder={t("Name")}
-                  value={entry.name}
-                  onChange={e => updateEntry(entry.id, {
-                    name: e.target.value,
-                  })}
-                />
-                {allowedTypes.length > 1
-                  ? (
-                    <Select
-                      value={entry.type}
-                      onValueChange={type => updateEntry(entry.id, {
-                        type: type as SectionEntryType,
-                      })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {allowedTypes.map(type => (
-                          <SelectItem
-                            key={type}
-                            value={type}
-                          >{t(SECTION_ENTRY_TYPE_LABELS[type])}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )
-                  : (
-                    <span
-                      className="
-                        flex items-center text-sm text-muted-foreground
-                      "
-                    >
-                      {t(SECTION_ENTRY_TYPE_LABELS[entry.type])}
-                    </span>
-                  )}
-                <Input
-                  placeholder={startPlaceholder(entry.type)}
-                  value={entry.startValue}
-                  type={entry.type === "page" ? "number" : "text"}
-                  onChange={e => updateEntry(entry.id, {
-                    startValue: e.target.value,
-                  })}
-                />
-                <Input
-                  placeholder={endPlaceholder(entry.type)}
-                  value={entry.endValue ?? ""}
-                  type={entry.type === "page" ? "number" : "text"}
-                  onChange={e => updateEntry(entry.id, {
-                    endValue: e.target.value || undefined,
-                  })}
-                />
-              </div>
-              <button
-                type="button"
-                className="
-                  mt-1 text-lg leading-none text-muted-foreground
-                  hover:text-destructive
-                "
-                aria-label={t("Remove section")}
-                onClick={() => removeEntry(entry.id)}
-              >
-                ×
-              </button>
-            </div>
+              entry={entry}
+              allowedTypes={allowedTypes}
+              tiered={tiered}
+              defaultType={defaultType}
+              onChange={updateEntry}
+              onRemove={() => removeEntry(entry.id)}
+            />
           ))}
         </div>
       )}

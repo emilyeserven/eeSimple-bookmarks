@@ -1446,6 +1446,8 @@ export const customProperties = pgTable("custom_properties", {
   // sections-type config (all nullable → push-safe additive columns).
   sectionsDefaultType: text("sections_default_type"),
   sectionsAllowedTypes: jsonb("sections_allowed_types"),
+  // When true, a sections property opts into a second tier (child entries). Lone nullable column.
+  sectionsTiered: boolean("sections_tiered"),
   // DEPRECATED: corner placement + overlay styling moved to card_display_rules.field_zones. These
   // columns are retained (no longer read/written) so the boot backfill can migrate their values into
   // the Default rule on first boot and so drizzle-kit push stays additive-only. Drop in a follow-up.
