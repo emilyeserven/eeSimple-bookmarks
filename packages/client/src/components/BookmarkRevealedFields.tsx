@@ -261,6 +261,7 @@ export function BookmarkRevealedFields(props: BookmarkRevealedFieldsProps) {
           onProgressChange: props.onProgressChange,
           onSectionsChange: props.onSectionsChange,
           onTextChange: props.onTextChange,
+          onAddPeople: props.onAddPeople,
           onApplyCategoryDefaults: props.onApplyCategoryDefaults,
         }}
       />

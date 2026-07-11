@@ -12,6 +12,7 @@ import { bookmarkRoutes } from "@/routes/bookmarks";
 import { categoryRoutes } from "@/routes/categories";
 import { cardDisplayRulesRoutes } from "@/routes/cardDisplayRules";
 import { cardFieldTemplatesRoutes } from "@/routes/cardFieldTemplates";
+import { parseTemplatesRoutes } from "@/routes/parseTemplates";
 import { entityLayoutsRoutes } from "@/routes/entityLayouts";
 import { conditionNodeSchema, conditionTreeSchema } from "@/routes/conditionSchema";
 import { customPropertyRoutes } from "@/routes/customProperties";
@@ -269,6 +270,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(homepageSectionsRoutes);
   await app.register(cardDisplayRulesRoutes);
   await app.register(cardFieldTemplatesRoutes);
+  await app.register(parseTemplatesRoutes);
   await app.register(entityLayoutsRoutes);
   await app.register(savedFilterRoutes);
   await app.register(pinnedSidebarItemRoutes);

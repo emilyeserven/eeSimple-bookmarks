@@ -52,6 +52,7 @@ import { Route as SettingsWebsitesRouteImport } from './routes/settings.websites
 import { Route as SettingsTaxonomiesRouteImport } from './routes/settings.taxonomies'
 import { Route as SettingsSavedFiltersRouteImport } from './routes/settings.saved-filters'
 import { Route as SettingsRelationshipsRouteImport } from './routes/settings.relationships'
+import { Route as SettingsParseTemplatesRouteImport } from './routes/settings.parse-templates'
 import { Route as SettingsPageLayoutsRouteImport } from './routes/settings.page-layouts'
 import { Route as SettingsMediaTypesRouteImport } from './routes/settings.media-types'
 import { Route as SettingsMediaManagementRouteImport } from './routes/settings.media-management'
@@ -478,6 +479,11 @@ const SettingsSavedFiltersRoute = SettingsSavedFiltersRouteImport.update({
 const SettingsRelationshipsRoute = SettingsRelationshipsRouteImport.update({
   id: '/relationships',
   path: '/relationships',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsParseTemplatesRoute = SettingsParseTemplatesRouteImport.update({
+  id: '/parse-templates',
+  path: '/parse-templates',
   getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsPageLayoutsRoute = SettingsPageLayoutsRouteImport.update({
@@ -1702,6 +1708,7 @@ export interface FileRoutesByFullPath {
   '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/page-layouts': typeof SettingsPageLayoutsRoute
+  '/settings/parse-templates': typeof SettingsParseTemplatesRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/taxonomies': typeof SettingsTaxonomiesRoute
@@ -1924,6 +1931,7 @@ export interface FileRoutesByTo {
   '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/page-layouts': typeof SettingsPageLayoutsRoute
+  '/settings/parse-templates': typeof SettingsParseTemplatesRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/taxonomies': typeof SettingsTaxonomiesRoute
@@ -2117,6 +2125,7 @@ export interface FileRoutesById {
   '/settings/media-management': typeof SettingsMediaManagementRoute
   '/settings/media-types': typeof SettingsMediaTypesRoute
   '/settings/page-layouts': typeof SettingsPageLayoutsRoute
+  '/settings/parse-templates': typeof SettingsParseTemplatesRoute
   '/settings/relationships': typeof SettingsRelationshipsRoute
   '/settings/saved-filters': typeof SettingsSavedFiltersRoute
   '/settings/taxonomies': typeof SettingsTaxonomiesRoute
@@ -2371,6 +2380,7 @@ export interface FileRouteTypes {
     | '/settings/media-management'
     | '/settings/media-types'
     | '/settings/page-layouts'
+    | '/settings/parse-templates'
     | '/settings/relationships'
     | '/settings/saved-filters'
     | '/settings/taxonomies'
@@ -2593,6 +2603,7 @@ export interface FileRouteTypes {
     | '/settings/media-management'
     | '/settings/media-types'
     | '/settings/page-layouts'
+    | '/settings/parse-templates'
     | '/settings/relationships'
     | '/settings/saved-filters'
     | '/settings/taxonomies'
@@ -2785,6 +2796,7 @@ export interface FileRouteTypes {
     | '/settings/media-management'
     | '/settings/media-types'
     | '/settings/page-layouts'
+    | '/settings/parse-templates'
     | '/settings/relationships'
     | '/settings/saved-filters'
     | '/settings/taxonomies'
@@ -3333,6 +3345,13 @@ declare module '@tanstack/react-router' {
       path: '/relationships'
       fullPath: '/settings/relationships'
       preLoaderRoute: typeof SettingsRelationshipsRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/parse-templates': {
+      id: '/settings/parse-templates'
+      path: '/parse-templates'
+      fullPath: '/settings/parse-templates'
+      preLoaderRoute: typeof SettingsParseTemplatesRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/page-layouts': {
@@ -5232,6 +5251,7 @@ interface SettingsRouteChildren {
   SettingsMediaManagementRoute: typeof SettingsMediaManagementRoute
   SettingsMediaTypesRoute: typeof SettingsMediaTypesRoute
   SettingsPageLayoutsRoute: typeof SettingsPageLayoutsRoute
+  SettingsParseTemplatesRoute: typeof SettingsParseTemplatesRoute
   SettingsRelationshipsRoute: typeof SettingsRelationshipsRoute
   SettingsSavedFiltersRoute: typeof SettingsSavedFiltersRoute
   SettingsTaxonomiesRoute: typeof SettingsTaxonomiesRoute
@@ -5256,6 +5276,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsMediaManagementRoute: SettingsMediaManagementRoute,
   SettingsMediaTypesRoute: SettingsMediaTypesRoute,
   SettingsPageLayoutsRoute: SettingsPageLayoutsRoute,
+  SettingsParseTemplatesRoute: SettingsParseTemplatesRoute,
   SettingsRelationshipsRoute: SettingsRelationshipsRoute,
   SettingsSavedFiltersRoute: SettingsSavedFiltersRoute,
   SettingsTaxonomiesRoute: SettingsTaxonomiesRoute,

@@ -14,6 +14,7 @@ import type {
   CreateCustomAspectRatioInput,
   CreateFavoriteSettingsPageInput,
   CreateHomepageSectionInput,
+  CreateParseTemplateInput,
   CreatePinnedSidebarItemInput,
   CreateSavedFilterInput,
   CustomAspectRatio,
@@ -28,6 +29,7 @@ import type {
   HomepageSectionBookmarks,
   ImportBlacklistEntry,
   LayoutableEntityKind,
+  ParseTemplate,
   PersonSourceLabelSettings,
   PinnedSidebarItem,
   PlaceTypeColorConfig,
@@ -45,6 +47,7 @@ import type {
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
   UpdateHomepageSectionInput,
+  UpdateParseTemplateInput,
   UpdatePersonSourceLabelInput,
   UpdateSavedFilterInput,
   UpdateSidebarCustomizationInput,
@@ -236,6 +239,8 @@ export const entityLayoutsApi = {
 };
 
 export const savedFiltersApi = createCrudApi<SavedFilter, CreateSavedFilterInput, UpdateSavedFilterInput>("saved-filters");
+
+export const parseTemplatesApi = createCrudApi<ParseTemplate, CreateParseTemplateInput, UpdateParseTemplateInput>("parse-templates");
 
 export const pinnedSidebarItemsApi = {
   list: () => request<PinnedSidebarItem[]>("/pinned-sidebar-items"),

@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
-import { Captions, Languages, LayoutDashboard, MapPinned, Puzzle, Shapes, Tags, Waypoints } from "lucide-react";
+import { Captions, ClipboardList, Languages, LayoutDashboard, MapPinned, Puzzle, Shapes, Tags, Waypoints } from "lucide-react";
 
 import { SETTINGS_TAB_SECTIONS } from "./settingsNav";
 import { actionItems, customizationItems, taxonomyItems } from "./sidebarNavItems";
@@ -49,6 +49,12 @@ const STANDALONE_PAGES: readonly SettingsPage[] = [
     path: "/settings/page-layouts",
     label: i18n.t("Page Layouts"),
     icon: LayoutDashboard,
+  },
+  {
+    // A tab-less /settings leaf (see `settingsNav` in routes/settings.tsx).
+    path: "/settings/parse-templates",
+    label: i18n.t("Parse Templates"),
+    icon: ClipboardList,
   },
   {
     // Listing page reachable from Locations, not from the sidebar.

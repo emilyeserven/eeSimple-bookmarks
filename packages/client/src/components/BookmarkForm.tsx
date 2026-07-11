@@ -177,6 +177,7 @@ export function BookmarkForm({
           onProgressChange={c.prefill.handleProgressChange}
           onSectionsChange={c.prefill.handleSectionsChange}
           onTextChange={c.prefill.handleTextChange}
+          onAddPeople={names => void c.onAddPropertyPeople(names)}
           categories={c.categories ?? []}
           groups={c.groups ?? []}
           sourceDefaults={c.sourceDefaults}

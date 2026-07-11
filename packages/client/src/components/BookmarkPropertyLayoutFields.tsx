@@ -16,6 +16,7 @@ import { DATE_POSTED_SLUG, looksLikeYouTube, RUNTIME_SLUG } from "./bookmarkForm
 import { useBookmarkPropertiesFormContext } from "./BookmarkPropertiesFormContext";
 import { BookmarkPropertyRow } from "./BookmarkPropertyRow";
 import { BookmarkYouTubeMetadataFields } from "./BookmarkYouTubeMetadataFields";
+import { useAddBookmarkPeopleByNames } from "../hooks/useAddBookmarkPeopleByNames";
 import { useUpdateBookmark } from "../hooks/useBookmarks";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { mergeBooleanValue } from "../lib/bookmarkFormat";
@@ -86,12 +87,14 @@ function BookmarkPropertyEditField({
   bookmark: Bookmark;
 }) {
   const ctrl = useBookmarkPropertiesFormContext();
+  const addPeople = useAddBookmarkPeopleByNames(bookmark);
   if (!bookmarkPropertyEditEligible(property, bookmark)) return null;
   return (
     <CategoryPropertyField
       property={property}
       bookmark={bookmark}
       {...editBundle(ctrl)}
+      onAddPeople={names => void addPeople(names)}
     />
   );
 }

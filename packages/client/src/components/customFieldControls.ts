@@ -16,4 +16,6 @@ export interface CustomFieldControls extends CustomPropertyInputs {
   onSectionsChange: (id: string, value: { exhaustive: boolean;
     sections: SectionEntry[]; }) => void;
   onTextChange: (id: string, value: string) => void;
+  /** Match-or-create author names parsed from a pasted list into the bookmark's People. */
+  onAddPeople?: (names: string[]) => void;
 }

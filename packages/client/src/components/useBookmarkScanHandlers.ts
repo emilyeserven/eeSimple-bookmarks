@@ -8,6 +8,7 @@ import { sameSocialAccount, socialAccountFromLink } from "@eesimple/types";
 import { looksLikeYouTube, stripSelfId } from "./bookmarkFormSchema";
 import { useAppLocale } from "../hooks/useAppLocale";
 import { languageDisplayName } from "../lib/languageDisplay";
+import { resolvePeopleIds } from "../lib/peopleMatchOrCreate";
 
 type Actions = ReturnType<typeof useBookmarkFormActions>;
 type UrlProcessing = ReturnType<typeof useBookmarkUrlProcessing>;
@@ -295,26 +296,7 @@ export function useBookmarkScanHandlers({
     if (!setPersonIds || !getPersonIds || looksLikeYouTube(url)) return;
     if (!names || names.length === 0) return;
     if ((getPersonIds()).length > 0) return;
-    const existingPeople = people ?? [];
-    const ids: string[] = [];
-    for (const name of names) {
-      const normalName = name.toLowerCase();
-      const match = existingPeople.find(a => a.name.toLowerCase() === normalName);
-      if (match) {
-        ids.push(match.id);
-      }
-      else if (createPerson) {
-        try {
-          const created = await createPerson.mutateAsync({
-            name,
-          });
-          ids.push(created.id);
-        }
-        catch {
-          // Skip people that can't be created (e.g. duplicate race).
-        }
-      }
-    }
+    const ids = await resolvePeopleIds(names, people ?? [], createPerson);
     if (ids.length > 0) {
       setPersonIds(ids);
       markAutofilledField?.("personIds");
