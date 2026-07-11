@@ -208,6 +208,36 @@ export async function takeAndStoreScreenshot(
   const processed = await processImage(rawBytes, await getImageProcessingOptions());
   if ("error" in processed) return "bad_image";
 
+  return storeScreenshotBytes(bookmarkId, processed, {
+    delayMs: delayMs ?? null,
+    viewportWidth: viewport?.width ?? null,
+    viewportHeight: viewport?.height ?? null,
+    scrollDistance: scrollDistance ?? null,
+  });
+}
+
+/** Capture settings recorded alongside a stored screenshot (all null for a client upload). */
+interface ScreenshotCaptureSettings {
+  delayMs: number | null;
+  viewportWidth: number | null;
+  viewportHeight: number | null;
+  scrollDistance: number | null;
+}
+
+/**
+ * Store already-processed screenshot bytes under the bookmark's stable screenshot key and upsert its
+ * `bookmark_screenshots` row (one per bookmark, so this replaces any prior capture). Shared by the
+ * Browserless capture and the extension's client-side upload — the two differ only in the recorded
+ * capture settings.
+ */
+async function storeScreenshotBytes(
+  bookmarkId: string,
+  processed: { body: Buffer;
+    contentType: string;
+    width: number;
+    height: number; },
+  captureSettings: ScreenshotCaptureSettings,
+): Promise<BookmarkImage> {
   const objectKey = screenshotKeyFor(bookmarkId);
   await putObject(objectKey, processed.body, processed.contentType);
 
@@ -219,10 +249,10 @@ export async function takeAndStoreScreenshot(
     height: processed.height,
     byteSize: processed.body.byteLength,
     source: "screenshot",
-    delayMs: delayMs ?? null,
-    viewportWidth: viewport?.width ?? null,
-    viewportHeight: viewport?.height ?? null,
-    scrollDistance: scrollDistance ?? null,
+    delayMs: captureSettings.delayMs,
+    viewportWidth: captureSettings.viewportWidth,
+    viewportHeight: captureSettings.viewportHeight,
+    scrollDistance: captureSettings.scrollDistance,
     createdAt: new Date(),
   };
   const [row] = await db
@@ -240,6 +270,33 @@ export async function takeAndStoreScreenshot(
     bookmarkId,
   });
   return bookmarkScreenshotFromRow(row);
+}
+
+/**
+ * Store a client-captured screenshot (the browser extension's `captureVisibleTab` bytes) into the
+ * bookmark's screenshot slot. Complements `takeAndStoreScreenshot` (Browserless): the extension can
+ * capture pages behind a login the server can never reach. Returns the wire shape, `"not_found"` when
+ * the bookmark is gone, or `"bad_image"` when the bytes aren't a decodable image. Never throws.
+ */
+export async function storeUploadedScreenshot(
+  bookmarkId: string,
+  rawBytes: Buffer,
+): Promise<BookmarkImage | "not_found" | "bad_image"> {
+  const [bookmark] = await db.select({
+    id: bookmarks.id,
+  })
+    .from(bookmarks).where(eq(bookmarks.id, bookmarkId));
+  if (!bookmark) return "not_found";
+
+  const processed = await processImage(rawBytes, await getImageProcessingOptions());
+  if ("error" in processed) return "bad_image";
+
+  return storeScreenshotBytes(bookmarkId, processed, {
+    delayMs: null,
+    viewportWidth: null,
+    viewportHeight: null,
+    scrollDistance: null,
+  });
 }
 
 /** All of a bookmark's image rows, ordered main-first then by `sortOrder`. Empty when it has none. */

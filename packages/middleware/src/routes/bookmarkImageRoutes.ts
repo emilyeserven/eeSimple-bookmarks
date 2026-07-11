@@ -8,6 +8,7 @@ import {
   setBookmarkImage,
   setMainImage,
   storeBookmarkImagesFromCandidates,
+  storeUploadedScreenshot,
   takeAndStoreScreenshot,
 } from "@/services/bookmarkImages";
 import { queueReelArchive, removeBookmarkReelArchive } from "@/services/reelArchive";
@@ -496,6 +497,46 @@ export function registerBookmarkImageRoutes(app: FastifyInstance): void {
     if (result === "not_found") throw new NotFoundError("Bookmark");
     if (result === "not_configured") throw new StorageUnconfiguredError("No screenshot provider configured");
     if (result === "bad_image") throw new AppError("Screenshot could not be captured", "internal", 502);
+    return reply.code(201).send(result);
+  });
+
+  // Store a screenshot captured client-side by the browser extension (multipart). Unlike the
+  // Browserless capture above, this accepts uploaded bytes, so it works on pages behind a login the
+  // server can't reach. Replaces any existing screenshot.
+  app.post("/api/bookmarks/:id/screenshot/upload", {
+    schema: {
+      tags: ["images"],
+      params: bookmarkParams,
+      consumes: ["multipart/form-data"],
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    if (!isObjectStoreConfigured()) {
+      throw new StorageUnconfiguredError();
+    }
+    let bytes: Buffer;
+    try {
+      const file = await req.file();
+      if (!file) {
+        throw new NoFileUploadedError();
+      }
+      bytes = await file.toBuffer();
+    }
+    catch (err) {
+      if ((err as { code?: string }).code === "FST_REQ_FILE_TOO_LARGE") {
+        throw new ImageTooLargeError();
+      }
+      throw err;
+    }
+    const result = await storeUploadedScreenshot(id, bytes);
+    if (result === "not_found") {
+      throw new NotFoundError("Bookmark");
+    }
+    if (result === "bad_image") {
+      throw new AppError("Unsupported or invalid image", "unsupportedImage", 415);
+    }
     return reply.code(201).send(result);
   });
 

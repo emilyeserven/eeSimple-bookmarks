@@ -42,8 +42,14 @@ export function createFakeDb(): FakeDbHandle {
       innerJoin: () => self,
       orderBy: () => self,
       limit: () => self,
-      returning: () => node(resolve),
+      // Drizzle's `.returning()` always resolves to an array (a single-object `.values(obj)` insert
+      // comes back as `[row]`), so normalize a lone object the fixture echoed back into an array.
+      returning: () => node(() => {
+        const value = resolve();
+        return Array.isArray(value) ? value : [value];
+      }),
       onConflictDoNothing: () => self,
+      onConflictDoUpdate: () => self,
       then: <TResult1, TResult2 = never>(
         onFulfilled?: ((value: unknown) => TResult1 | PromiseLike<TResult1>) | null,
         onRejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,

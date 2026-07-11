@@ -40,6 +40,13 @@ const fillReviewOpenBtn = document.getElementById("fillReviewOpenBtn");
 const fillAppliedEl = document.getElementById("fillApplied");
 const fillAppliedMsg = document.getElementById("fillAppliedMsg");
 const fillAppliedOpenBtn = document.getElementById("fillAppliedOpenBtn");
+// Screenshot-capture controls (one per bookmark-context terminal screen)
+const captureSavedBtn = document.getElementById("captureSavedBtn");
+const captureSavedStatus = document.getElementById("captureSavedStatus");
+const captureSuccessBtn = document.getElementById("captureSuccessBtn");
+const captureSuccessStatus = document.getElementById("captureSuccessStatus");
+const captureAppliedBtn = document.getElementById("captureAppliedBtn");
+const captureAppliedStatus = document.getElementById("captureAppliedStatus");
 
 let serverUrl = "";
 let pageTitle = "";
@@ -377,6 +384,7 @@ function gateRules(rules, url) {
 
 function renderSaved(bookmark) {
   savedOpenBtn.onclick = () => openBookmark(bookmark?.id);
+  wireCaptureButton(captureSavedBtn, captureSavedStatus, bookmark?.id);
   show("saved");
 }
 
@@ -504,6 +512,8 @@ function onSuccess(message, hideViewInbox = false) {
       window.close();
     };
   }
+  // Inbox-only success has no bookmark to attach a screenshot to.
+  wireCaptureButton(captureSuccessBtn, captureSuccessStatus, null);
   show("success");
   startCountdown();
 }
@@ -517,6 +527,7 @@ function onBookmarkSuccess(message, bookmarkId) {
     cancelCountdown();
     openBookmark(bookmarkId);
   };
+  wireCaptureButton(captureSuccessBtn, captureSuccessStatus, bookmarkId);
   show("success");
   startCountdown();
 }
@@ -537,6 +548,55 @@ function cancelCountdown() {
   }
   progressBar.classList.remove("run");
   progressEl.classList.add("hidden");
+}
+
+// --- Screenshot capture -------------------------------------------------
+// Reset a screen's "Capture screenshot" button and wire it to the bookmark. Hidden when there's no
+// bookmark to attach to (e.g. the inbox-only success screen). Shown wherever a bookmark id exists.
+function wireCaptureButton(btn, statusEl, bookmarkId) {
+  if (!btn) return;
+  if (statusEl) statusEl.textContent = "";
+  if (!bookmarkId) {
+    btn.classList.add("hidden");
+    return;
+  }
+  btn.classList.remove("hidden");
+  btn.disabled = false;
+  btn.textContent = "Capture screenshot";
+  btn.onclick = () => void captureScreenshot(bookmarkId, btn, statusEl);
+}
+
+// Capture the visible tab and store it in the bookmark's screenshot slot. Client-side capture works
+// on pages behind a login that the server-side (Browserless) capture can't reach. Cancels the
+// auto-close countdown so the popup stays open while capturing. Best-effort: reports status inline
+// and never throws.
+async function captureScreenshot(bookmarkId, btn, statusEl) {
+  if (!bookmarkId) return;
+  cancelCountdown();
+  btn.disabled = true;
+  btn.textContent = "Capturing…";
+  if (statusEl) statusEl.textContent = "";
+  try {
+    const dataUrl = await chrome.tabs.captureVisibleTab(currentTab?.windowId, {
+      format: "jpeg",
+      quality: 92,
+    });
+    const blob = await (await fetch(dataUrl)).blob();
+    if (!blob || blob.size === 0) throw new Error("empty capture");
+    const form = new FormData();
+    form.append("file", blob, "screenshot.jpg");
+    const res = await fetch(`${serverUrl}/api/bookmarks/${bookmarkId}/screenshot/upload`, {
+      method: "POST",
+      body: form,
+    });
+    if (!res.ok) throw new Error(`status ${res.status}`);
+    btn.textContent = "Screenshot saved";
+  }
+  catch {
+    btn.disabled = false;
+    btn.textContent = "Capture screenshot";
+    if (statusEl) statusEl.textContent = "Couldn't capture the screenshot. Please try again.";
+  }
 }
 
 // --- Fill mode ----------------------------------------------------------
@@ -1387,6 +1447,7 @@ async function applyChanges(rows, bookmark) {
     }
     fillAppliedMsg.textContent = message;
     fillAppliedOpenBtn.onclick = () => openBookmark(bookmark.id);
+    wireCaptureButton(captureAppliedBtn, captureAppliedStatus, bookmark.id);
     show("applied");
   }
   catch {
