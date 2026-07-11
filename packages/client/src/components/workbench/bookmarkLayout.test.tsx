@@ -13,9 +13,9 @@ import { augmentDefaultLayout, deriveWorkbenchTabs, knownFieldKeys, visibleSecti
  * its code default layout to a stable tab / section / field-key order in both view and edit. Byte-
  * identical is waived for bookmarks (design §7-A: one unified layout can't match the two asymmetric
  * pre-migration surfaces), so this snapshots the chosen canonical order and the parity-by-construction
- * split — view-only fields (relatedBookmarks/hierarchy/mediaSource/locationsMap/metadata/debug) drop in
- * edit and the edit-only `relatedEdit` drops in view, so Metadata/Debug are view-only tabs. Renderers
- * are never invoked, only the pure order/visibility helpers.
+ * split — view-only fields (relatedBookmarks/bookmarkGraph/hierarchy/mediaSource/locationsMap/metadata/
+ * debug) drop in edit and the edit-only `relatedEdit` drops in view, so Graph/Metadata/Debug are
+ * view-only tabs. Renderers are never invoked, only the pure order/visibility helpers.
  */
 
 interface TabShape {
@@ -95,6 +95,14 @@ describe("bookmark default layout", () => {
         sections: [{
           key: "related",
           fields: ["relatedBookmarks", "hierarchy", "mediaSource", "locationsMap"],
+        }],
+      },
+      {
+        key: "graph",
+        group: undefined,
+        sections: [{
+          key: "graph",
+          fields: ["bookmarkGraph"],
         }],
       },
       {

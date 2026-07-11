@@ -31,10 +31,7 @@ export function computeRelatedBookmarks(
   const {
     weights,
   } = settings;
-  const targetTags = new Set(target.tags.map(t => t.id));
-  const targetGenreMoods = new Set(target.genreMoods.map(g => g.id));
-  const targetPeople = new Set(target.people.map(p => p.id));
-  const targetGroups = new Set(target.groups.map(g => g.id));
+  const targetSets = buildRelatednessSets(target);
 
   const relationshipByBookmarkId = new Map(target.relationships.map(rel => [rel.bookmark.id, rel]));
   const bookmarksById = new Map(all.map(bookmark => [bookmark.id, bookmark]));
@@ -52,12 +49,7 @@ export function computeRelatedBookmarks(
   for (const candidate of all) {
     if (candidate.id === target.id) continue;
     if (relationshipByBookmarkId.has(candidate.id)) continue;
-    const score = scoreBookmark(target, candidate, weights, {
-      targetTags,
-      targetGenreMoods,
-      targetPeople,
-      targetGroups,
-    });
+    const score = scoreBookmarkPair(target, candidate, weights, targetSets);
     if (score > 0) scored.push({
       bookmark: candidate,
       score,
@@ -79,19 +71,33 @@ export function computeRelatedBookmarks(
   return [...pinned, ...tail];
 }
 
-interface TargetSets {
+/** The target bookmark's set-dimension ids, precomputed once so pair scoring stays O(candidate). */
+export interface RelatednessSets {
   targetTags: Set<string>;
   targetGenreMoods: Set<string>;
   targetPeople: Set<string>;
   targetGroups: Set<string>;
 }
 
-/** Sum the weighted overlap across every relatedness dimension for one candidate. */
-function scoreBookmark(
+/** Precompute a bookmark's set-dimension id sets for {@link scoreBookmarkPair}. */
+export function buildRelatednessSets(bookmark: Bookmark): RelatednessSets {
+  return {
+    targetTags: new Set(bookmark.tags.map(t => t.id)),
+    targetGenreMoods: new Set(bookmark.genreMoods.map(g => g.id)),
+    targetPeople: new Set(bookmark.people.map(p => p.id)),
+    targetGroups: new Set(bookmark.groups.map(g => g.id)),
+  };
+}
+
+/**
+ * Sum the weighted overlap across every relatedness dimension for one candidate. Symmetric —
+ * swapping target and candidate (with the swapped sets) yields the same score.
+ */
+export function scoreBookmarkPair(
   target: Bookmark,
   candidate: Bookmark,
   weights: BookmarkGraphWeights,
-  sets: TargetSets,
+  sets: RelatednessSets,
 ): number {
   let score = 0;
   score += weights.tags * countShared(sets.targetTags, candidate.tags);

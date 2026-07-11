@@ -21,9 +21,10 @@ type BookmarkEmptinessFields = Pick<
  * The view tabs the bookmark detail bodies hide because their content is empty — the layout-registry
  * replacement for `buildBookmarkDetailSections`' per-section null-omission. `modeVisibleTabs` already
  * drops structurally/`showIf`-empty tabs; this covers the tabs whose emptiness is **data-derived**:
- * Image (no images/screenshot), Video (no reel), Languages (no usages), Properties (no rows), and the
- * aggregate Related tab (no related bookmarks, hierarchy, shared-source matches, or locations). Pure so
- * the omission rules stay unit-tested independent of the react-query hooks that feed `data`.
+ * Image (no images/screenshot), Video (no reel), Languages (no usages), Properties (no rows), the
+ * Graph tab (no related bookmarks — the graph draws the same node set), and the aggregate Related tab
+ * (no related bookmarks, hierarchy, shared-source matches, or locations). Pure so the omission rules
+ * stay unit-tested independent of the react-query hooks that feed `data`.
  */
 export function hiddenBookmarkViewTabKeys(
   bookmark: BookmarkEmptinessFields,
@@ -34,6 +35,7 @@ export function hiddenBookmarkViewTabKeys(
   if (bookmark.reelArchive === null) hidden.add("video");
   if (bookmark.languageUsages.length === 0) hidden.add("languages");
   if (!data.hasPropertyRows) hidden.add("properties");
+  if (data.relatedBookmarkCount === 0) hidden.add("graph");
   if (
     data.relatedBookmarkCount === 0
     && data.hierarchyCount === 0

@@ -4,7 +4,7 @@ import type { BookmarkGenreMood, BookmarkGraphSettings, BookmarkPerson, Bookmark
 import { DEFAULT_BOOKMARK_GRAPH_SETTINGS } from "@eesimple/types";
 import { describe, expect, it } from "vitest";
 
-import { computeRelatedBookmarks } from "./relatedBookmarks";
+import { buildRelatednessSets, computeRelatedBookmarks, scoreBookmarkPair } from "./relatedBookmarks";
 import { makeBookmark } from "../test-utils/factories";
 
 const tag = (id: string): BookmarkTag => ({
@@ -267,5 +267,53 @@ describe("computeRelatedBookmarks", () => {
       DEFAULT_BOOKMARK_GRAPH_SETTINGS,
     );
     expect(result.map(e => e.bookmark.id)).toEqual(["strong", "weak"]);
+  });
+});
+
+describe("scoreBookmarkPair", () => {
+  it("is symmetric — swapping the pair (with swapped sets) yields the same score", () => {
+    const a = makeBookmark({
+      id: "a",
+      tags: [tag("x"), tag("y")],
+      people: [person("p")],
+      categoryId: "cat-1",
+    });
+    const b = makeBookmark({
+      id: "b",
+      tags: [tag("x")],
+      people: [person("p")],
+      categoryId: "cat-1",
+    });
+    const {
+      weights,
+    } = DEFAULT_BOOKMARK_GRAPH_SETTINGS;
+    const forward = scoreBookmarkPair(a, b, weights, buildRelatednessSets(a));
+    const backward = scoreBookmarkPair(b, a, weights, buildRelatednessSets(b));
+    expect(forward).toBeGreaterThan(0);
+    expect(backward).toBe(forward);
+  });
+
+  it("scores 0 when every weight is off", () => {
+    const a = makeBookmark({
+      id: "a",
+      tags: [tag("x")],
+      categoryId: "cat-1",
+    });
+    const b = makeBookmark({
+      id: "b",
+      tags: [tag("x")],
+      categoryId: "cat-1",
+    });
+    const weights: BookmarkGraphSettings["weights"] = {
+      tags: 0,
+      category: 0,
+      mediaType: 0,
+      genreMoods: 0,
+      people: 0,
+      groups: 0,
+      website: 0,
+      youtubeChannel: 0,
+    };
+    expect(scoreBookmarkPair(a, b, weights, buildRelatednessSets(a))).toBe(0);
   });
 });

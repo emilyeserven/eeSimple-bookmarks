@@ -91,9 +91,9 @@ function toWeight(value: string): BookmarkGraphWeight {
 
 /**
  * Settings → Display → Bookmark Graph: the per-dimension relatedness weights + the number of related
- * cards shown, backing the "Related bookmarks" section on a bookmark's View page. Persisted
- * server-side (the `app_settings` singleton) so the choices stick across devices; each change fires a
- * recorded toast.
+ * cards shown, backing the "Related bookmarks" section and the Graph tab on a bookmark's View page.
+ * Persisted server-side (the `app_settings` singleton) so the choices stick across devices; each
+ * change fires a recorded toast.
  */
 export function DisplayBookmarkGraphSettings() {
   const {
@@ -160,7 +160,7 @@ export function DisplayBookmarkGraphSettings() {
       <div>
         <h2 className="text-lg font-semibold">{t("Bookmark Graph")}</h2>
         <p className="text-sm text-muted-foreground">
-          {t("Choose how the “Related bookmarks” list on a bookmark decides which bookmarks are related. A candidate’s relatedness is the sum of the weights below for everything it shares with the bookmark you’re viewing.")}
+          {t("Choose how the “Related bookmarks” list and the Graph tab on a bookmark decide which bookmarks are related. A candidate’s relatedness is the sum of the weights below for everything it shares with the bookmark you’re viewing.")}
         </p>
       </div>
 

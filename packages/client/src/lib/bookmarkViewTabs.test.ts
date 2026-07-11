@@ -64,12 +64,24 @@ const LOCATION: Bookmark["locations"][number] = {
 describe("hiddenBookmarkViewTabKeys", () => {
   it("hides every optional tab for a bare bookmark with no data", () => {
     expect([...hiddenBookmarkViewTabKeys(makeBookmark(), NO_DATA)].sort()).toEqual([
+      "graph",
       "image",
       "languages",
       "properties",
       "related",
       "video",
     ]);
+  });
+
+  it("keeps the Graph tab only when related bookmarks exist", () => {
+    expect(hiddenBookmarkViewTabKeys(makeBookmark(), {
+      ...NO_DATA,
+      relatedBookmarkCount: 1,
+    })).not.toContain("graph");
+    expect(hiddenBookmarkViewTabKeys(makeBookmark(), {
+      ...NO_DATA,
+      hierarchyCount: 1,
+    })).toContain("graph");
   });
 
   it("keeps the Image tab when the bookmark has an image or only a screenshot", () => {
