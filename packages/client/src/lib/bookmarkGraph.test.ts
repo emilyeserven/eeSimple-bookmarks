@@ -7,6 +7,8 @@ import {
   buildBookmarkGraph,
   edgeOpacity,
   edgeStrokeWidth,
+  neighborsOf,
+  nodeOpacityForDistance,
   nodeRadius,
   truncateLabel,
 } from "./bookmarkGraph";
@@ -60,6 +62,11 @@ const ALL_OFF: BookmarkGraphSettings = {
 function edgeBetween(graph: ReturnType<typeof buildBookmarkGraph>, a: string, b: string) {
   return graph.edges.find(edge =>
     (edge.sourceId === a && edge.targetId === b) || (edge.sourceId === b && edge.targetId === a));
+}
+
+/** Node id → BFS distance, for asserting layering. */
+function distanceMap(graph: ReturnType<typeof buildBookmarkGraph>): Map<string, number> {
+  return new Map(graph.nodes.map(node => [node.bookmark.id, node.distance]));
 }
 
 describe("buildBookmarkGraph", () => {
@@ -209,6 +216,156 @@ describe("buildBookmarkGraph", () => {
     expect(graph.maxScore).toBe(6);
     expect(graph.maxWeight).toBe(9);
   });
+
+  it("assigns BFS distance: center 0, layer-1 peers 1", () => {
+    const target = makeBookmark({
+      id: "a",
+      tags: [tag("x")],
+    });
+    const peer = makeBookmark({
+      id: "b",
+      tags: [tag("x")],
+    });
+    const dist = distanceMap(buildBookmarkGraph(target, [target, peer], TAGS_ONLY));
+    expect(dist.get("a")).toBe(0);
+    expect(dist.get("b")).toBe(1);
+  });
+});
+
+describe("buildBookmarkGraph expansion", () => {
+  it("adds an expanded peer's own related set as distance-2 nodes", () => {
+    const a = makeBookmark({
+      id: "a",
+      tags: [tag("x")],
+    });
+    const b = makeBookmark({
+      id: "b",
+      tags: [tag("x"), tag("y")],
+    });
+    const c = makeBookmark({
+      id: "c",
+      tags: [tag("y")],
+    });
+    const all = [a, b, c];
+    // c shares nothing with the center, so it is absent until b is expanded.
+    expect(buildBookmarkGraph(a, all, TAGS_ONLY).nodes.some(node => node.bookmark.id === "c")).toBe(false);
+
+    const graph = buildBookmarkGraph(a, all, TAGS_ONLY, {
+      expandedIds: new Set(["b"]),
+    });
+    const dist = distanceMap(graph);
+    expect(dist.get("a")).toBe(0);
+    expect(dist.get("b")).toBe(1);
+    expect(dist.get("c")).toBe(2);
+    expect(edgeBetween(graph, "b", "c")).toBeDefined();
+  });
+
+  it("dedupes a child that is also a layer-1 peer into one node", () => {
+    const a = makeBookmark({
+      id: "a",
+      tags: [tag("x")],
+    });
+    const b = makeBookmark({
+      id: "b",
+      tags: [tag("x"), tag("y")],
+    });
+    const c = makeBookmark({
+      id: "c",
+      tags: [tag("x"), tag("y")],
+    });
+    const graph = buildBookmarkGraph(a, [a, b, c], TAGS_ONLY, {
+      expandedIds: new Set(["b"]),
+    });
+    expect(graph.nodes.filter(node => node.bookmark.id === "c")).toHaveLength(1);
+  });
+
+  it("expands nested — an expanded child's own related set becomes distance-3", () => {
+    const a = makeBookmark({
+      id: "a",
+      tags: [tag("x")],
+    });
+    const b = makeBookmark({
+      id: "b",
+      tags: [tag("x"), tag("y")],
+    });
+    const c = makeBookmark({
+      id: "c",
+      tags: [tag("y"), tag("z")],
+    });
+    const d = makeBookmark({
+      id: "d",
+      tags: [tag("z")],
+    });
+    const graph = buildBookmarkGraph(a, [a, b, c, d], TAGS_ONLY, {
+      expandedIds: new Set(["b", "c"]),
+    });
+    const dist = distanceMap(graph);
+    expect(dist.get("c")).toBe(2);
+    expect(dist.get("d")).toBe(3);
+  });
+
+  it("keeps ALL of an expanded (focus) node's spokes, past the top-K peer limit", () => {
+    const center = makeBookmark({
+      id: "center",
+      tags: [tag("p0")],
+    });
+    const childCount = 6;
+    const children = Array.from({
+      length: childCount,
+    }, (_, i) =>
+      makeBookmark({
+        id: `c${i}`,
+        // A strong mesh among the children (score 6) outranks each weak spoke to the parent (score 3).
+        tags: [tag(`u${i}`), tag("common1"), tag("common2")],
+      }));
+    const parent = makeBookmark({
+      id: "p",
+      tags: [tag("p0"), ...children.map((_, i) => tag(`u${i}`))],
+    });
+    const graph = buildBookmarkGraph(center, [center, parent, ...children], TAGS_ONLY, {
+      expandedIds: new Set(["p"]),
+    });
+    for (let i = 0; i < childCount; i += 1) {
+      expect(edgeBetween(graph, "p", `c${i}`)).toBeDefined();
+    }
+  });
+
+  it("ignores an expanded id that is not displayed", () => {
+    const a = makeBookmark({
+      id: "a",
+      tags: [tag("x")],
+    });
+    const b = makeBookmark({
+      id: "b",
+      tags: [tag("x")],
+    });
+    const graph = buildBookmarkGraph(a, [a, b], TAGS_ONLY, {
+      expandedIds: new Set(["ghost"]),
+    });
+    expect(graph.nodes.map(node => node.bookmark.id).sort()).toEqual(["a", "b"]);
+  });
+});
+
+describe("neighborsOf", () => {
+  it("returns edge-adjacent ids from either direction and excludes self", () => {
+    const a = makeBookmark({
+      id: "a",
+      tags: [tag("x")],
+    });
+    const b = makeBookmark({
+      id: "b",
+      tags: [tag("x")],
+    });
+    const c = makeBookmark({
+      id: "c",
+      tags: [tag("x")],
+    });
+    const graph = buildBookmarkGraph(a, [a, b, c], TAGS_ONLY);
+    const result = neighborsOf(graph, "a");
+    expect(result.has("b")).toBe(true);
+    expect(result.has("c")).toBe(true);
+    expect(result.has("a")).toBe(false);
+  });
 });
 
 describe("render-scale helpers", () => {
@@ -231,5 +388,13 @@ describe("render-scale helpers", () => {
     expect(truncateLabel("Short title")).toBe("Short title");
     expect(truncateLabel("A very long bookmark title indeed")).toHaveLength(18);
     expect(truncateLabel("A very long bookmark title indeed").endsWith("…")).toBe(true);
+  });
+
+  it("fades node opacity by distance, monotonically, with a floor", () => {
+    expect(nodeOpacityForDistance(0)).toBe(1);
+    expect(nodeOpacityForDistance(1)).toBe(1);
+    expect(nodeOpacityForDistance(2)).toBeCloseTo(0.85);
+    expect(nodeOpacityForDistance(2)).toBeLessThan(nodeOpacityForDistance(1));
+    expect(nodeOpacityForDistance(20)).toBe(0.55);
   });
 });
