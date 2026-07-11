@@ -56,6 +56,83 @@ function taxonomyEntityWriteMode(
   };
 }
 
+/**
+ * No saved bookmark for this URL: if the matched website carries `taxonomyDirect` rules that are
+ * *actionable* here, offer to update the taxonomy entity directly (`mode: "taxonomy"`). "Actionable" =
+ * a url-mode rule actually resolved an entity from this URL, or there's a match-mode rule (resolved
+ * in-browser; the popup path-gates it and falls back to the Inbox if it gates to nothing). This keeps
+ * a plain content page on a rule-carrying site (e.g. a video page vs. a channel page) on the normal
+ * inbox/unknown path so it still auto-saves.
+ */
+async function resolveNoBookmarkContext(
+  url: string,
+  website: Awaited<ReturnType<typeof lookupWebsiteByUrl>>["website"],
+  storedRules: WebsiteExtensionFillRule[],
+): Promise<ExtensionFillContext> {
+  const directRules = storedRules.filter(rule => rule.target.kind === "taxonomyDirect");
+  if (website && directRules.length > 0) {
+    const taxonomyContext = await buildTaxonomyMode(url, website, storedRules);
+    const hasMatchRule = directRules.some(
+      rule => rule.target.kind === "taxonomyDirect" && rule.target.resolve.mode === "match",
+    );
+    if (taxonomyContext.associatedTerms || hasMatchRule) {
+      return taxonomyContext;
+    }
+  }
+  const pending = await findPendingImportItemByUrl(url);
+  return pending
+    ? {
+      mode: "inbox",
+      inboxItemId: pending.id,
+    }
+    : {
+      mode: "unknown",
+    };
+}
+
+/** Load the compact taxonomy option lists the popup needs for the `taxonomy` / `publisher` targets. */
+async function loadTaxonomyOptions(
+  rules: WebsiteExtensionFillRule[],
+): Promise<NonNullable<ExtensionFillContext["taxonomies"]>> {
+  const taxonomyKinds = new Set(
+    rules.flatMap(rule => (rule.target.kind === "taxonomy" ? [rule.target.taxonomy] : [])),
+  );
+  // A `publisher` target resolves a name to a Group and sets the bookmark's singular `groupId`, so it
+  // also needs the Groups option list for match-or-create in the popup.
+  const needsGroups = taxonomyKinds.has("groups")
+    || rules.some(rule => rule.target.kind === "publisher");
+
+  const taxonomies: NonNullable<ExtensionFillContext["taxonomies"]> = {};
+  if (taxonomyKinds.has("people")) taxonomies.people = await listPeopleCompact();
+  if (needsGroups) taxonomies.groups = await listGroupsCompact();
+  if (taxonomyKinds.has("locations")) taxonomies.locations = await listLocationsCompact();
+  if (taxonomyKinds.has("tags")) taxonomies.tags = await listTagsCompact();
+  return taxonomies;
+}
+
+/**
+ * Build the per-association hydration map for `taxonomyEntity` rules — which relation id-arrays and
+ * whether the language block each referenced association needs, so the popup can diff and upsert.
+ */
+function buildAssociationHydration(
+  rules: WebsiteExtensionFillRule[],
+): Map<TaxonomyEntityAssociation, AssociationHydration> {
+  const hydration = new Map<TaxonomyEntityAssociation, AssociationHydration>();
+  for (const rule of rules) {
+    if (rule.target.kind !== "taxonomyEntity") continue;
+    const entry = hydration.get(rule.target.association)
+      ?? {
+        relations: new Set<TaxonomyEntityRelationKey>(),
+        language: false,
+      };
+    const mode = taxonomyEntityWriteMode(rule.target.field);
+    if (mode.kind === "relation") entry.relations.add(mode.key);
+    else if (mode.kind === "language") entry.language = true;
+    hydration.set(rule.target.association, entry);
+  }
+  return hydration;
+}
+
 export async function getExtensionFillContext(url: string): Promise<ExtensionFillContext> {
   const dup = await checkBookmarkUrlDuplicate(url);
   const matchedBookmarkId = dup.exactMatch?.id ?? dup.pathMatch?.id;
@@ -70,31 +147,7 @@ export async function getExtensionFillContext(url: string): Promise<ExtensionFil
   const storedRules = migrateExtensionFillRules(rawRules) ?? rawRules;
 
   if (!matchedBookmarkId) {
-    // No saved bookmark: if the matched website carries `taxonomyDirect` rules that are *actionable*
-    // here, offer to update the taxonomy entity directly (`mode: "taxonomy"`). "Actionable" = a
-    // url-mode rule actually resolved an entity from this URL, or there's a match-mode rule (resolved
-    // in-browser; the popup path-gates it and falls back to the Inbox if it gates to nothing). This
-    // keeps a plain content page on a rule-carrying site (e.g. a video page vs. a channel page) on the
-    // normal inbox/unknown path so it still auto-saves.
-    const directRules = storedRules.filter(rule => rule.target.kind === "taxonomyDirect");
-    if (website && directRules.length > 0) {
-      const taxonomyContext = await buildTaxonomyMode(url, website, storedRules);
-      const hasMatchRule = directRules.some(
-        rule => rule.target.kind === "taxonomyDirect" && rule.target.resolve.mode === "match",
-      );
-      if (taxonomyContext.associatedTerms || hasMatchRule) {
-        return taxonomyContext;
-      }
-    }
-    const pending = await findPendingImportItemByUrl(url);
-    return pending
-      ? {
-        mode: "inbox",
-        inboxItemId: pending.id,
-      }
-      : {
-        mode: "unknown",
-      };
+    return resolveNoBookmarkContext(url, website, storedRules);
   }
 
   const bookmark = await getBookmark(matchedBookmarkId);
@@ -124,37 +177,12 @@ export async function getExtensionFillContext(url: string): Promise<ExtensionFil
       property => propertyIds.includes(property.id) && property.type !== "image" && property.type !== "file",
     );
 
-  const taxonomyKinds = new Set(
-    rules.flatMap(rule => (rule.target.kind === "taxonomy" ? [rule.target.taxonomy] : [])),
-  );
-
-  // A `publisher` target resolves a name to a Group and sets the bookmark's singular `groupId`, so it
-  // also needs the Groups option list for match-or-create in the popup.
-  const needsGroups = taxonomyKinds.has("groups")
-    || rules.some(rule => rule.target.kind === "publisher");
-
-  const taxonomies: ExtensionFillContext["taxonomies"] = {};
-  if (taxonomyKinds.has("people")) taxonomies.people = await listPeopleCompact();
-  if (needsGroups) taxonomies.groups = await listGroupsCompact();
-  if (taxonomyKinds.has("locations")) taxonomies.locations = await listLocationsCompact();
-  if (taxonomyKinds.has("tags")) taxonomies.tags = await listTagsCompact();
+  const taxonomies = await loadTaxonomyOptions(rules);
 
   // `taxonomyEntity` rules write into a linked term's field / relation / language — send the
   // bookmark's current linked terms for each referenced association (hydrating the exact extra data
   // each target mode needs) so the popup can diff and upsert.
-  const hydration = new Map<TaxonomyEntityAssociation, AssociationHydration>();
-  for (const rule of rules) {
-    if (rule.target.kind !== "taxonomyEntity") continue;
-    const entry = hydration.get(rule.target.association)
-      ?? {
-        relations: new Set<TaxonomyEntityRelationKey>(),
-        language: false,
-      };
-    const mode = taxonomyEntityWriteMode(rule.target.field);
-    if (mode.kind === "relation") entry.relations.add(mode.key);
-    else if (mode.kind === "language") entry.language = true;
-    hydration.set(rule.target.association, entry);
-  }
+  const hydration = buildAssociationHydration(rules);
   const linkedTerms = await loadAssociatedTerms(bookmark, hydration);
 
   // Relation targets match an extracted name against the related taxonomy's compact option list.
@@ -416,11 +444,21 @@ async function loadTermsFor(
   return terms;
 }
 
-/** Resolve one association's linked term refs with their scalar + (when referenced) relation fields. */
-async function loadBaseTermsFor(
-  association: TaxonomyEntityAssociation,
+/** Associations linked to the bookmark by a single FK (at most one term). */
+type SingleLinkedAssociation
+  = | "website"
+    | "category"
+    | "mediaType"
+    | "youtubeChannel"
+    | "newsletter"
+    | "group";
+/** Associations linked to the bookmark by an id list (zero or more terms). */
+type MultiLinkedAssociation = "people" | "groups" | "tags" | "locations";
+
+/** Resolve a single-FK association's linked term (at most one) with its scalar fields. */
+async function loadSingleLinkedTerm(
+  association: SingleLinkedAssociation,
   bookmark: Bookmark,
-  needs: AssociationHydration,
 ): Promise<TaxonomyEntityTermRef[]> {
   switch (association) {
     case "website": {
@@ -497,6 +535,16 @@ async function loadBaseTermsFor(
         }]
         : [];
     }
+  }
+}
+
+/** Resolve a multi-linked association's term refs (with referenced relation id-arrays). */
+async function loadMultiLinkedTerms(
+  association: MultiLinkedAssociation,
+  bookmark: Bookmark,
+  needs: AssociationHydration,
+): Promise<TaxonomyEntityTermRef[]> {
+  switch (association) {
     case "people": {
       const ids = new Set((bookmark.people ?? []).map(p => p.id));
       if (ids.size === 0) return [];
@@ -561,5 +609,27 @@ async function loadBaseTermsFor(
           description: l.description,
         }));
     }
+  }
+}
+
+/** Resolve one association's linked term refs with their scalar + (when referenced) relation fields. */
+async function loadBaseTermsFor(
+  association: TaxonomyEntityAssociation,
+  bookmark: Bookmark,
+  needs: AssociationHydration,
+): Promise<TaxonomyEntityTermRef[]> {
+  switch (association) {
+    case "website":
+    case "category":
+    case "mediaType":
+    case "youtubeChannel":
+    case "newsletter":
+    case "group":
+      return loadSingleLinkedTerm(association, bookmark);
+    case "people":
+    case "groups":
+    case "tags":
+    case "locations":
+      return loadMultiLinkedTerms(association, bookmark, needs);
   }
 }

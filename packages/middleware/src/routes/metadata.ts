@@ -334,6 +334,31 @@ async function resolveRedirectResult(url: string): Promise<ResolveUrlResult> {
   };
 }
 
+/**
+ * Record what the scan learned about a site (blocks crawlers / hard page / unreachable / redirect
+ * failure) onto its Website record. Only when the URL resolved to an existing website, and never
+ * fails the scan (display-only, best-effort). `scanSignals` is mutated with the redirect error first.
+ */
+async function recordScanObservations(
+  websiteRaw: Awaited<ReturnType<typeof lookupWebsiteByUrl>>,
+  scanSignals: ScanObservationSignals,
+  redirectError: string | null | undefined,
+  log: FastifyBaseLogger,
+): Promise<void> {
+  scanSignals.redirectError = redirectError ?? null;
+  if (!websiteRaw.website) return;
+  const observed = deriveScanObservations(scanSignals);
+  if (observed.length === 0) return;
+  try {
+    await recordWebsiteScanObservations(websiteRaw.website.id, observed, new Date().toISOString());
+  }
+  catch (err) {
+    log.warn({
+      err,
+    }, "failed to record website scan observations");
+  }
+}
+
 /** Map the `lookupWebsiteByUrl` service shape to the `WebsiteLookup` wire type. */
 function toWebsiteLookup(raw: Awaited<ReturnType<typeof lookupWebsiteByUrl>>): WebsiteLookup {
   return {
@@ -656,23 +681,8 @@ export async function metadataRoutes(app: FastifyInstance): Promise<void> {
 
     const website = toWebsiteLookup(websiteRaw);
 
-    // Record what the scan learned about this site (blocks crawlers / hard page / unreachable /
-    // redirect failure) onto its Website record. Runs only on this cache-miss path, only when the
-    // URL resolved to an existing website, and never fails the scan (display-only, best-effort).
-    scanSignals.redirectError = redirect.resolveError ?? null;
-    if (websiteRaw.website) {
-      const observed = deriveScanObservations(scanSignals);
-      if (observed.length > 0) {
-        try {
-          await recordWebsiteScanObservations(websiteRaw.website.id, observed, new Date().toISOString());
-        }
-        catch (err) {
-          req.log.warn({
-            err,
-          }, "failed to record website scan observations");
-        }
-      }
-    }
+    // Record scan observations onto the Website record (cache-miss path only, best-effort).
+    await recordScanObservations(websiteRaw, scanSignals, redirect.resolveError, req.log);
 
     // The social account `finalUrl` points at, if any (pure of `finalUrl`, so cache-safe).
     const socialAccount = socialAccountFromUrl(finalUrl);
