@@ -6,7 +6,7 @@ import "../../public/extension/taxonomyFill.js";
 import type { TaxonomyEntityAssociationSpec } from "@eesimple/types";
 
 import { TAXONOMY_ENTITY_SPECS } from "@eesimple/types";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 interface FillResult {
   ruleId: string;
@@ -345,6 +345,49 @@ describe("eesimpleFillEngine.runRules — read", () => {
       ruleId: "poster",
       values: [],
     });
+  });
+
+  // A hero header often paints its artwork on a `::before` pseudo-element (so a gradient overlay can
+  // sit on top). That background can't be reached with a CSS selector, so the reader falls through to
+  // the element's pseudo-elements when the element itself has none. jsdom doesn't compute
+  // stylesheet-driven pseudo backgrounds, so stub `getComputedStyle` to exercise the branch.
+  it("backgroundImage — falls through to a ::before pseudo-element background", () => {
+    const el = document.createElement("div");
+    el.className = "hero";
+    document.body.appendChild(el);
+    const realGetComputedStyle = window.getComputedStyle.bind(window);
+    const spy = vi
+      .spyOn(window, "getComputedStyle")
+      .mockImplementation(((element: Element, pseudo?: string | null) => {
+        if (element === el) {
+          const backgroundImage = pseudo === "::before"
+            ? "url(\"https://cdn.example.com/hero.jpg\")"
+            : "none";
+          return {
+            backgroundImage,
+          } as CSSStyleDeclaration;
+        }
+        return realGetComputedStyle(element);
+      }) as typeof window.getComputedStyle);
+    try {
+      const res = engine.runRules([{
+        id: "hero",
+        extract: {
+          selector: ".hero",
+          read: {
+            kind: "backgroundImage",
+          },
+        },
+      }], document);
+      expect(res[0]).toEqual({
+        ruleId: "hero",
+        values: ["https://cdn.example.com/hero.jpg"],
+      });
+    }
+    finally {
+      spy.mockRestore();
+      el.remove();
+    }
   });
 });
 

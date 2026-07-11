@@ -98,21 +98,27 @@
     return m ? m[2].trim() : null;
   }
 
-  // Read the element's computed `background-image` (falling back to its inline style when no computed
-  // style is available, e.g. a detached test document) and extract the first image URL.
+  // Read a `background-image` URL from the element — checking the element itself first, then its
+  // `::before` / `::after` pseudo-elements. Hero headers commonly paint the artwork on a pseudo-element
+  // (so a gradient overlay can sit on top), and a pseudo-element's background can't be reached with a
+  // CSS selector, so the engine has to look for it. Falls back to the inline style when no computed
+  // style is available (e.g. a detached test document) and extracts the first image URL.
   function backgroundImageValue(el) {
     var view = el.ownerDocument && el.ownerDocument.defaultView;
-    var raw = "";
     if (view && typeof view.getComputedStyle === "function") {
-      try {
-        raw = view.getComputedStyle(el).backgroundImage || "";
-      }
-      catch {
-        raw = "";
+      // `null` reads the element itself; the two pseudo-elements cover CSS-selector-unreachable backgrounds.
+      for (var pseudo of [null, "::before", "::after"]) {
+        var raw = "";
+        try {
+          raw = view.getComputedStyle(el, pseudo).backgroundImage || "";
+        }
+        catch {
+          raw = "";
+        }
+        var url = firstBackgroundImageUrl(raw);
+        if (url != null) return url;
       }
     }
-    var url = firstBackgroundImageUrl(raw);
-    if (url != null) return url;
     return firstBackgroundImageUrl((el.style && el.style.backgroundImage) || "");
   }
 
