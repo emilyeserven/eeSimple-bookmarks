@@ -1,4 +1,5 @@
 import type { Bookmark } from "@eesimple/types";
+import type { MouseEvent } from "react";
 
 import { useState } from "react";
 
@@ -47,6 +48,17 @@ export function SidebarTabBasket() {
   const count = bookmarkIds.length;
 
   const openAll = () => openBasketTabs(openableUrls);
+
+  // CMD (macOS) / Ctrl (Windows/Linux) + click opens the bookmark's *external* link in a new tab
+  // instead of navigating to its detail page. Falls through to the normal Link navigation when the
+  // bookmark has no url. Reuses the same trusted-handler window.open path as "open all" for Arc
+  // compatibility (see {@link openBasketTabs}).
+  const handleRowClick = (bookmark: Bookmark) => (event: MouseEvent) => {
+    if ((event.metaKey || event.ctrlKey) && bookmark.url) {
+      event.preventDefault();
+      openBasketTabs([bookmark.url]);
+    }
+  };
 
   // In icon-collapsed mode the rail is too narrow for the list — show just an icon button that opens
   // all basketed tabs, with the count as a small overlay badge.
@@ -141,7 +153,12 @@ export function SidebarTabBasket() {
                           bookmarkId: bookmark.id,
                         }}
                         className="min-w-0 flex-1 truncate px-2 py-1 text-xs"
-                        title={bookmark.title}
+                        title={bookmark.url
+                          ? t("{{title}} — ⌘/Ctrl+click to open the link in a new tab", {
+                            title: bookmark.title,
+                          })
+                          : bookmark.title}
+                        onClick={handleRowClick(bookmark)}
                       >
                         {bookmark.title}
                       </Link>
