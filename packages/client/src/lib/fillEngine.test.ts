@@ -1143,6 +1143,56 @@ describe("eesimpleFillEngine.runRules — sections target", () => {
     expect(entries.map(e => e.name)).toEqual(["Preface", "Part 1: Foundations", "Part 2: Advanced"]);
   });
 
+  it("yields all-flat when the Selector excludes the section-header rows", () => {
+    // Regression note: the section headers must be in the candidate set for grouping to work. On an
+    // O'Reilly-style ToC the "Part" headers are link-less; a Selector restricted to anchors matches
+    // only the chapter links, so no row's name contains "Part" → every row becomes a flat top-level
+    // section (the "20 sections instead of 3" report). The fix is a Selector matching every row.
+    const html = `
+      <ul class="toc">
+        <li><h5>Part 1: Foundations</h5></li>
+        <li><h5><a href="/ch-1">Chapter 1. Getting Started</a></h5></li>
+        <li><h5><a href="/ch-2">Chapter 2. Workflows</a></h5></li>
+      </ul>
+    `;
+    const rule = {
+      id: "toc",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "url",
+        sectionMatch: {
+          mode: "contains",
+          value: "Part ",
+        },
+      },
+      // Anchor-only selector: the link-less "Part" header never enters the candidate set.
+      extract: {
+        selector: ".toc h5 a",
+        read: {
+          kind: "attr",
+          name: "href",
+        },
+      },
+    };
+    const entries = runSections(rule, html);
+    expect(entries.map(e => e.name)).toEqual(["Chapter 1. Getting Started", "Chapter 2. Workflows"]);
+    expect(entries.every(e => e.children === undefined)).toBe(true);
+
+    // With a Selector that matches every row (the h5s), the Part header groups its chapters.
+    const grouped = runSections({
+      ...rule,
+      extract: {
+        selector: ".toc h5",
+      },
+    }, html);
+    expect(grouped.map(e => e.name)).toEqual(["Part 1: Foundations"]);
+    expect(grouped[0].children?.map(c => c.name)).toEqual([
+      "Chapter 1. Getting Started",
+      "Chapter 2. Workflows",
+    ]);
+  });
+
   it("leaves non-sections rules with no `entries` key", () => {
     const result = engine.runRules(
       [{

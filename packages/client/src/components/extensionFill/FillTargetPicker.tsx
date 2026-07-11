@@ -201,13 +201,26 @@ function FillTargetValue({
 
 type SectionsTarget = Extract<FillTarget, { kind: "sections" }>;
 type SectionEntryTypeName = SectionsTarget["entryType"];
+/** Which grouping strategy a sections target uses. Inferred from which optional fields are present. */
+type SectionGroupingMode = "flat" | "container" | "text";
+
+/** Derive the grouping mode from the target — text match wins over a container (as the engine does). */
+function sectionGroupingMode(target: SectionsTarget): SectionGroupingMode {
+  if (target.sectionMatch != null) return "text";
+  if (target.container != null) return "container";
+  return "flat";
+}
 
 /**
- * Controls for a `sections` target: pick the sections-typed property + the entry type. For url/page
- * the optional container/header/item-name selectors build a two-tier value (blank container = flat),
- * or the optional "section header text match" groups one flat item list by item text (items whose
- * name matches open a top-level section; it takes precedence over the container selector). For
- * timestamp those are hidden (the selector's text is parsed for `m:ss` lines).
+ * Controls for a `sections` target: pick the sections-typed property, the entry type, and how the
+ * page's items are grouped into sections/subsections. The three grouping modes are mutually exclusive
+ * and each shows only its own fields, so a rule can't silently combine a container with a text match:
+ * - **flat** — every row matched by the top-level Selector is its own section (no nesting);
+ * - **container** — a repeated container element wraps each section and its items (`container`/`header`);
+ * - **text** — one flat list, where a row whose name matches `sectionMatch` starts a new top-level
+ *   section and the rows after it nest as children (the items come from the top-level Selector, which
+ *   must match every row including the section headers).
+ * For `timestamp` the grouping controls are hidden (the selector's text is parsed for `m:ss` lines).
  */
 function SectionsTarget({
   target, propertiesById, onChange,
@@ -226,6 +239,37 @@ function SectionsTarget({
       label: property.name,
     }));
   const isTimestamp = target.entryType === "timestamp";
+  const mode = sectionGroupingMode(target);
+  // Switching mode clears the other modes' fields so the saved target stays single-mode; a present
+  // (even empty) `container` / `sectionMatch` is what holds the chosen mode while the fields are edited.
+  const changeMode = (next: SectionGroupingMode) => {
+    if (next === "flat") {
+      onChange({
+        ...target,
+        container: undefined,
+        header: undefined,
+        sectionMatch: undefined,
+      });
+    }
+    else if (next === "container") {
+      onChange({
+        ...target,
+        container: target.container ?? "",
+        sectionMatch: undefined,
+      });
+    }
+    else {
+      onChange({
+        ...target,
+        container: undefined,
+        header: undefined,
+        sectionMatch: target.sectionMatch ?? {
+          mode: "regex",
+          value: "",
+        },
+      });
+    }
+  };
   return (
     <div className="space-y-2">
       <Combobox
@@ -269,26 +313,76 @@ function SectionsTarget({
         )
         : (
           <>
-            <LabeledInput
-              label={t("Group container selector")}
-              placeholder=".MuiAccordion-root"
-              value={target.container ?? ""}
-              onChange={container => onChange({
-                ...target,
-                container,
-              })}
+            <KindSelect<SectionGroupingMode>
+              label={t("Grouping")}
+              value={mode}
+              options={[
+                {
+                  value: "flat",
+                  label: t("None — each item is its own section"),
+                  description: t("Every row matched by the Selector becomes a flat entry (no nesting)."),
+                },
+                {
+                  value: "container",
+                  label: t("By container element"),
+                  description: t("A repeated container wraps each section and its items (e.g. one accordion per Part)."),
+                },
+                {
+                  value: "text",
+                  label: t("By item text"),
+                  description: t("One flat list; a row whose name matches a pattern starts a new section and later rows nest under it."),
+                },
+              ]}
+              onValueChange={changeMode}
             />
+
+            {mode === "container" && (
+              <>
+                <LabeledInput
+                  label={t("Section container selector")}
+                  placeholder=".MuiAccordion-root"
+                  value={target.container ?? ""}
+                  onChange={container => onChange({
+                    ...target,
+                    container,
+                  })}
+                />
+                <LabeledInput
+                  label={t("Section name selector (within the container)")}
+                  placeholder="h3"
+                  value={target.header ?? ""}
+                  onChange={header => onChange({
+                    ...target,
+                    header,
+                  })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t("The top-level Selector matches the items inside each container; the section name is read from the header selector within each container.")}
+                </p>
+              </>
+            )}
+
+            {mode === "text" && (
+              <div className="space-y-1">
+                <Label>{t("Section header text match")}</Label>
+                <TextMatchEditor
+                  match={target.sectionMatch ?? {
+                    mode: "regex",
+                    value: "",
+                  }}
+                  onChange={sectionMatch => onChange({
+                    ...target,
+                    sectionMatch,
+                  })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t("Items come from the top-level Selector field above — it must match every row, including the section headers (e.g. the \"Part\" rows), so don't restrict it to links. Rows whose name matches here start a new top-level section; the rows after each nest as its children.")}
+                </p>
+              </div>
+            )}
+
             <LabeledInput
-              label={t("Group header selector")}
-              placeholder="h3"
-              value={target.header ?? ""}
-              onChange={header => onChange({
-                ...target,
-                header,
-              })}
-            />
-            <LabeledInput
-              label={t("Item name selector")}
+              label={t("Item name selector (within each item)")}
               placeholder="p"
               value={target.itemName ?? ""}
               onChange={itemName => onChange({
@@ -297,7 +391,7 @@ function SectionsTarget({
               })}
             />
             <LabeledInput
-              label={t("Item URL selector")}
+              label={t("Item link selector (within each item)")}
               placeholder="a"
               value={target.itemUrl ?? ""}
               onChange={itemUrl => onChange({
@@ -306,24 +400,8 @@ function SectionsTarget({
               })}
             />
             <p className="text-xs text-muted-foreground">
-              {t("Leave the container blank for a flat list. The main Selector matches each item. With an Item URL selector, the item can be a wrapper and Item name / Item URL read from inside it; leave it blank to read the value off the item via Read/Transform.")}
+              {t("Item name / Item link are read relative to each item. Leave Item name blank to use the item's own text; leave Item link blank to read the value off the item via Read/Transform.")}
             </p>
-            <div className="space-y-1">
-              <Label>{t("Section header text match")}</Label>
-              <TextMatchEditor
-                match={target.sectionMatch ?? {
-                  mode: "regex",
-                  value: "",
-                }}
-                onChange={sectionMatch => onChange({
-                  ...target,
-                  sectionMatch,
-                })}
-              />
-              <p className="text-xs text-muted-foreground">
-                {t("Optional. For a flat list with no grouping container (e.g. an O'Reilly table of contents), items whose name matches become top-level sections and the items after them nest as children. Takes precedence over the container selector.")}
-              </p>
-            </div>
           </>
         )}
     </div>

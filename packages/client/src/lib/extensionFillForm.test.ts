@@ -1208,6 +1208,59 @@ describe("sections target", () => {
     });
   });
 
+  it("drops container/header when a text match is set (single grouping mode wins)", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "sections",
+        propertyId: "p1",
+        entryType: "url",
+        container: ".MuiAccordion-root",
+        header: "h3",
+        itemName: "span",
+        sectionMatch: {
+          mode: "contains",
+          value: "Part ",
+        },
+      },
+      extract: {
+        selector: ".toc li h5",
+      },
+    })]);
+    // Text grouping wins: the container/header of the self-contradictory rule are dropped.
+    expect(out.target).toEqual({
+      kind: "sections",
+      propertyId: "p1",
+      entryType: "url",
+      itemName: "span",
+      sectionMatch: {
+        mode: "contains",
+        value: "Part ",
+      },
+    });
+  });
+
+  it("keeps container/header when there is no text match", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "sections",
+        propertyId: "p1",
+        entryType: "url",
+        container: ".MuiAccordion-root",
+        header: "h3",
+      },
+      extract: {
+        selector: "a",
+      },
+    })]);
+    expect(out.target).toEqual({
+      kind: "sections",
+      propertyId: "p1",
+      entryType: "url",
+      container: ".MuiAccordion-root",
+      header: "h3",
+    });
+  });
+
   it("summarizes a sections target, flagging grouped mode", () => {
     expect(describeFillTarget({
       kind: "sections",

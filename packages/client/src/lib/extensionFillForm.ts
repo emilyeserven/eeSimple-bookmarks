@@ -581,18 +581,24 @@ function cleanTaxonomyDirectTarget(
   };
 }
 
-/** Clean a `sections` target; no selected property is incomplete. Keep sub-selectors only when non-blank. */
+/**
+ * Clean a `sections` target; no selected property is incomplete. Keep sub-selectors only when
+ * non-blank, and enforce a single grouping mode: a non-blank text match (`sectionMatch`) drops
+ * `container`/`header` (text grouping wins, as the engine's precedence does), so the saved target is
+ * never the self-contradictory "container + text match" the editor's mode switch already prevents.
+ */
 function cleanSectionsTarget(
   target: Extract<FillTarget, { kind: "sections" }>,
 ): FillTarget | null {
   if (!target.propertyId) return null;
-  const container = target.container?.trim();
-  const header = target.header?.trim();
   const itemName = target.itemName?.trim();
   const itemUrl = target.itemUrl?.trim();
   const sectionMatch = target.sectionMatch?.value.trim()
     ? target.sectionMatch
     : undefined;
+  // Text grouping and container grouping are mutually exclusive; text match wins.
+  const container = sectionMatch ? undefined : target.container?.trim();
+  const header = sectionMatch ? undefined : target.header?.trim();
   return {
     kind: "sections",
     propertyId: target.propertyId,
