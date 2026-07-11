@@ -42,6 +42,11 @@ export function clampSidebarWidth(w: number): number {
   return Math.min(28, Math.max(10, w));
 }
 
+/** Clamp the bookmark-graph spacing multiplier to the supported 0.5–2.0 range. */
+export function clampGraphSpacing(value: number): number {
+  return Math.min(2, Math.max(0.5, value));
+}
+
 /**
  * Live search state + change handler shared from the active listing page to the sort control
  * (`BookmarkSortPopover`) and the CMD+K palette, which read `search.sort` / call `onSearchChange`.
@@ -108,6 +113,9 @@ interface UiState {
   /** Left sidebar width in rem (10–28). Persisted so the user's drag preference survives reloads. */
   sidebarWidth: number;
   setSidebarWidth: (value: number) => void;
+  /** Bookmark-graph node-spacing multiplier (0.5–2.0). Scales the force layout's link distance. */
+  bookmarkGraphSpacing: number;
+  setBookmarkGraphSpacing: (value: number) => void;
   /** Section keys currently collapsed in the left sidebar ("categories" | "taxonomies" | "customization" | "management"). */
   collapsedSidebarSections: string[];
   toggleSidebarSection: (section: string) => void;
@@ -312,6 +320,10 @@ export const useUiStore = create<UiState>()(
       setSidebarWidth: value => set({
         sidebarWidth: clampSidebarWidth(value),
       }),
+      bookmarkGraphSpacing: 1,
+      setBookmarkGraphSpacing: value => set({
+        bookmarkGraphSpacing: clampGraphSpacing(value),
+      }),
       collapsedSidebarSections: [],
       toggleSidebarSection: section => set(state => ({
         collapsedSidebarSections: state.collapsedSidebarSections.includes(section)
@@ -490,6 +502,7 @@ export const useUiStore = create<UiState>()(
         hiddenCardFields: state.hiddenCardFields,
         selectedDisplayPreset: state.selectedDisplayPreset,
         sidebarWidth: state.sidebarWidth,
+        bookmarkGraphSpacing: state.bookmarkGraphSpacing,
         collapsedSidebarSections: state.collapsedSidebarSections,
         addBookmarkFormOpen: state.addBookmarkFormOpen,
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds,

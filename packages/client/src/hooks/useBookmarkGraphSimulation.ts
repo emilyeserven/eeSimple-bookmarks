@@ -4,7 +4,7 @@ import type { MutableRefObject, PointerEvent as ReactPointerEvent, RefObject } f
 
 import { useCallback, useEffect, useReducer, useRef } from "react";
 
-import { clampPoint, createBookmarkGraphSimulation, reconcileSimulation } from "../lib/bookmarkGraphLayout";
+import { applyForces, clampPoint, createBookmarkGraphSimulation, reconcileSimulation, toSimLinks } from "../lib/bookmarkGraphLayout";
 
 /** Movement past this many client px turns a press into a drag (so a jittery tap doesn't nudge a node). */
 const DRAG_THRESHOLD_PX = 4;
@@ -24,6 +24,8 @@ export interface UseBookmarkGraphSimulationResult {
 interface UseBookmarkGraphSimulationOptions {
   width: number;
   height: number;
+  /** Node-spacing multiplier (the user's slider); re-applied to the live sim when it changes. */
+  spacing: number;
   /** Set by the "+" handler to the just-expanded parent id, so new nodes seed near it, then cleared. */
   justExpandedRef: MutableRefObject<string | null>;
   onSelect: (id: string) => void;
@@ -40,17 +42,24 @@ interface UseBookmarkGraphSimulationOptions {
 export function useBookmarkGraphSimulation(
   model: BookmarkGraphModel,
   {
-    width, height, justExpandedRef, onSelect,
+    width, height, spacing, justExpandedRef, onSelect,
   }: UseBookmarkGraphSimulationOptions,
 ): UseBookmarkGraphSimulationResult {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const simRef = useRef<BookmarkGraphSimulation | null>(null);
   const [, bumpTick] = useReducer((count: number) => count + 1, 0);
 
+  // Latest spacing + model, read by the reconcile/spacing effects without re-subscribing.
+  const spacingRef = useRef(spacing);
+  spacingRef.current = spacing;
+  const modelRef = useRef(model);
+  modelRef.current = model;
+
   if (simRef.current === null) {
     simRef.current = createBookmarkGraphSimulation(model, {
       width,
       height,
+      spacing,
     });
   }
 
@@ -79,10 +88,28 @@ export function useBookmarkGraphSimulation(
       isFirstModel.current = false;
       return;
     }
-    reconcileSimulation(sim, model, justExpandedRef.current);
+    reconcileSimulation(sim, model, justExpandedRef.current, spacingRef.current);
     justExpandedRef.current = null;
     bumpTick();
   }, [model, justExpandedRef]);
+
+  // Re-apply the layout forces live when the spacing slider changes (skip the initial mount, whose
+  // forces were set at create — a reheat there would cut the intro animation short).
+  const isFirstSpacing = useRef(true);
+  useEffect(() => {
+    const sim = simRef.current;
+    if (!sim) return;
+    if (isFirstSpacing.current) {
+      isFirstSpacing.current = false;
+      return;
+    }
+    applyForces(sim.simulation, toSimLinks(modelRef.current), {
+      width,
+      height,
+      spacing,
+    });
+    sim.simulation.alpha(0.3).restart();
+  }, [spacing, width, height]);
 
   const getPoint = useCallback((id: string): BookmarkGraphPoint | undefined => {
     const sim = simRef.current;

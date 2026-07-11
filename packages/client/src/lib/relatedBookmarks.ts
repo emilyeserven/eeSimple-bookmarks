@@ -124,3 +124,70 @@ function countShared(targetIds: Set<string>, candidateItems: { id: string }[]): 
 function scalarMatches(a: string | undefined, b: string | undefined): boolean {
   return a !== undefined && a === b;
 }
+
+/** A dimension along which two bookmarks are related, for the graph's hover explanation. */
+export interface RelatednessDimension {
+  /** Stable key — the UI maps it to a translated label. */
+  dimension: "tags" | "genreMoods" | "people" | "groups" | "category" | "mediaType" | "website" | "youtubeChannel" | "relationship";
+  /** Names of the shared items (or the single shared value / a relationship description). */
+  values: string[];
+}
+
+/**
+ * Explain how two bookmarks are related, mirroring {@link scoreBookmarkPair}'s dimensions but naming
+ * the shared items instead of counting them — for the graph's on-hover relationship popover. A scored
+ * dimension is included only when its weight is on **and** something is shared (so the popover matches
+ * why the edge exists); an explicit relationship is always included. Symmetric. Pure — the category
+ * name is injected (a bookmark carries only `categoryId`).
+ */
+export function explainRelatedness(
+  a: Bookmark,
+  b: Bookmark,
+  weights: BookmarkGraphWeights,
+  categoryName: (id: string) => string | undefined,
+): RelatednessDimension[] {
+  const dimensions: RelatednessDimension[] = [];
+  const add = (dimension: RelatednessDimension["dimension"], values: string[]): void => {
+    if (values.length > 0) dimensions.push({
+      dimension,
+      values,
+    });
+  };
+
+  if (weights.tags > 0) add("tags", sharedNames(a.tags, b.tags));
+  if (weights.genreMoods > 0) add("genreMoods", sharedNames(a.genreMoods, b.genreMoods));
+  if (weights.people > 0) add("people", sharedNames(a.people, b.people));
+  if (weights.groups > 0) add("groups", sharedNames(a.groups, b.groups));
+  if (weights.category > 0 && a.categoryId === b.categoryId) {
+    add("category", [categoryName(a.categoryId) ?? ""].filter(Boolean));
+  }
+  if (weights.mediaType > 0 && scalarMatches(a.mediaType?.id, b.mediaType?.id)) {
+    add("mediaType", [a.mediaType?.name ?? ""].filter(Boolean));
+  }
+  if (weights.website > 0 && scalarMatches(a.website?.id, b.website?.id)) {
+    add("website", [a.website?.siteName ?? a.website?.domain ?? ""].filter(Boolean));
+  }
+  if (weights.youtubeChannel > 0 && scalarMatches(a.youtubeChannel?.id, b.youtubeChannel?.id)) {
+    add("youtubeChannel", [a.youtubeChannel?.name ?? ""].filter(Boolean));
+  }
+  const relationship = explicitRelationshipLabel(a, b);
+  if (relationship) add("relationship", [relationship]);
+
+  return dimensions;
+}
+
+/** The names present (by id) in both item lists. */
+function sharedNames(aItems: { id: string;
+  name: string; }[], bItems: { id: string;
+  name: string; }[]): string[] {
+  const bIds = new Set(bItems.map(item => item.id));
+  return aItems.filter(item => bIds.has(item.id)).map(item => item.name);
+}
+
+/** A short description of an explicit relationship edge between `a` and `b`, or null if none. */
+function explicitRelationshipLabel(a: Bookmark, b: Bookmark): string | null {
+  const edge = a.relationships.find(rel => rel.bookmark.id === b.id)
+    ?? b.relationships.find(rel => rel.bookmark.id === a.id);
+  if (!edge) return null;
+  return edge.label ? `${edge.relationshipTypeName} — ${edge.label}` : edge.relationshipTypeName;
+}

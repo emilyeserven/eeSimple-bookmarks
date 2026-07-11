@@ -7,6 +7,7 @@ import {
   Drama,
   FolderOpen,
   Globe,
+  Layers,
   MonitorPlay,
   Tags,
   Users,
@@ -125,6 +126,17 @@ export function DisplayBookmarkGraphSettings() {
   ] as const satisfies readonly { value: WeightValue;
     label: string; }[];
 
+  const secondLayerOptions = [
+    {
+      value: "off",
+      label: t("Off"),
+    },
+    {
+      value: "on",
+      label: t("On"),
+    },
+  ] as const;
+
   /** Persist one dimension's weight; the hook fires the field-named toast. */
   function saveWeight(key: keyof BookmarkGraphWeights, label: string, weight: BookmarkGraphWeight): void {
     update.mutate({
@@ -152,6 +164,18 @@ export function DisplayBookmarkGraphSettings() {
         maxRelated: next,
       },
       successMessage: t("Number of related bookmarks saved"),
+    });
+  }
+
+  /** Persist the "open the graph with every peer's second layer expanded" default. */
+  function saveShowSecondLayer(next: boolean): void {
+    if (next === settings.showSecondLayer) return;
+    update.mutate({
+      input: {
+        ...settings,
+        showSecondLayer: next,
+      },
+      successMessage: t("Show second layer default saved"),
     });
   }
 
@@ -213,6 +237,25 @@ export function DisplayBookmarkGraphSettings() {
               onBlur={event => saveMaxRelated(event.target.value)}
             />
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("Second layer")}</CardTitle>
+          <CardDescription>
+            {t("Whether a bookmark's graph opens with every related bookmark's own related ring already expanded. You can still toggle it per graph.")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <SegmentedToggleRow
+            label={t("Show second layer by default")}
+            hint={t("Expand all peers on open")}
+            icon={<Layers className="size-3.5 shrink-0 text-muted-foreground" />}
+            options={secondLayerOptions}
+            value={settings.showSecondLayer ? "on" : "off"}
+            onChange={value => saveShowSecondLayer(value === "on")}
+          />
         </CardContent>
       </Card>
     </div>

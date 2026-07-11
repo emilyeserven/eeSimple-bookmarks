@@ -34,6 +34,8 @@ export interface BookmarkGraphSimulation {
 export interface CreateSimulationOptions {
   width?: number;
   height?: number;
+  /** Link-distance multiplier (the user's node-spacing control); 1 = default, <1 closer, >1 spread. */
+  spacing?: number;
 }
 
 /** Default viewBox — wide enough that the default layout reads spread out (`h-auto w-full` follows it). */
@@ -58,7 +60,7 @@ const SEED_RADIUS = 140;
 export function createBookmarkGraphSimulation(
   model: BookmarkGraphModel,
   {
-    width = VIEW_WIDTH, height = VIEW_HEIGHT,
+    width = VIEW_WIDTH, height = VIEW_HEIGHT, spacing = 1,
   }: CreateSimulationOptions = {},
 ): BookmarkGraphSimulation {
   const nodes: GraphSimNode[] = model.nodes.map((node, index) => ({
@@ -79,6 +81,7 @@ export function createBookmarkGraphSimulation(
   applyForces(simulation, links, {
     width,
     height,
+    spacing,
   });
 
   return {
@@ -107,17 +110,18 @@ export function applyForces(
   simulation: Simulation<GraphSimNode, GraphSimLink>,
   links: GraphSimLink[],
   {
-    width, height,
+    width, height, spacing = 1,
   }: { width: number;
-    height: number; },
+    height: number;
+    spacing?: number; },
 ): void {
   const maxScore = Math.max(1, ...links.map(link => link.score));
   simulation
     .force("link", forceLink<GraphSimNode, GraphSimLink>(links)
       .id(node => node.id)
       .strength(link => 0.3 + 0.7 * (link.score / maxScore))
-      .distance(link => 200 - 110 * (link.score / maxScore)))
-    .force("charge", forceManyBody().strength(-240))
+      .distance(link => (200 - 110 * (link.score / maxScore)) * spacing))
+    .force("charge", forceManyBody().strength(-240 * spacing))
     .force("collide", forceCollide<GraphSimNode>(node => node.radius + EDGE_PAD))
     .force("x", forceX(width / 2).strength(0.03))
     .force("y", forceY(height / 2).strength(0.03));
@@ -141,6 +145,7 @@ export function reconcileSimulation(
   sim: BookmarkGraphSimulation,
   model: BookmarkGraphModel,
   justExpandedId: string | null,
+  spacing = 1,
 ): void {
   const parent = justExpandedId ? sim.nodeById.get(justExpandedId) : undefined;
   const nextNodes: GraphSimNode[] = model.nodes.map((node, index) => {
@@ -169,6 +174,7 @@ export function reconcileSimulation(
   applyForces(sim.simulation, toSimLinks(model), {
     width: sim.width,
     height: sim.height,
+    spacing,
   });
   sim.simulation.alpha(0.5).restart();
 }

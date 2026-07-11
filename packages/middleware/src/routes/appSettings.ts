@@ -315,7 +315,7 @@ const graphWeight = {
 
 const bookmarkGraphBody = {
   type: "object",
-  required: ["weights", "maxRelated"],
+  required: ["weights", "maxRelated", "showSecondLayer"],
   additionalProperties: false,
   properties: {
     weights: {
@@ -337,6 +337,9 @@ const bookmarkGraphBody = {
       type: "integer",
       minimum: 1,
       maximum: 100,
+    },
+    showSecondLayer: {
+      type: "boolean",
     },
   },
 } as const;

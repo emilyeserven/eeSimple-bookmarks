@@ -541,6 +541,8 @@ export interface BookmarkGraphSettings {
   weights: BookmarkGraphWeights;
   /** Maximum number of related bookmarks to show. */
   maxRelated: number;
+  /** Whether the graph opens with every layer-1 peer's own related ring already expanded. */
+  showSecondLayer: boolean;
 }
 
 /** Payload for replacing the bookmark-graph settings. */
@@ -559,6 +561,7 @@ export const DEFAULT_BOOKMARK_GRAPH_SETTINGS: BookmarkGraphSettings = {
     youtubeChannel: 1,
   },
   maxRelated: 12,
+  showSecondLayer: false,
 };
 
 /**

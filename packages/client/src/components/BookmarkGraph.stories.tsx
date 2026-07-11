@@ -18,11 +18,14 @@ function InteractiveGraph({
   graph: BookmarkGraphModel;
 }) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set());
+  const [showSecondLayer, setShowSecondLayer] = useState(false);
   return (
     <BookmarkGraph
       graph={graph}
       expandedIds={expandedIds}
       toggleExpand={id => setExpandedIds(prev => toggleInSet(prev, id))}
+      showSecondLayer={showSecondLayer}
+      toggleSecondLayer={() => setShowSecondLayer(prev => !prev)}
     />
   );
 }
@@ -150,6 +153,8 @@ const meta = {
     graph: variedGraph(),
     expandedIds: new Set<string>(),
     toggleExpand: () => {},
+    showSecondLayer: false,
+    toggleSecondLayer: () => {},
   },
   render: args => <InteractiveGraph graph={args.graph} />,
 } satisfies Meta<typeof BookmarkGraph>;
