@@ -124,6 +124,13 @@ export interface SectionEntry {
   startValue: string;
   endValue?: string;
   /**
+   * Optional clickable link, independent of {@link type} — an entry can carry a name, a positional
+   * value (`page`/`timestamp`), **and** a link at once. Legacy `type: "url"` entries predate this
+   * field and instead hold their link in {@link startValue}; display code falls back to that (see the
+   * `sectionEntryLink` resolver), so both shapes render as a link.
+   */
+  url?: string;
+  /**
    * Optional second tier. A tier-1 entry (a section/group header) may carry child entries; children
    * are leaf items and must NOT carry their own `children` — the model is capped at **depth 2**. Only
    * populated when the owning property opts in via `CustomProperty.sectionsTiered`.

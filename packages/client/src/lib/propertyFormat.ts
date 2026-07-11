@@ -56,9 +56,29 @@ export function formatSeconds(value: string): string {
 }
 
 /** Format a single section entry's positional value, rendering timestamp seconds as a clock. */
-function formatSectionValue(entry: SectionEntry): string {
+export function formatSectionValue(entry: SectionEntry): string {
   const display = (v: string) => (entry.type === "timestamp" ? formatSeconds(v) : v);
   return entry.endValue ? `${display(entry.startValue)}–${display(entry.endValue)}` : display(entry.startValue);
+}
+
+/**
+ * The clickable link for a section entry, or `undefined`. The explicit {@link SectionEntry.url} wins;
+ * otherwise a legacy `type: "url"` entry's {@link SectionEntry.startValue} is used (it predates the
+ * dedicated `url` field). Blank values resolve to `undefined`.
+ */
+export function sectionEntryLink(entry: SectionEntry): string | undefined {
+  if (entry.url && entry.url.trim() !== "") return entry.url.trim();
+  if (entry.type === "url" && entry.startValue.trim() !== "") return entry.startValue.trim();
+  return undefined;
+}
+
+/**
+ * The positional value to render as text beside a section entry's name. Suppressed for `type: "url"`
+ * (whose value is shown as the link instead, via {@link sectionEntryLink}); otherwise the page range
+ * / timestamp clock from {@link formatSectionValue}.
+ */
+export function sectionEntryPositional(entry: SectionEntry): string {
+  return entry.type === "url" ? "" : formatSectionValue(entry);
 }
 
 /** Format a single section entry as a one-line summary (e.g. "Chapter 1: pp. 1–10" or "Intro: 0:00–5:30"). */

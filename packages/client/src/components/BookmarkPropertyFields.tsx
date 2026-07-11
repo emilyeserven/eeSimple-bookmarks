@@ -370,6 +370,15 @@ function SectionEntryInputs({
           endValue: e.target.value || undefined,
         })}
       />
+      <Input
+        className="col-span-2"
+        placeholder={t("Link URL (optional)")}
+        type="url"
+        value={entry.url ?? ""}
+        onChange={e => onPatch({
+          url: e.target.value || undefined,
+        })}
+      />
     </div>
   );
 }

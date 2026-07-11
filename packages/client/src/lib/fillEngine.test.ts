@@ -659,6 +659,7 @@ interface SectionEntryResult {
   name: string;
   type: string;
   startValue: string;
+  url?: string;
   children?: SectionEntryResult[];
 }
 
@@ -843,6 +844,152 @@ describe("eesimpleFillEngine.runRules — sections target", () => {
         name: "Deep dive",
         type: "timestamp",
         startValue: "3723",
+      },
+    ]);
+  });
+
+  it("reads a per-item URL selector from a container item (name + link as siblings)", () => {
+    const html = `
+      <ul>
+        <li class="row"><span class="name">Alpha</span><a class="link" href="/a">watch</a></li>
+        <li class="row"><span class="name">Beta</span><a class="link" href="/b">watch</a></li>
+      </ul>
+    `;
+    const rule = {
+      id: "flat-url",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "url",
+        itemName: ".name",
+        itemUrl: ".link",
+      },
+      extract: {
+        selector: ".row",
+      },
+    };
+    // The item is the wrapper; name and url are read from separate children, url in its own field.
+    expect(runSections(rule, html)).toEqual([
+      {
+        name: "Alpha",
+        type: "url",
+        startValue: "",
+        url: "/a",
+      },
+      {
+        name: "Beta",
+        type: "url",
+        startValue: "",
+        url: "/b",
+      },
+    ]);
+  });
+
+  it("reads a per-item URL in tiered mode (children carry their own link)", () => {
+    const html = `
+      <div class="acc">
+        <h3 class="hdr">Chapter 1</h3>
+        <div class="item"><span class="name">Installing</span><a class="link" href="/v1">go</a></div>
+        <div class="item"><span class="name">Workspace</span><a class="link" href="/v2">go</a></div>
+      </div>
+    `;
+    const rule = {
+      id: "tiered-url",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "url",
+        container: ".acc",
+        header: ".hdr",
+        itemName: ".name",
+        itemUrl: ".link",
+      },
+      extract: {
+        selector: ".item",
+      },
+    };
+    expect(runSections(rule, html)).toEqual([
+      {
+        name: "Chapter 1",
+        type: "url",
+        startValue: "",
+        children: [
+          {
+            name: "Installing",
+            type: "url",
+            startValue: "",
+            url: "/v1",
+          },
+          {
+            name: "Workspace",
+            type: "url",
+            startValue: "",
+            url: "/v2",
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("keeps the positional value alongside a per-item URL for a page entry (orthogonal)", () => {
+    const html = `
+      <ul>
+        <li class="row"><span class="name">Chapter One</span> p. 12 <a class="link" href="/x">read</a></li>
+      </ul>
+    `;
+    const rule = {
+      id: "page-url",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "page",
+        itemName: ".name",
+        itemUrl: ".link",
+      },
+      extract: {
+        selector: ".row",
+        transform: [{
+          kind: "number",
+        }],
+      },
+    };
+    expect(runSections(rule, html)).toEqual([
+      {
+        name: "Chapter One",
+        type: "page",
+        startValue: "12",
+        url: "/x",
+      },
+    ]);
+  });
+
+  it("stays backward-compatible when no itemUrl is set (link read into startValue, no url field)", () => {
+    const html = `
+      <ul>
+        <li class="row"><a href="/a"><span class="name">Alpha</span></a></li>
+      </ul>
+    `;
+    const rule = {
+      id: "legacy",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "url",
+        itemName: ".name",
+      },
+      extract: {
+        selector: ".row a",
+        read: {
+          kind: "attr",
+          name: "href",
+        },
+      },
+    };
+    expect(runSections(rule, html)).toEqual([
+      {
+        name: "Alpha",
+        type: "url",
+        startValue: "/a",
       },
     ]);
   });

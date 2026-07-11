@@ -634,6 +634,24 @@ function buildRow(rule, result, ctx) {
   return baseRow(rule, "", values[0] ?? "", false, "unsupported");
 }
 
+// Deep content comparison of two section-entry lists, IGNORING `id` (regenerated on every scrape) so a
+// re-scrape of unchanged sections doesn't read as "changed". Compares name/type/startValue/endValue/url
+// and recurses into children (absent vs empty treated as equal).
+function sectionsContentEqual(a, b) {
+  const ea = Array.isArray(a) ? a : [];
+  const eb = Array.isArray(b) ? b : [];
+  if (ea.length !== eb.length) return false;
+  return ea.every((x, i) => {
+    const y = eb[i];
+    return (x.name || "") === (y.name || "")
+      && x.type === y.type
+      && (x.startValue || "") === (y.startValue || "")
+      && (x.endValue || "") === (y.endValue || "")
+      && (x.url || "") === (y.url || "")
+      && sectionsContentEqual(x.children, y.children);
+  });
+}
+
 // sections: assemble a BookmarkSectionsValue from the engine's structured `entries` (flat or two-tier).
 // Ids are assigned here (the injected engine can't rely on a secure crypto in every page context). On
 // apply the value is seeded/merged into the bookmark's sectionsValues, replacing this property's entry.
@@ -649,7 +667,9 @@ function buildSectionsRow(rule, result, ctx) {
   if (entries.length === 0) {
     return baseRow(rule, currentText, "", false, "not found");
   }
-  const row = baseRow(rule, currentText, summarizeSections(entries), true, null);
+  // Only flag as changed when the extracted content actually differs from the stored value (id-insensitive).
+  const changed = !existing || !sectionsContentEqual(entries, existing.sections);
+  const row = baseRow(rule, currentText, summarizeSections(entries), changed, changed ? null : "no change");
   row.apply = (patch, state) => {
     const map = seedValueMap(state, "sectionsValues", bookmark);
     map.set(property.id, {
@@ -661,24 +681,30 @@ function buildSectionsRow(rule, result, ctx) {
   return row;
 }
 
-// Assign a fresh id to each entry and child (depth 2), preserving the extracted name/type/startValue.
-function assignSectionIds(entries) {
-  return entries.map(entry => ({
+// Build one persisted entry from an extracted one: a fresh id plus the content fields, carrying the
+// optional endValue/url only when present (so blanks stay out of the stored jsonb).
+function sectionEntryWithId(entry) {
+  const out = {
     id: randomId(),
     name: entry.name ?? "",
     type: entry.type,
     startValue: entry.startValue ?? "",
-    ...(Array.isArray(entry.children)
-      ? {
-        children: entry.children.map(child => ({
-          id: randomId(),
-          name: child.name ?? "",
-          type: child.type,
-          startValue: child.startValue ?? "",
-        })),
-      }
-      : {}),
-  }));
+  };
+  if (entry.endValue != null && entry.endValue !== "") out.endValue = entry.endValue;
+  if (entry.url != null && entry.url !== "") out.url = entry.url;
+  return out;
+}
+
+// Assign a fresh id to each entry and child (depth 2), preserving the extracted content fields
+// (name/type/startValue/endValue/url).
+function assignSectionIds(entries) {
+  return entries.map((entry) => {
+    const out = sectionEntryWithId(entry);
+    if (Array.isArray(entry.children)) {
+      out.children = entry.children.map(sectionEntryWithId);
+    }
+    return out;
+  });
 }
 
 // "N sections, M items" (M = total children across the list; omitted when there are none).

@@ -10,6 +10,8 @@ import {
   formatSectionEntry,
   formatSectionsValue,
   NUMBER_FORMAT_LABELS,
+  sectionEntryLink,
+  sectionEntryPositional,
   TYPE_LABELS,
 } from "./propertyFormat";
 
@@ -96,6 +98,61 @@ describe("formatSectionsValue", () => {
 
   it("handles an empty sections array", () => {
     expect(formatSectionsValue(sectionsValue(0, false))).toBe("0 sections");
+  });
+});
+
+describe("sectionEntryLink", () => {
+  it("prefers the explicit url field over everything else", () => {
+    expect(sectionEntryLink(entry({
+      type: "timestamp",
+      startValue: "0:00",
+      url: "https://example.com/watch",
+    }))).toBe("https://example.com/watch");
+  });
+
+  it("falls back to a legacy url-type entry's startValue", () => {
+    expect(sectionEntryLink(entry({
+      type: "url",
+      startValue: "https://legacy.example/page",
+    }))).toBe("https://legacy.example/page");
+  });
+
+  it("returns undefined when there is no link (non-url type, no url field)", () => {
+    expect(sectionEntryLink(entry({
+      type: "page",
+      startValue: "12",
+    }))).toBeUndefined();
+  });
+
+  it("treats a blank url as no link", () => {
+    expect(sectionEntryLink(entry({
+      type: "page",
+      url: "   ",
+    }))).toBeUndefined();
+  });
+});
+
+describe("sectionEntryPositional", () => {
+  it("suppresses the positional value for a url-type entry (the url is shown as a link)", () => {
+    expect(sectionEntryPositional(entry({
+      type: "url",
+      startValue: "https://example.com",
+    }))).toBe("");
+  });
+
+  it("renders a page range", () => {
+    expect(sectionEntryPositional(entry({
+      type: "page",
+      startValue: "1",
+      endValue: "10",
+    }))).toBe("1–10");
+  });
+
+  it("renders a timestamp clock", () => {
+    expect(sectionEntryPositional(entry({
+      type: "timestamp",
+      startValue: "90",
+    }))).toBe("1:30");
   });
 });
 

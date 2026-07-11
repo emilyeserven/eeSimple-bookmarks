@@ -269,8 +269,17 @@ function SectionsTarget({
                 itemName,
               })}
             />
+            <LabeledInput
+              label={t("Item URL selector")}
+              placeholder="a"
+              value={target.itemUrl ?? ""}
+              onChange={itemUrl => onChange({
+                ...target,
+                itemUrl,
+              })}
+            />
             <p className="text-xs text-muted-foreground">
-              {t("Leave the container blank for a flat list. The main Selector matches each item; Read/Transform produce its value.")}
+              {t("Leave the container blank for a flat list. The main Selector matches each item. With an Item URL selector, the item can be a wrapper and Item name / Item URL read from inside it; leave it blank to read the value off the item via Read/Transform.")}
             </p>
           </>
         )}
