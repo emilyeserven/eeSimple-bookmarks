@@ -146,6 +146,9 @@ function resolveBookmarkGraph(raw: unknown): BookmarkGraphSettings {
   return {
     weights,
     maxRelated: Math.min(100, Math.max(1, rawMax)),
+    showSecondLayer: typeof stored.showSecondLayer === "boolean"
+      ? stored.showSecondLayer
+      : DEFAULT_BOOKMARK_GRAPH.showSecondLayer,
   };
 }
 

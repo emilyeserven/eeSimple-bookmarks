@@ -367,18 +367,20 @@ export function BookmarkGraphView({
   bookmark: Bookmark;
 }) {
   const {
-    graph, expandedIds, toggleExpand,
+    graph, expandedIds, toggleExpand, showSecondLayer, toggleSecondLayer,
   } = useBookmarkGraph(bookmark);
   if (graph.nodes.length <= 1) return null;
   return (
     <LabeledSection
       title={i18n.t("Bookmark graph")}
-      description={i18n.t("This bookmark and its related bookmarks — a bigger node has more in common with the others, and a thicker line means two bookmarks share more. Drag to rearrange; tap a node to focus it, then open it or expand its own related bookmarks. Scored by the weights in Settings → Display → Bookmark Graph.")}
+      description={i18n.t("This bookmark and its related bookmarks — a bigger node has more in common with the others, and a thicker line means two bookmarks share more. Drag to rearrange, adjust node spacing, or show a second layer; tap a node to focus it, then open it, expand its own related bookmarks, or hover a related node to see how they connect. Scored by the weights in Settings → Display → Bookmark Graph.")}
     >
       <BookmarkGraph
         graph={graph}
         expandedIds={expandedIds}
         toggleExpand={toggleExpand}
+        showSecondLayer={showSecondLayer}
+        toggleSecondLayer={toggleSecondLayer}
       />
     </LabeledSection>
   );

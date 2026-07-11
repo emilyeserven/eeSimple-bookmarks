@@ -1,7 +1,7 @@
 import type { BookmarkGraphModel } from "../lib/bookmarkGraph";
 import type { Bookmark } from "@eesimple/types";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { DEFAULT_BOOKMARK_GRAPH_SETTINGS } from "@eesimple/types";
 
@@ -17,6 +17,10 @@ export interface UseBookmarkGraphResult {
   expandedIds: Set<string>;
   /** Flip a peer's expanded state — the model rebuilds to add/remove its related ring. */
   toggleExpand: (id: string) => void;
+  /** Whether every layer-1 peer is expanded at once (the "show second layer" toggle). */
+  showSecondLayer: boolean;
+  /** Flip the show-all-second-layer state. */
+  toggleSecondLayer: () => void;
 }
 
 /**
@@ -35,25 +39,43 @@ export function useBookmarkGraph(bookmark: Bookmark): UseBookmarkGraphResult {
     data: settings,
   } = useBookmarkGraphSettings();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set());
+  const [showSecondLayer, setShowSecondLayer] = useState(false);
+  const initializedFor = useRef<string | null>(null);
 
+  // Reset per-bookmark expansion state on navigation.
   useEffect(() => {
     setExpandedIds(new Set());
+    initializedFor.current = null;
   }, [bookmark.id]);
+
+  // Seed the show-second-layer toggle from the saved default, once settings are available per bookmark
+  // (guarded so a background settings refetch doesn't clobber a manual toggle).
+  useEffect(() => {
+    if (!settings || initializedFor.current === bookmark.id) return;
+    initializedFor.current = bookmark.id;
+    setShowSecondLayer(settings.showSecondLayer);
+  }, [bookmark.id, settings]);
 
   const toggleExpand = useCallback((id: string) => {
     setExpandedIds(prev => toggleInSet(prev, id));
+  }, []);
+  const toggleSecondLayer = useCallback(() => {
+    setShowSecondLayer(prev => !prev);
   }, []);
 
   const graph = useMemo(
     () => buildBookmarkGraph(bookmark, allBookmarks ?? [], settings ?? DEFAULT_BOOKMARK_GRAPH_SETTINGS, {
       expandedIds,
+      expandAllLayerOne: showSecondLayer,
     }),
-    [bookmark, allBookmarks, settings, expandedIds],
+    [bookmark, allBookmarks, settings, expandedIds, showSecondLayer],
   );
 
   return {
     graph,
     expandedIds,
     toggleExpand,
+    showSecondLayer,
+    toggleSecondLayer,
   };
 }

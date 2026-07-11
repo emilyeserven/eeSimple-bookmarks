@@ -48,6 +48,7 @@ const TAGS_ONLY: BookmarkGraphSettings = {
     youtubeChannel: 0,
   },
   maxRelated: 12,
+  showSecondLayer: false,
 };
 
 const ALL_OFF: BookmarkGraphSettings = {
@@ -56,6 +57,7 @@ const ALL_OFF: BookmarkGraphSettings = {
     tags: 0,
   },
   maxRelated: 12,
+  showSecondLayer: false,
 };
 
 /** The kept edge between two ids (order-independent), or undefined. */
@@ -233,6 +235,31 @@ describe("buildBookmarkGraph", () => {
 });
 
 describe("buildBookmarkGraph expansion", () => {
+  it("expandAllLayerOne unions every layer-1 peer's related set, independent of expandedIds", () => {
+    // a → b (layer-1 via x); b → c (via y); c shares nothing with a, so it only appears when b expands.
+    const a = makeBookmark({
+      id: "a",
+      tags: [tag("x")],
+    });
+    const b = makeBookmark({
+      id: "b",
+      tags: [tag("x"), tag("y")],
+    });
+    const c = makeBookmark({
+      id: "c",
+      tags: [tag("y")],
+    });
+    const all = [a, b, c];
+    expect(buildBookmarkGraph(a, all, TAGS_ONLY).nodes.some(node => node.bookmark.id === "c")).toBe(false);
+
+    const graph = buildBookmarkGraph(a, all, TAGS_ONLY, {
+      expandAllLayerOne: true,
+    });
+    const dist = distanceMap(graph);
+    expect(dist.get("c")).toBe(2);
+    expect(edgeBetween(graph, "b", "c")).toBeDefined();
+  });
+
   it("adds an expanded peer's own related set as distance-2 nodes", () => {
     const a = makeBookmark({
       id: "a",
@@ -380,8 +407,9 @@ describe("render-scale helpers", () => {
   it("clamps edgeStrokeWidth and edgeOpacity into their bounds and is zero-safe", () => {
     expect(edgeStrokeWidth(0, 0)).toBe(1);
     expect(edgeStrokeWidth(6, 6)).toBe(3);
-    expect(edgeOpacity(0, 0)).toBe(0.25);
-    expect(edgeOpacity(6, 6)).toBe(0.85);
+    expect(edgeOpacity(0, 0)).toBe(0.2);
+    expect(edgeOpacity(6, 6)).toBe(1);
+    expect(edgeOpacity(3, 6)).toBeCloseTo(0.6);
   });
 
   it("truncates long labels with an ellipsis and keeps short ones intact", () => {

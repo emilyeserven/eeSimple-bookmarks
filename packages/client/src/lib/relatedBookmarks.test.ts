@@ -4,7 +4,7 @@ import type { BookmarkGenreMood, BookmarkGraphSettings, BookmarkPerson, Bookmark
 import { DEFAULT_BOOKMARK_GRAPH_SETTINGS } from "@eesimple/types";
 import { describe, expect, it } from "vitest";
 
-import { buildRelatednessSets, computeRelatedBookmarks, scoreBookmarkPair } from "./relatedBookmarks";
+import { buildRelatednessSets, computeRelatedBookmarks, explainRelatedness, scoreBookmarkPair } from "./relatedBookmarks";
 import { makeBookmark } from "../test-utils/factories";
 
 const tag = (id: string): BookmarkTag => ({
@@ -44,6 +44,7 @@ function only(dimension: keyof BookmarkGraphSettings["weights"]): BookmarkGraphS
       [dimension]: 3,
     },
     maxRelated: 12,
+    showSecondLayer: false,
   };
 }
 
@@ -111,6 +112,7 @@ describe("computeRelatedBookmarks", () => {
         category: 1,
       },
       maxRelated: 12,
+      showSecondLayer: false,
     };
     const result = computeRelatedBookmarks(target, [target, sameCategory, sameTag], settings);
     expect(result.map(e => e.bookmark.id)).toEqual(["tag", "cat"]);
@@ -143,6 +145,7 @@ describe("computeRelatedBookmarks", () => {
     const settings: BookmarkGraphSettings = {
       weights: only("tags").weights,
       maxRelated: 2,
+      showSecondLayer: false,
     };
     const result = computeRelatedBookmarks(target, [target, ...others], settings);
     expect(result).toHaveLength(2);
@@ -239,6 +242,7 @@ describe("computeRelatedBookmarks", () => {
     const settings: BookmarkGraphSettings = {
       weights: only("tags").weights,
       maxRelated: 2,
+      showSecondLayer: false,
     };
     const result = computeRelatedBookmarks(target, [target, partner, ...others], settings);
     expect(result.map(e => e.bookmark.id)).toEqual(["partner", "b0"]);
@@ -315,5 +319,136 @@ describe("scoreBookmarkPair", () => {
       youtubeChannel: 0,
     };
     expect(scoreBookmarkPair(a, b, weights, buildRelatednessSets(a))).toBe(0);
+  });
+});
+
+describe("explainRelatedness", () => {
+  const noCategoryName = () => undefined;
+  const dimension = (result: ReturnType<typeof explainRelatedness>, key: string) =>
+    result.find(entry => entry.dimension === key);
+
+  it("names the shared items of each active dimension", () => {
+    const a = makeBookmark({
+      id: "a",
+      tags: [tag("shared-tag"), tag("only-a")],
+      people: [person("shared-person")],
+    });
+    const b = makeBookmark({
+      id: "b",
+      tags: [tag("shared-tag"), tag("only-b")],
+      people: [person("shared-person")],
+    });
+    const result = explainRelatedness(a, b, DEFAULT_BOOKMARK_GRAPH_SETTINGS.weights, noCategoryName);
+    expect(dimension(result, "tags")?.values).toEqual(["shared-tag"]);
+    expect(dimension(result, "people")?.values).toEqual(["shared-person"]);
+  });
+
+  it("is symmetric — swapping the pair yields the same dimensions", () => {
+    const a = makeBookmark({
+      id: "a",
+      tags: [tag("x"), tag("y")],
+    });
+    const b = makeBookmark({
+      id: "b",
+      tags: [tag("x")],
+    });
+    const forward = explainRelatedness(a, b, DEFAULT_BOOKMARK_GRAPH_SETTINGS.weights, noCategoryName);
+    const backward = explainRelatedness(b, a, DEFAULT_BOOKMARK_GRAPH_SETTINGS.weights, noCategoryName);
+    expect(backward).toEqual(forward);
+  });
+
+  it("resolves the category name via the injected resolver, only on a real match", () => {
+    const a = makeBookmark({
+      id: "a",
+      categoryId: "cat-1",
+    });
+    const b = makeBookmark({
+      id: "b",
+      categoryId: "cat-1",
+    });
+    const result = explainRelatedness(a, b, DEFAULT_BOOKMARK_GRAPH_SETTINGS.weights, id =>
+      id === "cat-1" ? "Development" : undefined);
+    expect(dimension(result, "category")?.values).toEqual(["Development"]);
+  });
+
+  it("does not treat a shared null scalar as a match", () => {
+    const a = makeBookmark({
+      id: "a",
+      mediaType: null,
+      website: null,
+    });
+    const b = makeBookmark({
+      id: "b",
+      mediaType: null,
+      website: null,
+    });
+    const result = explainRelatedness(a, b, DEFAULT_BOOKMARK_GRAPH_SETTINGS.weights, noCategoryName);
+    expect(dimension(result, "mediaType")).toBeUndefined();
+    expect(dimension(result, "website")).toBeUndefined();
+  });
+
+  it("surfaces an explicit relationship regardless of weights", () => {
+    const b = makeBookmark({
+      id: "b",
+    });
+    const a = makeBookmark({
+      id: "a",
+      relationships: [
+        {
+          relationshipTypeId: "rt1",
+          relationshipTypeName: "Sequel of",
+          directional: false,
+          role: "related",
+          label: "part 2",
+          bookmark: {
+            id: "b",
+            title: b.title,
+            url: b.url,
+          },
+        },
+      ],
+    });
+    const allOff: BookmarkGraphSettings["weights"] = {
+      tags: 0,
+      category: 0,
+      mediaType: 0,
+      genreMoods: 0,
+      people: 0,
+      groups: 0,
+      website: 0,
+      youtubeChannel: 0,
+    };
+    const result = explainRelatedness(a, b, allOff, noCategoryName);
+    expect(dimension(result, "relationship")?.values).toEqual(["Sequel of — part 2"]);
+  });
+
+  it("returns nothing when the two share nothing", () => {
+    const a = makeBookmark({
+      id: "a",
+      tags: [tag("x")],
+      categoryId: "cat-a",
+    });
+    const b = makeBookmark({
+      id: "b",
+      tags: [tag("y")],
+      categoryId: "cat-b",
+    });
+    expect(explainRelatedness(a, b, DEFAULT_BOOKMARK_GRAPH_SETTINGS.weights, noCategoryName)).toEqual([]);
+  });
+
+  it("omits a shared dimension whose weight is off", () => {
+    const a = makeBookmark({
+      id: "a",
+      tags: [tag("x")],
+    });
+    const b = makeBookmark({
+      id: "b",
+      tags: [tag("x")],
+    });
+    const result = explainRelatedness(a, b, {
+      ...DEFAULT_BOOKMARK_GRAPH_SETTINGS.weights,
+      tags: 0,
+    }, noCategoryName);
+    expect(dimension(result, "tags")).toBeUndefined();
   });
 });

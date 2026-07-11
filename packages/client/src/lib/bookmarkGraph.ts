@@ -37,6 +37,12 @@ export interface BuildBookmarkGraphOptions {
    * nesting falls out for free. Ids not in the displayed set are ignored.
    */
   expandedIds?: ReadonlySet<string>;
+  /**
+   * Expand every layer-1 peer at once (the "show second layer" toggle). Additive with `expandedIds`.
+   * Unlike per-node expansion these layer-1 parents are **not** made focus nodes, so a busy second
+   * layer still prunes to the top-K per node and stays readable.
+   */
+  expandAllLayerOne?: boolean;
 }
 
 /**
@@ -59,7 +65,7 @@ export function buildBookmarkGraph(
   settings: BookmarkGraphSettings,
   options: BuildBookmarkGraphOptions = {},
 ): BookmarkGraphModel {
-  const bookmarks = collectDisplayedBookmarks(target, all, settings, options.expandedIds);
+  const bookmarks = collectDisplayedBookmarks(target, all, settings, options.expandedIds, options.expandAllLayerOne);
   const displayedIds = new Set(bookmarks.map(b => b.id));
   const sets = bookmarks.map(buildRelatednessSets);
 
@@ -105,14 +111,22 @@ function collectDisplayedBookmarks(
   all: Bookmark[],
   settings: BookmarkGraphSettings,
   expandedIds: ReadonlySet<string> | undefined,
+  expandAllLayerOne: boolean | undefined,
 ): Bookmark[] {
   const byId = new Map<string, Bookmark>([[target.id, target]]);
+  const layerOneIds: string[] = [];
   for (const entry of computeRelatedBookmarks(target, all, settings)) {
     byId.set(entry.bookmark.id, entry.bookmark);
+    layerOneIds.push(entry.bookmark.id);
   }
-  if (expandedIds) {
+
+  const toExpand = new Set<string>(expandedIds ?? []);
+  if (expandAllLayerOne) {
+    for (const id of layerOneIds) toExpand.add(id);
+  }
+  if (toExpand.size > 0) {
     const allById = new Map(all.map(bookmark => [bookmark.id, bookmark]));
-    for (const id of expandedIds) {
+    for (const id of toExpand) {
       const parent = byId.get(id) ? allById.get(id) : undefined;
       if (!parent) continue;
       for (const entry of computeRelatedBookmarks(parent, all, settings)) {
@@ -259,10 +273,13 @@ export function edgeStrokeWidth(score: number, maxScore: number): number {
   return 1 + 2 * (Math.max(0, score) / maxScore);
 }
 
-/** Edge stroke opacity, 0.25–0.85, proportional to the pair's share of the max score. */
+/**
+ * Edge stroke opacity, 0.2–1.0, proportional to the pair's share of the max score — the more two
+ * bookmarks share, the less transparent (more solid) the line between them.
+ */
 export function edgeOpacity(score: number, maxScore: number): number {
-  if (maxScore <= 0) return 0.25;
-  return 0.25 + 0.6 * (Math.max(0, score) / maxScore);
+  if (maxScore <= 0) return 0.2;
+  return 0.2 + 0.8 * (Math.max(0, score) / maxScore);
 }
 
 /**
