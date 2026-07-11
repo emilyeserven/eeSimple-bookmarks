@@ -17,6 +17,8 @@ import {
   newFillRuleDraft,
   newPathMatch,
   normalizeExtensionFillRules,
+  taxonomyEntityFieldLabel,
+  taxonomyEntityWriteKeys,
 } from "./extensionFillForm";
 
 /** Wrap a target + extract in a minimal rule for round-trip assertions. */
@@ -135,6 +137,112 @@ describe("describeFillTarget", () => {
     expect(describeFillTarget({
       kind: "publisher",
     })).toBe("Publisher");
+  });
+
+  it("summarizes taxonomyEntity relation + language write-keys", () => {
+    expect(describeFillTarget({
+      kind: "taxonomyEntity",
+      association: "people",
+      field: "relation:groups",
+    })).toBe("People · Groups");
+    expect(describeFillTarget({
+      kind: "taxonomyEntity",
+      association: "people",
+      field: "language",
+    })).toBe("People · Primary language");
+    expect(describeFillTarget({
+      kind: "taxonomyEntity",
+      association: "website",
+      field: "language",
+    })).toBe("Website · Primary language");
+  });
+});
+
+describe("taxonomyEntity write-keys", () => {
+  it("lists scalar fields + relations + language per association", () => {
+    expect(taxonomyEntityWriteKeys("people")).toEqual([
+      "name",
+      "description",
+      "socialLink",
+      "relation:groups",
+      "relation:websites",
+      "relation:youtubeChannels",
+      "language",
+    ]);
+    // Groups accept two relations but are NOT a language owner.
+    expect(taxonomyEntityWriteKeys("groups")).toEqual([
+      "name",
+      "description",
+      "year",
+      "socialLink",
+      "relation:websites",
+      "relation:youtubeChannels",
+    ]);
+    // A website is a language owner with no relations.
+    expect(taxonomyEntityWriteKeys("website")).toEqual([
+      "name",
+      "description",
+      "socialLink",
+      "language",
+    ]);
+    // Category supports neither — scalar fields only.
+    expect(taxonomyEntityWriteKeys("category")).toEqual(["name", "description"]);
+  });
+
+  it("labels each write-key kind", () => {
+    expect(taxonomyEntityFieldLabel("name")).toBe("Name");
+    expect(taxonomyEntityFieldLabel("relation:youtubeChannels")).toBe("YouTube channels");
+    expect(taxonomyEntityFieldLabel("language")).toBe("Primary language");
+  });
+});
+
+describe("taxonomyEntity relation / language targets", () => {
+  it("keeps a relation write-key verbatim through normalization", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "taxonomyEntity",
+        association: "people",
+        field: "relation:groups",
+      },
+      extract: {
+        selector: ".band",
+      },
+    })]);
+    expect(out.target).toEqual({
+      kind: "taxonomyEntity",
+      association: "people",
+      field: "relation:groups",
+    });
+  });
+
+  it("keeps a language write-key verbatim through normalization", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "taxonomyEntity",
+        association: "website",
+        field: "language",
+      },
+      extract: {
+        source: "meta",
+        metaKey: "og:locale",
+      },
+    })]);
+    expect(out.target).toEqual({
+      kind: "taxonomyEntity",
+      association: "website",
+      field: "language",
+    });
+  });
+
+  it("coercing into a taxonomyEntity from another kind starts at the name field", () => {
+    expect(coerceFillTarget("taxonomyEntity", {
+      kind: "field",
+      field: "title",
+    })).toEqual({
+      kind: "taxonomyEntity",
+      association: "website",
+      field: "name",
+    });
   });
 });
 

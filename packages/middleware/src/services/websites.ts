@@ -320,6 +320,17 @@ function websiteBaseQuery() {
 }
 
 /** List all websites, ordered by site name. */
+/** Compact `{id, name}` list (name = site name) for extension-fill relation match-or-create. */
+export async function listWebsitesCompact(): Promise<{ id: string;
+  name: string; }[]> {
+  return db
+    .select({
+      id: websites.id,
+      name: websites.siteName,
+    })
+    .from(websites);
+}
+
 export async function listWebsites(): Promise<Website[]> {
   const rows = await db
     .select({
