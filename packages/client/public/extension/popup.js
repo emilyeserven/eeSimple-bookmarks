@@ -563,7 +563,7 @@ async function enterFillMode(ctx, rules) {
   try {
     rows = rules.map((rule) => {
       const result = results.find(r => r.ruleId === rule.id);
-      return buildRow(rule, result?.values ?? [], ctx);
+      return buildRow(rule, result, ctx);
     });
   }
   catch {
@@ -621,15 +621,80 @@ function baseRow(rule, currentText, extractedText, changed, disabledReason) {
   };
 }
 
-function buildRow(rule, values, ctx) {
+function buildRow(rule, result, ctx) {
   const kind = rule.target?.kind;
+  const values = result?.values ?? [];
   if (kind === "field") return buildFieldRow(rule, values, ctx.bookmark);
   if (kind === "customProperty") return buildPropertyRow(rule, values, ctx);
   if (kind === "taxonomy") return buildTaxonomyRow(rule, values, ctx);
   if (kind === "publisher") return buildPublisherRow(rule, values, ctx);
   if (kind === "image") return buildImageRow(rule, values, ctx.bookmark);
   if (kind === "taxonomyEntity") return buildTaxonomyEntityRow(rule, values, ctx);
+  if (kind === "sections") return buildSectionsRow(rule, result, ctx);
   return baseRow(rule, "", values[0] ?? "", false, "unsupported");
+}
+
+// sections: assemble a BookmarkSectionsValue from the engine's structured `entries` (flat or two-tier).
+// Ids are assigned here (the injected engine can't rely on a secure crypto in every page context). On
+// apply the value is seeded/merged into the bookmark's sectionsValues, replacing this property's entry.
+function buildSectionsRow(rule, result, ctx) {
+  const bookmark = ctx.bookmark;
+  const property = (ctx.properties ?? []).find(p => p.id === rule.target.propertyId);
+  if (!property || property.type !== "sections") {
+    return baseRow(rule, "", "", false, "unsupported");
+  }
+  const entries = assignSectionIds(result?.entries ?? []);
+  const existing = (bookmark.sectionsValues ?? []).find(v => v.propertyId === property.id);
+  const currentText = existing ? summarizeSections(existing.sections) : "—";
+  if (entries.length === 0) {
+    return baseRow(rule, currentText, "", false, "not found");
+  }
+  const row = baseRow(rule, currentText, summarizeSections(entries), true, null);
+  row.apply = (patch, state) => {
+    const map = seedValueMap(state, "sectionsValues", bookmark);
+    map.set(property.id, {
+      propertyId: property.id,
+      exhaustive: existing ? existing.exhaustive : false,
+      sections: entries,
+    });
+  };
+  return row;
+}
+
+// Assign a fresh id to each entry and child (depth 2), preserving the extracted name/type/startValue.
+function assignSectionIds(entries) {
+  return entries.map(entry => ({
+    id: randomId(),
+    name: entry.name ?? "",
+    type: entry.type,
+    startValue: entry.startValue ?? "",
+    ...(Array.isArray(entry.children)
+      ? {
+        children: entry.children.map(child => ({
+          id: randomId(),
+          name: child.name ?? "",
+          type: child.type,
+          startValue: child.startValue ?? "",
+        })),
+      }
+      : {}),
+  }));
+}
+
+// "N sections, M items" (M = total children across the list; omitted when there are none).
+function summarizeSections(sections) {
+  const count = sections.length;
+  const items = sections.reduce((sum, s) => sum + (s.children ? s.children.length : 0), 0);
+  const base = `${count} section${count === 1 ? "" : "s"}`;
+  return items > 0 ? `${base}, ${items} item${items === 1 ? "" : "s"}` : base;
+}
+
+// A stable id for a new section entry. Prefers crypto.randomUUID, falling back for older page contexts.
+function randomId() {
+  if (globalThis.crypto && typeof globalThis.crypto.randomUUID === "function") {
+    return globalThis.crypto.randomUUID();
+  }
+  return `s-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 // image: grab image URL(s) off the page (resolved to absolute against the tab URL) and, on apply,

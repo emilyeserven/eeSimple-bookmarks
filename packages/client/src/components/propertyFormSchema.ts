@@ -92,6 +92,7 @@ export const propertySchema = z
     itemInItemsAfterText: z.string(),
     sectionsDefaultType: z.enum(SECTION_ENTRY_TYPES).nullable(),
     sectionsAllowedTypes: z.array(z.enum(SECTION_ENTRY_TYPES)),
+    sectionsTiered: z.boolean(),
   })
   .superRefine((value, ctx) => {
     if (value.type === "calculate" && value.operandIds.length < 2) {
@@ -156,6 +157,7 @@ export const CREATE_DEFAULTS: PropertyFormValues = {
   itemInItemsAfterText: "",
   sectionsDefaultType: null,
   sectionsAllowedTypes: [],
+  sectionsTiered: false,
 };
 
 /**
@@ -313,6 +315,7 @@ export function valuesFromProperty(property: CustomProperty): PropertyFormValues
     itemInItemsAfterText: property.itemInItemsAfterText ?? "",
     sectionsDefaultType: property.sectionsDefaultType ?? null,
     sectionsAllowedTypes: property.sectionsAllowedTypes ?? [],
+    sectionsTiered: property.sectionsTiered ?? false,
   };
 }
 
@@ -394,7 +397,7 @@ function itemInItemsPayloadFields(values: PropertyFormValues): Pick<
 /** Sections-only config fields, nulled out for every other property type. */
 function sectionsPayloadFields(values: PropertyFormValues): Pick<
   CreateCustomPropertyInput,
-  "sectionsDefaultType" | "sectionsAllowedTypes"
+  "sectionsDefaultType" | "sectionsAllowedTypes" | "sectionsTiered"
 > {
   const isSections = values.type === "sections";
   return {
@@ -402,6 +405,7 @@ function sectionsPayloadFields(values: PropertyFormValues): Pick<
     sectionsAllowedTypes: isSections && values.sectionsAllowedTypes.length > 0
       ? values.sectionsAllowedTypes
       : null,
+    sectionsTiered: isSections ? values.sectionsTiered : null,
   };
 }
 

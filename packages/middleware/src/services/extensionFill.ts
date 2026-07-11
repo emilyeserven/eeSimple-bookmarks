@@ -6,10 +6,11 @@
  * interaction.
  */
 
-import type { Bookmark, ExtensionFillContext, TaxonomyEntityAssociation, TaxonomyEntityTermRef } from "@eesimple/types";
+import type { Bookmark, ExtensionFillContext, TaxonomyEntityAssociation, TaxonomyEntityTermRef, WebsiteExtensionFillRule } from "@eesimple/types";
+import { isYouTubeVideoUrl } from "@eesimple/types";
 import { checkBookmarkUrlDuplicate, getBookmark } from "@/services/bookmarks";
 import { listCategories } from "@/services/categories";
-import { listCustomProperties } from "@/services/customProperties";
+import { getChaptersPropertyId, listCustomProperties } from "@/services/customProperties";
 import { getGroupById, listGroups, listGroupsCompact } from "@/services/groups";
 import { findPendingImportItemByUrl } from "@/services/imports";
 import { listLocations, listLocationsCompact } from "@/services/locations";
@@ -47,8 +48,11 @@ export async function getExtensionFillContext(url: string): Promise<ExtensionFil
   // Normalize any retired `pathSuffix`-only gate to `pathMatch` so the popup only ever sees the
   // canonical shape and gates correctly, even against a row that predates the boot backfill.
   const rawRules = website?.extensionFillRules ?? [];
-  const rules = migrateExtensionFillRules(rawRules) ?? rawRules;
-  if (!website || rules.length === 0) {
+  const storedRules = migrateExtensionFillRules(rawRules) ?? rawRules;
+  // Zero-config built-in: a saved YouTube video auto-offers its description timestamps into the
+  // built-in "Chapters" sections property, with no per-site rule setup. Runtime-only (never stored).
+  const rules = [...storedRules, ...(await buildYouTubeChaptersRules(url))];
+  if (rules.length === 0) {
     return {
       mode: "bookmark",
       bookmark,
@@ -56,7 +60,10 @@ export async function getExtensionFillContext(url: string): Promise<ExtensionFil
   }
 
   const propertyIds = [...new Set(
-    rules.flatMap(rule => (rule.target.kind === "customProperty" ? [rule.target.propertyId] : [])),
+    rules.flatMap(rule =>
+      rule.target.kind === "customProperty" || rule.target.kind === "sections"
+        ? [rule.target.propertyId]
+        : []),
   )];
   const properties = propertyIds.length === 0
     ? []
@@ -91,8 +98,10 @@ export async function getExtensionFillContext(url: string): Promise<ExtensionFil
     mode: "bookmark",
     bookmark,
     website: {
-      id: website.id,
-      siteName: website.siteName,
+      // youtube.com is a seeded built-in website, so `website` is present for a saved YT video; the
+      // fallback only guards a hypothetical missing record (the synthetic rule still needs a shell).
+      id: website?.id ?? "youtube-chapters",
+      siteName: website?.siteName ?? "YouTube",
       extensionFillRules: rules,
     },
     ...(properties.length > 0 && {
@@ -105,6 +114,38 @@ export async function getExtensionFillContext(url: string): Promise<ExtensionFil
       associatedTerms,
     }),
   };
+}
+
+/**
+ * CSS selector for the YouTube watch-page element whose text carries the description (where creators
+ * put chapter timestamps). Its textContent is present even while the description is visually collapsed.
+ * NOTE: YouTube's DOM is not versioned in this repo — verify/adjust against the live page if it drifts.
+ */
+const YOUTUBE_DESCRIPTION_SELECTOR = "#description-inline-expander";
+
+/**
+ * The zero-config built-in: for a saved YouTube video, a single synthetic `sections` rule that parses
+ * the description's timestamps into the built-in "Chapters" property. Returns `[]` for non-YouTube
+ * URLs or before the Chapters property is seeded. Never stored — assembled fresh per request.
+ */
+async function buildYouTubeChaptersRules(url: string): Promise<WebsiteExtensionFillRule[]> {
+  if (!isYouTubeVideoUrl(url)) return [];
+  const propertyId = await getChaptersPropertyId();
+  if (!propertyId) return [];
+  return [
+    {
+      id: "builtin-youtube-chapters",
+      label: "Chapters",
+      target: {
+        kind: "sections",
+        propertyId,
+        entryType: "timestamp",
+      },
+      extract: {
+        selector: YOUTUBE_DESCRIPTION_SELECTOR,
+      },
+    },
+  ];
 }
 
 /**

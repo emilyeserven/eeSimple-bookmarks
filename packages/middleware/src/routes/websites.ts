@@ -308,7 +308,7 @@ const fillTargetSchema = {
   properties: {
     kind: {
       type: "string",
-      enum: ["field", "customProperty", "taxonomy", "image", "taxonomyEntity", "publisher"],
+      enum: ["field", "customProperty", "taxonomy", "image", "taxonomyEntity", "publisher", "sections"],
     },
     field: {
       type: "string",
@@ -340,6 +340,20 @@ const fillTargetSchema = {
     socialPlatform: {
       type: "string",
       enum: SOCIAL_MEDIA_PLATFORMS,
+    },
+    // `sections` target: entry type + optional relative sub-selectors for the tiered / named build.
+    entryType: {
+      type: "string",
+      enum: ["url", "page", "timestamp"],
+    },
+    container: {
+      type: "string",
+    },
+    header: {
+      type: "string",
+    },
+    itemName: {
+      type: "string",
     },
   },
   allOf: [
@@ -399,6 +413,18 @@ const fillTargetSchema = {
             enum: [...TAXONOMY_ENTITY_FIELDS],
           },
         },
+      },
+    },
+    {
+      if: {
+        properties: {
+          kind: {
+            const: "sections",
+          },
+        },
+      },
+      then: {
+        required: ["kind", "propertyId", "entryType"],
       },
     },
   ],

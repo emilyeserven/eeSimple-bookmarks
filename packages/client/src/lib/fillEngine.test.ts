@@ -654,3 +654,210 @@ describe("eesimpleFillEngine.runRules — meta-tag source (#extension-fill-meta)
     expect(runOne(rule, META_HTML).values).toEqual([]);
   });
 });
+
+interface SectionEntryResult {
+  name: string;
+  type: string;
+  startValue: string;
+  children?: SectionEntryResult[];
+}
+
+/** Run a single `sections` rule and return the structured `entries`. */
+function runSections(rule: unknown, html: string): SectionEntryResult[] {
+  const result = engine.runRules([rule], docFrom(html))[0] as FillResult & { entries?: SectionEntryResult[] };
+  return result.entries ?? [];
+}
+
+describe("eesimpleFillEngine.runRules — sections target", () => {
+  // A course accordion: chapter <h3> headers, each grouping sibling <a> video links (name in <p>).
+  const ACCORDION_HTML = `
+    <div class="acc">
+      <h3 class="hdr">Chapter 1</h3>
+      <div class="body">
+        <a href="/v1"><p>Installing</p></a>
+        <a href="/v2"><p>Workspace</p></a>
+      </div>
+    </div>
+    <div class="acc">
+      <h3 class="hdr">Chapter 2</h3>
+      <div class="body">
+        <a href="/v3"><p>Flowgraphs</p></a>
+      </div>
+    </div>
+  `;
+
+  it("builds a two-tier structure from a container + header + items", () => {
+    const rule = {
+      id: "chapters",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "url",
+        container: ".acc",
+        header: ".hdr",
+        itemName: "p",
+      },
+      extract: {
+        selector: "a",
+        read: {
+          kind: "attr",
+          name: "href",
+        },
+      },
+    };
+    expect(runSections(rule, ACCORDION_HTML)).toEqual([
+      {
+        name: "Chapter 1",
+        type: "url",
+        startValue: "",
+        children: [
+          {
+            name: "Installing",
+            type: "url",
+            startValue: "/v1",
+          },
+          {
+            name: "Workspace",
+            type: "url",
+            startValue: "/v2",
+          },
+        ],
+      },
+      {
+        name: "Chapter 2",
+        type: "url",
+        startValue: "",
+        children: [
+          {
+            name: "Flowgraphs",
+            type: "url",
+            startValue: "/v3",
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("builds a flat list when no container is set", () => {
+    const html = `
+      <ul>
+        <li class="row"><a href="/a"><span class="name">Alpha</span></a></li>
+        <li class="row"><a href="/b"><span class="name">Beta</span></a></li>
+      </ul>
+    `;
+    const rule = {
+      id: "flat",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "url",
+        itemName: ".name",
+      },
+      extract: {
+        selector: ".row a",
+        read: {
+          kind: "attr",
+          name: "href",
+        },
+      },
+    };
+    expect(runSections(rule, html)).toEqual([
+      {
+        name: "Alpha",
+        type: "url",
+        startValue: "/a",
+      },
+      {
+        name: "Beta",
+        type: "url",
+        startValue: "/b",
+      },
+    ]);
+  });
+
+  it("reads a page number from the item text via the number transform", () => {
+    const html = `
+      <ul>
+        <li class="row"><span class="name">Chapter One</span> p. 12</li>
+        <li class="row"><span class="name">Chapter Two</span> p. 34</li>
+      </ul>
+    `;
+    const rule = {
+      id: "pages",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "page",
+        itemName: ".name",
+      },
+      extract: {
+        selector: ".row",
+        transform: [{
+          kind: "number",
+        }],
+      },
+    };
+    expect(runSections(rule, html)).toEqual([
+      {
+        name: "Chapter One",
+        type: "page",
+        startValue: "12",
+      },
+      {
+        name: "Chapter Two",
+        type: "page",
+        startValue: "34",
+      },
+    ]);
+  });
+
+  it("parses timestamps from a description text block into seconds", () => {
+    const html = `
+      <div id="desc">0:00 Intro
+1:23 Getting started
+1:02:03 Deep dive</div>
+    `;
+    const rule = {
+      id: "chapters",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "timestamp",
+      },
+      extract: {
+        selector: "#desc",
+      },
+    };
+    expect(runSections(rule, html)).toEqual([
+      {
+        name: "Intro",
+        type: "timestamp",
+        startValue: "0",
+      },
+      {
+        name: "Getting started",
+        type: "timestamp",
+        startValue: "83",
+      },
+      {
+        name: "Deep dive",
+        type: "timestamp",
+        startValue: "3723",
+      },
+    ]);
+  });
+
+  it("leaves non-sections rules with no `entries` key", () => {
+    const result = engine.runRules(
+      [{
+        id: "plain",
+        extract: {
+          selector: ".item",
+        },
+      }],
+      docFrom("<ul><li class=\"item\">One</li></ul>"),
+    )[0] as FillResult & { entries?: unknown };
+    expect(result.entries).toBeUndefined();
+    expect(result.values).toEqual(["One"]);
+  });
+});

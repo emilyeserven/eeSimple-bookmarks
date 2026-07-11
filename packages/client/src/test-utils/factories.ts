@@ -86,6 +86,7 @@ export function makeCustomProperty(overrides: Partial<CustomProperty> = {}): Cus
     itemInItemsAfterText: null,
     sectionsDefaultType: null,
     sectionsAllowedTypes: null,
+    sectionsTiered: null,
     createdAt: NOW,
     ...overrides,
   };
