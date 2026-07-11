@@ -82,9 +82,12 @@ export type FillTarget
    * - **`url` / `page`** — `extract.selector` matches the repeated **item** elements; `extract.read`
    *   + `extract.transform` produce each item's `startValue` (e.g. `read:{kind:"attr",name:"href"}`
    *   for `url`, `transform:[{kind:"number"}]` for `page`). `itemName` (a relative `querySelector`)
-   *   reads each item's name (absent = the item's own text). When `container` is set the rule is
-   *   **tiered**: `container` matches the repeated tier-1 group, `header` (relative) reads the group
-   *   name, and `extract.selector` matches the group's items (its children).
+   *   reads each item's name (absent = the item's own text). `itemUrl` (a relative `querySelector`)
+   *   optionally reads a per-item link's `href` into the entry's `url`, so the matched item can be a
+   *   **container** holding a separate name element and link element (siblings) rather than the link
+   *   itself; absent = today's behavior (the item element carries the value/link via `extract.read`).
+   *   When `container` is set the rule is **tiered**: `container` matches the repeated tier-1 group,
+   *   `header` (relative) reads the group name, and `extract.selector` matches the group's items.
    * - **`timestamp`** — `extract.selector` matches the element(s) whose **text** carries a list of
    *   `m:ss` / `h:mm:ss` timestamp lines (e.g. a video description); the engine parses each line into
    *   a flat entry whose `startValue` is the total number of **seconds**. `container`/`header`/
@@ -95,7 +98,8 @@ export type FillTarget
               entryType: SectionFillEntryType;
               container?: string;
               header?: string;
-              itemName?: string; };
+              itemName?: string;
+              itemUrl?: string; };
 
 /** Entry types a `sections` fill target can build. `timestamp` is parsed from a text block. */
 export type SectionFillEntryType = "url" | "page" | "timestamp";

@@ -16,7 +16,7 @@ import { IsbnLinksPanel } from "./IsbnLinksPanel";
 import { PropertyQuickFilterLink } from "./PropertyQuickFilterLink";
 import { StarRating } from "./StarRating";
 import i18n from "../i18n";
-import { formatSectionEntry } from "../lib/propertyFormat";
+import { sectionEntryLink, sectionEntryPositional } from "../lib/propertyFormat";
 
 /**
  * Per-value-kind read-only row cells, extracted from `BookmarkPropertyRow` so the parent stays a
@@ -239,6 +239,72 @@ export function ProgressRowCell({
   );
 }
 
+/**
+ * One section entry: its name (a link when {@link sectionEntryLink} resolves), the positional value
+ * (page range / timestamp) beside it, and — for a tier-1 entry — an indented nested list of its
+ * children. Recurses exactly once; the model caps sections at depth 2 (children carry no `children`),
+ * so this never renders a third tier. The single source of truth for section display, used by both
+ * `SectionsRowCell` and the flat `BookmarkPropertySections`.
+ */
+function SectionEntryItem({
+  entry,
+}: { entry: SectionEntry }) {
+  const link = sectionEntryLink(entry);
+  const positional = sectionEntryPositional(entry);
+  return (
+    <li>
+      <span>
+        {link
+          ? (
+            <a
+              href={link}
+              target="_blank"
+              rel="noreferrer"
+              className="text-primary underline underline-offset-2"
+            >
+              {entry.name || link}
+            </a>
+          )
+          : <span>{entry.name}</span>}
+        {positional
+          ? <span className="ml-2 text-muted-foreground">{positional}</span>
+          : null}
+      </span>
+      {entry.children && entry.children.length > 0
+        ? (
+          <ul className="ml-4 space-y-0.5 border-l pl-2 text-muted-foreground">
+            {entry.children.map((child: SectionEntry) => (
+              <SectionEntryItem
+                key={child.id}
+                entry={child}
+              />
+            ))}
+          </ul>
+        )
+        : null}
+    </li>
+  );
+}
+
+/** A section value's entries as a two-tier list with clickable per-item links, or an empty state. */
+export function SectionEntryList({
+  sections,
+}: { sections: SectionEntry[] }) {
+  if (sections.length === 0) {
+    return <span className="text-xs text-muted-foreground">{i18n.t("No sections")}</span>;
+  }
+  return (
+    <ul className="space-y-0.5 text-sm">
+      {sections.map(entry => (
+        <SectionEntryItem
+          key={entry.id}
+          entry={entry}
+        />
+      ))}
+    </ul>
+  );
+}
+
 export function SectionsRowCell({
   row,
 }: { row: SectionsPropertyRow }) {
@@ -252,15 +318,7 @@ export function SectionsRowCell({
         :
       </dt>
       <dd>
-        {row.sections.length === 0
-          ? <span className="text-xs text-muted-foreground">{i18n.t("No sections")}</span>
-          : (
-            <ul className="space-y-0.5 text-sm">
-              {row.sections.map((entry: SectionEntry) => (
-                <li key={entry.id}>{formatSectionEntry(entry)}</li>
-              ))}
-            </ul>
-          )}
+        <SectionEntryList sections={row.sections} />
       </dd>
       <PropertyQuickFilterLink
         search={row.search}
