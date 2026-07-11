@@ -144,6 +144,44 @@ Set the corresponding env vars (locally in `packages/middleware/.env`, or in Coo
 for production) or fill them in from **Settings → Connectors** in the running app — either path
 works, and a value set in the UI takes priority over the env var.
 
+### Reaching a self-hosted service on a private network (LAN / VPN / Tailscale)
+
+Most of the connectors above (Kavita, Plex, ArchiveBox, Browserless, self-hosted geocoders) point at
+a service on **your own** network. The **Check connection** button and every server-side fetch run
+from **inside the gateway container**, not from your browser — so the container has to be able to
+both *resolve* and *route to* the address you enter. Give it an address it can reach:
+
+- **Public domain / reverse-proxied** (`https://kavita.example.com`) — just works.
+- **Same host or LAN** — use the host's or the service's **LAN IP** (e.g. `http://192.168.1.20:5000`).
+  Don't use `localhost`/`127.0.0.1`: inside the container that's the container itself, not your
+  machine. Containers route to the LAN through the host by default, so a LAN IP is reachable as-is.
+- **Over a VPN / mesh (Tailscale, WireGuard, …)** — use the peer's **VPN IP**
+  (e.g. Tailscale's `100.x.y.z`), **not** its VPN-DNS name. A default-bridge container can *route* to
+  the VPN (its traffic is masqueraded through the host), but it does **not** inherit the host's VPN
+  DNS resolver — so a MagicDNS name like `http://myserver:5000` fails to resolve even though the IP
+  behind it is perfectly reachable. Using the IP sidesteps that entirely.
+
+If you genuinely need the *name* to resolve, or your Docker host can't route to the network at all,
+that's an environment-specific networking choice — keep it **out** of the shipped `docker-compose.yml`
+so the app still deploys for everyone without your VPN. Add an untracked `docker-compose.override.yml`
+(Docker Compose auto-merges it) on just your deployment, for example:
+
+```yaml
+# docker-compose.override.yml — local only, do not commit
+services:
+  gateway:
+    # Pin a VPN/MagicDNS hostname to its IP so the container can resolve it…
+    extra_hosts:
+      - "myserver:100.68.29.108"
+    # …or, if the container can't route to the network at all, share the host's network:
+    # network_mode: host   # (then repoint DATABASE_URL/S3_ENDPOINT off the `db`/`garage`
+    #                       #  service names — host networking drops Docker's internal DNS)
+```
+
+> **On Coolify:** `network_mode: host` and VPN-sidecar setups also change how Coolify's proxy reaches
+> the app, so prefer handing the connector a directly reachable address (a LAN or VPN IP) whenever you
+> can — it needs no infrastructure change at all.
+
 ## Deploy to Coolify
 
 eeSimple Bookmarks is built to self-deploy. In production a single Docker image (the repo-root `Dockerfile`)
