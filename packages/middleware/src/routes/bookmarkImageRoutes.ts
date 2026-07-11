@@ -306,6 +306,11 @@ export function registerBookmarkImageRoutes(app: FastifyInstance): void {
     return reply.code(204).send();
   });
 
+  registerBookmarkGalleryRoutes(app);
+}
+
+/** Bookmark multi-image gallery, screenshot, and reel-archive routes. */
+function registerBookmarkGalleryRoutes(app: FastifyInstance): void {
   // Add an image to a bookmark (multipart), keeping its other images. The first image (or one sent
   // with `?main=1`) becomes the main image.
   app.post("/api/bookmarks/:id/images", {
