@@ -13,6 +13,7 @@ const connectorsSettings: ConnectorsAppSettings = {
   encryptionEnabled: true,
   archiveBoxEndpoint: "",
   kavitaEndpoint: "",
+  kavitaSidebarUrl: "",
   kavitaApiKeySet: false,
   plexEndpoint: "",
   plexTokenSet: false,

@@ -1325,6 +1325,7 @@ export async function getConnectorsSettings(): Promise<ConnectorsAppSettings> {
       hostedMetadataProvider: appSettings.hostedMetadataProvider,
       archiveBoxEndpoint: appSettings.archiveBoxEndpoint,
       kavitaEndpoint: appSettings.kavitaEndpoint,
+      kavitaSidebarUrl: appSettings.kavitaSidebarUrl,
       kavitaApiKey: appSettings.kavitaApiKey,
       plexEndpoint: appSettings.plexEndpoint,
       plexToken: appSettings.plexToken,
@@ -1345,6 +1346,7 @@ export async function getConnectorsSettings(): Promise<ConnectorsAppSettings> {
     encryptionEnabled: encryptionEnabled(),
     archiveBoxEndpoint: row?.archiveBoxEndpoint ?? process.env.ARCHIVEBOX_ENDPOINT ?? "",
     kavitaEndpoint: row?.kavitaEndpoint ?? process.env.KAVITA_ENDPOINT ?? "",
+    kavitaSidebarUrl: row?.kavitaSidebarUrl ?? "",
     kavitaApiKeySet: Boolean(row?.kavitaApiKey) || Boolean(process.env.KAVITA_API_KEY),
     plexEndpoint: row?.plexEndpoint ?? process.env.PLEX_ENDPOINT ?? "",
     plexTokenSet: Boolean(row?.plexToken) || Boolean(process.env.PLEX_TOKEN),
@@ -1488,6 +1490,27 @@ export async function getActiveKavitaEndpoint(): Promise<string | null> {
 }
 
 /**
+ * Get the browser-facing URL for the sidebar's Kavita link-out, or `null` when unset. This is a
+ * display-only override (Settings → Connectors) for when a person's browser reaches Kavita at a
+ * different address than the middleware container does; it never affects the server-side connector,
+ * so it has no env-var fallback. Callers fall back to {@link getActiveKavitaEndpoint} when null.
+ */
+export async function getActiveKavitaSidebarUrl(): Promise<string | null> {
+  try {
+    const [row] = await db
+      .select({
+        kavitaSidebarUrl: appSettings.kavitaSidebarUrl,
+      })
+      .from(appSettings)
+      .where(eq(appSettings.id, ROW_ID));
+    return row?.kavitaSidebarUrl || null;
+  }
+  catch {
+    return null;
+  }
+}
+
+/**
  * Retrieve the decrypted Kavita API key. Checks the database first (decrypting if encrypted),
  * then falls back to the `KAVITA_API_KEY` env var.
  */
@@ -1586,6 +1609,7 @@ export async function updateConnectorsSettings(
     hostedMetadataProvider: input.hostedMetadataProvider.trim(),
     archiveBoxEndpoint: input.archiveBoxEndpoint.trim(),
     kavitaEndpoint: input.kavitaEndpoint.trim(),
+    kavitaSidebarUrl: input.kavitaSidebarUrl.trim(),
     plexEndpoint: input.plexEndpoint.trim(),
     // Normalize the blacklist: trim entries, drop blanks, dedupe — store a clean list.
     imageUrlBlacklist: [...new Set(input.imageUrlBlacklist.map(p => p.trim()).filter(Boolean))],

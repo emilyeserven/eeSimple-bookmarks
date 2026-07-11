@@ -1852,6 +1852,10 @@ export const appSettings = pgTable("app_settings", {
   // Kavita base URL configured from Settings → Connectors. Nullable = push-safe additive;
   // KAVITA_ENDPOINT env var is used as fallback when null.
   kavitaEndpoint: text("kavita_endpoint"),
+  // Optional browser-facing URL for the sidebar's Kavita link-out (Settings → Connectors), used
+  // when the browser reaches Kavita at a different address than the container does. Nullable =
+  // push-safe additive; the sidebar link falls back to kavitaEndpoint when null.
+  kavitaSidebarUrl: text("kavita_sidebar_url"),
   // API key for the Kavita server; stored encrypted when APP_SECRET is configured.
   // KAVITA_API_KEY env var is used as fallback when null.
   kavitaApiKey: text("kavita_api_key"),
