@@ -313,13 +313,29 @@
     return value.trim();
   }
 
+  // Read a per-item link's href via the relative `itemUrl` sub-selector, or undefined when unset/absent.
+  // Lets the matched item be a container holding separate name and link elements (siblings), rather than
+  // the anchor itself.
+  function readItemUrl(el, target) {
+    if (!target.itemUrl) return undefined;
+    var link = el.querySelector(target.itemUrl);
+    if (!link) return undefined;
+    var href = link.getAttribute("href");
+    return href ? href.trim() : undefined;
+  }
+
   // Build one leaf entry (a flat entry, or a tier-1 group's child) from an item element.
   function buildSectionLeaf(el, target, extract) {
-    return {
+    var leaf = {
       name: readName(el, target.itemName),
       type: target.entryType,
-      startValue: readItemValue(el, extract),
+      // With a per-item URL selector on a `url` entry the anchor is the link (carried in `url`), not a
+      // positional value; otherwise read the item's own value (href/page number/etc.) into startValue.
+      startValue: target.itemUrl && target.entryType === "url" ? "" : readItemValue(el, extract),
     };
+    var url = readItemUrl(el, target);
+    if (url != null) leaf.url = url;
+    return leaf;
   }
 
   // Matches a line-leading "m:ss" / "h:mm:ss" timestamp, then a separator, capturing the trailing

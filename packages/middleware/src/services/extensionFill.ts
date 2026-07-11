@@ -6,20 +6,55 @@
  * interaction.
  */
 
-import type { Bookmark, ExtensionFillContext, TaxonomyEntityAssociation, TaxonomyEntityTermRef, Website, WebsiteExtensionFillRule } from "@eesimple/types";
-import { isYouTubeVideoUrl } from "@eesimple/types";
+import type { Bookmark, ExtensionFillContext, TaxonomyEntityAssociation, TaxonomyEntityAssociationSpec, TaxonomyEntityLanguageOwnerType, TaxonomyEntityRelationKey, TaxonomyEntityTermRef, Website, WebsiteExtensionFillRule } from "@eesimple/types";
+import { isYouTubeVideoUrl, TAXONOMY_ENTITY_SPECS } from "@eesimple/types";
 import { checkBookmarkUrlDuplicate, getBookmark } from "@/services/bookmarks";
 import { listCategories } from "@/services/categories";
 import { getChaptersPropertyId, listCustomProperties } from "@/services/customProperties";
 import { getGroupById, listGroups, listGroupsCompact } from "@/services/groups";
 import { findPendingImportItemByUrl } from "@/services/imports";
+import { listLanguages } from "@/services/languages";
+import { listLanguageUsageLevels } from "@/services/languageUsageLevels";
+import { getLanguageUsages } from "@/services/languageUsages";
 import { listLocations, listLocationsCompact } from "@/services/locations";
 import { listMediaTypes } from "@/services/mediaTypes";
 import { getNewsletter } from "@/services/newsletters";
 import { listPeople, listPeopleCompact } from "@/services/people";
 import { listTags, listTagsCompact } from "@/services/tags";
-import { getWebsite, lookupWebsiteByUrl, migrateExtensionFillRules } from "@/services/websites";
-import { channelKeyFromUrl, getYouTubeChannel, getYouTubeChannelByKey } from "@/services/youtubeChannels";
+import { getWebsite, listWebsitesCompact, lookupWebsiteByUrl, migrateExtensionFillRules } from "@/services/websites";
+import { channelKeyFromUrl, getYouTubeChannel, getYouTubeChannelByKey, listYouTubeChannelsCompact } from "@/services/youtubeChannels";
+
+/** The "Primary Language" availability-level name a `language` target attaches to (mirrors the client). */
+const PRIMARY_LANGUAGE_LEVEL_NAME = "primary language";
+
+/**
+ * What extra per-term data a `taxonomyEntity` rule set needs for one association: which relation
+ * id-arrays to hydrate (for `relation:<key>` targets) and whether to hydrate language usages (for a
+ * `language` target). Non-referenced associations skip the extra queries.
+ */
+interface AssociationHydration {
+  relations: Set<TaxonomyEntityRelationKey>;
+  language: boolean;
+}
+
+/** Parse a `taxonomyEntity` target's `field` into its write mode. */
+function taxonomyEntityWriteMode(
+  field: string,
+): { kind: "scalar" } | { kind: "relation";
+  key: TaxonomyEntityRelationKey; } | { kind: "language" } {
+  if (field === "language") return {
+    kind: "language",
+  };
+  if (field.startsWith("relation:")) {
+    return {
+      kind: "relation",
+      key: field.slice("relation:".length) as TaxonomyEntityRelationKey,
+    };
+  }
+  return {
+    kind: "scalar",
+  };
+}
 
 export async function getExtensionFillContext(url: string): Promise<ExtensionFillContext> {
   const dup = await checkBookmarkUrlDuplicate(url);
@@ -104,13 +139,30 @@ export async function getExtensionFillContext(url: string): Promise<ExtensionFil
   if (taxonomyKinds.has("locations")) taxonomies.locations = await listLocationsCompact();
   if (taxonomyKinds.has("tags")) taxonomies.tags = await listTagsCompact();
 
-  // `taxonomyEntity` rules write into a linked term's fixed field — send the bookmark's current
-  // linked terms (with their field values) for each referenced association so the popup can diff and
-  // upsert.
-  const associations = new Set(
-    rules.flatMap(rule => (rule.target.kind === "taxonomyEntity" ? [rule.target.association] : [])),
-  );
-  const linkedTerms = await loadAssociatedTerms(bookmark, associations);
+  // `taxonomyEntity` rules write into a linked term's field / relation / language — send the
+  // bookmark's current linked terms for each referenced association (hydrating the exact extra data
+  // each target mode needs) so the popup can diff and upsert.
+  const hydration = new Map<TaxonomyEntityAssociation, AssociationHydration>();
+  for (const rule of rules) {
+    if (rule.target.kind !== "taxonomyEntity") continue;
+    const entry = hydration.get(rule.target.association)
+      ?? {
+        relations: new Set<TaxonomyEntityRelationKey>(),
+        language: false,
+      };
+    const mode = taxonomyEntityWriteMode(rule.target.field);
+    if (mode.kind === "relation") entry.relations.add(mode.key);
+    else if (mode.kind === "language") entry.language = true;
+    hydration.set(rule.target.association, entry);
+  }
+  const linkedTerms = await loadAssociatedTerms(bookmark, hydration);
+
+  // Relation targets match an extracted name against the related taxonomy's compact option list.
+  const relationOptions = await loadRelationOptions(hydration);
+  // Any `language` target needs the languages list (match-or-create by isoCode) + the primary level.
+  const languageReferenced = [...hydration.values()].some(h => h.language);
+  const languageBlock = languageReferenced ? await loadLanguageBlock() : undefined;
+
   // `taxonomyDirect` url-mode rules also resolve an entity from the URL — fold those in so a saved
   // bookmark visit can still update the site/channel entity directly.
   const directTerms = await resolveDirectUrlTerms(url, website, rules);
@@ -135,6 +187,49 @@ export async function getExtensionFillContext(url: string): Promise<ExtensionFil
     ...(associatedTerms && {
       associatedTerms,
     }),
+    ...(relationOptions && {
+      relationOptions,
+    }),
+    ...(languageBlock && {
+      languages: languageBlock.languages,
+      primaryLanguageLevelId: languageBlock.primaryLanguageLevelId,
+    }),
+  };
+}
+
+/** Compact option lists for the related taxonomies referenced by `relation:<key>` targets. */
+async function loadRelationOptions(
+  hydration: Map<TaxonomyEntityAssociation, AssociationHydration>,
+): Promise<ExtensionFillContext["relationOptions"]> {
+  const keys = new Set<TaxonomyEntityRelationKey>();
+  for (const entry of hydration.values()) {
+    for (const key of entry.relations) keys.add(key);
+  }
+  if (keys.size === 0) return undefined;
+  const out: NonNullable<ExtensionFillContext["relationOptions"]> = {};
+  if (keys.has("groups")) out.groups = await listGroupsCompact();
+  if (keys.has("websites")) out.websites = await listWebsitesCompact();
+  if (keys.has("youtubeChannels")) out.youtubeChannels = await listYouTubeChannelsCompact();
+  return out;
+}
+
+/** The languages list + the resolved "Primary Language" availability-level id (null when absent). */
+async function loadLanguageBlock(): Promise<{
+  languages: NonNullable<ExtensionFillContext["languages"]>;
+  primaryLanguageLevelId: string | null;
+}> {
+  const [languages, levels] = await Promise.all([
+    listLanguages(),
+    listLanguageUsageLevels("availability"),
+  ]);
+  const primaryLevel = levels.find(l => l.name.toLowerCase() === PRIMARY_LANGUAGE_LEVEL_NAME);
+  return {
+    languages: languages.map(l => ({
+      id: l.id,
+      name: l.name,
+      isoCode: l.isoCode,
+    })),
+    primaryLanguageLevelId: primaryLevel?.id ?? null,
   };
 }
 
@@ -272,24 +367,60 @@ async function buildYouTubeChaptersRules(url: string): Promise<WebsiteExtensionF
 /**
  * Load the bookmark's currently-linked term(s) for each referenced `taxonomyEntity` association,
  * with the current values of the writable fields. Associations the bookmark has no link for are
- * omitted (the popup renders a disabled "no linked …" row). Only referenced associations are loaded.
+ * omitted (the popup renders a disabled "no linked …" row). Only referenced associations are loaded,
+ * and each term is hydrated with the exact extra data its target modes need (relation id-arrays for
+ * `relation:<key>` targets, language usages for a `language` target).
  */
 async function loadAssociatedTerms(
   bookmark: Bookmark,
-  associations: Set<TaxonomyEntityAssociation>,
+  hydration: Map<TaxonomyEntityAssociation, AssociationHydration>,
 ): Promise<ExtensionFillContext["associatedTerms"]> {
   const out: Partial<Record<TaxonomyEntityAssociation, TaxonomyEntityTermRef[]>> = {};
-  for (const association of associations) {
-    const terms = await loadTermsFor(association, bookmark);
+  for (const [association, needs] of hydration) {
+    const terms = await loadTermsFor(association, bookmark, needs);
     if (terms.length > 0) out[association] = terms;
   }
   return Object.keys(out).length > 0 ? out : undefined;
+}
+
+/**
+ * Attach current language usages to each term when a `language` target references this association
+ * (an availability/proficiency owner). Runs a `getLanguageUsages` per term — only for the small
+ * linked-term set of a language-owner association, and only when referenced.
+ */
+async function attachLanguageUsages(
+  terms: TaxonomyEntityTermRef[],
+  ownerType: TaxonomyEntityLanguageOwnerType,
+): Promise<void> {
+  for (const term of terms) {
+    const usages = await getLanguageUsages(ownerType, term.id);
+    term.languageUsages = usages.map(u => ({
+      languageId: u.language.id,
+      usageLevelId: u.level.id,
+    }));
+  }
 }
 
 /** Resolve one association's linked term id(s) from the bookmark and load them as term refs. */
 async function loadTermsFor(
   association: TaxonomyEntityAssociation,
   bookmark: Bookmark,
+  needs: AssociationHydration,
+): Promise<TaxonomyEntityTermRef[]> {
+  const terms = await loadBaseTermsFor(association, bookmark, needs);
+  const spec: TaxonomyEntityAssociationSpec = TAXONOMY_ENTITY_SPECS[association];
+  const ownerType = spec.languageOwnerType;
+  if (needs.language && ownerType && terms.length > 0) {
+    await attachLanguageUsages(terms, ownerType);
+  }
+  return terms;
+}
+
+/** Resolve one association's linked term refs with their scalar + (when referenced) relation fields. */
+async function loadBaseTermsFor(
+  association: TaxonomyEntityAssociation,
+  bookmark: Bookmark,
+  needs: AssociationHydration,
 ): Promise<TaxonomyEntityTermRef[]> {
   switch (association) {
     case "website": {
@@ -376,6 +507,17 @@ async function loadTermsFor(
           name: p.name,
           description: p.description,
           socialLinks: p.socialLinks,
+          // Relation id-arrays for `relation:<key>` targets — only when referenced (they ride on the
+          // already-loaded record, so this is a lean spread, not an extra query).
+          ...(needs.relations.has("groups") && {
+            groupIds: p.groupIds,
+          }),
+          ...(needs.relations.has("websites") && {
+            websiteIds: p.websiteIds,
+          }),
+          ...(needs.relations.has("youtubeChannels") && {
+            youtubeChannelIds: p.youtubeChannelIds,
+          }),
         }));
     }
     case "groups": {
@@ -389,6 +531,12 @@ async function loadTermsFor(
           description: g.description,
           socialLinks: g.socialLinks,
           year: g.year,
+          ...(needs.relations.has("websites") && {
+            websiteIds: g.websiteIds,
+          }),
+          ...(needs.relations.has("youtubeChannels") && {
+            youtubeChannelIds: g.youtubeChannelIds,
+          }),
         }));
     }
     case "tags": {

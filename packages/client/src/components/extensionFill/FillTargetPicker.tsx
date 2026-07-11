@@ -1,6 +1,6 @@
 import type { KindOption } from "./controls";
 import type { ComboboxOption } from "../Combobox";
-import type { CustomProperty, FillTarget, TaxonomyDirectFieldKey, TaxonomyEntityAssociation, TaxonomyEntityAssociationSpec, TaxonomyEntityFieldKey } from "@eesimple/types";
+import type { CustomProperty, FillTarget, TaxonomyDirectFieldKey, TaxonomyEntityAssociation, TaxonomyEntityAssociationSpec, TaxonomyEntityWriteKey } from "@eesimple/types";
 
 import { useId } from "react";
 
@@ -18,7 +18,7 @@ import { Combobox } from "../Combobox";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
 
-import { coerceFillTarget, directFieldSupported } from "@/lib/extensionFillForm";
+import { coerceFillTarget, directFieldSupported, taxonomyEntityFieldLabel, taxonomyEntityWriteKeys } from "@/lib/extensionFillForm";
 
 type FieldName = Extract<FillTarget, { kind: "field" }>["field"];
 type TaxonomyName = Extract<FillTarget, { kind: "taxonomy" }>["taxonomy"];
@@ -285,8 +285,17 @@ function SectionsTarget({
                 itemName,
               })}
             />
+            <LabeledInput
+              label={t("Item URL selector")}
+              placeholder="a"
+              value={target.itemUrl ?? ""}
+              onChange={itemUrl => onChange({
+                ...target,
+                itemUrl,
+              })}
+            />
             <p className="text-xs text-muted-foreground">
-              {t("Leave the container blank for a flat list. The main Selector matches each item; Read/Transform produce its value.")}
+              {t("Leave the container blank for a flat list. The main Selector matches each item. With an Item URL selector, the item can be a wrapper and Item name / Item URL read from inside it; leave it blank to read the value off the item via Read/Transform.")}
             </p>
           </>
         )}
@@ -308,7 +317,8 @@ function TaxonomyEntityTarget({
   const {
     t,
   } = useTranslation();
-  const fields = TAXONOMY_ENTITY_SPECS[target.association].fields;
+  // Scalar fields + relations (`relation:<key>`) + `language` — whichever the association supports.
+  const writeKeys = taxonomyEntityWriteKeys(target.association);
   return (
     <div className="space-y-2">
       <KindSelect<TaxonomyEntityAssociation>
@@ -320,8 +330,8 @@ function TaxonomyEntityTarget({
         }))}
         onValueChange={(association) => {
           // Keep the current field if the new entity supports it, else fall back to its first field.
-          const nextFields: readonly TaxonomyEntityFieldKey[] = TAXONOMY_ENTITY_SPECS[association].fields;
-          const field = nextFields.includes(target.field) ? target.field : nextFields[0];
+          const nextKeys = taxonomyEntityWriteKeys(association);
+          const field = nextKeys.includes(target.field) ? target.field : nextKeys[0];
           onChange({
             kind: "taxonomyEntity",
             association,
@@ -329,12 +339,12 @@ function TaxonomyEntityTarget({
           });
         }}
       />
-      <KindSelect<TaxonomyEntityFieldKey>
+      <KindSelect<TaxonomyEntityWriteKey>
         label={t("Field")}
         value={target.field}
-        options={fields.map(field => ({
+        options={writeKeys.map(field => ({
           value: field,
-          label: t(TAXONOMY_ENTITY_FIELD_LABELS[field]),
+          label: t(taxonomyEntityFieldLabel(field)),
         }))}
         onValueChange={field => onChange({
           kind: "taxonomyEntity",

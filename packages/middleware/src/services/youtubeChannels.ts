@@ -246,6 +246,17 @@ const takenSlugs = (excludeId?: string) =>
   takenSlugsOf(youtubeChannels, youtubeChannels.slug, youtubeChannels.id, excludeId);
 
 /** List all channels, ordered by name. */
+/** Compact `{id, name}` list for extension-fill relation match-or-create. */
+export async function listYouTubeChannelsCompact(): Promise<{ id: string;
+  name: string; }[]> {
+  return db
+    .select({
+      id: youtubeChannels.id,
+      name: youtubeChannels.name,
+    })
+    .from(youtubeChannels);
+}
+
 export async function listYouTubeChannels(): Promise<YouTubeChannel[]> {
   const rows = await db
     .select({

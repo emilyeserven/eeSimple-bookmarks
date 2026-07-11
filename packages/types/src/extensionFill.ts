@@ -5,7 +5,7 @@
  * jsonb on `websites.extension_fill_rules`.
  */
 
-import type { TaxonomyDirectFieldKey, TaxonomyEntityAssociation, TaxonomyEntityFieldKey, TaxonomyEntityTermRef } from "./extensionFillTaxonomy.js";
+import type { TaxonomyDirectFieldKey, TaxonomyEntityAssociation, TaxonomyEntityTermRef, TaxonomyEntityWriteKey } from "./extensionFillTaxonomy.js";
 import type { Bookmark, CustomProperty } from "./index.js";
 import type { SocialMediaPlatform } from "./socialMedia.js";
 
@@ -78,16 +78,23 @@ export type FillTarget
         | { kind: "image";
           setMain?: boolean; }
   /**
-   * Write the extracted value into a fixed field of a taxonomy term the bookmark is **linked to**
-   * (not the bookmark itself) — e.g. put `@OReillyMedia` into the publisher Group's X social link.
-   * `association` selects which linked taxonomy provides the term(s); when the bookmark links to
-   * exactly one term the popup targets it automatically, otherwise it lets the user pick one.
-   * `field` is one of that entity's writable fields (see {@link TAXONOMY_ENTITY_SPECS});
-   * `socialPlatform` is required when `field === "socialLink"`.
+   * Write the extracted value into a taxonomy term the bookmark is **linked to** (not the bookmark
+   * itself). `association` selects which linked taxonomy provides the term(s); when the bookmark links
+   * to exactly one term the popup targets it automatically, otherwise it lets the user pick one.
+   * `field` is a {@link TaxonomyEntityWriteKey} — one of three modes:
+   * - a **scalar field** (name/description/year/socialLink) — e.g. put `@OReillyMedia` into the
+   *   publisher Group's X social link (`socialPlatform` is required when `field === "socialLink"`);
+   * - a **relation** (`relation:groups`/`relation:websites`/`relation:youtubeChannels`) — resolve the
+   *   extracted name(s) to term id(s) and **union** them into the linked term's id-array (e.g. add a
+   *   Group to a linked Person's groups);
+   * - **`language`** — resolve the extracted page-language code to a `Language` (match-or-create by
+   *   `isoCode`) and attach it at the "Primary Language" level on the linked term (website/youtubeChannel/
+   *   person owners only).
+   * See {@link TAXONOMY_ENTITY_SPECS} for which modes each association supports.
    */
           | { kind: "taxonomyEntity";
             association: TaxonomyEntityAssociation;
-            field: TaxonomyEntityFieldKey;
+            field: TaxonomyEntityWriteKey;
             socialPlatform?: SocialMediaPlatform; }
   /**
    * Update a taxonomy **entity** resolved from the current page directly (not via a linked bookmark).
@@ -111,9 +118,12 @@ export type FillTarget
    * - **`url` / `page`** — `extract.selector` matches the repeated **item** elements; `extract.read`
    *   + `extract.transform` produce each item's `startValue` (e.g. `read:{kind:"attr",name:"href"}`
    *   for `url`, `transform:[{kind:"number"}]` for `page`). `itemName` (a relative `querySelector`)
-   *   reads each item's name (absent = the item's own text). When `container` is set the rule is
-   *   **tiered**: `container` matches the repeated tier-1 group, `header` (relative) reads the group
-   *   name, and `extract.selector` matches the group's items (its children).
+   *   reads each item's name (absent = the item's own text). `itemUrl` (a relative `querySelector`)
+   *   optionally reads a per-item link's `href` into the entry's `url`, so the matched item can be a
+   *   **container** holding a separate name element and link element (siblings) rather than the link
+   *   itself; absent = today's behavior (the item element carries the value/link via `extract.read`).
+   *   When `container` is set the rule is **tiered**: `container` matches the repeated tier-1 group,
+   *   `header` (relative) reads the group name, and `extract.selector` matches the group's items.
    * - **`timestamp`** — `extract.selector` matches the element(s) whose **text** carries a list of
    *   `m:ss` / `h:mm:ss` timestamp lines (e.g. a video description); the engine parses each line into
    *   a flat entry whose `startValue` is the total number of **seconds**. `container`/`header`/
@@ -124,7 +134,8 @@ export type FillTarget
                 entryType: SectionFillEntryType;
                 container?: string;
                 header?: string;
-                itemName?: string; };
+                itemName?: string;
+                itemUrl?: string; };
 
 /** Entry types a `sections` fill target can build. `timestamp` is parsed from a text block. */
 export type SectionFillEntryType = "url" | "page" | "timestamp";
@@ -257,4 +268,27 @@ export interface ExtensionFillContext {
    * associations are absent (resolved in-browser).
    */
   associatedTerms?: Partial<Record<TaxonomyEntityAssociation, TaxonomyEntityTermRef[]>>;
+  /**
+   * Compact `{id, name}` option lists for the related taxonomies referenced by a `relation:<key>`
+   * target, so the popup can match an extracted name to an id (websites' `name` is the site name).
+   * Only referenced relations are populated.
+   */
+  relationOptions?: {
+    groups?: ExtensionFillTaxonomyOption[];
+    websites?: ExtensionFillTaxonomyOption[];
+    youtubeChannels?: ExtensionFillTaxonomyOption[];
+  };
+  /**
+   * All languages (for match-or-create by `isoCode`), present when any `language` target is
+   * configured. Paired with {@link primaryLanguageLevelId}.
+   */
+  languages?: { id: string;
+    name: string;
+    isoCode: string | null; }[];
+  /**
+   * The availability-kind "Primary Language" usage-level id used by a `language` target, or `null`
+   * when no such level exists (the popup then renders those rows disabled with a clear reason).
+   * Present when any `language` target is configured.
+   */
+  primaryLanguageLevelId?: string | null;
 }

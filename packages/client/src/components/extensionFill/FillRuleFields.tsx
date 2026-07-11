@@ -34,7 +34,9 @@ const PATH_MATCH_MODE_OPTIONS: KindOption<PathMatch["mode"]>[] = [
 /**
  * Swap a rule's target. When switching to an image target (the `image` kind, or a `taxonomyDirect`
  * entity image field), default the read to the `<img>` `src` attribute (unless the user already chose
- * an attribute) — the common way to grab a page image.
+ * an attribute) — the common way to grab a page image. When switching to a `taxonomyEntity`
+ * primary-language target with a still-blank extract, default to the `og:locale` meta tag — the usual
+ * page-language signal.
  */
 function applyTargetChange(
   rule: WebsiteExtensionFillRule,
@@ -52,6 +54,22 @@ function applyTargetChange(
           kind: "attr",
           name: "src",
         },
+      },
+    };
+  }
+  if (
+    target.kind === "taxonomyEntity"
+    && target.field === "language"
+    && !rule.extract.selector
+    && !rule.extract.metaKey
+  ) {
+    return {
+      ...rule,
+      target,
+      extract: {
+        ...rule.extract,
+        source: "meta",
+        metaKey: "og:locale",
       },
     };
   }

@@ -8,12 +8,16 @@ import type { PinnedSidebarEntityType } from "@eesimple/types";
 
 import {
   ArrowLeftIcon,
+  Ban,
   CheckIcon,
+  Clapperboard,
   EyeIcon,
+  FolderOpen,
   PencilIcon,
   PinIcon,
   PinOffIcon,
   PlusIcon,
+  ToggleLeft,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -128,8 +132,9 @@ export function EntityCommandGroup({
                 onClose();
               }}
             >
-              {value && <CheckIcon className="text-primary" />}
+              <ToggleLeft />
               {t(field.label)}
+              {value && <CheckIcon className="ml-auto text-primary" />}
             </CommandItem>
           );
         }
@@ -224,6 +229,7 @@ export function EntityChoiceSubPalette({
     ? choiceOptions.categories
     : choiceOptions.mediaTypes;
   const current = matched.entity ? field.getValue(matched.entity) : null;
+  const OptionIcon = field.options === "categories" ? FolderOpen : Clapperboard;
 
   return (
     <CommandGroup
@@ -243,8 +249,9 @@ export function EntityChoiceSubPalette({
         value="none"
         onSelect={() => onSelect(null)}
       >
-        {current === null && <CheckIcon className="text-primary" />}
+        <Ban />
         {t("None")}
+        {current === null && <CheckIcon className="ml-auto text-primary" />}
       </CommandItem>
       {options.map(option => (
         <CommandItem
@@ -252,8 +259,9 @@ export function EntityChoiceSubPalette({
           value={option.name}
           onSelect={() => onSelect(option.id)}
         >
-          {current === option.id && <CheckIcon className="text-primary" />}
+          <OptionIcon />
           {option.name}
+          {current === option.id && <CheckIcon className="ml-auto text-primary" />}
         </CommandItem>
       ))}
     </CommandGroup>

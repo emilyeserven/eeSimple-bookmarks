@@ -1,13 +1,13 @@
-import type { Bookmark, CustomProperty, SectionEntry } from "@eesimple/types";
+import type { Bookmark, CustomProperty } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { SectionEntryList } from "./bookmarkPropertyRowKinds";
 import { IsbnLinksPanel } from "./IsbnLinksPanel";
 import { PropertyQuickFilterLink } from "./PropertyQuickFilterLink";
 import { StarRating } from "./StarRating";
 import i18n from "../i18n";
 import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
 import { buildBookmarkPropertyRows } from "../lib/bookmarkPropertyRows";
-import { formatSectionEntry } from "../lib/propertyFormat";
 
 import { LabeledSection } from "@/components/LabeledSection";
 
@@ -263,31 +263,7 @@ export function BookmarkPropertySections({
                   :
                 </dt>
                 <dd>
-                  {row.sections.length === 0
-                    ? <span className="text-xs text-muted-foreground">{i18n.t("No sections")}</span>
-                    : (
-                      <ul className="space-y-0.5 text-sm">
-                        {row.sections.map((entry: SectionEntry) => (
-                          <li key={entry.id}>
-                            {formatSectionEntry(entry)}
-                            {entry.children && entry.children.length > 0
-                              ? (
-                                <ul
-                                  className="
-                                    ml-4 space-y-0.5 border-l pl-2
-                                    text-muted-foreground
-                                  "
-                                >
-                                  {entry.children.map((child: SectionEntry) => (
-                                    <li key={child.id}>{formatSectionEntry(child)}</li>
-                                  ))}
-                                </ul>
-                              )
-                              : null}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                  <SectionEntryList sections={row.sections} />
                 </dd>
                 <PropertyQuickFilterLink
                   search={row.search}
