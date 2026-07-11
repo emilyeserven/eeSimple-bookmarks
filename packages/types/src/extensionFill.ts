@@ -124,10 +124,16 @@ export type FillTarget
    *   itself; absent = today's behavior (the item element carries the value/link via `extract.read`).
    *   When `container` is set the rule is **tiered**: `container` matches the repeated tier-1 group,
    *   `header` (relative) reads the group name, and `extract.selector` matches the group's items.
+   *   When `sectionMatch` is set the rule is instead **grouped by item text**: `extract.selector`
+   *   matches one **flat** list of items (no grouping container in the DOM — e.g. an O'Reilly ToC
+   *   where "Part 1" / "Chapter 1" / "Chapter 2" / "Part 2" are all siblings), and each item whose
+   *   name matches `sectionMatch` opens a new top-level section that keeps its own value/link and
+   *   nests the following non-matching items as its children; items before the first match stay
+   *   top-level. `sectionMatch` takes precedence over `container` when both are set.
    * - **`timestamp`** — `extract.selector` matches the element(s) whose **text** carries a list of
    *   `m:ss` / `h:mm:ss` timestamp lines (e.g. a video description); the engine parses each line into
    *   a flat entry whose `startValue` is the total number of **seconds**. `container`/`header`/
-   *   `itemName` are ignored.
+   *   `itemName`/`sectionMatch` are ignored.
    */
               | { kind: "sections";
                 propertyId: string;
@@ -135,7 +141,8 @@ export type FillTarget
                 container?: string;
                 header?: string;
                 itemName?: string;
-                itemUrl?: string; };
+                itemUrl?: string;
+                sectionMatch?: TextMatch; };
 
 /** Entry types a `sections` fill target can build. `timestamp` is parsed from a text block. */
 export type SectionFillEntryType = "url" | "page" | "timestamp";

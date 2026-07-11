@@ -383,6 +383,30 @@
       return parseTimestampSections(text, target.entryType);
     }
 
+    // Grouped by item text: one flat list of items (no DOM grouping container), classified by each
+    // item's name. An item whose name matches `sectionMatch` opens a new top-level section (keeping
+    // its own value/link) and the following non-matching items nest as its children; items before the
+    // first match stay top-level. Takes precedence over `container`.
+    if (target.sectionMatch) {
+      var groups = [];
+      var current = null;
+      candidateNodes(extract, doc).forEach(function (el) {
+        var leaf = buildSectionLeaf(el, target, extract);
+        if (matchesText(leaf.name, target.sectionMatch)) {
+          leaf.children = [];
+          groups.push(leaf);
+          current = leaf;
+        }
+        else if (current) {
+          current.children.push(leaf);
+        }
+        else {
+          groups.push(leaf);
+        }
+      });
+      return groups;
+    }
+
     // Tiered: a repeated container element carries a header and its own items (the children).
     if (target.container) {
       return Array.prototype.slice.call(doc.querySelectorAll(target.container)).map(function (group) {
