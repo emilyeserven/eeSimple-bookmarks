@@ -472,6 +472,12 @@ describe("describeFillRead", () => {
       name: "",
     })).toBe("Text content");
   });
+
+  it("names a background-image read", () => {
+    expect(describeFillRead({
+      kind: "backgroundImage",
+    })).toBe("Background image URL");
+  });
 });
 
 describe("describeFillFilter", () => {
@@ -711,6 +717,24 @@ describe("normalizeExtensionFillRules", () => {
     expect(set.pathMatch).toEqual({
       mode: "prefix",
       value: "/course/",
+    });
+  });
+
+  it("keeps a backgroundImage read on an image target", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "image",
+        setMain: true,
+      },
+      extract: {
+        selector: ".poster",
+        read: {
+          kind: "backgroundImage",
+        },
+      },
+    })]);
+    expect(out.extract.read).toEqual({
+      kind: "backgroundImage",
     });
   });
 

@@ -6,7 +6,26 @@ import { KindSelect, LabeledInput } from "./controls";
 
 type FillRead = NonNullable<FillExtract["read"]>;
 
-/** Editor for how a value is read from the matched node: trimmed text (default) or an attribute. */
+/** Build the new read from the selected kind, carrying the attribute name across an `attr` switch. */
+function nextRead(kind: FillRead["kind"], attrName: string): FillRead {
+  if (kind === "attr") {
+    return {
+      kind: "attr",
+      name: attrName,
+    };
+  }
+  if (kind === "backgroundImage") return {
+    kind: "backgroundImage",
+  };
+  return {
+    kind: "text",
+  };
+}
+
+/**
+ * Editor for how a value is read from the matched node: trimmed text (default), an attribute, or the
+ * `url(…)` from its computed `background-image` (for grabbing a CSS-painted image).
+ */
 export function FillReadField({
   read, onChange,
 }: {
@@ -32,15 +51,12 @@ export function FillReadField({
             value: "attr",
             label: t("Attribute"),
           },
+          {
+            value: "backgroundImage",
+            label: t("Background image URL"),
+          },
         ]}
-        onValueChange={next => onChange(next === "attr"
-          ? {
-            kind: "attr",
-            name: attrName,
-          }
-          : {
-            kind: "text",
-          })}
+        onValueChange={next => onChange(nextRead(next, attrName))}
       />
       {kind === "attr"
         ? (

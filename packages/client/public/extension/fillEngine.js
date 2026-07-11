@@ -90,12 +90,41 @@
     throw new Error("Unknown filter kind: " + filter.kind);
   }
 
+  // Pull the first `url(…)` out of a CSS `background-image` value. Handles quoted/unquoted urls and a
+  // multi-layer list (takes the first layer); returns null for `none` / no url.
+  function firstBackgroundImageUrl(value) {
+    if (!value || value === "none") return null;
+    var m = /url\(\s*(['"]?)([^'")]+)\1\s*\)/i.exec(value);
+    return m ? m[2].trim() : null;
+  }
+
+  // Read the element's computed `background-image` (falling back to its inline style when no computed
+  // style is available, e.g. a detached test document) and extract the first image URL.
+  function backgroundImageValue(el) {
+    var view = el.ownerDocument && el.ownerDocument.defaultView;
+    var raw = "";
+    if (view && typeof view.getComputedStyle === "function") {
+      try {
+        raw = view.getComputedStyle(el).backgroundImage || "";
+      }
+      catch {
+        raw = "";
+      }
+    }
+    var url = firstBackgroundImageUrl(raw);
+    if (url != null) return url;
+    return firstBackgroundImageUrl((el.style && el.style.backgroundImage) || "");
+  }
+
   // Read a raw string from an element. Returns null for a missing attribute so the caller drops it.
   function readValue(el, read) {
     if (!read || read.kind === "text") return trimmedText(el);
     if (read.kind === "attr") {
       var attr = el.getAttribute(read.name);
       return attr == null ? null : attr.trim();
+    }
+    if (read.kind === "backgroundImage") {
+      return backgroundImageValue(el);
     }
     throw new Error("Unknown read kind: " + read.kind);
   }

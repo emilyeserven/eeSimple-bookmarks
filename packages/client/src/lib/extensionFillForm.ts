@@ -209,9 +209,10 @@ export function describePathMatch(pathMatch: PathMatch): string {
   return `${PATH_MATCH_MODE_LABELS[pathMatch.mode]} "${pathMatch.value}"`;
 }
 
-/** A short summary of how the value is read: the attribute name, or trimmed text (the default). */
+/** A short summary of how the value is read: an attribute, a CSS background image, or trimmed text. */
 export function describeFillRead(read: FillExtract["read"]): string {
   if (read?.kind === "attr" && read.name) return `Attribute: ${read.name}`;
+  if (read?.kind === "backgroundImage") return "Background image URL";
   return "Text content";
 }
 
@@ -736,7 +737,10 @@ function cleanTransform(transform: FillTransform): FillTransform | null {
   }
 }
 
-/** Keep an `attr` read only when it names an attribute; omit `text` (the default). */
+/**
+ * Keep an `attr` read only when it names an attribute, and a `backgroundImage` read as-is; omit `text`
+ * (the default).
+ */
 function cleanRead(read: FillExtract["read"]): FillExtract["read"] | undefined {
   if (read?.kind === "attr" && read.name) {
     return {
@@ -744,6 +748,9 @@ function cleanRead(read: FillExtract["read"]): FillExtract["read"] | undefined {
       name: read.name,
     };
   }
+  if (read?.kind === "backgroundImage") return {
+    kind: "backgroundImage",
+  };
   return undefined;
 }
 

@@ -301,6 +301,51 @@ describe("eesimpleFillEngine.runRules — read", () => {
     };
     expect(runOne(rule, HTML).values).toEqual(["Learn Docker"]);
   });
+
+  it("backgroundImage — pulls the url out of an inline background-image style", () => {
+    const html = "<div class=\"poster\" style=\"background-image: url('https://cdn.example.com/cover.jpg')\"></div>";
+    const rule = {
+      id: "poster",
+      extract: {
+        selector: ".poster",
+        read: {
+          kind: "backgroundImage",
+        },
+      },
+    };
+    expect(runOne(rule, html).values).toEqual(["https://cdn.example.com/cover.jpg"]);
+  });
+
+  it("backgroundImage — takes the first layer and handles an unquoted url", () => {
+    const html = "<div class=\"poster\" style=\"background-image: url(https://cdn.example.com/a.png), url(b.png)\"></div>";
+    const rule = {
+      id: "poster",
+      extract: {
+        selector: ".poster",
+        read: {
+          kind: "backgroundImage",
+        },
+      },
+    };
+    expect(runOne(rule, html).values).toEqual(["https://cdn.example.com/a.png"]);
+  });
+
+  it("backgroundImage — no background image drops the candidate (empty, not error)", () => {
+    const html = "<div class=\"poster\"></div>";
+    const rule = {
+      id: "poster",
+      extract: {
+        selector: ".poster",
+        read: {
+          kind: "backgroundImage",
+        },
+      },
+    };
+    expect(runOne(rule, html)).toEqual({
+      ruleId: "poster",
+      values: [],
+    });
+  });
 });
 
 describe("eesimpleFillEngine.runRules — transforms", () => {
