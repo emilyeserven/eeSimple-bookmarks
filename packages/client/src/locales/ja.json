@@ -45,6 +45,7 @@
   "). Series links open": "). Series links open",
   "). The app appends": "). The app appends",
   "{{seconds}}s": "{{seconds}}s",
+  "{{title}} — ⌘/Ctrl+click to open the link in a new tab": "{{title}} — ⌘/Ctrl+click to open the link in a new tab",
   "**Actual title parsed:** {{title}}": "**Actual title parsed:** {{title}}",
   "**Error:** {{error}}": "**Error:** {{error}}",
   "**Expected title:** {{title}}": "**Expected title:** {{title}}",
