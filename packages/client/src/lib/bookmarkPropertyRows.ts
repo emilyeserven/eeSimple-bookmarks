@@ -232,8 +232,8 @@ export function buildBookmarkPropertyRows(
           name: property.name,
           current: entry.current,
           total: entry.total,
-          formatted: formatProgressValue(entry, property),
-          search: buildPropertyQuickSearch(property, formatProgressValue(entry, property)),
+          formatted: formatProgressValue(entry, property, bookmark.mediaType?.id ?? null),
+          search: buildPropertyQuickSearch(property, formatProgressValue(entry, property, bookmark.mediaType?.id ?? null)),
         }
         : null;
     })

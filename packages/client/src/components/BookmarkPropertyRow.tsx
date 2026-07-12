@@ -20,6 +20,8 @@ interface BookmarkPropertyRowProps {
   property: CustomProperty;
   /** When provided, a `clickableInView` boolean row renders as a toggle. */
   onSaveBoolean?: (propertyId: string, value: boolean) => void;
+  /** When provided, a sections row's entries render clickable done-checkboxes. */
+  onToggleSectionCompleted?: (propertyId: string, entryId: string, completed: boolean) => void;
 }
 
 /**
@@ -32,7 +34,7 @@ interface BookmarkPropertyRowProps {
  * exactly like the other self-hiding view fields.
  */
 export function BookmarkPropertyRow({
-  bookmark, property, onSaveBoolean,
+  bookmark, property, onSaveBoolean, onToggleSectionCompleted,
 }: BookmarkPropertyRowProps) {
   // The per-card boolean display knobs (show-if-false / colon / value-order / clickable) come from the
   // Default card display rule on non-listing surfaces like this one.
@@ -55,7 +57,14 @@ export function BookmarkPropertyRow({
   if (fileRows[0]) return <FileRowCell row={fileRows[0]} />;
   if (choicesRows[0]) return <ChoicesRowCell row={choicesRows[0]} />;
   if (progressRows[0]) return <ProgressRowCell row={progressRows[0]} />;
-  if (sectionsRows[0]) return <SectionsRowCell row={sectionsRows[0]} />;
+  if (sectionsRows[0]) {
+    return (
+      <SectionsRowCell
+        row={sectionsRows[0]}
+        onToggleCompleted={onToggleSectionCompleted}
+      />
+    );
+  }
   if (textRows[0]) return <TextRowCell row={textRows[0]} />;
   return null;
 }

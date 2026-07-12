@@ -239,21 +239,55 @@ export function ProgressRowCell({
   );
 }
 
+/** Ticked/unticked from the view surfaces — save wiring is the caller's (`onToggleCompleted`). */
+function SectionCompletedToggle({
+  entry, onToggleCompleted,
+}: {
+  entry: SectionEntry;
+  onToggleCompleted: (entryId: string, completed: boolean) => void;
+}) {
+  return (
+    <input
+      type="checkbox"
+      className="size-3.5 cursor-pointer accent-primary"
+      checked={entry.completed === true}
+      aria-label={i18n.t("Completed")}
+      title={i18n.t("Click to mark completed")}
+      onChange={event => onToggleCompleted(entry.id, event.target.checked)}
+    />
+  );
+}
+
 /**
  * One section entry: its name (a link when {@link sectionEntryLink} resolves), the positional value
  * (page range / timestamp) beside it, and — for a tier-1 entry — an indented nested list of its
  * children. Recurses exactly once; the model caps sections at depth 2 (children carry no `children`),
  * so this never renders a third tier. The single source of truth for section display, used by both
- * `SectionsRowCell` and the flat `BookmarkPropertySections`.
+ * `SectionsRowCell` and the flat `BookmarkPropertySections`. With `onToggleCompleted` wired, each
+ * entry gets a clickable done-checkbox (ticking a section ticks its sub-items server-side); a
+ * completed entry renders struck through.
  */
 function SectionEntryItem({
-  entry,
-}: { entry: SectionEntry }) {
+  entry, onToggleCompleted,
+}: {
+  entry: SectionEntry;
+  onToggleCompleted?: (entryId: string, completed: boolean) => void;
+}) {
   const link = sectionEntryLink(entry);
   const positional = sectionEntryPositional(entry);
+  const done = entry.completed === true;
   return (
     <li>
-      <span>
+      <span className={done ? "line-through opacity-60" : undefined}>
+        {onToggleCompleted
+          ? (
+            <SectionCompletedToggle
+              entry={entry}
+              onToggleCompleted={onToggleCompleted}
+            />
+          )
+          : null}
+        {onToggleCompleted ? " " : null}
         {link
           ? (
             <a
@@ -277,6 +311,7 @@ function SectionEntryItem({
               <SectionEntryItem
                 key={child.id}
                 entry={child}
+                onToggleCompleted={onToggleCompleted}
               />
             ))}
           </ul>
@@ -288,8 +323,12 @@ function SectionEntryItem({
 
 /** A section value's entries as a two-tier list with clickable per-item links, or an empty state. */
 export function SectionEntryList({
-  sections,
-}: { sections: SectionEntry[] }) {
+  sections, onToggleCompleted,
+}: {
+  sections: SectionEntry[];
+  /** When set, each entry renders a clickable done-checkbox that calls back with its id. */
+  onToggleCompleted?: (entryId: string, completed: boolean) => void;
+}) {
   if (sections.length === 0) {
     return <span className="text-xs text-muted-foreground">{i18n.t("No sections")}</span>;
   }
@@ -299,6 +338,7 @@ export function SectionEntryList({
         <SectionEntryItem
           key={entry.id}
           entry={entry}
+          onToggleCompleted={onToggleCompleted}
         />
       ))}
     </ul>
@@ -306,8 +346,12 @@ export function SectionEntryList({
 }
 
 export function SectionsRowCell({
-  row,
-}: { row: SectionsPropertyRow }) {
+  row, onToggleCompleted,
+}: {
+  row: SectionsPropertyRow;
+  /** When set, the entries' done-checkboxes are clickable in view (mirrors `onSaveBoolean`). */
+  onToggleCompleted?: (propertyId: string, entryId: string, completed: boolean) => void;
+}) {
   return (
     <div className="group flex flex-col gap-1">
       <dt className="text-muted-foreground">
@@ -318,7 +362,12 @@ export function SectionsRowCell({
         :
       </dt>
       <dd>
-        <SectionEntryList sections={row.sections} />
+        <SectionEntryList
+          sections={row.sections}
+          onToggleCompleted={onToggleCompleted
+            ? (entryId, completed) => onToggleCompleted(row.id, entryId, completed)
+            : undefined}
+        />
       </dd>
       <PropertyQuickFilterLink
         search={row.search}

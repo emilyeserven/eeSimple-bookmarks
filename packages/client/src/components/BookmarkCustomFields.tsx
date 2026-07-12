@@ -16,7 +16,7 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import { selectVisibleFormProperties } from "./bookmarkFormProperties";
-import { DATE_POSTED_SLUG, ISBN_SLUG, PAGE_SECTIONS_SLUG, RUNTIME_SLUG } from "./bookmarkFormSchema";
+import { DATE_POSTED_SLUG, ISBN_SLUG, RUNTIME_SLUG, SECTIONS_SLUG } from "./bookmarkFormSchema";
 import {
   BooleanPropertyField,
   CategoryPropertyFileField,
@@ -29,6 +29,8 @@ import {
   TextPropertyField,
 } from "./BookmarkPropertyFields";
 import { useCategoryDefaults } from "../hooks/useCategories";
+import { useMediaTypes } from "../hooks/useMediaTypes";
+import { sectionEntryTypeHint } from "../lib/sectionEntryTypeHint";
 
 import { Label } from "@/components/ui/label";
 
@@ -149,6 +151,7 @@ export function CategoryCustomFields({
             key={property.id}
             property={property}
             bookmark={bookmark}
+            mediaTypeId={mediaTypeId}
             {...inputBundle}
           />
         ))}
@@ -160,6 +163,12 @@ export function CategoryCustomFields({
 export interface CategoryPropertyFieldProps extends CustomPropertyInputBundle {
   property: CustomProperty;
   bookmark: Bookmark | null;
+  /**
+   * The form's selected media type (create form). Edit surfaces omit it and the fields that care
+   * fall back to `bookmark.mediaTypeId`. Drives the itemInItems per-media-type text overrides and
+   * the sections default-entry-type hint.
+   */
+  mediaTypeId?: string | null;
 }
 
 function NumberField({
@@ -237,20 +246,31 @@ function ChoicesField({
 }
 
 function ItemInItemsField({
-  property, progressInputs, onProgressChange,
+  property, bookmark, mediaTypeId, progressInputs, sectionsInputs, onProgressChange,
 }: CategoryPropertyFieldProps) {
+  // Derived when the property is linked to a sections source that currently has entries — the
+  // server recomputes on save, so the inputs render disabled (the same countSectionLeaves rule
+  // seeds the live preview in useBookmarkPropertiesForm).
+  const sourceSections = property.itemInItemsSourcePropertyId
+    ? sectionsInputs[property.itemInItemsSourcePropertyId]?.sections
+    : undefined;
   return (
     <ItemInItemsPropertyField
       property={property}
       progress={progressInputs[property.id]}
+      mediaTypeId={mediaTypeId ?? bookmark?.mediaType?.id ?? null}
+      derived={(sourceSections?.length ?? 0) > 0}
       onChange={(field, value) => onProgressChange(property.id, field, value)}
     />
   );
 }
 
 function SectionsField({
-  property, sectionsInputs, onSectionsChange, onSectionsImport, isSectionsImportPending, onAddPeople,
+  property, bookmark, mediaTypeId, sectionsInputs, onSectionsChange, onSectionsImport, isSectionsImportPending, onAddPeople,
 }: CategoryPropertyFieldProps) {
+  const {
+    data: mediaTypes,
+  } = useMediaTypes();
   return (
     <SectionsPropertyField
       property={property}
@@ -259,11 +279,12 @@ function SectionsField({
         sections: [],
       }}
       onChange={value => onSectionsChange(property.id, value)}
-      onImport={property.slug === PAGE_SECTIONS_SLUG && onSectionsImport
+      onImport={property.slug === SECTIONS_SLUG && onSectionsImport
         ? () => onSectionsImport(property.id)
         : undefined}
-      isImportPending={property.slug === PAGE_SECTIONS_SLUG ? isSectionsImportPending : undefined}
+      isImportPending={property.slug === SECTIONS_SLUG ? isSectionsImportPending : undefined}
       onAddPeople={onAddPeople}
+      defaultTypeHint={sectionEntryTypeHint(mediaTypeId ?? bookmark?.mediaType?.id, mediaTypes ?? [])}
     />
   );
 }

@@ -18,16 +18,15 @@ export const RUNTIME_SLUG = "runtime";
 export const DATE_POSTED_SLUG = "date-posted";
 /** Built-in custom-property slug for the "Content Status" detail property, hidden from the form by default. */
 export const CONTENT_STATUS_SLUG = "content-status";
-/** Built-in custom-property slug for the "Page Progress" detail property, hidden from the form by default. */
-export const PAGE_PROGRESS_SLUG = "page-progress";
+/** Built-in custom-property slug for the "Progress" detail property, hidden from the form by default. */
+export const PROGRESS_SLUG = "progress";
 /** Built-in custom-property slug for the "Page Range" detail property, hidden from the form by default. */
 export const PAGE_RANGE_SLUG = "page-range";
-/** Built-in custom-property slug for the "Page Sections" detail property, hidden from the form by default. */
-export const PAGE_SECTIONS_SLUG = "page-sections";
-/** Built-in custom-property slug for the "Chapters" detail property, hidden from the form by default. */
-export const CHAPTERS_SLUG = "chapters";
-/** Built-in custom-property slug for the "URL Sections" detail property, hidden from the form by default. */
-export const URL_SECTIONS_SLUG = "url-sections";
+/**
+ * Built-in custom-property slug for the "Sections" detail property (the merger of the former
+ * Chapters / Page Sections / URL Sections built-ins), hidden from the form by default.
+ */
+export const SECTIONS_SLUG = "sections";
 
 /**
  * Built-in custom-property slugs treated as detail properties on the Add Bookmark form — better
@@ -38,11 +37,9 @@ export const BOOKMARK_FORM_DETAIL_SLUGS = [
   RUNTIME_SLUG,
   DATE_POSTED_SLUG,
   CONTENT_STATUS_SLUG,
-  PAGE_PROGRESS_SLUG,
+  PROGRESS_SLUG,
   PAGE_RANGE_SLUG,
-  PAGE_SECTIONS_SLUG,
-  CHAPTERS_SLUG,
-  URL_SECTIONS_SLUG,
+  SECTIONS_SLUG,
 ] as const;
 
 /**

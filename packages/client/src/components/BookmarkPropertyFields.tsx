@@ -5,7 +5,7 @@ import type {
   SectionEntryType,
 } from "@eesimple/types";
 
-import { SECTION_ENTRY_TYPES, SECTION_ENTRY_TYPE_LABELS } from "@eesimple/types";
+import { resolveItemInItemsTexts, SECTION_ENTRY_TYPES, SECTION_ENTRY_TYPE_LABELS } from "@eesimple/types";
 import { BookOpen, Loader2, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -132,21 +132,29 @@ export function RatingScalePropertyField({
 }
 
 export function ItemInItemsPropertyField({
-  property, progress, onChange,
+  property, progress, onChange, mediaTypeId = null, derived = false,
 }: {
   property: CustomProperty;
   progress: { current: string;
     total: string; } | undefined;
   onChange: (field: "current" | "total", value: string) => void;
+  /** The bookmark's media type, used to resolve the per-media-type text overrides. */
+  mediaTypeId?: string | null;
+  /**
+   * When true, this value is derived from the linked sections property's completion — the inputs
+   * render disabled with an explanatory hint (the server recomputes on every save).
+   */
+  derived?: boolean;
 }) {
   const {
     t,
   } = useTranslation();
   const current = progress?.current ?? "";
   const total = progress?.total ?? "";
-  const before = property.itemInItemsBeforeText ?? "";
-  const between = property.itemInItemsBetweenText ?? " of ";
-  const after = property.itemInItemsAfterText ?? "";
+  const texts = resolveItemInItemsTexts(property, mediaTypeId);
+  const before = texts.before ?? "";
+  const between = texts.between ?? t(" of ");
+  const after = texts.after ?? "";
   return (
     <div className="col-span-full space-y-1">
       <Label>{property.name}</Label>
@@ -159,6 +167,7 @@ export function ItemInItemsPropertyField({
           className="w-24"
           placeholder={t("Current")}
           value={current}
+          disabled={derived}
           onChange={event => onChange("current", event.target.value)}
         />
         <span className="text-sm text-muted-foreground">{between}</span>
@@ -167,12 +176,20 @@ export function ItemInItemsPropertyField({
           className="w-24"
           placeholder={t("Total")}
           value={total}
+          disabled={derived}
           onChange={event => onChange("total", event.target.value)}
         />
         {after
           ? <span className="text-sm text-muted-foreground">{after}</span>
           : null}
       </div>
+      {derived
+        ? (
+          <p className="text-xs text-muted-foreground">
+            {t("Derived automatically from the completed Sections items.")}
+          </p>
+        )
+        : null}
       <FieldDescription text={property.description} />
     </div>
   );
@@ -406,6 +423,27 @@ function RemoveEntryButton({
   );
 }
 
+/** The per-entry "done" checkbox shown at the left edge of a section/sub-item row. */
+function CompletedCheckbox({
+  entry, onToggle,
+}: {
+  entry: SectionEntry;
+  onToggle: (completed: boolean) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <Checkbox
+      className="mt-2.5"
+      checked={entry.completed === true}
+      aria-label={t("Completed")}
+      title={t("Completed")}
+      onCheckedChange={checked => onToggle(checked === true)}
+    />
+  );
+}
+
 /** One tier-1 section entry, with an indented child editor for its second-tier items. */
 function SectionRow({
   entry, allowedTypes, defaultType, onChange, onRemove,
@@ -425,9 +463,23 @@ function SectionRow({
       <div
         className="grid items-start gap-2"
         style={{
-          gridTemplateColumns: "1fr auto",
+          gridTemplateColumns: "auto 1fr auto",
         }}
       >
+        <CompletedCheckbox
+          entry={entry}
+          // Checking a section also checks all its sub-items (write-time cascade; unchecking too).
+          onToggle={completed => onChange({
+            ...entry,
+            completed,
+            ...(entry.children && {
+              children: entry.children.map(c => ({
+                ...c,
+                completed,
+              })),
+            }),
+          })}
+        />
         <SectionEntryInputs
           entry={entry}
           allowedTypes={allowedTypes}
@@ -449,9 +501,21 @@ function SectionRow({
             key={child.id}
             className="grid items-start gap-2"
             style={{
-              gridTemplateColumns: "1fr auto",
+              gridTemplateColumns: "auto 1fr auto",
             }}
           >
+            <CompletedCheckbox
+              entry={child}
+              onToggle={completed => onChange({
+                ...entry,
+                children: children.map(c => c.id === child.id
+                  ? {
+                    ...c,
+                    completed,
+                  }
+                  : c),
+              })}
+            />
             <SectionEntryInputs
               entry={child}
               allowedTypes={allowedTypes}
@@ -493,7 +557,7 @@ function SectionRow({
 }
 
 export function SectionsPropertyField({
-  property, value, onChange, onImport, isImportPending, onAddPeople,
+  property, value, onChange, onImport, isImportPending, onAddPeople, defaultTypeHint,
 }: {
   property: CustomProperty;
   value: { exhaustive: boolean;
@@ -505,12 +569,18 @@ export function SectionsPropertyField({
   isImportPending?: boolean;
   /** Match-or-create parsed author names into the bookmark's People (paste-to-parse). */
   onAddPeople?: (names: string[]) => void;
+  /**
+   * Fallback entry type for new rows when the property itself has no `sectionsDefaultType` —
+   * derived from the bookmark's media type (timestamp for video/audio, page for books, …).
+   */
+  defaultTypeHint?: SectionEntryType;
 }) {
   const {
     t,
   } = useTranslation();
   const allowedTypes = property.sectionsAllowedTypes ?? [...SECTION_ENTRY_TYPES];
-  const defaultType: SectionEntryType = (property.sectionsDefaultType ?? allowedTypes[0] ?? "url") as SectionEntryType;
+  const hint = defaultTypeHint && allowedTypes.includes(defaultTypeHint) ? defaultTypeHint : undefined;
+  const defaultType: SectionEntryType = (property.sectionsDefaultType ?? hint ?? allowedTypes[0] ?? "url") as SectionEntryType;
 
   function addSection(): void {
     onChange({

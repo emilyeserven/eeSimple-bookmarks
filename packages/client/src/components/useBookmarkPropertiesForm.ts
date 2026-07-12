@@ -2,7 +2,7 @@ import type { Bookmark, CustomProperty, SectionEntry } from "@eesimple/types";
 
 import { useEffect, useRef } from "react";
 
-import { propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple/types";
+import { countSectionLeaves, propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple/types";
 
 import {
   buildAllPropertyValues,
@@ -165,6 +165,19 @@ export function useBookmarkPropertiesForm(bookmark: Bookmark) {
       ...current,
       [id]: value,
     }));
+    // Live-preview any linked derived Progress value (the same countSectionLeaves rule the server
+    // applies on save, so the disabled inputs track the checkboxes in real time).
+    const derived = (customProperties ?? []).filter(p => p.itemInItemsSourcePropertyId === id);
+    if (derived.length > 0 && value.sections.length > 0) {
+      const counts = countSectionLeaves(value.sections);
+      setProgressInputs(current => ({
+        ...current,
+        ...Object.fromEntries(derived.map(p => [p.id, {
+          current: String(counts.completed),
+          total: String(counts.total),
+        }])),
+      }));
+    }
   }
   function handleTextChange(id: string, value: string): void {
     setTextInputs(current => ({

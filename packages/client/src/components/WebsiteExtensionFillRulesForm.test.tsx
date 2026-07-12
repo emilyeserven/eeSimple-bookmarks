@@ -10,8 +10,8 @@ vi.mock("../hooks/useCustomProperties", () => ({
   useCustomProperties: () => ({
     data: [makeCustomProperty({
       id: "prop-progress",
-      name: "Page progress",
-      slug: "page-progress",
+      name: "Progress",
+      slug: "progress",
       type: "number",
     })],
     isLoading: false,
@@ -73,7 +73,7 @@ describe("WebsiteExtensionFillRulesForm", () => {
 
     // Full detail is shown read-only: the label, the resolved property name, selector, filter, transform.
     expect(screen.getByText("Print length")).toBeInTheDocument();
-    expect(screen.getByText("Page progress")).toBeInTheDocument();
+    expect(screen.getByText("Progress")).toBeInTheDocument();
     expect(screen.getByText("._statBlockTitle_1ckth_86 > *")).toBeInTheDocument();
     expect(screen.getByText("Sibling text contains \"PRINT LENGTH:\"")).toBeInTheDocument();
     expect(screen.getByText("First number")).toBeInTheDocument();

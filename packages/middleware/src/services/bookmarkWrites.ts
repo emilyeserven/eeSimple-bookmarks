@@ -1,4 +1,4 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, isNotNull } from "drizzle-orm";
 import type {
   BookmarkBooleanValue,
   BookmarkChoicesValue,
@@ -7,7 +7,9 @@ import type {
   BookmarkProgressValue,
   BookmarkSectionsValue,
   BookmarkTextValue,
+  SectionEntry,
 } from "@eesimple/types";
+import { countSectionLeaves } from "@eesimple/types";
 import { db } from "@/db";
 import {
   bookmarkPeople,
@@ -226,6 +228,58 @@ export async function setTextValues(
     propertyId: entry.propertyId,
     value: entry.value,
   })));
+}
+
+/**
+ * Recompute and persist the derived value of every itemInItems property that is linked to a
+ * `sections` source property (`itemInItemsSourcePropertyId`), for one bookmark: `total` = the
+ * source's leaf count, `current` = its completed leaves (the shared `countSectionLeaves` rule, so
+ * client previews and stored values can never disagree). Upserts `bookmark_progress_values`, so the
+ * derived value overrides a stale client-sent manual value; when the bookmark has no (or an empty)
+ * source sections value the row is left alone — manual entry still works before any sections exist.
+ * Must run after the bookmark's progress AND sections values are written; runs on create and
+ * update, which also covers the detail-page completion toggle and the extension's PATCH.
+ */
+export async function recomputeDerivedProgress(tx: Tx, bookmarkId: string): Promise<void> {
+  const linkedProps = await tx
+    .select({
+      id: customProperties.id,
+      sourcePropertyId: customProperties.itemInItemsSourcePropertyId,
+    })
+    .from(customProperties)
+    .where(and(eq(customProperties.type, "itemInItems"), isNotNull(customProperties.itemInItemsSourcePropertyId)));
+  if (linkedProps.length === 0) return;
+
+  const sourceIds = [...new Set(linkedProps.map(prop => prop.sourcePropertyId).filter((id): id is string => id !== null))];
+  const sourceRows = await tx
+    .select({
+      propertyId: bookmarkSectionsValues.propertyId,
+      sections: bookmarkSectionsValues.sections,
+    })
+    .from(bookmarkSectionsValues)
+    .where(and(eq(bookmarkSectionsValues.bookmarkId, bookmarkId), inArray(bookmarkSectionsValues.propertyId, sourceIds)));
+  const sectionsBySourceId = new Map(sourceRows.map(row => [row.propertyId, row.sections as SectionEntry[]]));
+
+  for (const prop of linkedProps) {
+    const sections = prop.sourcePropertyId ? sectionsBySourceId.get(prop.sourcePropertyId) : undefined;
+    if (!sections || sections.length === 0) continue;
+    const counts = countSectionLeaves(sections);
+    await tx
+      .insert(bookmarkProgressValues)
+      .values({
+        bookmarkId,
+        propertyId: prop.id,
+        current: counts.completed,
+        total: counts.total,
+      })
+      .onConflictDoUpdate({
+        target: [bookmarkProgressValues.bookmarkId, bookmarkProgressValues.propertyId],
+        set: {
+          current: counts.completed,
+          total: counts.total,
+        },
+      });
+  }
 }
 
 /**

@@ -44,8 +44,14 @@ export const DATE_POSTED_SLUG = "date-posted";
 /** Reserved slug + spec of the built-in "Content Status" choices property, seeded at boot. */
 export const CONTENT_STATUS_SLUG = "content-status";
 
-/** Reserved slug + spec of the built-in "Page Progress" itemInItems property, seeded at boot. */
-export const PAGE_PROGRESS_SLUG = "page-progress";
+/** Reserved slug + spec of the built-in "Progress" itemInItems property, seeded at boot. */
+export const PROGRESS_SLUG = "progress";
+
+/**
+ * Reserved slug + spec of the built-in "Sections" property, seeded at boot — the merger of the
+ * former Chapters / Page Sections / URL Sections built-ins (folded together in migrate.ts).
+ */
+export const SECTIONS_SLUG = "sections";
 
 /** Reserved slug + spec of the built-in "Page Range" itemInItems property, seeded at boot. */
 export const PAGE_RANGE_SLUG = "page-range";
@@ -110,6 +116,8 @@ function toCustomProperty(
     itemInItemsBeforeText: row.itemInItemsBeforeText ?? null,
     itemInItemsBetweenText: row.itemInItemsBetweenText ?? null,
     itemInItemsAfterText: row.itemInItemsAfterText ?? null,
+    itemInItemsMediaTypeTexts: (row.itemInItemsMediaTypeTexts as CustomProperty["itemInItemsMediaTypeTexts"]) ?? null,
+    itemInItemsSourcePropertyId: row.itemInItemsSourcePropertyId ?? null,
     sectionsDefaultType: (row.sectionsDefaultType as CustomProperty["sectionsDefaultType"]) ?? null,
     sectionsAllowedTypes: (row.sectionsAllowedTypes as CustomProperty["sectionsAllowedTypes"]) ?? null,
     sectionsTiered: row.sectionsTiered ?? null,
@@ -119,7 +127,7 @@ function toCustomProperty(
 }
 
 /** Slugs reserved for real sub-routes + built-ins, so a property can never shadow them. */
-const RESERVED_SLUGS = ["new", RUNTIME_SLUG, CONTENT_STATUS_SLUG, PAGE_PROGRESS_SLUG, ISBN_SLUG];
+const RESERVED_SLUGS = ["new", RUNTIME_SLUG, CONTENT_STATUS_SLUG, PROGRESS_SLUG, SECTIONS_SLUG, ISBN_SLUG];
 
 /** Existing property slugs plus reserved route words, optionally excluding one id (when renaming). */
 async function takenSlugs(excludeId?: string): Promise<string[]> {
@@ -394,6 +402,8 @@ export type UpdatePatch = Partial<
     | "itemInItemsBeforeText"
     | "itemInItemsBetweenText"
     | "itemInItemsAfterText"
+    | "itemInItemsMediaTypeTexts"
+    | "itemInItemsSourcePropertyId"
     | "sectionsDefaultType"
     | "sectionsAllowedTypes"
     | "sectionsTiered"
@@ -453,6 +463,8 @@ const COPYABLE_FIELDS = [
   "itemInItemsBeforeText",
   "itemInItemsBetweenText",
   "itemInItemsAfterText",
+  "itemInItemsMediaTypeTexts",
+  "itemInItemsSourcePropertyId",
   "sectionsDefaultType",
   "sectionsAllowedTypes",
   "sectionsTiered",
@@ -841,16 +853,23 @@ export async function ensureContentStatusProperty(): Promise<string> {
 }
 
 /**
- * Ensure the built-in "Page Progress" itemInItems property exists. Idempotent and safe to call at
- * boot in every environment. Pre-configured as `{current} of {total} pages`.
+ * Ensure the built-in "Progress" itemInItems property exists. Idempotent and safe to call at boot
+ * in every environment — must run after {@link ensureSectionsProperty} (the fresh-install seed
+ * links Progress to derive from Sections completion) and after ensureBuiltInMediaTypes (the seed's
+ * per-media-type text override references the "book" media type).
+ *
+ * The update branch deliberately re-asserts only the identity flags: the text segments, the
+ * per-media-type overrides, and the derive-from link are all user-configurable, so re-asserting
+ * them here would clobber the user's edits on every boot (as the old ensurePageProgressProperty
+ * did). A fresh install renders `{current} of {total}` with a book-scoped " pages" suffix.
  */
-export async function ensurePageProgressProperty(): Promise<string> {
+export async function ensureProgressProperty(sectionsPropertyId: string | null): Promise<string> {
   const [existing] = await db
     .select({
       id: customProperties.id,
     })
     .from(customProperties)
-    .where(eq(customProperties.slug, PAGE_PROGRESS_SLUG));
+    .where(eq(customProperties.slug, PROGRESS_SLUG));
   if (existing) {
     await db
       .update(customProperties)
@@ -858,18 +877,22 @@ export async function ensurePageProgressProperty(): Promise<string> {
         builtIn: true,
         enabled: true,
         allCategories: true,
-        itemInItemsBetweenText: " of ",
-        itemInItemsAfterText: " pages",
       })
       .where(eq(customProperties.id, existing.id));
     return existing.id;
   }
 
+  const [bookMediaType] = await db
+    .select({
+      id: mediaTypes.id,
+    })
+    .from(mediaTypes)
+    .where(eq(mediaTypes.slug, "book"));
   const [row] = await db
     .insert(customProperties)
     .values({
-      name: "Page Progress",
-      slug: PAGE_PROGRESS_SLUG,
+      name: "Progress",
+      slug: PROGRESS_SLUG,
       type: "itemInItems",
       builtIn: true,
       allCategories: true,
@@ -877,7 +900,15 @@ export async function ensurePageProgressProperty(): Promise<string> {
       showInListings: true,
       itemInItemsBeforeText: null,
       itemInItemsBetweenText: " of ",
-      itemInItemsAfterText: " pages",
+      itemInItemsAfterText: null,
+      itemInItemsMediaTypeTexts: bookMediaType
+        ? {
+          [bookMediaType.id]: {
+            afterText: " pages",
+          },
+        }
+        : null,
+      itemInItemsSourcePropertyId: sectionsPropertyId,
     })
     .onConflictDoNothing({
       target: customProperties.slug,
@@ -888,7 +919,7 @@ export async function ensurePageProgressProperty(): Promise<string> {
   if (row) return row.id;
 
   // Lost a concurrent insert race — re-read the row the other writer created.
-  return readPropertyIdBySlug(PAGE_PROGRESS_SLUG);
+  return readPropertyIdBySlug(PROGRESS_SLUG);
 }
 
 /**
@@ -949,177 +980,63 @@ export async function ensurePageRangeProperty(): Promise<string> {
   return propertyId;
 }
 
-/** Reserved slug for the built-in "Chapters" sections property (timestamps for video/audio). */
-export const CHAPTERS_SLUG = "chapters";
-
-/** Reserved slug for the built-in "Page Sections" sections property (books). */
-export const PAGE_SECTIONS_SLUG = "page-sections";
-
-/** Reserved slug for the built-in "URL Sections" sections property (websites/apps). */
-export const URL_SECTIONS_SLUG = "url-sections";
-
 /**
- * Ensure the built-in "Chapters" sections property exists and is scoped to the Video and Audio
- * media types (and their children). Idempotent — safe to call at boot. Default type: timestamp.
+ * Ensure the built-in "Sections" property exists — the single generic sections list (the merger of
+ * the former Chapters / Page Sections / URL Sections built-ins; migrate.ts folds pre-existing
+ * deploys into it). Available everywhere (all categories + all media types), tiered (sub-items),
+ * with every entry type allowed and no default type preference — the client picks a sensible
+ * default entry type from the bookmark's media type instead. Idempotent — safe to call at boot.
+ *
+ * The update branch re-asserts only the identity flags: the entry-type config and description are
+ * user-configurable, so re-asserting them would clobber user edits on every boot (as the old
+ * per-property seeds did).
  */
-export async function ensureChaptersProperty(): Promise<string> {
+export async function ensureSectionsProperty(): Promise<string> {
   const [existing] = await db
     .select({
       id: customProperties.id,
     })
     .from(customProperties)
-    .where(eq(customProperties.slug, CHAPTERS_SLUG));
-
-  let propertyId: string;
+    .where(eq(customProperties.slug, SECTIONS_SLUG));
   if (existing) {
     await db
       .update(customProperties)
       .set({
         builtIn: true,
         enabled: true,
-        allCategories: false,
-        sectionsDefaultType: "timestamp",
-        sectionsAllowedTypes: null,
+        allCategories: true,
+        allMediaTypes: true,
       })
       .where(eq(customProperties.id, existing.id));
-    propertyId = existing.id;
-  }
-  else {
-    const [row] = await db
-      .insert(customProperties)
-      .values({
-        name: "Chapters",
-        slug: CHAPTERS_SLUG,
-        type: "sections",
-        builtIn: true,
-        allCategories: false,
-        showInForm: true,
-        showInListings: false,
-        sectionsDefaultType: "timestamp",
-        sectionsAllowedTypes: null,
-        description: "Timestamps or chapters in this video or audio content.",
-      })
-      .onConflictDoNothing({
-        target: customProperties.slug,
-      })
-      .returning({
-        id: customProperties.id,
-      });
-    propertyId = row ? row.id : await readPropertyIdBySlug(CHAPTERS_SLUG);
+    return existing.id;
   }
 
-  await scopePropertyToVideoAudioTree(propertyId);
-  return propertyId;
-}
-
-/**
- * Ensure the built-in "Page Sections" sections property exists and is scoped to the Book media
- * type. Idempotent — safe to call at boot. Default type: page.
- */
-export async function ensurePageSectionsProperty(): Promise<string> {
-  const [existing] = await db
-    .select({
-      id: customProperties.id,
+  const [row] = await db
+    .insert(customProperties)
+    .values({
+      name: "Sections",
+      slug: SECTIONS_SLUG,
+      type: "sections",
+      builtIn: true,
+      allCategories: true,
+      allMediaTypes: true,
+      showInForm: true,
+      showInListings: false,
+      sectionsDefaultType: null,
+      sectionsAllowedTypes: null,
+      sectionsTiered: true,
+      description: "Chapters, sections, or parts of this content — with URLs, page numbers, or timestamps.",
     })
-    .from(customProperties)
-    .where(eq(customProperties.slug, PAGE_SECTIONS_SLUG));
-
-  let propertyId: string;
-  if (existing) {
-    await db
-      .update(customProperties)
-      .set({
-        builtIn: true,
-        enabled: true,
-        allCategories: false,
-        sectionsDefaultType: "page",
-        sectionsAllowedTypes: null,
-      })
-      .where(eq(customProperties.id, existing.id));
-    propertyId = existing.id;
-  }
-  else {
-    const [row] = await db
-      .insert(customProperties)
-      .values({
-        name: "Page Sections",
-        slug: PAGE_SECTIONS_SLUG,
-        type: "sections",
-        builtIn: true,
-        allCategories: false,
-        showInForm: true,
-        showInListings: false,
-        sectionsDefaultType: "page",
-        sectionsAllowedTypes: null,
-        description: "Page number ranges for chapters or sections in this book.",
-      })
-      .onConflictDoNothing({
-        target: customProperties.slug,
-      })
-      .returning({
-        id: customProperties.id,
-      });
-    propertyId = row ? row.id : await readPropertyIdBySlug(PAGE_SECTIONS_SLUG);
-  }
-
-  await scopePropertyToMediaTypeSlug(propertyId, "book");
-
-  return propertyId;
-}
-
-/**
- * Ensure the built-in "URL Sections" sections property exists and is scoped to the Website/App
- * media type. Idempotent — safe to call at boot. Default type: url.
- */
-export async function ensureUrlSectionsProperty(): Promise<string> {
-  const [existing] = await db
-    .select({
-      id: customProperties.id,
+    .onConflictDoNothing({
+      target: customProperties.slug,
     })
-    .from(customProperties)
-    .where(eq(customProperties.slug, URL_SECTIONS_SLUG));
+    .returning({
+      id: customProperties.id,
+    });
+  if (row) return row.id;
 
-  let propertyId: string;
-  if (existing) {
-    await db
-      .update(customProperties)
-      .set({
-        builtIn: true,
-        enabled: true,
-        allCategories: false,
-        sectionsDefaultType: "url",
-        sectionsAllowedTypes: null,
-      })
-      .where(eq(customProperties.id, existing.id));
-    propertyId = existing.id;
-  }
-  else {
-    const [row] = await db
-      .insert(customProperties)
-      .values({
-        name: "URL Sections",
-        slug: URL_SECTIONS_SLUG,
-        type: "sections",
-        builtIn: true,
-        allCategories: false,
-        showInForm: true,
-        showInListings: false,
-        sectionsDefaultType: "url",
-        sectionsAllowedTypes: null,
-        description: "URL-based sections or anchor links within this website or app.",
-      })
-      .onConflictDoNothing({
-        target: customProperties.slug,
-      })
-      .returning({
-        id: customProperties.id,
-      });
-    propertyId = row ? row.id : await readPropertyIdBySlug(URL_SECTIONS_SLUG);
-  }
-
-  await scopePropertyToMediaTypeSlug(propertyId, "website-app");
-
-  return propertyId;
+  // Lost a concurrent insert race — re-read the row the other writer created.
+  return readPropertyIdBySlug(SECTIONS_SLUG);
 }
 
 /**
@@ -1137,17 +1054,17 @@ export async function getContentStatusPropertyId(): Promise<string | null> {
 }
 
 /**
- * Look up the built-in "Chapters" sections property id at request time, or `null` when it hasn't
- * been seeded yet. Read-only (never seeds) — used by the extension fill-context to target the
+ * Look up the built-in "Sections" property id at request time, or `null` when it hasn't been
+ * seeded yet. Read-only (never seeds) — used by the extension fill-context to target the
  * synthetic YouTube chapters rule. Mirrors {@link getContentStatusPropertyId}.
  */
-export async function getChaptersPropertyId(): Promise<string | null> {
+export async function getSectionsPropertyId(): Promise<string | null> {
   const [row] = await db
     .select({
       id: customProperties.id,
     })
     .from(customProperties)
-    .where(eq(customProperties.slug, CHAPTERS_SLUG));
+    .where(eq(customProperties.slug, SECTIONS_SLUG));
   return row?.id ?? null;
 }
 

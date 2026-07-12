@@ -77,12 +77,12 @@ export const Empty: Story = {
 };
 
 // Multi-value properties so the per-value sub-selectors (Current/Total, option) render: a
-// Two-Numbers "Page progress" property and a multi-select "Status" choices property.
+// Two-Numbers "Progress" property and a multi-select "Status" choices property.
 const multiValueProperties = [
   makeCustomProperty({
     id: "prop-progress",
-    name: "Page progress",
-    slug: "page-progress",
+    name: "Progress",
+    slug: "progress",
     type: "itemInItems",
   }),
   makeCustomProperty({

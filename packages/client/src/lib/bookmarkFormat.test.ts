@@ -1,7 +1,9 @@
 // @vitest-environment node
+import type { BookmarkSectionsValue } from "@eesimple/types";
+
 import { describe, expect, it } from "vitest";
 
-import { formatBoolean, formatBooleanBadge, formatDuration, formatNumber } from "./bookmarkFormat";
+import { formatBoolean, formatBooleanBadge, formatDuration, formatNumber, mergeSectionsCompleted } from "./bookmarkFormat";
 import { makeCustomProperty as property } from "../test-utils/factories";
 
 describe("formatNumber", () => {
@@ -167,5 +169,57 @@ describe("formatDuration", () => {
     expect(formatDuration(0)).toBe("0:00");
     expect(formatDuration(-10)).toBe("0:00");
     expect(formatDuration(Number.NaN)).toBe("0:00");
+  });
+});
+
+describe("mergeSectionsCompleted", () => {
+  const values: BookmarkSectionsValue[] = [
+    {
+      propertyId: "sections-1",
+      exhaustive: false,
+      sections: [
+        {
+          id: "a",
+          name: "Unit 1",
+          type: "page",
+          startValue: "1",
+          children: [
+            {
+              id: "a1",
+              name: "1.1",
+              type: "page",
+              startValue: "1",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      propertyId: "sections-2",
+      exhaustive: true,
+      sections: [
+        {
+          id: "b",
+          name: "Other",
+          type: "url",
+          startValue: "https://example.com",
+        },
+      ],
+    },
+  ];
+
+  it("flips one entry inside the matching property's value, cascading a parent to its children", () => {
+    const out = mergeSectionsCompleted(values, "sections-1", "a", true);
+    expect(out[0].sections[0].completed).toBe(true);
+    expect(out[0].sections[0].children?.[0].completed).toBe(true);
+    // The other property's value is untouched (same reference).
+    expect(out[1]).toBe(values[1]);
+    // The input is not mutated.
+    expect(values[0].sections[0].completed).toBeUndefined();
+  });
+
+  it("returns the values unchanged when no entry matches the property id", () => {
+    const out = mergeSectionsCompleted(values, "sections-missing", "a", true);
+    expect(out).toEqual(values);
   });
 });

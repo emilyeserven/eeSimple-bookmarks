@@ -90,6 +90,15 @@ export const propertySchema = z
     itemInItemsBeforeText: z.string(),
     itemInItemsBetweenText: z.string(),
     itemInItemsAfterText: z.string(),
+    // Editable as an array of rows (record-keyed jsonb on the wire; empty string = inherit base).
+    itemInItemsMediaTypeTexts: z.array(z.object({
+      mediaTypeId: z.string(),
+      beforeText: z.string(),
+      betweenText: z.string(),
+      afterText: z.string(),
+    })),
+    // Empty string = no source (manual entry); plays nicely with the string-typed ComboboxField.
+    itemInItemsSourcePropertyId: z.string(),
     sectionsDefaultType: z.enum(SECTION_ENTRY_TYPES).nullable(),
     sectionsAllowedTypes: z.array(z.enum(SECTION_ENTRY_TYPES)),
     sectionsTiered: z.boolean(),
@@ -155,6 +164,8 @@ export const CREATE_DEFAULTS: PropertyFormValues = {
   itemInItemsBeforeText: "",
   itemInItemsBetweenText: " of ",
   itemInItemsAfterText: "",
+  itemInItemsMediaTypeTexts: [],
+  itemInItemsSourcePropertyId: "",
   sectionsDefaultType: null,
   sectionsAllowedTypes: [],
   sectionsTiered: false,
@@ -313,6 +324,15 @@ export function valuesFromProperty(property: CustomProperty): PropertyFormValues
     itemInItemsBeforeText: property.itemInItemsBeforeText ?? "",
     itemInItemsBetweenText: property.itemInItemsBetweenText ?? " of ",
     itemInItemsAfterText: property.itemInItemsAfterText ?? "",
+    itemInItemsMediaTypeTexts: Object.entries(property.itemInItemsMediaTypeTexts ?? {}).map(
+      ([mediaTypeId, texts]) => ({
+        mediaTypeId,
+        beforeText: texts.beforeText ?? "",
+        betweenText: texts.betweenText ?? "",
+        afterText: texts.afterText ?? "",
+      }),
+    ),
+    itemInItemsSourcePropertyId: property.itemInItemsSourcePropertyId ?? "",
     sectionsDefaultType: property.sectionsDefaultType ?? null,
     sectionsAllowedTypes: property.sectionsAllowedTypes ?? [],
     sectionsTiered: property.sectionsTiered ?? false,
@@ -385,12 +405,26 @@ function choicesPayloadFields(values: PropertyFormValues): Pick<
 function itemInItemsPayloadFields(values: PropertyFormValues): Pick<
   CreateCustomPropertyInput,
   "itemInItemsBeforeText" | "itemInItemsBetweenText" | "itemInItemsAfterText"
+  | "itemInItemsMediaTypeTexts" | "itemInItemsSourcePropertyId"
 > {
   const isItemInItems = values.type === "itemInItems";
+  // Rows editable as an array in the form become the record-keyed jsonb; a row with no media type
+  // or with every segment blank contributes nothing (blank = inherit the base text).
+  const overrides = Object.fromEntries(
+    values.itemInItemsMediaTypeTexts
+      .filter(row => row.mediaTypeId && (row.beforeText || row.betweenText || row.afterText))
+      .map(row => [row.mediaTypeId, {
+        beforeText: row.beforeText || null,
+        betweenText: row.betweenText || null,
+        afterText: row.afterText || null,
+      }]),
+  );
   return {
     itemInItemsBeforeText: isItemInItems ? (values.itemInItemsBeforeText || null) : null,
     itemInItemsBetweenText: isItemInItems ? (values.itemInItemsBetweenText || null) : null,
     itemInItemsAfterText: isItemInItems ? (values.itemInItemsAfterText || null) : null,
+    itemInItemsMediaTypeTexts: isItemInItems && Object.keys(overrides).length > 0 ? overrides : null,
+    itemInItemsSourcePropertyId: isItemInItems ? (values.itemInItemsSourcePropertyId || null) : null,
   };
 }
 

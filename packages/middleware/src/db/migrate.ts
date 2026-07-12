@@ -316,6 +316,185 @@ const migrations: RuntimeMigration[] = [
       )
     `),
   },
+  // ── Page Progress → Progress rename + Chapters/Page Sections/URL Sections → Sections merge ──────
+  // The built-in "Page Progress" property is genericized to "Progress" (name AND slug; the row is
+  // renamed IN PLACE so its UUID — and therefore every stored condition/fill-rule/value reference —
+  // stays valid). The three built-in sections properties are merged into one "Sections" property by
+  // REPURPOSING the Chapters row as the survivor (again preserving a UUID) and folding the other two
+  // properties' value rows into it; the two retired UUIDs are rewritten across every jsonb column
+  // that can carry a custom-property id. All steps are guarded so they no-op after the first
+  // migrating boot and on fresh installs (where the seeds create the new-slug rows directly).
+  {
+    // A user-created property could legitimately hold the slug the built-in is about to take
+    // (uniqueSlug only suffixes on conflict at create time). Park it out of the way first — only
+    // when the built-in old-slug row actually exists (i.e. the rename below is about to fire).
+    name: "park colliding user slug progress",
+    run: db => db.execute(sql`
+      UPDATE "custom_properties" SET "slug" = 'progress-user'
+      WHERE "slug" = 'progress' AND "built_in" = false
+        AND EXISTS (SELECT 1 FROM "custom_properties" WHERE "slug" = 'page-progress' AND "built_in")
+    `),
+  },
+  {
+    name: "park colliding user slug sections",
+    run: db => db.execute(sql`
+      UPDATE "custom_properties" SET "slug" = 'sections-user'
+      WHERE "slug" = 'sections' AND "built_in" = false
+        AND EXISTS (SELECT 1 FROM "custom_properties" WHERE "slug" = 'chapters' AND "built_in")
+    `),
+  },
+  {
+    // Rename in place — UUID preserved, so no value-row or jsonb reference needs rewriting for
+    // Progress. Existing deploys keep their configured " of "/" pages" base texts; per-media-type
+    // overrides are configured via the property options UI.
+    name: "rename built-in page-progress to progress",
+    run: db => db.execute(sql`
+      UPDATE "custom_properties" SET "name" = 'Progress', "slug" = 'progress'
+      WHERE "slug" = 'page-progress' AND "built_in"
+    `),
+  },
+  {
+    // The Add Bookmark form placement map is keyed by slug — carry the user's stored choice over to
+    // the new key (the resolver drops unknown keys, so without this the placement would silently
+    // reset to the default).
+    name: "remap add-form placement key page-progress to progress",
+    run: db => db.execute(sql`
+      UPDATE "app_settings" SET "bookmark_form_built_in_placements" =
+        ("bookmark_form_built_in_placements" - 'page-progress')
+        || jsonb_build_object('progress', "bookmark_form_built_in_placements" -> 'page-progress')
+      WHERE "bookmark_form_built_in_placements" ? 'page-progress'
+    `),
+  },
+  {
+    // Advanced placement rules key their sparse propertyPlacements by slug too. Rewrite the JSON
+    // object keys textually (`"old-slug":` → `"new-slug":`); when a rule repositioned two of the
+    // merged slugs the text cast keeps the last duplicate key, which is an acceptable pick.
+    name: "remap add-form advanced-rule placement slugs",
+    run: db => db.execute(sql`
+      UPDATE "app_settings" SET "bookmark_form_advanced_rules" = REPLACE(REPLACE(REPLACE(REPLACE(
+        "bookmark_form_advanced_rules"::text,
+        '"page-progress":', '"progress":'),
+        '"page-sections":', '"sections":'),
+        '"url-sections":', '"sections":'),
+        '"chapters":', '"sections":')::jsonb
+      WHERE "bookmark_form_advanced_rules"::text LIKE ANY (ARRAY['%"page-progress":%', '%"page-sections":%', '%"url-sections":%', '%"chapters":%'])
+    `),
+  },
+  {
+    // Rewrite the two retiring property UUIDs (page-sections, url-sections) to the surviving
+    // Chapters UUID inside every jsonb column that can carry a custom-property id — stored
+    // extension fill rules, condition trees, card field zones/lists, page layouts, and saved
+    // filters. A text-level REPLACE is safe (UUIDs are globally unique strings). Runs only while
+    // the loser rows still exist, i.e. before the merge step below deletes them. Known cosmetic
+    // artifact: a structure that referenced two of the old properties ends up with a duplicate
+    // reference to the survivor (conditions OR the same predicate; a zone may list the field
+    // twice) — harmless, self-heals on the next user save.
+    name: "rewrite merged sections property ids in stored jsonb",
+    run: db => db.execute(sql`
+      DO $$
+      DECLARE
+        survivor text;
+        loser text;
+        tgt record;
+      BEGIN
+        SELECT "id"::text INTO survivor FROM "custom_properties" WHERE "slug" = 'chapters' AND "built_in";
+        IF survivor IS NULL THEN RETURN; END IF;
+        FOR loser IN
+          SELECT "id"::text FROM "custom_properties" WHERE "slug" IN ('page-sections', 'url-sections') AND "built_in"
+        LOOP
+          FOR tgt IN
+            SELECT * FROM (VALUES
+              ('websites', 'extension_fill_rules'),
+              ('autofill_rules', 'conditions'),
+              ('homepage_filter', 'conditions'),
+              ('homepage_sections', 'conditions'),
+              ('homepage_sections', 'field_zones'),
+              ('homepage_sections', 'hidden_card_fields'),
+              ('card_display_rules', 'conditions'),
+              ('card_display_rules', 'field_zones'),
+              ('card_display_rules', 'hidden_card_fields'),
+              ('card_display_rules', 'sections'),
+              ('import_rules', 'conditions'),
+              ('card_field_templates', 'field_zones'),
+              ('entity_layouts', 'layout'),
+              ('saved_filters', 'filters'),
+              ('app_settings', 'bookmark_form_advanced_rules')
+            ) AS t(tname, cname)
+          LOOP
+            EXECUTE format(
+              'UPDATE %I SET %I = REPLACE(%I::text, %L, %L)::jsonb WHERE %I::text LIKE %L',
+              tgt.tname, tgt.cname, tgt.cname, loser, survivor, tgt.cname, '%' || loser || '%'
+            );
+          END LOOP;
+        END LOOP;
+      END $$
+    `),
+  },
+  {
+    // Carry the most-visible stored placement of the three merged slugs over to the new
+    // 'sections' key (default beats advanced beats hidden).
+    name: "remap add-form placement keys for merged sections",
+    run: db => db.execute(sql`
+      UPDATE "app_settings" SET "bookmark_form_built_in_placements" =
+        ("bookmark_form_built_in_placements" - 'chapters' - 'page-sections' - 'url-sections')
+        || jsonb_build_object('sections', CASE
+          WHEN 'default' IN ("bookmark_form_built_in_placements" ->> 'chapters', "bookmark_form_built_in_placements" ->> 'page-sections', "bookmark_form_built_in_placements" ->> 'url-sections') THEN 'default'
+          WHEN 'advanced' IN ("bookmark_form_built_in_placements" ->> 'chapters', "bookmark_form_built_in_placements" ->> 'page-sections', "bookmark_form_built_in_placements" ->> 'url-sections') THEN 'advanced'
+          ELSE 'hidden'
+        END)
+      WHERE "bookmark_form_built_in_placements" ?| ARRAY['chapters', 'page-sections', 'url-sections']
+    `),
+  },
+  {
+    // The merge itself — one atomic DO block (a single statement, so an interrupted boot re-runs it
+    // cleanly). Folds each bookmark's up-to-three sections value rows into one row on the survivor
+    // (entries concatenated chapters → page-sections → url-sections, each list in stored order;
+    // nested children ride along verbatim inside the jsonb, so subsections survive; `exhaustive`
+    // stays true only if every merged source was exhaustive), deletes the two loser property rows
+    // (cascading their value rows + scope joins), and repurposes the survivor as the generic
+    // "Sections" property (all categories + media types, tiered, all entry types). Guarded on the
+    // built-in `chapters` slug still existing, so it runs exactly once.
+    name: "merge sections properties into one",
+    run: db => db.execute(sql`
+      DO $$
+      DECLARE
+        survivor uuid;
+        ps uuid;
+        us uuid;
+      BEGIN
+        SELECT "id" INTO survivor FROM "custom_properties" WHERE "slug" = 'chapters' AND "built_in";
+        IF survivor IS NULL THEN RETURN; END IF;
+        SELECT "id" INTO ps FROM "custom_properties" WHERE "slug" = 'page-sections' AND "built_in";
+        SELECT "id" INTO us FROM "custom_properties" WHERE "slug" = 'url-sections' AND "built_in";
+
+        INSERT INTO "bookmark_sections_values" ("bookmark_id", "property_id", "exhaustive", "sections")
+        SELECT s."bookmark_id", survivor, bool_and(s."exhaustive"),
+               COALESCE(jsonb_agg(s.elem ORDER BY s.prop_ord, s.elem_ord) FILTER (WHERE s.elem IS NOT NULL), '[]'::jsonb)
+        FROM (
+          SELECT bsv."bookmark_id", bsv."exhaustive",
+                 CASE bsv."property_id" WHEN survivor THEN 1 WHEN ps THEN 2 ELSE 3 END AS prop_ord,
+                 e.elem, e.elem_ord
+          FROM "bookmark_sections_values" bsv
+          LEFT JOIN LATERAL jsonb_array_elements(bsv."sections") WITH ORDINALITY AS e(elem, elem_ord) ON true
+          WHERE bsv."property_id" IN (survivor, ps, us)
+        ) s
+        GROUP BY s."bookmark_id"
+        ON CONFLICT ("bookmark_id", "property_id") DO UPDATE
+          SET "exhaustive" = EXCLUDED."exhaustive", "sections" = EXCLUDED."sections";
+
+        DELETE FROM "custom_properties" WHERE "id" IN (ps, us);
+
+        UPDATE "custom_properties"
+        SET "name" = 'Sections', "slug" = 'sections',
+            "all_categories" = true, "all_media_types" = true,
+            "sections_tiered" = true, "sections_allowed_types" = NULL, "sections_default_type" = NULL
+        WHERE "id" = survivor;
+
+        DELETE FROM "property_media_types" WHERE "property_id" = survivor;
+        DELETE FROM "property_categories" WHERE "property_id" = survivor;
+      END $$
+    `),
+  },
 ];
 
 async function main(): Promise<void> {

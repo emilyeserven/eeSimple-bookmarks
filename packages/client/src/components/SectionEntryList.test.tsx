@@ -1,7 +1,7 @@
 import type { SectionEntry } from "@eesimple/types";
 
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
 import { SectionEntryList } from "./bookmarkPropertyRowKinds";
 
@@ -99,5 +99,43 @@ describe("SectionEntryList", () => {
   it("shows an empty state when there are no sections", () => {
     render(<SectionEntryList sections={[]} />);
     expect(screen.getByText("No sections")).toBeInTheDocument();
+  });
+
+  it("renders no checkboxes without onToggleCompleted (view stays read-only)", () => {
+    render(
+      <SectionEntryList
+        sections={[entry({
+          completed: true,
+        })]}
+      />,
+    );
+    expect(screen.queryByRole("checkbox")).toBeNull();
+  });
+
+  it("with onToggleCompleted, renders a clickable done-checkbox per entry and child", () => {
+    const onToggle = vi.fn();
+    render(
+      <SectionEntryList
+        sections={[entry({
+          completed: true,
+          children: [entry({
+            id: "c1",
+            name: "Sub",
+          })],
+        })]}
+        onToggleCompleted={onToggle}
+      />,
+    );
+    const boxes = screen.getAllByRole("checkbox", {
+      name: "Completed",
+    });
+    expect(boxes).toHaveLength(2);
+    expect(boxes[0]).toBeChecked();
+    expect(boxes[1]).not.toBeChecked();
+    // Unchecking the completed parent calls back with its id and the next state.
+    fireEvent.click(boxes[0]);
+    expect(onToggle).toHaveBeenCalledWith("s1", false);
+    fireEvent.click(boxes[1]);
+    expect(onToggle).toHaveBeenCalledWith("c1", true);
   });
 });
