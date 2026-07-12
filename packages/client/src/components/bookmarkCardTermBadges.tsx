@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { Fragment } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import i18n from "@/i18n";
 import { resolveTermDisplay } from "@/lib/cardTaxonomyDisplay";
 
@@ -34,23 +35,57 @@ export function TaxonomyCountBadge({
 }
 
 /**
- * The "+N more" indicator appended after the visible term names when a multi-value taxonomy field is
- * capped by its `maxTerms` knob (and not collapsing to a count).
+ * The clickable "+N more" indicator appended after the visible term names when a multi-value taxonomy
+ * field is capped by its `maxTerms` knob (and not collapsing to a count). Clicking it opens a popover
+ * listing the hidden terms (`children` — the rendered hidden badges/links). `stopPropagation` keeps a
+ * click on a listing card from also triggering the card's own navigation.
  */
 export function MoreTermsBadge({
-  hidden,
+  hidden, children,
 }: {
   hidden: number;
+  /** The rendered hidden terms shown inside the popover. */
+  children: ReactNode;
 }) {
   return (
-    <Badge
-      variant="outline"
-      className="text-muted-foreground"
-    >
-      {i18n.t("+{{count}} more", {
-        count: hidden,
-      })}
-    </Badge>
+    <Popover>
+      <PopoverTrigger
+        asChild
+      >
+        <button
+          type="button"
+          aria-label={i18n.t("Show {{count}} more", {
+            count: hidden,
+          })}
+          className="inline-flex"
+          onPointerDown={e => e.stopPropagation()}
+          onClick={e => e.stopPropagation()}
+        >
+          <Badge
+            variant="outline"
+            className="
+              cursor-pointer text-muted-foreground
+              hover:bg-accent hover:text-foreground
+            "
+          >
+            {i18n.t("+{{count}} more", {
+              count: hidden,
+            })}
+          </Badge>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        className="
+          flex max-h-64 w-auto max-w-xs flex-col items-start gap-1
+          overflow-y-auto
+        "
+        onPointerDown={e => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
+      >
+        {children}
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -101,7 +136,15 @@ export function TaxonomyBadgeRow<T>({
   return (
     <div className="flex flex-wrap items-center gap-1">
       {visible.map(item => <Fragment key={keyOf(item)}>{renderBadge(item)}</Fragment>)}
-      {display.mode === "limit" ? <MoreTermsBadge hidden={display.hidden} /> : null}
+      {display.mode === "limit"
+        ? (
+          <MoreTermsBadge hidden={display.hidden}>
+            {items.slice(display.visible).map(item => (
+              <Fragment key={keyOf(item)}>{renderBadge(item)}</Fragment>
+            ))}
+          </MoreTermsBadge>
+        )
+        : null}
     </div>
   );
 }
@@ -142,12 +185,14 @@ export function TaxonomyLinkList<T>({
       ))}
       {display.mode === "limit"
         ? (
-          <span className="text-muted-foreground">
+          <>
             {" "}
-            {i18n.t("+{{count}} more", {
-              count: display.hidden,
-            })}
-          </span>
+            <MoreTermsBadge hidden={display.hidden}>
+              {items.slice(display.visible).map(item => (
+                <div key={keyOf(item)}>{renderLink(item)}</div>
+              ))}
+            </MoreTermsBadge>
+          </>
         )
         : null}
     </span>
