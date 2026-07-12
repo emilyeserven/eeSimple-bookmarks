@@ -3,7 +3,7 @@ import type { ParseTag, SectionEntry, SectionEntryType } from "@eesimple/types";
 
 import { useMemo, useState } from "react";
 
-import { PARSE_TAGS } from "@eesimple/types";
+import { PARSE_TAGS, SECTION_ENTRY_TYPE_LABELS } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { ClipboardPaste } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -222,12 +222,6 @@ export function SectionPasteParser({
   );
 }
 
-const SECTION_TYPE_LABELS: Record<SectionEntryType, string> = {
-  url: "URL",
-  page: "Page",
-  timestamp: "Timestamp",
-};
-
 /** The muted value shown beside a previewed section name (its URL, or its page/timestamp value). */
 function sectionDetailValue(section: SectionEntry): string {
   return section.type === "url" ? (section.url ?? "") : section.startValue;
@@ -289,7 +283,7 @@ function SectionParsePreview({
                       text-muted-foreground
                     "
                   >
-                    {t(SECTION_TYPE_LABELS[section.type])}
+                    {t(SECTION_ENTRY_TYPE_LABELS[section.type])}
                     {" "}
                     {detail}
                   </span>

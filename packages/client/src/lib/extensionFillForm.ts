@@ -187,6 +187,7 @@ export const SECTION_FILL_ENTRY_TYPE_LABELS: Record<
   Extract<FillTarget, { kind: "sections" }>["entryType"],
   string
 > = {
+  name: "Name only",
   url: "URL",
   page: "Page",
   timestamp: "Timestamp",
@@ -389,7 +390,7 @@ function coerceSectionsTarget(prev: FillTarget): Extract<FillTarget, { kind: "se
     return {
       kind: "sections",
       propertyId: "",
-      entryType: "url",
+      entryType: "name",
     };
   }
   const {

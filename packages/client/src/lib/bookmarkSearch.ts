@@ -1,7 +1,7 @@
 import type { BookmarkSort, BookmarkSortDimension, BuiltinSortField, SortDirection } from "./bookmarkSort";
 import type { Bookmark, BookmarkGenreMood, BookmarkPerson, BookmarkLocation, BookmarkTag, SectionEntryType } from "@eesimple/types";
 
-import { placeTypeKey } from "@eesimple/types";
+import { placeTypeKey, SECTION_ENTRY_TYPES } from "@eesimple/types";
 
 import { bookmarkMatchesFilters } from "./customPropertyFilter";
 import i18n from "../i18n";
@@ -184,7 +184,7 @@ function nonEmptyRecord<T extends Record<string, unknown>>(record: T): T | undef
   return Object.keys(record).length > 0 ? record : undefined;
 }
 
-const VALID_SECTION_TYPES = new Set(["url", "page", "timestamp"]);
+const VALID_SECTION_TYPES = new Set<string>(SECTION_ENTRY_TYPES);
 
 /** Narrow an unknown value to a `SectionEntryType[]`, dropping invalid entries. */
 function validSectionTypes(value: unknown): SectionEntryType[] | undefined {

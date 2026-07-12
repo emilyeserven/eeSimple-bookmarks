@@ -4,6 +4,7 @@ import {
   CUSTOM_PROPERTY_TYPES,
   DATE_TIME_FORMATS,
   NUMBER_FORMATS,
+  SECTION_ENTRY_TYPES,
 } from "@eesimple/types";
 import type {
   CreateCustomPropertyInput,
@@ -213,13 +214,13 @@ const createPropertyBody = {
     },
     sectionsDefaultType: {
       type: ["string", "null"],
-      enum: ["url", "page", "timestamp", null],
+      enum: [...SECTION_ENTRY_TYPES, null],
     },
     sectionsAllowedTypes: {
       type: ["array", "null"],
       items: {
         type: "string",
-        enum: ["url", "page", "timestamp"],
+        enum: [...SECTION_ENTRY_TYPES],
       },
     },
     sectionsTiered: {

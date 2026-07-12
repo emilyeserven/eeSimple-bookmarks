@@ -82,7 +82,7 @@ export function FillTargetPicker({
           {
             value: "sections",
             label: t("Sections"),
-            description: t("Build a Sections property (chapters, timestamps) from a repeated list on the page."),
+            description: t("Build a Sections property (a course curriculum, chapters, or timestamps) from a repeated list on the page."),
           },
         ]}
         onValueChange={kind => onChange(coerceFillTarget(kind, target))}
@@ -280,6 +280,11 @@ function SectionsTarget({
         value={target.entryType}
         options={[
           {
+            value: "name",
+            label: t("Name only"),
+            description: t("A plain titled list — just each item's name, no URL/page/timestamp (e.g. a course curriculum)."),
+          },
+          {
             value: "url",
             label: t("URL"),
           },
@@ -305,6 +310,9 @@ function SectionsTarget({
         )
         : (
           <>
+            <p className="text-xs text-muted-foreground">
+              {t("The \"Selector\" field (below the target) matches each repeated item; the fields here say how those items are grouped into sections and where each item's name comes from.")}
+            </p>
             <KindSelect<SectionGroupingMode>
               label={t("Grouping")}
               value={mode}
@@ -332,25 +340,24 @@ function SectionsTarget({
               <>
                 <LabeledInput
                   label={t("Section container selector")}
-                  placeholder=".MuiAccordion-root"
+                  placeholder={"[data-purpose=\"course-section\"]"}
                   value={target.container ?? ""}
                   onChange={container => onChange({
                     ...target,
                     container,
                   })}
+                  hint={t("Matches each repeated section wrapper (one per section), NOT the whole list. The \"Selector\" field then matches the items inside each of these.")}
                 />
                 <LabeledInput
                   label={t("Section name selector (within the container)")}
-                  placeholder="h3"
+                  placeholder={"[class*=\"section-title\"]"}
                   value={target.header ?? ""}
                   onChange={header => onChange({
                     ...target,
                     header,
                   })}
+                  hint={t("Read within each section container to get its title.")}
                 />
-                <p className="text-xs text-muted-foreground">
-                  {t("The top-level Selector matches the items inside each container; the section name is read from the header selector within each container.")}
-                </p>
               </>
             )}
 
@@ -375,12 +382,13 @@ function SectionsTarget({
 
             <LabeledInput
               label={t("Item name selector (within each item)")}
-              placeholder="p"
+              placeholder={"[class*=\"course-lecture-title\"]"}
               value={target.itemName ?? ""}
               onChange={itemName => onChange({
                 ...target,
                 itemName,
               })}
+              hint={t("Read within each item to get its name. Leave blank to use the item's own text.")}
             />
             <LabeledInput
               label={t("Item link selector (within each item)")}
@@ -390,13 +398,51 @@ function SectionsTarget({
                 ...target,
                 itemUrl,
               })}
+              hint={t("Optional. Read a per-item link's href. Leave blank for \"Name only\", or to read the value off the item itself via Read/Transform.")}
             />
             <p className="text-xs text-muted-foreground">
-              {t("Item name / Item link are read relative to each item. Leave Item name blank to use the item's own text; leave Item link blank to read the value off the item via Read/Transform.")}
+              {t("Tip: for classes that end in a rotating hash (e.g. Udemy's \"…__9JCrHq__section-title\"), match a stable substring with an attribute selector like [class*=\"section-title\"] instead of the full class.")}
             </p>
+            <SectionsUdemyExample />
           </>
         )}
     </div>
+  );
+}
+
+/** A collapsible worked example: configuring a Udemy course curriculum as a name-only, tiered list. */
+function SectionsUdemyExample() {
+  const {
+    t,
+  } = useTranslation();
+  const rows: [string, string][] = [
+    [t("Entry type"), t("Name only")],
+    [t("Grouping"), t("By container element")],
+    [t("Section container selector"), "[data-purpose=\"course-curriculum\"] [class*=\"section--\"]"],
+    [t("Section name selector"), "[class*=\"section-title\"]"],
+    [t("Selector (each item)"), "[class*=\"course-lecture-title\"]"],
+    [t("Item name selector"), "(leave blank — uses the item's own text)"],
+  ];
+  return (
+    <details className="rounded-md border bg-muted/30 p-2 text-xs">
+      <summary className="cursor-pointer text-muted-foreground">
+        {t("Example: a Udemy course curriculum (sections → lectures)")}
+      </summary>
+      <dl className="mt-2 space-y-1">
+        {rows.map(([label, value]) => (
+          <div
+            key={label}
+            className="grid grid-cols-[10rem_1fr] gap-2"
+          >
+            <dt className="text-muted-foreground">{label}</dt>
+            <dd className="font-mono break-all">{value}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className="mt-2 text-muted-foreground">
+        {t("Exact classes vary — match a stable substring. This produces one section per curriculum part, each nesting its lecture names, with no URL/page/timestamp.")}
+      </p>
+    </details>
   );
 }
 

@@ -333,6 +333,9 @@ function SectionEntryInputs({
     t,
   } = useTranslation();
   const numeric = entry.type === "page";
+  // A `name`-only entry carries no positional value — hide the Start/End inputs (Name, Type, and the
+  // optional Link URL stay).
+  const nameOnly = entry.type === "name";
   const startPlaceholder = entry.type === "page" ? t("Start page") : entry.type === "timestamp" ? t("Start time") : t("URL");
   const endPlaceholder = entry.type === "page" ? t("End page") : entry.type === "timestamp" ? t("End time") : t("End URL (optional)");
   return (
@@ -350,6 +353,13 @@ function SectionEntryInputs({
             value={entry.type}
             onValueChange={type => onPatch({
               type: type as SectionEntryType,
+              // Switching to a name-only entry drops any positional value so nothing stale persists.
+              ...(type === "name"
+                ? {
+                  startValue: "",
+                  endValue: undefined,
+                }
+                : {}),
             })}
           >
             <SelectTrigger>
@@ -373,22 +383,26 @@ function SectionEntryInputs({
             {t(SECTION_ENTRY_TYPE_LABELS[entry.type])}
           </span>
         )}
-      <Input
-        placeholder={startPlaceholder}
-        value={entry.startValue}
-        type={numeric ? "number" : "text"}
-        onChange={e => onPatch({
-          startValue: e.target.value,
-        })}
-      />
-      <Input
-        placeholder={endPlaceholder}
-        value={entry.endValue ?? ""}
-        type={numeric ? "number" : "text"}
-        onChange={e => onPatch({
-          endValue: e.target.value || undefined,
-        })}
-      />
+      {!nameOnly && (
+        <>
+          <Input
+            placeholder={startPlaceholder}
+            value={entry.startValue}
+            type={numeric ? "number" : "text"}
+            onChange={e => onPatch({
+              startValue: e.target.value,
+            })}
+          />
+          <Input
+            placeholder={endPlaceholder}
+            value={entry.endValue ?? ""}
+            type={numeric ? "number" : "text"}
+            onChange={e => onPatch({
+              endValue: e.target.value || undefined,
+            })}
+          />
+        </>
+      )}
       <Input
         className="col-span-2"
         placeholder={t("Link URL (optional)")}

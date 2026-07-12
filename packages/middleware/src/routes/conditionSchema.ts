@@ -8,7 +8,7 @@
  * matches zero branches and is rejected with a 400.
  */
 
-import { CONDITION_VALUE_KINDS } from "@eesimple/types";
+import { CONDITION_VALUE_KINDS, SECTION_ENTRY_TYPES } from "@eesimple/types";
 import type { ConditionValueKind } from "@eesimple/types";
 
 const uuidArray = {
@@ -357,7 +357,7 @@ const sectionsPredicate = {
           type: "array",
           items: {
             type: "string",
-            enum: ["url", "page", "timestamp"],
+            enum: [...SECTION_ENTRY_TYPES],
           },
         },
       },

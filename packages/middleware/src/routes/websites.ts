@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import type { CreateWebsiteInput, UpdateWebsiteInput, WebsiteLookup } from "@eesimple/types";
-import { SOCIAL_MEDIA_PLATFORMS, TAXONOMY_ENTITY_ASSOCIATIONS, TAXONOMY_ENTITY_FIELDS, TAXONOMY_ENTITY_WRITE_KEYS, WEBSITE_SCAN_OBSERVATION_KINDS } from "@eesimple/types";
+import { SECTION_ENTRY_TYPES, SOCIAL_MEDIA_PLATFORMS, TAXONOMY_ENTITY_ASSOCIATIONS, TAXONOMY_ENTITY_FIELDS, TAXONOMY_ENTITY_WRITE_KEYS, WEBSITE_SCAN_OBSERVATION_KINDS } from "@eesimple/types";
 import {
   fetchAndStoreWebsiteFavicon,
   getWebsiteFaviconRow,
@@ -439,7 +439,7 @@ const fillTargetSchema = {
     // `sections` target: entry type + optional relative sub-selectors for the tiered / named build.
     entryType: {
       type: "string",
-      enum: ["url", "page", "timestamp"],
+      enum: [...SECTION_ENTRY_TYPES],
     },
     container: {
       type: "string",

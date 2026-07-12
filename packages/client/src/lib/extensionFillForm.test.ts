@@ -1149,15 +1149,45 @@ describe("taxonomyEntity target", () => {
 });
 
 describe("sections target", () => {
-  it("starts blank when switching in from another kind", () => {
+  it("starts blank (name-only default) when switching in from another kind", () => {
     expect(coerceFillTarget("sections", {
       kind: "field",
       field: "title",
     })).toEqual({
       kind: "sections",
       propertyId: "",
-      entryType: "url",
+      entryType: "name",
     });
+  });
+
+  it("normalizes a name-only tiered target (course curriculum, no value read)", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "sections",
+        propertyId: "p1",
+        entryType: "name",
+        container: "[class*=\"section--\"]",
+        header: "[class*=\"section-title\"]",
+      },
+      extract: {
+        selector: "[class*=\"course-lecture-title\"]",
+      },
+    })]);
+    expect(out.target).toEqual({
+      kind: "sections",
+      propertyId: "p1",
+      entryType: "name",
+      container: "[class*=\"section--\"]",
+      header: "[class*=\"section-title\"]",
+    });
+  });
+
+  it("summarizes a name-only sections target", () => {
+    expect(describeFillTarget({
+      kind: "sections",
+      propertyId: "p1",
+      entryType: "name",
+    })).toBe("Sections · Name only");
   });
 
   it("preserves itemUrl and sectionMatch across a same-kind rebuild", () => {

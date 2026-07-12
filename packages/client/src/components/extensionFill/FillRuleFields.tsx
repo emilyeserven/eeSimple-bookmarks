@@ -192,12 +192,15 @@ export function FillRuleFields({
         )
         : (
           <LabeledInput
-            label={t("Selector")}
+            label={rule.target.kind === "sections" ? t("Selector (each item)") : t("Selector")}
             placeholder="._statBlockTitle_1ckth_86 > *"
             value={rule.extract.selector ?? ""}
             onChange={selector => patchExtract({
               selector,
             })}
+            hint={rule.target.kind === "sections"
+              ? t("Matches every repeated item (e.g. each course lecture). Tip: for classes that end in a rotating hash, match a stable substring with [class*=\"course-lecture-title\"].")
+              : t("Tip: for a class with a rotating hash suffix, match a stable substring with [class*=\"partial-class\"].")}
           />
         )}
       {/* A meta tag always reads its `content` attribute — the read control is selector-only. */}
