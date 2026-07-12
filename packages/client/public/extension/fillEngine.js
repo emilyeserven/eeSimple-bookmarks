@@ -497,6 +497,35 @@
       return groups;
     }
 
+    // Grouped by a section-header selector on a flat page: the headers and items are interleaved in
+    // the DOM (no per-section wrapper). Query both together (querySelectorAll returns document order)
+    // and nest each item under the most recent preceding header; items before the first header stay
+    // top-level. Takes precedence over `container`.
+    if (target.sectionHeaderSelector) {
+      var headerGroups = [];
+      var currentGroup = null;
+      var combined = target.sectionHeaderSelector + "," + extract.selector;
+      Array.prototype.slice.call(doc.querySelectorAll(combined)).forEach(function (el) {
+        if (el.matches(target.sectionHeaderSelector)) {
+          // A header opens a new section; its name is the matched element's own text.
+          currentGroup = {
+            name: trimmedText(el),
+            type: target.entryType,
+            startValue: "",
+            children: [],
+          };
+          headerGroups.push(currentGroup);
+        }
+        else if (currentGroup) {
+          currentGroup.children.push(buildSectionLeaf(el, target, extract));
+        }
+        else {
+          headerGroups.push(buildSectionLeaf(el, target, extract));
+        }
+      });
+      return headerGroups;
+    }
+
     // Tiered: a repeated container element carries a header and its own items (the children).
     if (target.container) {
       return Array.prototype.slice.call(doc.querySelectorAll(target.container)).map(function (group) {

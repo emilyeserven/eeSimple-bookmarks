@@ -1317,6 +1317,75 @@ describe("sections target", () => {
     });
   });
 
+  it("carries a name-only sectionHeaderSelector target through normalization (course curriculum)", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "sections",
+        propertyId: "p1",
+        entryType: "name",
+        sectionHeaderSelector: "[class*=\"section-title\"]",
+      },
+      extract: {
+        selector: "[class*=\"course-lecture-title\"]",
+      },
+    })]);
+    expect(out.target).toEqual({
+      kind: "sections",
+      propertyId: "p1",
+      entryType: "name",
+      sectionHeaderSelector: "[class*=\"section-title\"]",
+    });
+  });
+
+  it("drops container/header when a sectionHeaderSelector is set (single grouping mode wins)", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "sections",
+        propertyId: "p1",
+        entryType: "name",
+        container: ".acc",
+        header: "h3",
+        sectionHeaderSelector: "[class*=\"section-title\"]",
+      },
+      extract: {
+        selector: ".lec",
+      },
+    })]);
+    expect(out.target).toEqual({
+      kind: "sections",
+      propertyId: "p1",
+      entryType: "name",
+      sectionHeaderSelector: "[class*=\"section-title\"]",
+    });
+  });
+
+  it("drops sectionHeaderSelector when a text match is also set (text grouping wins)", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "sections",
+        propertyId: "p1",
+        entryType: "name",
+        sectionHeaderSelector: "[class*=\"section-title\"]",
+        sectionMatch: {
+          mode: "contains",
+          value: "Part ",
+        },
+      },
+      extract: {
+        selector: ".lec",
+      },
+    })]);
+    expect(out.target).toEqual({
+      kind: "sections",
+      propertyId: "p1",
+      entryType: "name",
+      sectionMatch: {
+        mode: "contains",
+        value: "Part ",
+      },
+    });
+  });
+
   it("summarizes a sections target, flagging grouped mode", () => {
     expect(describeFillTarget({
       kind: "sections",
@@ -1332,5 +1401,11 @@ describe("sections target", () => {
         value: "^Part",
       },
     })).toBe("Sections · URL · grouped");
+    expect(describeFillTarget({
+      kind: "sections",
+      propertyId: "p1",
+      entryType: "name",
+      sectionHeaderSelector: "[class*=\"section-title\"]",
+    })).toBe("Sections · Name only · grouped");
   });
 });

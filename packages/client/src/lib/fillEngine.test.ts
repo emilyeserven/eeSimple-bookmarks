@@ -959,6 +959,110 @@ describe("eesimpleFillEngine.runRules — sections target", () => {
     ]);
   });
 
+  it("groups a flat page by a section-header selector (Udemy curriculum, no per-section wrapper)", () => {
+    // Section titles and lecture titles are interleaved siblings inside one wrapper — the exact shape
+    // that made the `container` mode collapse to "1 section, 74 items". Hashed classes matched by a
+    // stable substring.
+    const html = `
+      <div data-purpose="course-curriculum">
+        <div class="section--abc">
+          <span class="scss__9JCrHq__section-title">Getting Started</span>
+          <span class="scss__9JCrHq__course-lecture-title">Welcome</span>
+          <span class="scss__9JCrHq__course-lecture-title">Setup</span>
+        </div>
+        <div class="section--def">
+          <span class="scss__9JCrHq__section-title">Publishing</span>
+          <span class="scss__9JCrHq__course-lecture-title">npm publish</span>
+        </div>
+      </div>
+    `;
+    const rule = {
+      id: "curriculum-header",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "name",
+        sectionHeaderSelector: "[class*=\"section-title\"]",
+      },
+      extract: {
+        selector: "[class*=\"course-lecture-title\"]",
+      },
+    };
+    // One section per header (NOT one section with every lecture), each nesting its own lectures.
+    expect(runSections(rule, html)).toEqual([
+      {
+        name: "Getting Started",
+        type: "name",
+        startValue: "",
+        children: [
+          {
+            name: "Welcome",
+            type: "name",
+            startValue: "",
+          },
+          {
+            name: "Setup",
+            type: "name",
+            startValue: "",
+          },
+        ],
+      },
+      {
+        name: "Publishing",
+        type: "name",
+        startValue: "",
+        children: [
+          {
+            name: "npm publish",
+            type: "name",
+            startValue: "",
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("keeps items before the first section header at the top level (header-selector mode)", () => {
+    const html = `
+      <div>
+        <span class="lec">Orphan intro</span>
+        <span class="hdr">Section 1</span>
+        <span class="lec">Lesson A</span>
+      </div>
+    `;
+    const rule = {
+      id: "header-orphan",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "name",
+        sectionHeaderSelector: ".hdr",
+      },
+      extract: {
+        selector: ".lec",
+      },
+    };
+    expect(runSections(rule, html)).toEqual([
+      {
+        name: "Orphan intro",
+        type: "name",
+        startValue: "",
+      },
+      {
+        name: "Section 1",
+        type: "name",
+        startValue: "",
+        children: [
+          {
+            name: "Lesson A",
+            type: "name",
+            startValue: "",
+          },
+        ],
+      },
+    ]);
+  });
+
   it("builds a flat list when no container is set", () => {
     const html = `
       <ul>

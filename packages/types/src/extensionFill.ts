@@ -127,10 +127,17 @@ export type FillTarget
    *   name matches `sectionMatch` opens a new top-level section that keeps its own value/link and
    *   nests the following non-matching items as its children; items before the first match stay
    *   top-level. `sectionMatch` takes precedence over `container` when both are set.
+   *   When `sectionHeaderSelector` is set the rule is instead **grouped by section header**:
+   *   `extract.selector` matches the items and `sectionHeaderSelector` matches each section header,
+   *   both as **global** page selectors (no per-section wrapper element — e.g. a Udemy course
+   *   curriculum where section titles and lecture titles are interleaved siblings in the DOM). The
+   *   engine walks the matched headers + items in document order and nests each item under the most
+   *   recent preceding header (a header's name is its matched element's own text); items before the
+   *   first header stay top-level. Precedence: `sectionMatch` > `sectionHeaderSelector` > `container`.
    * - **`timestamp`** — `extract.selector` matches the element(s) whose **text** carries a list of
    *   `m:ss` / `h:mm:ss` timestamp lines (e.g. a video description); the engine parses each line into
    *   a flat entry whose `startValue` is the total number of **seconds**. `container`/`header`/
-   *   `itemName`/`sectionMatch` are ignored.
+   *   `itemName`/`sectionMatch`/`sectionHeaderSelector` are ignored.
    */
               | { kind: "sections";
                 propertyId: string;
@@ -139,7 +146,8 @@ export type FillTarget
                 header?: string;
                 itemName?: string;
                 itemUrl?: string;
-                sectionMatch?: TextMatch; };
+                sectionMatch?: TextMatch;
+                sectionHeaderSelector?: string; };
 
 /**
  * Entry types a `sections` fill target can build. `timestamp` is parsed from a text block; `name`
