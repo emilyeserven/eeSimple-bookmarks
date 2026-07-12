@@ -204,6 +204,48 @@ describe("buildProgressValuesFromInputs", () => {
     });
     expect(values).toEqual([]);
   });
+
+  it("persists autoSpace only when turned off, and omits it when left on (default)", () => {
+    expect(buildProgressValuesFromInputs([property], "cat-1", {
+      "prog-1": {
+        current: "3",
+        total: "10",
+        autoSpace: false,
+      },
+    })).toEqual([{
+      propertyId: "prog-1",
+      current: 3,
+      total: 10,
+      autoSpace: false,
+    }]);
+    // Default-on (autoSpace true/absent) is not persisted.
+    expect(buildProgressValuesFromInputs([property], "cat-1", {
+      "prog-1": {
+        current: "3",
+        total: "10",
+        autoSpace: true,
+      },
+    })).toEqual([{
+      propertyId: "prog-1",
+      current: 3,
+      total: 10,
+    }]);
+  });
+
+  it("emits a value carrying only an autoSpace opt-out even when both counts are blank", () => {
+    expect(buildProgressValuesFromInputs([property], "cat-1", {
+      "prog-1": {
+        current: "",
+        total: "",
+        autoSpace: false,
+      },
+    })).toEqual([{
+      propertyId: "prog-1",
+      current: 0,
+      total: 0,
+      autoSpace: false,
+    }]);
+  });
 });
 
 describe("deriveItemInItemsDisplay", () => {

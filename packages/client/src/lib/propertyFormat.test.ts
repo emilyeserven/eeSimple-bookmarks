@@ -95,6 +95,31 @@ describe("formatProgressValue", () => {
     });
     expect(formatProgressValue(progress(3, 10), property)).toBe("3 of 10 pages");
   });
+
+  it("auto-spaces non-empty labels that were typed without spaces (default on)", () => {
+    const property = makeCustomProperty({
+      itemInItemsBeforeText: "page",
+      itemInItemsBetweenText: "of",
+      itemInItemsAfterText: "pages",
+    });
+    // No autoSpace field on the value → default on: spaces are added around each non-empty label.
+    expect(formatProgressValue(progress(5, 200), property)).toBe("page 5 of 200 pages");
+  });
+
+  it("leaves the raw concat when autoSpace is false (tight formatting)", () => {
+    const property = makeCustomProperty({
+      itemInItemsBetweenText: "/",
+    });
+    const value: BookmarkProgressValue = {
+      propertyId: "p1",
+      current: 5,
+      total: 200,
+      autoSpace: false,
+    };
+    expect(formatProgressValue(value, property)).toBe("5/200");
+    // …and with auto-space on (default), the same "/" gets spaced.
+    expect(formatProgressValue(progress(5, 200), property)).toBe("5 / 200");
+  });
 });
 
 describe("composeProgressText", () => {

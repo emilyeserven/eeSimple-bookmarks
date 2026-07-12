@@ -292,6 +292,8 @@ export interface ProgressInputEntry {
   beforeText?: string;
   betweenText?: string;
   afterText?: string;
+  /** Per-bookmark auto-spacing toggle; absent/`true` = on (default), `false` = raw concat. */
+  autoSpace?: boolean;
 }
 
 /** The raw custom-property inputs the submit handler reads off its ref. */
@@ -390,10 +392,12 @@ export function buildProgressValuesFromInputs(
     const total = Number(entry.total);
     if (!Number.isFinite(current) || !Number.isFinite(total)) return [];
     const textOverride = buildProgressTextOverride(entry);
-    // Emit a value when either count is filled OR a counter-word override is set (the override is
-    // meaningful for a derived-progress bookmark whose counts the server recomputes). Counts default
-    // to 0 when blank; a derived property overwrites them on save.
-    if (entry.current === "" && entry.total === "" && !textOverride) return [];
+    // Persist auto-spacing only when the user turns it OFF (default-on is the absent/null case).
+    const autoSpaceOff = entry.autoSpace === false;
+    // Emit a value when either count is filled OR a counter-word override / auto-space opt-out is set
+    // (both are meaningful for a derived-progress bookmark whose counts the server recomputes). Counts
+    // default to 0 when blank; a derived property overwrites them on save.
+    if (entry.current === "" && entry.total === "" && !textOverride && !autoSpaceOff) return [];
     return [{
       propertyId: property.id,
       current,
@@ -401,6 +405,11 @@ export function buildProgressValuesFromInputs(
       ...(textOverride
         ? {
           textOverride,
+        }
+        : {}),
+      ...(autoSpaceOff
+        ? {
+          autoSpace: false,
         }
         : {}),
     }];

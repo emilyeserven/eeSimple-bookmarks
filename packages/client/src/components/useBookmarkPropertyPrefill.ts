@@ -46,7 +46,7 @@ export interface BookmarkPropertyPrefill {
   handleBooleanChange: (id: string, value: boolean) => void;
   handleDateTimeChange: (id: string, value: string) => void;
   handleChoicesChange: (id: string, values: string[]) => void;
-  handleProgressChange: (id: string, field: keyof ProgressInputEntry, value: string) => void;
+  handleProgressChange: (id: string, field: keyof ProgressInputEntry, value: string | boolean) => void;
   handleSectionsChange: (id: string, value: { exhaustive: boolean;
     sections: import("@eesimple/types").SectionEntry[]; }) => void;
   handleTextChange: (id: string, value: string) => void;
@@ -300,7 +300,7 @@ export function useBookmarkPropertyPrefill({
       [id]: values,
     }));
   }
-  function handleProgressChange(id: string, field: keyof ProgressInputEntry, value: string): void {
+  function handleProgressChange(id: string, field: keyof ProgressInputEntry, value: string | boolean): void {
     touchedRef.current.add(`progress:${id}`);
     setProgressInputs(current => ({
       ...current,

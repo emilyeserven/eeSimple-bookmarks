@@ -882,7 +882,10 @@ export async function ensureProgressProperty(sectionsPropertyId: string | null):
         builtIn: true,
         enabled: true,
         allCategories: true,
-        // Backfill the derive-from link once (only when unset) so existing deploys pick it up.
+        // Repair an ABSENT derive-from-Sections link only (e.g. the old manual "Page Progress"
+        // renamed to "Progress" by migrate.ts kept a null source). A non-null source is a
+        // user/fresh-install choice and is left untouched, preserving the "don't clobber edits"
+        // contract — so this fills the gap without overwriting a deliberately-set source.
         ...(existing.itemInItemsSourcePropertyId === null && sectionsPropertyId !== null
           ? {
             itemInItemsSourcePropertyId: sectionsPropertyId,

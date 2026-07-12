@@ -13,6 +13,7 @@ import {
 } from "@eesimple/types";
 
 import i18n from "../i18n";
+import { joinProgressDisplay } from "./propertyFormat";
 
 /** True when the property has a "Property options" section/tab (everything but `calculate`). */
 export function hasPropertyOptions(property: CustomProperty): boolean {
@@ -171,7 +172,7 @@ export function summarizeItemInItemsOptions(values: {
   const before = values.itemInItemsBeforeText || "";
   const between = values.itemInItemsBetweenText || ` ${i18n.t("of")} `;
   const after = values.itemInItemsAfterText || "";
-  const sample = `${before}10${between}100${after}`;
+  const sample = joinProgressDisplay(before, 10, between, 100, after);
   return values.overrideCount
     ? `${sample} · ${i18n.t("{{count}} media type override", {
       count: values.overrideCount,

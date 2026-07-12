@@ -148,7 +148,7 @@ export function useBookmarkPropertiesForm(bookmark: Bookmark) {
       [id]: values,
     }));
   }
-  function handleProgressChange(id: string, field: keyof ProgressInputEntry, value: string): void {
+  function handleProgressChange(id: string, field: keyof ProgressInputEntry, value: string | boolean): void {
     setProgressInputs(current => ({
       ...current,
       [id]: {

@@ -144,7 +144,7 @@ export function ItemInItemsPropertyField({
 }: {
   property: CustomProperty;
   progress: ProgressInputEntry | undefined;
-  onChange: (field: keyof ProgressInputEntry, value: string) => void;
+  onChange: (field: keyof ProgressInputEntry, value: string | boolean) => void;
   /** The bookmark's media type, used to resolve the per-media-type text overrides. */
   mediaTypeId?: string | null;
   /**
@@ -207,6 +207,19 @@ export function ItemInItemsPropertyField({
       <p className="text-xs text-muted-foreground">
         {t("Counter words for this bookmark — leave blank to inherit the default.")}
       </p>
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id={`progress-autospace-${property.id}`}
+          checked={progress?.autoSpace !== false}
+          onCheckedChange={value => onChange("autoSpace", value === true)}
+        />
+        <Label
+          htmlFor={`progress-autospace-${property.id}`}
+          className="text-xs font-normal text-muted-foreground"
+        >
+          {t("Add spaces between labels automatically")}
+        </Label>
+      </div>
       {derived
         ? (
           <p className="text-xs text-muted-foreground">

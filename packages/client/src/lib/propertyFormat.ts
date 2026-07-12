@@ -49,9 +49,10 @@ export function composeProgressText(
   const before = texts.before ?? "";
   const between = texts.between ?? i18n.t(" of ");
   const after = texts.after ?? "";
-  const count = `${value.current}${between}${value.total}`;
-  if (showCount && showUnit) return `${before}${count}${after}`;
-  if (showCount) return count;
+  // Auto-spacing (per-bookmark, default on) is applied to the count-bearing branches via
+  // joinProgressDisplay; the unit-only branch is already trimmed words.
+  if (showCount && showUnit) return joinProgressDisplay(before, value.current, between, value.total, after, value.autoSpace);
+  if (showCount) return joinProgressDisplay("", value.current, between, value.total, "", value.autoSpace);
   if (showUnit) return [before.trim(), after.trim()].filter(Boolean).join(" ");
   return "";
 }
@@ -66,6 +67,36 @@ export function formatProgressValue(
   mediaTypeId?: string | null,
 ): string {
   return composeProgressText(value, property, mediaTypeId);
+}
+
+/**
+ * Assemble an itemInItems display string from its resolved segments. Auto-spacing (the default, unless
+ * the bookmark opts out with `autoSpace === false`): each **non-empty** text label is trimmed and set
+ * off from its adjacent number by a single space, while an empty label introduces no separator. This
+ * is backward-compatible with the raw concat for labels that already carry their own spacing (the
+ * default `between` `" of "` → "5 of 200", book `after` `" pages"` → "5 of 200 pages", an empty
+ * `between` → "12"), but lets a user type "page"/"of"/"pages" without spaces and get "page 5 of 200
+ * pages". `autoSpace === false` keeps the verbatim concat, so a tight `between:"/"` renders "5/200".
+ * Shared by the formatter and the property-config previews.
+ */
+export function joinProgressDisplay(
+  before: string,
+  current: number,
+  between: string,
+  total: number,
+  after: string,
+  autoSpace?: boolean | null,
+): string {
+  if (autoSpace === false) {
+    return `${before}${current}${between}${total}${after}`;
+  }
+  const beforeLabel = before.trim();
+  const betweenLabel = between.trim();
+  const afterLabel = after.trim();
+  let out = beforeLabel ? `${beforeLabel} ${current}` : `${current}`;
+  out += betweenLabel ? ` ${betweenLabel} ${total}` : `${total}`;
+  if (afterLabel) out += ` ${afterLabel}`;
+  return out;
 }
 
 /** Human labels for what a `datetime` property captures. */

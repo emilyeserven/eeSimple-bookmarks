@@ -44,7 +44,7 @@ interface CustomPropertyInputBundle extends CustomPropertyInputs {
   onBooleanChange: (propertyId: string, value: boolean) => void;
   onDateTimeChange: (propertyId: string, value: string) => void;
   onChoicesChange: (propertyId: string, values: string[]) => void;
-  onProgressChange: (propertyId: string, field: keyof ProgressInputEntry, value: string) => void;
+  onProgressChange: (propertyId: string, field: keyof ProgressInputEntry, value: string | boolean) => void;
   onSectionsChange: (propertyId: string, value: { exhaustive: boolean;
     sections: SectionEntry[]; }) => void;
   onTextChange: (propertyId: string, value: string) => void;

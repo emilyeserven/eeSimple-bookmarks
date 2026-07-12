@@ -291,6 +291,10 @@ const createBookmarkBody = {
               },
             },
           },
+          // Per-bookmark auto-spacing toggle (null/absent = on). Must be declared or AJV strips it.
+          autoSpace: {
+            type: ["boolean", "null"],
+          },
         },
       },
     },
