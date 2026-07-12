@@ -1,8 +1,9 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { SectionsPropertyField } from "./BookmarkPropertyFields";
 import { makeCustomProperty } from "../test-utils/factories";
+import { renderWithRouter } from "../test-utils/router";
 
 const property = makeCustomProperty({
   type: "sections",
@@ -37,8 +38,8 @@ const tieredValue = {
 };
 
 describe("SectionsPropertyField import button", () => {
-  it("renders no import button when onImport is not provided", () => {
-    render(
+  it("renders no import button when onImport is not provided", async () => {
+    await renderWithRouter(
       <SectionsPropertyField
         property={property}
         value={emptyValue}
@@ -51,9 +52,9 @@ describe("SectionsPropertyField import button", () => {
     })).not.toBeInTheDocument();
   });
 
-  it("calls onImport when clicked", () => {
+  it("calls onImport when clicked", async () => {
     const onImport = vi.fn();
-    render(
+    await renderWithRouter(
       <SectionsPropertyField
         property={property}
         value={emptyValue}
@@ -68,8 +69,8 @@ describe("SectionsPropertyField import button", () => {
     expect(onImport).toHaveBeenCalledTimes(1);
   });
 
-  it("disables the button while the import is pending", () => {
-    render(
+  it("disables the button while the import is pending", async () => {
+    await renderWithRouter(
       <SectionsPropertyField
         property={property}
         value={emptyValue}
@@ -86,8 +87,8 @@ describe("SectionsPropertyField import button", () => {
 });
 
 describe("SectionsPropertyField second tier", () => {
-  it("renders existing child items and the add-sub-item control even when the property is not tiered", () => {
-    render(
+  it("renders existing child items and the add-sub-item control even when the property is not tiered", async () => {
+    await renderWithRouter(
       <SectionsPropertyField
         property={property}
         value={tieredValue}
@@ -102,9 +103,9 @@ describe("SectionsPropertyField second tier", () => {
     })).toBeInTheDocument();
   });
 
-  it("appends a child when the add-sub-item control is clicked", () => {
+  it("appends a child when the add-sub-item control is clicked", async () => {
     const onChange = vi.fn();
-    render(
+    await renderWithRouter(
       <SectionsPropertyField
         property={property}
         value={tieredValue}
@@ -124,9 +125,9 @@ describe("SectionsPropertyField second tier", () => {
 });
 
 describe("SectionsPropertyField completed checkboxes", () => {
-  it("checking a section cascades completed to its children", () => {
+  it("checking a section cascades completed to its children", async () => {
     const onChange = vi.fn();
-    render(
+    await renderWithRouter(
       <SectionsPropertyField
         property={property}
         value={tieredValue}
@@ -145,9 +146,9 @@ describe("SectionsPropertyField completed checkboxes", () => {
     expect(next.sections[0].children[0].completed).toBe(true);
   });
 
-  it("checking a child touches only that child", () => {
+  it("checking a child touches only that child", async () => {
     const onChange = vi.fn();
-    render(
+    await renderWithRouter(
       <SectionsPropertyField
         property={property}
         value={tieredValue}
