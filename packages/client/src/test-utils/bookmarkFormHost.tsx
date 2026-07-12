@@ -21,7 +21,6 @@ interface BookmarkFormHostValues {
   blacklistedLocationIds: string[];
   personIds: string[];
   groupIds: string[];
-  groupId: string;
   mediaLinkTarget: MediaLinkTarget | null;
 }
 
@@ -59,7 +58,6 @@ export function BookmarkFormHost({
       blacklistedLocationIds: [],
       personIds: [],
       groupIds: [],
-      groupId: "",
       mediaLinkTarget: null,
       ...initialValues,
     },

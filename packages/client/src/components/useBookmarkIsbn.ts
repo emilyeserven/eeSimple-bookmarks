@@ -1,7 +1,7 @@
 import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { useBookmarkFormActions } from "./useBookmarkFormActions";
 import type { useBookmarkPrimaryLanguage } from "./useBookmarkPrimaryLanguage";
-import type { BookmarkUrlDuplicateResult, CustomProperty, ImageCandidate, Language, MediaType, Person, Group } from "@eesimple/types";
+import type { BookmarkUrlDuplicateResult, CustomProperty, ImageCandidate, Language, MediaType, Person } from "@eesimple/types";
 
 import { normalizeIsbnTo13 } from "@eesimple/types";
 import { useTranslation } from "react-i18next";
@@ -24,10 +24,8 @@ interface UseBookmarkIsbnParams {
   textInputs: Record<string, string>;
   mediaTypes: MediaType[] | undefined;
   people: Person[] | undefined;
-  groups: Group[] | undefined;
   languages: Language[] | undefined;
   createPerson: Actions["createPerson"];
-  createGroup: Actions["createGroup"];
   createLanguage: Actions["createLanguage"];
   handleTextChange: (id: string, value: string) => void;
   setHideNameField: (value: boolean) => void;
@@ -51,10 +49,8 @@ export function useBookmarkIsbn({
   textInputs,
   mediaTypes,
   people,
-  groups,
   languages,
   createPerson,
-  createGroup,
   createLanguage,
   handleTextChange,
   setHideNameField,
@@ -104,14 +100,6 @@ export function useBookmarkIsbn({
         people ?? [],
         createPerson,
         ids => form.setFieldValue("personIds", ids),
-      );
-    }
-    if (result.group && !form.getFieldValue("groupId")) {
-      await resolveGroup(
-        result.group,
-        groups ?? [],
-        createGroup,
-        id => form.setFieldValue("groupId", id),
       );
     }
     // Stage the detected code for the create payload before the usage-level gate — the primary
@@ -225,30 +213,6 @@ async function resolvePeople(
     }
   }
   if (ids.length > 0) setIds(ids);
-}
-
-/** Match-or-create a group by name and call setId with the resolved id. */
-async function resolveGroup(
-  groupName: string,
-  existingGroups: Group[],
-  createGroup: Actions["createGroup"],
-  setId: (id: string) => void,
-): Promise<void> {
-  const lower = groupName.toLowerCase();
-  const match = existingGroups.find(p => p.name.toLowerCase() === lower);
-  if (match) {
-    setId(match.id);
-    return;
-  }
-  try {
-    const created = await createGroup.mutateAsync({
-      name: groupName,
-    });
-    setId(created.id);
-  }
-  catch {
-    // Skip group that can't be created (e.g. duplicate race).
-  }
 }
 
 /** Match-or-create a language by its detected ISO code and call setId with the resolved id. */

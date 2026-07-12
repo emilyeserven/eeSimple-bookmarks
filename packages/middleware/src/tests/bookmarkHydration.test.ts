@@ -49,7 +49,6 @@ function makeBookmarkRow(overrides: Partial<BookmarkRow> & { id: string }): Book
     youtubeChannelId: null,
     newsletterId: null,
     importId: null,
-    groupId: null,
     kavitaSeriesId: null,
     kavitaLibraryId: null,
     kavitaSeriesName: null,
@@ -131,7 +130,6 @@ test("hydrateBookmarkRows fills every relation with its empty shape when nothing
   assert.equal(bookmark.mediaType, null);
   assert.equal(bookmark.youtubeChannel, null);
   assert.equal(bookmark.newsletter, null);
-  assert.equal(bookmark.group, null);
   assert.equal(bookmark.import, null);
   assert.equal(bookmark.image, null);
   assert.equal(bookmark.screenshot, null);

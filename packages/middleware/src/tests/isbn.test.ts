@@ -133,7 +133,6 @@ test("fetchIsbnMetadata falls back to Google Books when Open Library misses", as
     const outcome = await fetchIsbnMetadata(ISBN);
     assert.equal(outcome.kind, "ok");
     assert.equal(outcome.kind === "ok" ? outcome.result.title : null, "The Restaurant at the End of the Universe");
-    assert.equal(outcome.kind === "ok" ? outcome.result.group : null, "Pan Books");
     // Google Books http thumbnails are upgraded to https.
     assert.equal(outcome.kind === "ok" ? outcome.result.coverUrl : null, "https://books.google.com/books/content?id=2&img=1");
     // No Open Library page for a Google-Books-sourced result.
@@ -207,7 +206,6 @@ test("fetchIsbnMetadata falls back to Kavita when both public providers miss and
     const outcome = await fetchIsbnMetadata(ISBN);
     assert.equal(outcome.kind, "ok");
     assert.equal(outcome.kind === "ok" ? outcome.result.title : null, "The Hitchhiker's Guide to the Galaxy");
-    assert.equal(outcome.kind === "ok" ? outcome.result.group : null, "Books");
     assert.equal(outcome.kind === "ok" ? outcome.result.coverUrl : null, "/api/kavita/series/12/cover");
     // The matched series id travels with the result so `importIsbnCover` can fetch the cover via
     // the authenticated Kavita API instead of downloading the (unauthenticated) proxy path.

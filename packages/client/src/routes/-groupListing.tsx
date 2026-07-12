@@ -56,7 +56,7 @@ export function GroupListing({
   }
 
   const groupBookmarks = (bookmarks ?? []).filter(b =>
-    b.group?.id === group.id || b.groups?.some(entry => entry.id === group.id));
+    b.groups?.some(entry => entry.id === group.id));
 
   return (
     <BookmarkSearchView

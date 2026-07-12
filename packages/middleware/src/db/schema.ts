@@ -43,11 +43,6 @@ export const bookmarks = pgTable("bookmarks", {
   importId: uuid("import_id").references((): AnyPgColumn => imports.id, {
     onDelete: "set null",
   }),
-  // The group (taxonomy) this bookmark is attributed to (e.g. a group, studio, or label).
-  // Nullable; set null when the group is deleted.
-  groupId: uuid("group_id").references((): AnyPgColumn => groups.id, {
-    onDelete: "set null",
-  }),
   // Direct link to a series on the connected Kavita server (Settings → Connectors). All
   // nullable = push-safe additive; the library id is kept alongside the series id to build the web UI
   // deep link, and the series name is denormalized at link time for display without a Kavita
@@ -2744,8 +2739,7 @@ export const bookmarkPeople = pgTable("bookmark_people", {
 
 /**
  * `bookmark_groups` join — many-to-many between bookmarks and groups (group creator credits,
- * e.g. bands/companies). Distinct from the single `bookmarks.group_id` FK, which is the item's
- * publishing house.
+ * e.g. bands/companies).
  */
 export const bookmarkGroups = pgTable("bookmark_groups", {
   bookmarkId: uuid("bookmark_id").notNull().references(() => bookmarks.id, {

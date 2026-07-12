@@ -150,13 +150,15 @@ export function TreeMultiCombobox({
       open={open}
       onOpenChange={handleOpenChange}
       dataSlot="tree-multi-combobox"
-      triggerClassName={cn("w-full justify-between font-normal", className)}
+      triggerClassName={cn(`
+        h-auto min-h-9 w-full justify-between font-normal whitespace-normal
+      `, className)}
       labelWrapperClassName="flex min-w-0 items-center gap-2"
       chevronClassName="opacity-50"
       id={id}
       aria-label={ariaLabel}
       isEmpty={selectedOptions.length === 0}
-      triggerLabel={<span className="truncate">{summary}</span>}
+      triggerLabel={<span className="wrap-break-word">{summary}</span>}
       shouldFilter={false}
       searchPlaceholder={searchPlaceholder}
       searchValue={searchTerm}

@@ -379,6 +379,7 @@ export function useBookmarkGeneralForm(bookmark: Bookmark) {
     groups,
     youtubeChannels,
     updateBookmark,
+    updatePerson,
     ...modals,
     saveField,
     saveTitle,

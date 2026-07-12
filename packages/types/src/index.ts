@@ -1421,8 +1421,6 @@ export interface Bookmark {
   youtubeChannel: BookmarkYouTubeChannel | null;
   /** The newsletter this bookmark was imported from, or `null`. */
   newsletter: BookmarkNewsletter | null;
-  /** The group (e.g. publisher) of this bookmarked item, or null when unset. */
-  group: BookmarkGroup | null;
   /** Id of the linked series on the connected Kavita server, or `null` when not linked. */
   kavitaSeriesId: number | null;
   /** Id of the Kavita library containing the linked series (needed for the web UI deep link). */
@@ -1588,8 +1586,6 @@ export interface CreateBookmarkInput {
   newsletterId?: string | null;
   /** Id of the import event this bookmark was created from, or `null`. */
   importId?: string | null;
-  /** Id of the group to assign; null to clear. Omit to leave unchanged. */
-  groupId?: string | null;
   /** Id of the Kavita series to link, or `null` to unlink. Omit to leave unchanged. */
   kavitaSeriesId?: number | null;
   /** Id of the Kavita library containing the linked series, or `null` to clear. Omit to leave unchanged. */
@@ -1987,7 +1983,6 @@ export interface InboxPreFillDefaults {
   mediaTypeId?: string | null;
   personIds?: string[];
   groupIds?: string[];
-  groupId?: string | null;
   numberValues?: { propertyId: string;
     value: number; }[];
   booleanValues?: { propertyId: string;
@@ -3563,8 +3558,6 @@ export interface FetchIsbnMetadataResult {
   coverUrl: string | null;
   /** Author names for the book. */
   authors: string[];
-  /** First group (publisher) name, or `null` when unavailable. */
-  group: string | null;
   /** Publication year string (e.g. `"1979"`), or `null` when unavailable. */
   year: string | null;
   /** Canonical Open Library URL for this book, or `null` when unavailable. */

@@ -79,7 +79,6 @@ export async function fetchOpenLibrary(isbn: string): Promise<IsbnLookupOutcome>
   const coversRaw = data.cover as { large?: string;
     medium?: string; } | undefined;
   const authorsRaw = data.authors as { name?: string }[] | undefined;
-  const publishersRaw = data.publishers as { name?: string }[] | undefined;
   // MARC/ISO 639-2 bibliographic codes, e.g. `[{ key: "/languages/eng" }]`.
   const languagesRaw = data.languages as { key?: string }[] | undefined;
   const rawLanguageCode = languagesRaw?.[0]?.key?.split("/").pop();
@@ -91,7 +90,6 @@ export async function fetchOpenLibrary(isbn: string): Promise<IsbnLookupOutcome>
       description,
       coverUrl: coversRaw?.large ?? coversRaw?.medium ?? null,
       authors: authorsRaw?.map(a => a.name ?? "").filter(Boolean) ?? [],
-      group: publishersRaw?.[0]?.name ?? null,
       year: typeof data.publish_date === "string" ? data.publish_date : null,
       openLibraryUrl: typeof data.url === "string" ? data.url : null,
       language: normalizeLanguageCode(rawLanguageCode),
@@ -104,7 +102,6 @@ interface GoogleVolumeInfo {
   title?: unknown;
   description?: unknown;
   authors?: unknown;
-  publisher?: unknown;
   publishedDate?: unknown;
   /** ISO 639-1 code (e.g. `"en"`), already the format `Language.isoCode` uses. */
   language?: unknown;
@@ -155,7 +152,6 @@ export async function fetchGoogleBooks(isbn: string): Promise<IsbnLookupOutcome>
       description: typeof info.description === "string" ? info.description : null,
       coverUrl: toHttps(thumb),
       authors,
-      group: typeof info.publisher === "string" ? info.publisher : null,
       year: typeof info.publishedDate === "string" ? info.publishedDate : null,
       // Google Books results have no Open Library page.
       openLibraryUrl: null,
@@ -194,7 +190,6 @@ async function fetchKavita(isbn: string): Promise<IsbnLookupOutcome> {
       description: null,
       coverUrl: kavitaSeriesCoverUrl(match.seriesId),
       authors: [],
-      group: match.libraryName,
       year: match.releaseYear ? String(match.releaseYear) : null,
       openLibraryUrl: null,
       // Kavita's series-search match carries no language metadata.

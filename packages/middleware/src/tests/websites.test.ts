@@ -238,17 +238,6 @@ test("PATCH /api/websites/:id accepts a well-formed extensionFillRules payload c
             split: ",",
           },
         },
-        {
-          id: "r4",
-          label: "Publisher",
-          target: {
-            kind: "publisher",
-          },
-          extract: {
-            source: "meta",
-            metaKey: "publisher",
-          },
-        },
       ],
     },
   });
@@ -315,31 +304,6 @@ test("PATCH /api/websites/:id accepts an image target with setMain", async () =>
               kind: "attr",
               name: "src",
             },
-          },
-        },
-      ],
-    },
-  });
-  assert.notEqual(res.statusCode, 400);
-  await app.close();
-});
-
-test("PATCH /api/websites/:id accepts a publisher target reading a meta tag", async () => {
-  const app = await buildApp();
-  const res = await app.inject({
-    method: "PATCH",
-    url: "/api/websites/11111111-1111-1111-1111-111111111111",
-    payload: {
-      extensionFillRules: [
-        {
-          id: "r1",
-          label: "Publisher",
-          target: {
-            kind: "publisher",
-          },
-          extract: {
-            source: "meta",
-            metaKey: "publisher",
           },
         },
       ],
@@ -504,10 +468,10 @@ test("PATCH /api/websites/:id accepts a taxonomyEntity target (social link)", as
       extensionFillRules: [
         {
           id: "r1",
-          label: "Publisher X",
+          label: "Group X",
           target: {
             kind: "taxonomyEntity",
-            association: "group",
+            association: "groups",
             field: "socialLink",
             socialPlatform: "x",
           },

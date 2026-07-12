@@ -554,7 +554,6 @@ function newBookmarkScalarColumns(input: CreateBookmarkInput) {
     description: input.description ?? null,
     newsletterId: input.newsletterId ?? null,
     importId: input.importId ?? null,
-    groupId: input.groupId ?? null,
     priority: input.priority ?? 0,
     imageDisplayPreference: input.imageDisplayPreference ?? null,
   };
@@ -702,7 +701,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
 
 /** The scalar (non-URL-derived) bookmark columns an update may touch. */
 type ScalarBookmarkPatch = Partial<
-  Pick<BookmarkRow, "originalUrl" | "title" | "description" | "categoryId" | "mediaTypeId" | "youtubeChannelId" | "groupId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "isbn" | "year" | "wikidataId" | "wikipediaLinkEn" | "wikipediaLinkLocal" | "feedUrl" | "itunesId" | "itunesUrl" | "spotifyUrl" | "pocketCastsUuid" | "pocketCastsUrl" | "defaultLinkProvider" | "priority" | "imageDisplayPreference">
+  Pick<BookmarkRow, "originalUrl" | "title" | "description" | "categoryId" | "mediaTypeId" | "youtubeChannelId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "isbn" | "year" | "wikidataId" | "wikipediaLinkEn" | "wikipediaLinkLocal" | "feedUrl" | "itunesId" | "itunesUrl" | "spotifyUrl" | "pocketCastsUuid" | "pocketCastsUrl" | "defaultLinkProvider" | "priority" | "imageDisplayPreference">
 >;
 
 /**
@@ -710,7 +709,7 @@ type ScalarBookmarkPatch = Partial<
  * explicit `null`/`undefined` value to `null` (an omitted key leaves the column untouched).
  */
 const NULLABLE_SCALAR_FIELDS = [
-  "originalUrl", "description", "mediaTypeId", "youtubeChannelId", "groupId", "kavitaSeriesId",
+  "originalUrl", "description", "mediaTypeId", "youtubeChannelId", "kavitaSeriesId",
   "kavitaLibraryId", "kavitaSeriesName", "plexRatingKey", "plexItemType", "plexItemTitle", "isbn",
   "year", "wikidataId", "wikipediaLinkEn", "wikipediaLinkLocal", "feedUrl", "itunesId", "itunesUrl",
   "spotifyUrl", "pocketCastsUuid", "pocketCastsUrl", "defaultLinkProvider", "imageDisplayPreference",
@@ -897,7 +896,6 @@ export async function updateBookmark(
         | "websiteId"
         | "mediaTypeId"
         | "youtubeChannelId"
-        | "groupId"
         | "kavitaSeriesId"
         | "kavitaLibraryId"
         | "kavitaSeriesName"

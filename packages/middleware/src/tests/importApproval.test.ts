@@ -206,7 +206,7 @@ test("buildApprovalBookmarkInput: applies per-field precedence and drops empty v
     preFill: {
       tagIds: ["t2"],
       mediaTypeId: "mt-pre",
-      groupId: "pub-pre",
+      groupIds: ["grp-pre"],
     },
     autofillTagIds: ["t3"],
     autofillLocationIds: [],
@@ -222,7 +222,7 @@ test("buildApprovalBookmarkInput: applies per-field precedence and drops empty v
   // newsletter context wins for description; pre-fill media type wins; tags are dedup-unioned.
   assert.equal(input.description, "context passage");
   assert.equal(input.mediaTypeId, "mt-pre");
-  assert.equal(input.groupId, "pub-pre");
+  assert.deepEqual(input.groupIds, ["grp-pre"]);
   assert.deepEqual(input.tagIds, ["t1", "t2", "t3"]);
   assert.equal(input.importId, "imp1");
   assert.equal(input.categoryId, "cat1");

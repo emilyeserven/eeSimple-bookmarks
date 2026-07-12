@@ -48,7 +48,6 @@ export const bookmarkSchema = z.object({
   blacklistedLocationIds: z.array(z.string()),
   personIds: z.array(z.string()),
   groupIds: z.array(z.string()),
-  groupId: z.string(),
   // A staged relationship edge to a media bookmark (About/Parent-child/…), created alongside this
   // bookmark on submit — see BookmarkMediaLinkField. Create-only; null = no media link staged.
   mediaLinkTarget: z.object({
@@ -176,7 +175,6 @@ const SAMPLE_DEFAULT_VALUES: {
   blacklistedLocationIds: string[];
   personIds: string[];
   groupIds: string[];
-  groupId: string;
   mediaLinkTarget: MediaLinkTarget | null;
 } = {
   url: "",
@@ -194,7 +192,6 @@ const SAMPLE_DEFAULT_VALUES: {
   blacklistedLocationIds: [],
   personIds: [],
   groupIds: [],
-  groupId: "",
   mediaLinkTarget: null,
 };
 
@@ -246,7 +243,6 @@ function scalarBookmarkDefaults(
     mediaTypeId: bookmark?.mediaType?.id ?? "",
     youtubeChannelId: bookmark?.youtubeChannel?.id ?? "",
     description: bookmark?.description ?? "",
-    groupId: bookmark?.group?.id ?? "",
   };
 }
 

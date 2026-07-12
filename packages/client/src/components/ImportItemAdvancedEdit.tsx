@@ -23,13 +23,11 @@ interface ImportItemAdvancedEditProps {
   tagIds: string[];
   locationIds: string[];
   personIds: string[];
-  groupId: string | undefined;
   onCategoryChange: (id: string | undefined) => void;
   onMediaTypeChange: (id: string | undefined) => void;
   onTagsChange: (ids: string[]) => void;
   onLocationsChange: (ids: string[]) => void;
   onPeopleChange: (ids: string[]) => void;
-  onGroupChange: (id: string | undefined) => void;
 }
 
 /**
@@ -49,13 +47,11 @@ export function ImportItemAdvancedEdit({
   tagIds,
   locationIds,
   personIds,
-  groupId,
   onCategoryChange,
   onMediaTypeChange,
   onTagsChange,
   onLocationsChange,
   onPeopleChange,
-  onGroupChange,
 }: ImportItemAdvancedEditProps) {
   const {
     t,
@@ -68,7 +64,6 @@ export function ImportItemAdvancedEdit({
     onLocationsChange,
     onCategoryChange,
     onMediaTypeChange,
-    onGroupChange,
   });
 
   return (
@@ -99,11 +94,9 @@ export function ImportItemAdvancedEdit({
           tagIds={tagIds}
           locationIds={locationIds}
           personIds={personIds}
-          groupId={groupId}
           onCategoryChange={onCategoryChange}
           onMediaTypeChange={onMediaTypeChange}
           onPeopleChange={onPeopleChange}
-          onGroupChange={onGroupChange}
         />
       </CollapsibleContent>
 

@@ -339,9 +339,6 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
                   type: "string",
                 },
               },
-              groupId: {
-                type: ["string", "null"],
-              },
               numberValues: {
                 type: "array",
                 items: {

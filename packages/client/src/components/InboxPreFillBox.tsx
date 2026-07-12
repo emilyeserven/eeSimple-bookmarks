@@ -38,12 +38,10 @@ export function InboxPreFillBox({
     tagTree,
     mediaTypeTree,
     people,
-    groups,
     inboxProperties,
     categoryOptions,
     mediaTypeOptions,
     personOptions,
-    groupOptions,
     selectedTagNames,
   } = useInboxPreFillBox(preFill);
 
@@ -54,10 +52,6 @@ export function InboxPreFillBox({
   const mediaTypeCreate = useEntityCreateOption("media-type", m => setPreFill({
     ...preFill,
     mediaTypeId: m.id,
-  }));
-  const groupCreate = useEntityCreateOption("group", p => setPreFill({
-    ...preFill,
-    groupId: p.id,
   }));
 
   const selectedPersonIds = preFill.personIds ?? [];
@@ -125,26 +119,6 @@ export function InboxPreFillBox({
               </div>
             )}
 
-            {/* Group */}
-            {groups.length > 0 && (
-              <div className="space-y-1">
-                <Label className="text-sm">{t("Group")}</Label>
-                <Combobox
-                  options={groupOptions}
-                  value={preFill.groupId ?? undefined}
-                  onValueChange={val => setPreFill({
-                    ...preFill,
-                    groupId: val ?? null,
-                  })}
-                  placeholder={t("Any group")}
-                  searchPlaceholder={t("Search groups…")}
-                  emptyText={t("No groups.")}
-                  aria-label={t("Default group")}
-                  createOption={groupCreate.createOption}
-                />
-              </div>
-            )}
-
             {/* People */}
             {people.length > 0 && (
               <div className="space-y-1">
@@ -190,7 +164,6 @@ export function InboxPreFillBox({
       </RowCard>
       {categoryCreate.modal}
       {mediaTypeCreate.modal}
-      {groupCreate.modal}
       <InboxPreFillModals
         preFill={preFill}
         setPreFill={setPreFill}

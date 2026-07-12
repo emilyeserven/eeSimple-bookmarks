@@ -106,7 +106,7 @@ function TreeComboboxTriggerContent({
         )}
       >
         {selectedNode?.icon}
-        <span className="truncate">{triggerLabel}</span>
+        <span className="wrap-break-word">{triggerLabel}</span>
       </span>
       <ChevronsUpDown className="opacity-50" />
     </>
@@ -172,7 +172,7 @@ function TreeComboboxDropdown({
               className="flex items-center gap-1.5 px-2"
             >
               <span className="size-4 shrink-0" />
-              <span className="flex-1 truncate">{leadingOption.label}</span>
+              <span className="flex-1 wrap-break-word">{leadingOption.label}</span>
               <Check
                 className={cn(
                   "ml-auto size-4 shrink-0",
@@ -287,7 +287,9 @@ export function TreeCombobox({
           aria-expanded={open}
           aria-label={ariaLabel}
           data-slot="tree-combobox"
-          className={cn("w-full justify-between font-normal", className)}
+          className={cn(`
+            h-auto min-h-9 w-full justify-between font-normal whitespace-normal
+          `, className)}
         >
           <TreeComboboxTriggerContent
             options={options}
