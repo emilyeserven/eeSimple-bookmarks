@@ -127,6 +127,30 @@ describe("coerceFillTarget", () => {
       ratingBound: "to",
     });
   });
+
+  it("preserves range detectors across a same-kind rebuild", () => {
+    expect(coerceFillTarget("customProperty", {
+      kind: "customProperty",
+      propertyId: "p1",
+      ratingBound: "range",
+      ratingLevels: [
+        {
+          level: 1,
+          selector: ".beginner",
+        },
+      ],
+    })).toEqual({
+      kind: "customProperty",
+      propertyId: "p1",
+      ratingBound: "range",
+      ratingLevels: [
+        {
+          level: 1,
+          selector: ".beginner",
+        },
+      ],
+    });
+  });
 });
 
 describe("describeFillTarget", () => {
@@ -161,6 +185,11 @@ describe("describeFillTarget", () => {
       propertyId: "p1",
       ratingBound: "to",
     }, property)).toBe("Complexity · To");
+    expect(describeFillTarget({
+      kind: "customProperty",
+      propertyId: "p1",
+      ratingBound: "range",
+    }, property)).toBe("Complexity · Range (detected)");
   });
 
   it("summarizes taxonomyEntity relation + language write-keys", () => {
@@ -434,6 +463,81 @@ describe("taxonomyDirect target", () => {
         field: "description",
       },
     })])).toEqual([]);
+  });
+
+  it("keeps range detectors with a selector and drops empty-selector ones", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "customProperty",
+        propertyId: "p1",
+        ratingBound: "range",
+        ratingLevels: [
+          {
+            level: 0,
+            selector: "  ",
+            match: {
+              mode: "equals",
+              value: "Absolute beginner",
+              caseSensitive: false,
+            },
+          },
+          {
+            level: 1,
+            selector: " .lvl ",
+            match: {
+              mode: "equals",
+              value: "Beginner",
+              caseSensitive: false,
+            },
+          },
+          {
+            level: 2,
+            selector: ".intermediate",
+          },
+        ],
+      },
+    })]);
+    expect(out.target).toEqual({
+      kind: "customProperty",
+      propertyId: "p1",
+      ratingBound: "range",
+      ratingLevels: [
+        {
+          level: 1,
+          selector: ".lvl",
+          match: {
+            mode: "equals",
+            value: "Beginner",
+            caseSensitive: false,
+          },
+        },
+        {
+          level: 2,
+          selector: ".intermediate",
+        },
+      ],
+    });
+  });
+
+  it("drops range detectors entirely when the bound is a single end", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "customProperty",
+        propertyId: "p1",
+        ratingBound: "from",
+        ratingLevels: [
+          {
+            level: 1,
+            selector: ".lvl",
+          },
+        ],
+      },
+    })]);
+    expect(out.target).toEqual({
+      kind: "customProperty",
+      propertyId: "p1",
+      ratingBound: "from",
+    });
   });
 });
 

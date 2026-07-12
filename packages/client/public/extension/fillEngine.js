@@ -363,6 +363,34 @@
     return Array.prototype.slice.call(doc.querySelectorAll(extract.selector));
   }
 
+  // Rating "detect range" mode: evaluate each per-level detector against the page and return the
+  // sorted list of present levels (numbers). A level is present when its `selector` matches at least
+  // one element and — if `match` is set — that element's trimmed text matches. Invalid selectors are
+  // skipped (never poison the batch). The popup turns these into From (min) / To (max).
+  function detectRatingLevels(target, doc) {
+    var present = [];
+    (target.ratingLevels || []).forEach(function (det) {
+      if (!det || !det.selector) return;
+      var els;
+      try {
+        els = Array.prototype.slice.call(doc.querySelectorAll(det.selector));
+      }
+      catch {
+        return;
+      }
+      var matched = det.match
+        ? els.some(function (el) {
+          return matchesText(trimmedText(el), det.match);
+        })
+        : els.length > 0;
+      if (matched && present.indexOf(det.level) === -1) present.push(det.level);
+    });
+    present.sort(function (a, b) {
+      return a - b;
+    });
+    return present;
+  }
+
   function runRule(rule, doc) {
     var extract = rule.extract || {};
     var candidates = candidateNodes(extract, doc);
@@ -597,6 +625,14 @@
               return e.startValue;
             }),
             entries: entries,
+          };
+        }
+        // Rating "detect range" mode: the values are the present rating levels (as strings), not a
+        // scraped scalar — the popup takes their min/max as From/To.
+        if (rule.target && rule.target.kind === "customProperty" && rule.target.ratingBound === "range") {
+          return {
+            ruleId: rule.id,
+            values: detectRatingLevels(rule.target, doc).map(String),
           };
         }
         var out = {

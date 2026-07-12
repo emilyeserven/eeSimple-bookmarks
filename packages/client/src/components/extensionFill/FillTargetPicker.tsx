@@ -1,6 +1,6 @@
 import type { KindOption } from "./controls";
 import type { ComboboxOption } from "../Combobox";
-import type { CustomProperty, FillTarget, OverrideKey, TaxonomyDirectFieldKey, TaxonomyEntityAssociation, TaxonomyEntityAssociationSpec, TaxonomyEntityWriteKey } from "@eesimple/types";
+import type { CustomProperty, FillTarget, OverrideKey, RatingLevelDetector, TaxonomyDirectFieldKey, TaxonomyEntityAssociation, TaxonomyEntityAssociationSpec, TaxonomyEntityWriteKey } from "@eesimple/types";
 
 import { useId } from "react";
 
@@ -20,6 +20,7 @@ import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
 
 import { coerceFillTarget, directFieldSupported, taxonomyEntityFieldLabel, taxonomyEntityWriteKeys } from "@/lib/extensionFillForm";
+import { ratingLevelLabel, ratingLevelValues } from "@/lib/propertyFormat";
 
 type FieldName = Extract<FillTarget, { kind: "field" }>["field"];
 type TaxonomyName = Extract<FillTarget, { kind: "taxonomy" }>["taxonomy"];
@@ -757,6 +758,95 @@ function SetMainImageToggle({
 }
 
 /**
+/**
+ * Per-level detector editor for a rating target in `ratingBound: "range"` mode. One row per scale
+ * level: a CSS selector (required for the level to be detectable) and an optional exact-match text
+ * (defaulted to the level's label). The engine marks a level present when its selector matches an
+ * element and — if match text is set — that element's text equals it (case-insensitive). Empty-selector
+ * rows are dropped on save (`cleanCustomPropertyTarget`).
+ */
+function RatingLevelDetectorsEditor({
+  property, target, onChange,
+}: {
+  property: CustomProperty;
+  target: Extract<FillTarget, { kind: "customProperty" }>;
+  onChange: (target: FillTarget) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const levels = ratingLevelValues(property);
+  const existing = target.ratingLevels ?? [];
+  const detectorFor = (level: number) => existing.find(detector => detector.level === level);
+  // The display value for a level's match input: the stored value, else a first-time prefill of the
+  // level's label (so a shared selector matches the right level out of the box).
+  const matchDisplay = (level: number) => {
+    const stored = detectorFor(level);
+    return stored ? (stored.match?.value ?? "") : ratingLevelLabel(property, level);
+  };
+  const selectorDisplay = (level: number) => detectorFor(level)?.selector ?? "";
+
+  // Rebuild the whole per-level array from the current displayed values, applying one edit.
+  const emit = (editLevel: number, patch: { selector?: string;
+    matchValue?: string; }) => {
+    const ratingLevels: RatingLevelDetector[] = levels.map((level) => {
+      const selector = level === editLevel && patch.selector !== undefined ? patch.selector : selectorDisplay(level);
+      const matchValue = level === editLevel && patch.matchValue !== undefined ? patch.matchValue : matchDisplay(level);
+      return {
+        level,
+        selector,
+        ...(matchValue.trim() !== ""
+          ? {
+            match: {
+              mode: "equals" as const,
+              value: matchValue,
+              caseSensitive: false,
+            },
+          }
+          : {}),
+      };
+    });
+    onChange({
+      kind: "customProperty",
+      propertyId: target.propertyId,
+      ratingBound: "range",
+      ratingLevels,
+    });
+  };
+
+  return (
+    <div className="space-y-3 rounded-md border p-2">
+      <p className="text-xs text-muted-foreground">
+        {t("For each level, a CSS selector marks it present when it matches. Optional match text (default: the label) narrows a shared selector.")}
+      </p>
+      {levels.map(level => (
+        <div
+          key={level}
+          className="space-y-1"
+        >
+          <Label className="text-xs font-medium">{ratingLevelLabel(property, level)}</Label>
+          <LabeledInput
+            label={t("Selector")}
+            value={selectorDisplay(level)}
+            placeholder={t("e.g. .difficulty--intermediate")}
+            onChange={selector => emit(level, {
+              selector,
+            })}
+          />
+          <LabeledInput
+            label={t("Match text (optional)")}
+            value={matchDisplay(level)}
+            onChange={matchValue => emit(level, {
+              matchValue,
+            })}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
  * For a multi-value property, a sub-value selector: Two-Numbers (`itemInItems`) → Current/Total;
  * Choices → which option. Other property types (and while none is selected) render nothing.
  */
@@ -797,25 +887,46 @@ function CustomPropertySubValue({
   }
   if (property?.type === "ratingScale" && property.ratingAllowRange) {
     return (
-      <KindSelect<"from" | "to">
-        label={t("Range end")}
-        value={target.ratingBound ?? "from"}
-        options={[
-          {
-            value: "from",
-            label: t("From"),
-          },
-          {
-            value: "to",
-            label: t("To"),
-          },
-        ]}
-        onValueChange={ratingBound => onChange({
-          kind: "customProperty",
-          propertyId: target.propertyId,
-          ratingBound,
-        })}
-      />
+      <div className="space-y-2">
+        <KindSelect<"from" | "to" | "range">
+          label={t("Range end")}
+          value={target.ratingBound ?? "from"}
+          options={[
+            {
+              value: "from",
+              label: t("From"),
+            },
+            {
+              value: "to",
+              label: t("To"),
+            },
+            {
+              value: "range",
+              label: t("Detect range"),
+              description: t("Detect which levels are present on the page and set From/To to their min/max."),
+            },
+          ]}
+          onValueChange={ratingBound => onChange({
+            kind: "customProperty",
+            propertyId: target.propertyId,
+            ratingBound,
+            ...(ratingBound === "range" && target.ratingLevels
+              ? {
+                ratingLevels: target.ratingLevels,
+              }
+              : {}),
+          })}
+        />
+        {target.ratingBound === "range"
+          ? (
+            <RatingLevelDetectorsEditor
+              property={property}
+              target={target}
+              onChange={onChange}
+            />
+          )
+          : null}
+      </div>
     );
   }
   if (property?.type === "choices") {

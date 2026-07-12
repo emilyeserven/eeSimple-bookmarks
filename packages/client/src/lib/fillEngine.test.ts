@@ -1564,3 +1564,132 @@ describe("taxonomyFill.js TAXONOMY_ENTITY_PATCH mirror stays aligned with the TS
     }
   });
 });
+
+describe("eesimpleFillEngine.runRules — ratingScale detect range (per-level detectors)", () => {
+  // A skills page with two difficulty badges present (Beginner + Intermediate) and one absent (Expert).
+  const SKILLS_HTML = `
+    <ul class="levels">
+      <li class="lvl" data-level="beginner">Beginner</li>
+      <li class="lvl" data-level="intermediate">Intermediate</li>
+    </ul>
+  `;
+
+  /** A detect-range rule: each level maps to a shared `.lvl` selector narrowed by exact match text. */
+  function rangeRule(): unknown {
+    return {
+      id: "r1",
+      target: {
+        kind: "customProperty",
+        propertyId: "complexity",
+        ratingBound: "range",
+        ratingLevels: [
+          {
+            level: 0,
+            selector: ".lvl",
+            match: {
+              mode: "equals",
+              value: "Absolute beginner",
+              caseSensitive: false,
+            },
+          },
+          {
+            level: 1,
+            selector: ".lvl",
+            match: {
+              mode: "equals",
+              value: "Beginner",
+              caseSensitive: false,
+            },
+          },
+          {
+            level: 2,
+            selector: ".lvl",
+            match: {
+              mode: "equals",
+              value: "Intermediate",
+              caseSensitive: false,
+            },
+          },
+          {
+            level: 3,
+            selector: ".lvl",
+            match: {
+              mode: "equals",
+              value: "Expert",
+              caseSensitive: false,
+            },
+          },
+        ],
+      },
+      extract: {},
+    };
+  }
+
+  it("returns the present levels (min→max span) as the values list", () => {
+    expect(runOne(rangeRule(), SKILLS_HTML).values).toEqual(["1", "2"]);
+  });
+
+  it("returns a single level when only one detector matches", () => {
+    const html = "<ul><li class=\"lvl\">Beginner</li></ul>";
+    expect(runOne(rangeRule(), html).values).toEqual(["1"]);
+  });
+
+  it("returns no levels when none match", () => {
+    const html = "<ul><li class=\"lvl\">Wizard</li></ul>";
+    expect(runOne(rangeRule(), html).values).toEqual([]);
+  });
+
+  it("matches by selector alone when a level has no match text", () => {
+    const rule = {
+      id: "r2",
+      target: {
+        kind: "customProperty",
+        propertyId: "complexity",
+        ratingBound: "range",
+        ratingLevels: [
+          {
+            level: 1,
+            selector: ".beginner-badge",
+          },
+          {
+            level: 2,
+            selector: ".intermediate-badge",
+          },
+        ],
+      },
+      extract: {},
+    };
+    const html = "<div class=\"beginner-badge\"></div>";
+    expect(runOne(rule, html).values).toEqual(["1"]);
+  });
+
+  it("skips a detector with an invalid selector without poisoning the rule", () => {
+    const rule = {
+      id: "r3",
+      target: {
+        kind: "customProperty",
+        propertyId: "complexity",
+        ratingBound: "range",
+        ratingLevels: [
+          {
+            level: 1,
+            selector: ":::bad(",
+          },
+          {
+            level: 2,
+            selector: ".lvl",
+            match: {
+              mode: "equals",
+              value: "Intermediate",
+              caseSensitive: false,
+            },
+          },
+        ],
+      },
+      extract: {},
+    };
+    const result = runOne(rule, SKILLS_HTML);
+    expect(result.error).toBeUndefined();
+    expect(result.values).toEqual(["2"]);
+  });
+});

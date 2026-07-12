@@ -81,8 +81,9 @@ const {
 // Custom-property types the popup can fill, mapped to the bookmark's typed value array / PATCH key.
 // itemInItems (Two Numbers) and choices fill a single rule-selected sub-value (target.subField /
 // target.choiceValue). ratingScale fills a numeric value in numberValues; a range-enabled rating
-// fills the rule-selected end (target.ratingBound: "from"|"to"). Other value kinds (sections/…)
-// degrade to a disabled "unsupported" row.
+// fills the rule-selected end (target.ratingBound: "from"|"to"), or — in detect mode
+// (target.ratingBound: "range") — sets both ends from the min/max of the levels the engine detected
+// present on the page. Other value kinds (sections/…) degrade to a disabled "unsupported" row.
 const VALUE_PATCH_KEY = {
   number: "numberValues",
   boolean: "booleanValues",
@@ -1007,10 +1008,15 @@ function buildPropertyRow(rule, values, ctx) {
   const bookmark = ctx.bookmark;
   const property = (ctx.properties ?? []).find(p => p.id === rule.target.propertyId);
   const patchKey = property ? VALUE_PATCH_KEY[property.type] : undefined;
-  const extracted = values[0] ?? "";
   if (!property || !patchKey) {
-    return baseRow(rule, "", extracted, false, "unsupported");
+    return baseRow(rule, "", values[0] ?? "", false, "unsupported");
   }
+  // Rating "detect range" consumes the full values list (the present levels) — handled before the
+  // single-value `extracted` collapse so an empty (no levels present) result is a clean "not found".
+  if (property.type === "ratingScale" && rule.target.ratingBound === "range") {
+    return buildRatingRangeRow(rule, property, values, bookmark);
+  }
+  const extracted = values[0] ?? "";
   if (!extracted) {
     return baseRow(rule, "", "", false, "not found");
   }
@@ -1184,6 +1190,41 @@ function buildRatingRow(rule, property, extracted, bookmark) {
       propertyId: property.id,
       value: num,
       valueEnd: null,
+    });
+  };
+  return row;
+}
+
+// ratingScale "detect range": `values` are the present level numbers (from the engine's per-level
+// detectors). Set From = min, To = max (single value when only one level is present). Replaces the
+// whole rating value (both ends), unlike the from/to single-end fill.
+function buildRatingRangeRow(rule, property, values, bookmark) {
+  const levels = (values || [])
+    .map(function (v) { return Number(v); })
+    .filter(function (n) { return Number.isFinite(n); });
+  const existing = (bookmark.numberValues ?? []).find(v => v.propertyId === property.id);
+  const currentText = existing
+    ? (existing.valueEnd != null && existing.valueEnd !== existing.value
+      ? `${ratingLabelFor(property, existing.value)} → ${ratingLabelFor(property, existing.valueEnd)}`
+      : ratingLabelFor(property, existing.value))
+    : "";
+  if (levels.length === 0) {
+    return baseRow(rule, currentText, "", false, "not found");
+  }
+  const from = Math.min.apply(null, levels);
+  const to = Math.max.apply(null, levels);
+  const valueEnd = from === to ? null : to;
+  const extractedText = from === to
+    ? ratingLabelFor(property, from)
+    : `${ratingLabelFor(property, from)} → ${ratingLabelFor(property, to)}`;
+  const changed = !existing || existing.value !== from || (existing.valueEnd ?? null) !== valueEnd;
+  const row = baseRow(rule, currentText, extractedText, changed, changed ? null : "no change");
+  row.apply = (patch, state) => {
+    const map = seedValueMap(state, "numberValues", bookmark);
+    map.set(property.id, {
+      propertyId: property.id,
+      value: from,
+      valueEnd: valueEnd,
     });
   };
   return row;
