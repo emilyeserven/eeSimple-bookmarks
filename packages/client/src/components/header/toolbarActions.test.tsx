@@ -11,7 +11,6 @@ function ctx(overrides: Partial<ToolbarContext> = {}): ToolbarContext {
     // homepage-only `homepage-settings` action (covered by its own test below).
     pathParts: ["bookmarks"],
     listingPage: null,
-    bulkSelectPageKey: null,
     isBookmarkDetail: false,
     bookmarkId: "b1",
     addChild: null,
@@ -50,20 +49,13 @@ describe("buildToolbarActions", () => {
     ).toEqual(["create"]);
   });
 
-  it("adds the bulk-select toggle when a bulk-selectable listing is mounted", () => {
-    expect(keys(ctx({
-      bulkSelectPageKey: "websites-listing",
-    }))).toEqual(["bulk-select"]);
-  });
-
-  it("shows the bulk-select toggle for a bulk-selectable listing page", () => {
+  it("no longer adds a header bulk-select toggle (it moved into the on-page display-options box)", () => {
     expect(keys(ctx({
       listingPage: {
         key: "categories-listing",
         hasFilters: false,
       },
-      bulkSelectPageKey: "categories-listing",
-    }))).toEqual(["bulk-select"]);
+    }))).not.toContain("bulk-select");
   });
 
   it("adds layout + edit for a bookmark detail", () => {

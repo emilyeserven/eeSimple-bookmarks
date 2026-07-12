@@ -63,7 +63,6 @@ export const websiteListingConfig: EntityListingConfig<Website> = {
   useSortedItems: useWebsiteSortedItems,
   renderSearchSort: () => <WebsiteListingControls />,
   renderDisplayRowExtra: () => <WebsiteListingDisplayExtras />,
-  hideBulkSelectFromHeader: true,
   renderBulkActions: ({
     selectedIds, onDone,
   }) => (

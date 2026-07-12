@@ -86,3 +86,10 @@ For the **Bookmarks page**, swap step 5's `TaxonomyBulkBar` for a `BulkActionBar
 - **"Bulk select is broken on X"**: check the listing still registers via `useRegisterBulkSelect`
   and that row cards pass the selection props — the shared hook and bar rarely regress; the wiring
   does.
+- **Where the Multiselect toggle renders**: the `HeaderBulkSelectButton` ("Select" / "Done selecting")
+  is rendered **centrally** by `ListingSearchBox` inside the **display-options box** (opposite the
+  view/columns/aspect controls), for every listing whose `bulkSelectPageKey` matches the registered
+  listing page — it is **not** a header-toolbar action anymore. So a listing gets the toggle for free
+  once it calls `useRegisterBulkSelect(pageKey)`; there is no per-entity `hideBulkSelectFromHeader` flag
+  or inline-render to wire (Website/YouTube's `renderDisplayRowExtra` now only adds their Prune button).
+  The CMD+K "Enable/Disable Select Mode" action (`ListingPageCommandGroup`) is unchanged.

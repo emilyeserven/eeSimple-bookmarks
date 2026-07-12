@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Pin, PinOff } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { HeaderBulkSelectButton } from "./header/HeaderBulkSelectButton";
 import { ListingDisplayControls } from "./ListingDisplayControls";
 import { ListingSearchBar } from "./ListingSearchBar";
 import { Button } from "./ui/button";
@@ -22,8 +23,9 @@ interface ListingSearchBoxProps {
   /** Filter pills rendered below the search row (bookmark listings only). */
   filters?: ReactNode;
   /**
-   * Extra content rendered in the same row as `ListingDisplayControls`, opposite it (right-aligned) —
-   * e.g. Website/YouTube Channel's Prune + Multiselect controls (config `renderDisplayRowExtra`).
+   * Extra content rendered in the display-options box, opposite `ListingDisplayControls` (right-aligned,
+   * beside the Multiselect toggle) — e.g. Website/YouTube Channel's Prune control (config
+   * `renderDisplayRowExtra`).
    */
   displayRowExtra?: ReactNode;
 }
@@ -38,8 +40,10 @@ interface ListingSearchBoxProps {
  * search input; bookmark listings pass the `sort` and `filters` slots.
  *
  * The per-listing Display controls (view mode, column count, and — on image-bearing listings — the
- * image Aspect override) render as a block **directly beneath** the box (not inside it), keyed to the
- * registered listing page; this replaces the former header Display popover.
+ * image Aspect override) render in their own box **directly beneath** the search box, keyed to the
+ * registered listing page; this replaces the former header Display popover. The Multiselect toggle
+ * ({@link HeaderBulkSelectButton}) renders inside that box, opposite the controls (this replaces the
+ * former header Select button), so a listing offers bulk-select from the box rather than the toolbar.
  */
 export function ListingSearchBox({
   sort,
@@ -52,6 +56,7 @@ export function ListingSearchBox({
   } = useDisplayPreferenceSettings();
   const update = useUpdateDisplayPreferenceSettings();
   const listingPage = useUiStore(state => state.listingPage);
+  const bulkSelectPageKey = useUiStore(state => state.bulkSelectPageKey);
   const {
     t,
   } = useTranslation();
@@ -104,13 +109,20 @@ export function ListingSearchBox({
       </RowCard>
       {listingPage
         ? (
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <RowCard
+            className="flex flex-wrap items-center justify-between gap-2 p-3"
+          >
             <ListingDisplayControls
               pageKey={listingPage.key}
               showImageControls={listingPage.showsImages}
             />
-            {displayRowExtra}
-          </div>
+            <div className="flex items-center gap-2">
+              {displayRowExtra}
+              {bulkSelectPageKey === listingPage.key
+                ? <HeaderBulkSelectButton pageKey={listingPage.key} />
+                : null}
+            </div>
+          </RowCard>
         )
         : null}
     </div>

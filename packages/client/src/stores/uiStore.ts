@@ -216,7 +216,7 @@ interface UiState {
   /** Transient: whether card-view selection mode is active per listing pageKey. Never persisted. */
   selectionMode: Record<string, boolean>;
   setSelectionMode: (pageKey: string, on: boolean) => void;
-  /** Transient: pageKey of the mounted listing that supports bulk multi-select (drives the header Select toggle), or null. Never persisted. */
+  /** Transient: pageKey of the mounted listing that supports bulk multi-select (drives the in-box display-options Select toggle + the CMD+K action), or null. Never persisted. */
   bulkSelectPageKey: string | null;
   setBulkSelectPageKey: (pageKey: string | null) => void;
   /** Transient: the mounted edit form's outside-source sync provider (drives the header "Sync from source" button + modal), or null. Never persisted. */

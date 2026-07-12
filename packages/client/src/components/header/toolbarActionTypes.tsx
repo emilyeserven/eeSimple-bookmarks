@@ -39,8 +39,6 @@ export interface ToolbarContext {
     addBookmark?: { categoryId?: string };
     /** Label for the entity-create option in the Plus dropdown (e.g. "New category"). */
     createLabel?: string; } | null;
-  /** The selection pageKey of a mounted bulk-selectable listing, or null. Independent of `listingPage`. */
-  bulkSelectPageKey: string | null;
   isBookmarkDetail: boolean;
   bookmarkId: string;
   addChild: { kind: "tag" | "mediaType";

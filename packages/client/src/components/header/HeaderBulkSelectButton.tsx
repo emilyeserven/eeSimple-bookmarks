@@ -2,10 +2,9 @@ import { CheckSquare } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { useUiStore } from "@/stores/uiStore";
 
-/** Desktop header toggle for a listing's bulk-selection mode. Flips `selectionMode[pageKey]`; the in-page bar handles the rest. */
+/** Toggle for a listing's bulk-selection mode, rendered in the display-options box. Flips `selectionMode[pageKey]`; the in-page bar handles the rest. */
 export function HeaderBulkSelectButton({
   pageKey,
 }: {
@@ -29,24 +28,5 @@ export function HeaderBulkSelectButton({
     >
       <CheckSquare className="size-4" />
     </Button>
-  );
-}
-
-/** Small-screen More-menu row mirroring {@link HeaderBulkSelectButton}. */
-export function BulkSelectMenuItem({
-  pageKey,
-}: {
-  pageKey: string;
-}) {
-  const {
-    t,
-  } = useTranslation();
-  const mode = useUiStore(state => state.selectionMode[pageKey]) ?? false;
-  const setSelectionMode = useUiStore(state => state.setSelectionMode);
-  return (
-    <DropdownMenuItem onSelect={() => setSelectionMode(pageKey, !mode)}>
-      <CheckSquare className="size-4" />
-      {mode ? t("Done selecting") : t("Select")}
-    </DropdownMenuItem>
   );
 }
