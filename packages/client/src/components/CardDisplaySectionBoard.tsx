@@ -19,7 +19,7 @@ import { ChevronDown, ChevronUp, GripVertical, Move, Plus, Trash2 } from "lucide
 import { useTranslation } from "react-i18next";
 
 import { SectionVisibilityEditor } from "./SectionVisibilityEditor";
-import { eligibleCustomCardFields, STANDARD_CARD_FIELDS } from "../lib/bookmarkCardFieldDefs";
+import { eligibleCustomCardFields, isMultiValueTaxonomyField, STANDARD_CARD_FIELDS } from "../lib/bookmarkCardFieldDefs";
 import {
   addCardSection,
   CARD_IMAGE_CORNER_KEYS,
@@ -426,11 +426,19 @@ function SectionCard({
                     fieldKey={field.key}
                     label={labelFor(field.key)}
                     hideLabel={field.hideLabel ?? false}
+                    maxTerms={field.maxTerms ?? null}
+                    collapseToCount={field.collapseToCount ?? false}
                     idPrefix={idPrefix}
                     moveTargets={moveTargets}
                     onMove={target => onChange(moveCardField(value, field.key, target))}
                     onToggleHideLabel={on => onChange(patchFieldPlacement(value, field.key, {
                       hideLabel: on,
+                    }))}
+                    onSetMaxTerms={max => onChange(patchFieldPlacement(value, field.key, {
+                      maxTerms: max,
+                    }))}
+                    onToggleCollapseToCount={on => onChange(patchFieldPlacement(value, field.key, {
+                      collapseToCount: on,
                     }))}
                   />
                 ))}
@@ -503,19 +511,28 @@ function SectionLayoutControls({
 }
 
 function FieldChip({
-  fieldKey, label, hideLabel, idPrefix, moveTargets, onMove, onToggleHideLabel,
+  fieldKey, label, hideLabel, maxTerms = null, collapseToCount = false, idPrefix, moveTargets, onMove,
+  onToggleHideLabel, onSetMaxTerms, onToggleCollapseToCount,
 }: {
   fieldKey: string;
   label: string;
   hideLabel: boolean;
+  maxTerms?: number | null;
+  collapseToCount?: boolean;
   idPrefix: string;
   moveTargets: MoveTargetList[];
   onMove: (target: CardFieldTarget) => void;
   onToggleHideLabel: (on: boolean) => void;
+  /** Present only for body-zone fields; when omitted the term-display controls are hidden (corners/tray). */
+  onSetMaxTerms?: (max: number | null) => void;
+  onToggleCollapseToCount?: (on: boolean) => void;
 }) {
   const {
     t,
   } = useTranslation();
+  // Term-display controls only apply to multi-value taxonomy fields in a body zone (where the
+  // handlers are wired) — not to image-corner overlays or the hidden tray.
+  const showTermControls = isMultiValueTaxonomyField(fieldKey) && !!onSetMaxTerms && !!onToggleCollapseToCount;
   const {
     attributes, listeners, setNodeRef, transform, transition, isDragging,
   } = useSortable({
@@ -577,6 +594,44 @@ function FieldChip({
               {t("Hide label")}
             </label>
           </DropdownMenuItem>
+          {showTermControls
+            ? (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={e => e.preventDefault()}>
+                  <label className="flex items-center gap-2">
+                    <span>{t("Max terms")}</span>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={maxTerms ?? ""}
+                      placeholder={t("All")}
+                      className="h-7 w-16 text-xs"
+                      onPointerDown={e => e.stopPropagation()}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        if (raw === "") {
+                          onSetMaxTerms?.(null);
+                          return;
+                        }
+                        const parsed = Number.parseInt(raw, 10);
+                        onSetMaxTerms?.(Number.isNaN(parsed) ? null : Math.max(0, parsed));
+                      }}
+                    />
+                  </label>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={e => e.preventDefault()}>
+                  <label className="flex items-center gap-2">
+                    <Checkbox
+                      checked={collapseToCount}
+                      onCheckedChange={checked => onToggleCollapseToCount?.(checked === true)}
+                    />
+                    {t("Count only")}
+                  </label>
+                </DropdownMenuItem>
+              </>
+            )
+            : null}
         </DropdownMenuContent>
       </DropdownMenu>
     </span>

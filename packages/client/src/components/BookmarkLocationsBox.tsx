@@ -1,19 +1,27 @@
+import type { TermDisplayProps } from "./bookmarkCardTermBadges";
 import type { BookmarkLocation } from "@eesimple/types";
-
-import { Fragment } from "react";
 
 import { Link } from "@tanstack/react-router";
 import { MapPin } from "lucide-react";
 
+import { TaxonomyBadgeRow, TaxonomyLinkList } from "./bookmarkCardTermBadges";
 import { LocationHierarchyHoverCard } from "./LocationHierarchyHoverCard";
 import { ScrollFadeBox } from "./ScrollFadeBox";
 
 import { Badge } from "@/components/ui/badge";
+import i18n from "@/i18n";
 
-interface LocationsBoxProps {
+interface LocationsBoxProps extends TermDisplayProps {
   locations: BookmarkLocation[];
   /** Show each location's ancestor chain in a hover popover (the `showLocationHierarchyOnHover` placement knob). */
   showHierarchyOnHover?: boolean;
+}
+
+/** The count-form label for a bookmark's locations, e.g. "5 locations". */
+function locationsCountLabel(count: number): string {
+  return i18n.t("{{count}} locations", {
+    count,
+  });
 }
 
 /** Scrollable, fading box of a bookmark's location badges (each links to the location's page). */
@@ -51,11 +59,17 @@ export function BookmarkLocationsBox({
  * rather than sitting in its own bordered, scrollable container like {@link BookmarkLocationsBox}.
  */
 export function BookmarkLocationBadges({
-  locations, showHierarchyOnHover = false,
+  locations, showHierarchyOnHover = false, maxTerms = null, collapseToCount = false,
 }: LocationsBoxProps) {
   return (
-    <div className="flex flex-wrap items-center gap-1">
-      {locations.map((location) => {
+    <TaxonomyBadgeRow
+      items={locations}
+      keyOf={location => location.id}
+      icon={MapPin}
+      countLabel={locationsCountLabel}
+      maxTerms={maxTerms}
+      collapseToCount={collapseToCount}
+      renderBadge={(location) => {
         const link = (
           <Link
             to="/taxonomies/locations/$locationSlug"
@@ -73,19 +87,15 @@ export function BookmarkLocationBadges({
             </Badge>
           </Link>
         );
-        return (
-          <div key={location.id}>
-            {showHierarchyOnHover
-              ? (
-                <LocationHierarchyHoverCard location={location}>
-                  {link}
-                </LocationHierarchyHoverCard>
-              )
-              : link}
-          </div>
-        );
-      })}
-    </div>
+        return showHierarchyOnHover
+          ? (
+            <LocationHierarchyHoverCard location={location}>
+              {link}
+            </LocationHierarchyHoverCard>
+          )
+          : link;
+      }}
+    />
   );
 }
 
@@ -95,11 +105,16 @@ export function BookmarkLocationBadges({
  * but laid out as plain inline text to fit the table value column. Mirrors {@link BookmarkTagLinks}.
  */
 export function BookmarkLocationLinks({
-  locations, showHierarchyOnHover = false,
+  locations, showHierarchyOnHover = false, maxTerms = null, collapseToCount = false,
 }: LocationsBoxProps) {
   return (
-    <span className="text-sm">
-      {locations.map((location, index) => {
+    <TaxonomyLinkList
+      items={locations}
+      keyOf={location => location.id}
+      countLabel={locationsCountLabel}
+      maxTerms={maxTerms}
+      collapseToCount={collapseToCount}
+      renderLink={(location) => {
         const link = (
           <Link
             to="/taxonomies/locations/$locationSlug"
@@ -115,19 +130,14 @@ export function BookmarkLocationLinks({
             {location.name}
           </Link>
         );
-        return (
-          <Fragment key={location.id}>
-            {index > 0 ? ", " : null}
-            {showHierarchyOnHover
-              ? (
-                <LocationHierarchyHoverCard location={location}>
-                  {link}
-                </LocationHierarchyHoverCard>
-              )
-              : link}
-          </Fragment>
-        );
-      })}
-    </span>
+        return showHierarchyOnHover
+          ? (
+            <LocationHierarchyHoverCard location={location}>
+              {link}
+            </LocationHierarchyHoverCard>
+          )
+          : link;
+      }}
+    />
   );
 }

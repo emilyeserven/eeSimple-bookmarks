@@ -2251,6 +2251,20 @@ export interface CardFieldPlacement {
    * ancestors). Defaults to false.
    */
   showGenreMoodHierarchyOnHover?: boolean;
+  /**
+   * Multi-value taxonomy fields only (Tags, People, Groups, Genres & Moods, Locations). Cap on the
+   * number of term names shown; when the bookmark has more terms than this, the field either renders
+   * the first `maxTerms` names plus a "+N more" indicator, or — when `collapseToCount` is set —
+   * collapses to the field icon + total count. `null`/omitted means no cap (show every name).
+   */
+  maxTerms?: number | null;
+  /**
+   * Multi-value taxonomy fields only (Tags, People, Groups, Genres & Moods, Locations). When true and
+   * the field is over its `maxTerms` limit (or has no `maxTerms` — i.e. always), the names collapse to
+   * the field's icon + the total count (e.g. "🏷 5") instead of showing a "+N more" indicator.
+   * Defaults to false.
+   */
+  collapseToCount?: boolean;
 }
 
 /**

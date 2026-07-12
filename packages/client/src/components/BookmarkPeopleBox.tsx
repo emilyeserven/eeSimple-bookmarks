@@ -1,29 +1,43 @@
+import type { TermDisplayProps } from "./bookmarkCardTermBadges";
 import type { BookmarkPerson } from "@eesimple/types";
-
-import { Fragment } from "react";
 
 import { Link } from "@tanstack/react-router";
 import { User } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
+import { TaxonomyBadgeRow, TaxonomyLinkList } from "./bookmarkCardTermBadges";
 
-interface PeopleBoxProps {
+import { Badge } from "@/components/ui/badge";
+import i18n from "@/i18n";
+
+interface PeopleBoxProps extends TermDisplayProps {
   people: BookmarkPerson[];
+}
+
+/** The count-form label for a bookmark's people, e.g. "5 people". */
+function peopleCountLabel(count: number): string {
+  return i18n.t("{{count}} people", {
+    count,
+  });
 }
 
 /**
  * A bookmark's people badges — each renders standalone so it flows alongside the card's other pills
  * (category, media type, website, …) in the `card-labels` zone's flex row. Mirrors
- * {@link BookmarkLocationBadges}.
+ * {@link BookmarkLocationBadges}. Honors the `maxTerms` / `collapseToCount` term-display knobs.
  */
 export function BookmarkPeopleBadges({
-  people,
+  people, maxTerms = null, collapseToCount = false,
 }: PeopleBoxProps) {
   return (
-    <div className="flex flex-wrap items-center gap-1">
-      {people.map(person => (
+    <TaxonomyBadgeRow
+      items={people}
+      keyOf={person => person.id}
+      icon={User}
+      countLabel={peopleCountLabel}
+      maxTerms={maxTerms}
+      collapseToCount={collapseToCount}
+      renderBadge={person => (
         <Link
-          key={person.id}
           to="/taxonomies/people/$personSlug"
           params={{
             personSlug: person.slug,
@@ -38,8 +52,8 @@ export function BookmarkPeopleBadges({
             {person.name}
           </Badge>
         </Link>
-      ))}
-    </div>
+      )}
+    />
   );
 }
 
@@ -49,28 +63,30 @@ export function BookmarkPeopleBadges({
  * plain inline text to fit the table value column. Mirrors {@link BookmarkTagLinks}.
  */
 export function BookmarkPeopleLinks({
-  people,
+  people, maxTerms = null, collapseToCount = false,
 }: PeopleBoxProps) {
   return (
-    <span className="text-sm">
-      {people.map((person, index) => (
-        <Fragment key={person.id}>
-          {index > 0 ? ", " : null}
-          <Link
-            to="/taxonomies/people/$personSlug"
-            params={{
-              personSlug: person.slug,
-            }}
-            title={person.name}
-            className="
-              text-primary
-              hover:underline
-            "
-          >
-            {person.name}
-          </Link>
-        </Fragment>
-      ))}
-    </span>
+    <TaxonomyLinkList
+      items={people}
+      keyOf={person => person.id}
+      countLabel={peopleCountLabel}
+      maxTerms={maxTerms}
+      collapseToCount={collapseToCount}
+      renderLink={person => (
+        <Link
+          to="/taxonomies/people/$personSlug"
+          params={{
+            personSlug: person.slug,
+          }}
+          title={person.name}
+          className="
+            text-primary
+            hover:underline
+          "
+        >
+          {person.name}
+        </Link>
+      )}
+    />
   );
 }

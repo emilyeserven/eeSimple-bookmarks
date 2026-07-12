@@ -101,6 +101,24 @@ export const STANDARD_CARD_FIELDS = [
 export const HEADER_CARD_FIELD_KEYS = ["title", "externalLink", "more"] as const;
 
 /**
+ * The taxonomy fields that can hold multiple terms — the ones that support the per-field term-display
+ * knobs (`maxTerms` / `collapseToCount`): a cap on visible names or a collapse to the icon + count.
+ * Single-value taxonomy fields (category, website, media type, YouTube channel) are excluded.
+ */
+export const MULTI_VALUE_TAXONOMY_FIELD_KEYS = [
+  "tags",
+  "people",
+  "groups",
+  "genreMoods",
+  "locations",
+] as const;
+
+/** Whether `key` is a multi-value taxonomy field (supports the term-display knobs). */
+export function isMultiValueTaxonomyField(key: string): boolean {
+  return (MULTI_VALUE_TAXONOMY_FIELD_KEYS as readonly string[]).includes(key);
+}
+
+/**
  * The custom properties eligible to appear on bookmark cards (and thus in the rule's field zones):
  * shown in listings, not a calculate property, and assigned to at least one category. Returned as
  * `{ key, label }` pairs keyed by property id, ready to merge after {@link STANDARD_CARD_FIELDS}.

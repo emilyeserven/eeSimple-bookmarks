@@ -40,6 +40,8 @@ function placementMap(
     showMediaTypeHierarchyOnHover: false,
     showLocationHierarchyOnHover: false,
     showGenreMoodHierarchyOnHover: false,
+    maxTerms: null,
+    collapseToCount: false,
     ...extra,
   }]]);
 }

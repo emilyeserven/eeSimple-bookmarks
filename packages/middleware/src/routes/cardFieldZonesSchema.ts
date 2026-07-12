@@ -69,6 +69,14 @@ const PLACEMENT_PROP_SCHEMAS = {
   showGenreMoodHierarchyOnHover: {
     type: "boolean",
   },
+  // Multi-value taxonomy fields only (see CardFieldPlacement in @eesimple/types).
+  maxTerms: {
+    type: ["number", "null"],
+    minimum: 0,
+  },
+  collapseToCount: {
+    type: "boolean",
+  },
 } as const satisfies Record<keyof CardFieldPlacement, unknown>;
 
 /** One `CardFieldPlacement` object (a `key` plus its optional per-field knobs). */
