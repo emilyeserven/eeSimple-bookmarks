@@ -27,6 +27,7 @@ import { BookmarkLocationsField } from "./BookmarkLocationsField";
 import { BookmarkMediaLinkField } from "./BookmarkMediaLinkField";
 import { BookmarkNamesField } from "./BookmarkNamesField";
 import { BookmarkPeopleField } from "./BookmarkPeopleField";
+import { BookmarkSecondaryUrlField } from "./BookmarkSecondaryUrlField";
 import { BookmarkTitleField } from "./BookmarkTitleField";
 
 /**
@@ -126,6 +127,7 @@ const FIELD_RENDERERS: Record<
     />
   ),
   blacklistedLocationIds: props => <BookmarkExcludedLocationsField form={props.form} />,
+  secondaryUrl: props => <BookmarkSecondaryUrlField form={props.form} />,
 };
 
 interface BookmarkStandardFieldZoneProps extends StandardFieldRenderProps {

@@ -44,6 +44,7 @@ export function BookmarkFormHost({
   const form = useAppForm({
     defaultValues: {
       url: "",
+      secondaryUrl: "",
       title: "",
       names: [],
       categoryId: "",

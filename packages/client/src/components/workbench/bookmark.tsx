@@ -19,6 +19,7 @@ import {
   BookmarkPlexDetailView,
   BookmarkPriorityView,
   BookmarkRelatedBookmarksView,
+  BookmarkSecondaryUrlDetailView,
   BookmarkTagsDetailView,
   BookmarkWebsiteDetailView,
 } from "./bookmarkViewFields";
@@ -51,6 +52,7 @@ import {
 import { bookmarkYouTubeMetadataField, useBookmarkDynamicFields } from "../BookmarkPropertyLayoutFields";
 import { BookmarkReelArchivePlayer } from "../BookmarkReelArchive";
 import { BookmarkRelatedForm } from "../BookmarkRelatedForm";
+import { BookmarkSecondaryUrlEditField } from "../BookmarkSecondaryUrlEditField";
 import { BookmarkReelCaptureField } from "../BookmarkVideoEditForm";
 import { GenreMoodAssignmentSection } from "../GenreMoodAssignmentSection";
 import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
@@ -80,6 +82,7 @@ export type BookmarkFieldKey
     | "primaryLanguage"
     | "names"
     | "url"
+    | "secondaryUrl"
     | "description"
     | "category"
     | "mediaType"
@@ -138,6 +141,16 @@ const bookmarkFields = {
     edit: ({
       entity,
     }) => <BookmarkUrlEditField bookmark={entity} />,
+  },
+  secondaryUrl: {
+    key: "secondaryUrl",
+    label: i18n.t("Download URL"),
+    view: ({
+      entity,
+    }) => <BookmarkSecondaryUrlDetailView bookmark={entity} />,
+    edit: ({
+      entity,
+    }) => <BookmarkSecondaryUrlEditField bookmark={entity} />,
   },
   description: {
     key: "description",
@@ -399,7 +412,7 @@ const BOOKMARK_DEFAULT_LAYOUT: EntityLayout = {
       sections: [
         {
           key: "general",
-          fields: ["name", "primaryLanguage", "names", "url", "description", "category", "mediaType", "tags", "locationsBox", "channel", "people", "groups", "genreMoods", "kavitaLink", "plexLink"] satisfies BookmarkFieldKey[],
+          fields: ["name", "primaryLanguage", "names", "url", "secondaryUrl", "description", "category", "mediaType", "tags", "locationsBox", "channel", "people", "groups", "genreMoods", "kavitaLink", "plexLink"] satisfies BookmarkFieldKey[],
         },
         {
           key: "advanced",

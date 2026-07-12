@@ -220,6 +220,7 @@ export function useBookmarkFormHandlers({
   // shortcut.
   async function submitForm(value: {
     url: string;
+    secondaryUrl: string;
     title: string;
     names: DraftEntityName[];
     categoryId: string;
@@ -253,6 +254,7 @@ export function useBookmarkFormHandlers({
     const input: CreateBookmarkInput = {
       url: finalUrl,
       originalUrl,
+      secondaryUrl: value.secondaryUrl || null,
       title: value.title,
       categoryId: value.categoryId,
       mediaTypeId: value.mediaTypeId || null,

@@ -147,6 +147,7 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     id: row.id,
     url: row.url,
     originalUrl: row.originalUrl,
+    secondaryUrl: row.secondaryUrl,
     title: row.title,
     description: row.description,
     categoryId: row.categoryId ?? defaultCategoryId,
