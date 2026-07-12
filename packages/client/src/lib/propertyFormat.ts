@@ -29,7 +29,7 @@ export function formatProgressValue(
   property: CustomProperty,
   mediaTypeId?: string | null,
 ): string {
-  const texts = resolveItemInItemsTexts(property, mediaTypeId);
+  const texts = resolveItemInItemsTexts(property, mediaTypeId, value.textOverride);
   const before = texts.before ?? "";
   const between = texts.between ?? i18n.t(" of ");
   const after = texts.after ?? "";

@@ -65,6 +65,35 @@ describe("formatProgressValue", () => {
     expect(formatProgressValue(progress(3, 10), property, "mt-book")).toBe("3 of 10 pages");
     expect(formatProgressValue(progress(3, 10), property)).toBe("3 of 10 pages");
   });
+
+  it("applies a per-bookmark textOverride over the media-type override and base, per field", () => {
+    const property = makeCustomProperty({
+      itemInItemsAfterText: " pages",
+      itemInItemsMediaTypeTexts: {
+        "mt-course": {
+          afterText: " modules",
+        },
+      },
+    });
+    const value: BookmarkProgressValue = {
+      propertyId: "p1",
+      current: 5,
+      total: 20,
+      textOverride: {
+        beforeText: "chapter ",
+        afterText: " chapters",
+      },
+    };
+    // before + after come from the bookmark override; between inherits the base " of ".
+    expect(formatProgressValue(value, property, "mt-course")).toBe("chapter 5 of 20 chapters");
+  });
+
+  it("an absent textOverride leaves the media-type/base output unchanged", () => {
+    const property = makeCustomProperty({
+      itemInItemsAfterText: " pages",
+    });
+    expect(formatProgressValue(progress(3, 10), property)).toBe("3 of 10 pages");
+  });
 });
 
 describe("formatSectionEntry", () => {

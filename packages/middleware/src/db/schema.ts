@@ -1592,6 +1592,11 @@ export const bookmarkProgressValues = pgTable("bookmark_progress_values", {
   }),
   current: real("current").notNull(),
   total: real("total").notNull(),
+  // Per-bookmark override of the itemInItems counter-word text segments (the
+  // ItemInItemsMediaTypeTexts element shape `{ beforeText?, betweenText?, afterText? }` in
+  // @eesimple/types). Nullable jsonb → push-safe additive lone column; null = inherit the
+  // property's media-type override, then its base text.
+  textOverride: jsonb("text_override"),
 }, table => [
   primaryKey({
     columns: [table.bookmarkId, table.propertyId],

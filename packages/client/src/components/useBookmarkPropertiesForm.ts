@@ -1,3 +1,4 @@
+import type { ProgressInputEntry } from "./bookmarkFormSchema";
 import type { Bookmark, CustomProperty, SectionEntry } from "@eesimple/types";
 
 import { useEffect, useRef } from "react";
@@ -147,7 +148,7 @@ export function useBookmarkPropertiesForm(bookmark: Bookmark) {
       [id]: values,
     }));
   }
-  function handleProgressChange(id: string, field: "current" | "total", value: string): void {
+  function handleProgressChange(id: string, field: keyof ProgressInputEntry, value: string): void {
     setProgressInputs(current => ({
       ...current,
       [id]: {

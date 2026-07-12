@@ -2786,6 +2786,14 @@ export interface BookmarkProgressValue {
   current: number;
   /** The "total" count (e.g. total pages). */
   total: number;
+  /**
+   * Optional per-bookmark override of the counter-word text segments (before/between/after the
+   * numbers). Each null/absent field inherits the property's per-media-type override
+   * ({@link ItemInItemsMediaTypeTexts}), then the property base text — so one bookmark can read
+   * "chapter 3 of 12" while its siblings inherit "3 of 12 pages". Display-only (not matched/sorted).
+   * `null` = inherit everything.
+   */
+  textOverride?: ItemInItemsMediaTypeTexts[string] | null;
 }
 
 /**

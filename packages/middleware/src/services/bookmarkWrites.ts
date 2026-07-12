@@ -198,6 +198,7 @@ export async function setProgressValues(
     propertyId: entry.propertyId,
     current: entry.current,
     total: entry.total,
+    textOverride: entry.textOverride ?? null,
   })));
 }
 
@@ -274,6 +275,9 @@ export async function recomputeDerivedProgress(tx: Tx, bookmarkId: string): Prom
       })
       .onConflictDoUpdate({
         target: [bookmarkProgressValues.bookmarkId, bookmarkProgressValues.propertyId],
+        // Only counts are recomputed — deliberately NOT textOverride, so a per-bookmark counter-word
+        // override survives every derived recompute. setProgressValues writes the client-sent row
+        // (incl. the override) before this runs, so the override is already present on conflict.
         set: {
           current: counts.completed,
           total: counts.total,

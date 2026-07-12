@@ -15,6 +15,7 @@ import {
   recomputeCalculatedValues,
   recomputeDerivedProgress,
   setNumberValues,
+  setProgressValues,
   type Tx,
 } from "@/services/bookmarkWrites";
 
@@ -29,6 +30,8 @@ import {
 interface FakeTxState {
   inserted: { table: unknown;
     rows: unknown[]; }[];
+  /** The config objects passed to each `.onConflictDoUpdate(...)`, in call order. */
+  upserts: { set?: Record<string, unknown> }[];
   calls: string[];
   tableRows: Map<unknown, unknown[]>;
 }
@@ -37,6 +40,7 @@ function makeFakeTx(): { tx: Tx;
   state: FakeTxState; } {
   const state: FakeTxState = {
     inserted: [],
+    upserts: [],
     calls: [],
     tableRows: new Map(),
   };
@@ -51,8 +55,9 @@ function makeFakeTx(): { tx: Tx;
         // Awaiting this object resolves to itself (harmless for the plain-insert writers), while
         // the upsert writers can chain `.onConflictDoUpdate(...)` off it.
         return {
-          onConflictDoUpdate: () => {
+          onConflictDoUpdate: (config: { set?: Record<string, unknown> }) => {
             state.calls.push("upsert");
+            state.upserts.push(config);
             return Promise.resolve(undefined);
           },
         };
@@ -297,6 +302,73 @@ test("recomputeDerivedProgress upserts leaf counts — children count individual
     total: 3, // leaves: 1.1, 1.2, Unit 2
   }]);
   assert.ok(state.calls.includes("upsert"), "the write must be an upsert on the composite PK");
+});
+
+test("setProgressValues persists the per-bookmark counter-word override (null when absent)", async () => {
+  const {
+    tx, state,
+  } = makeFakeTx();
+  await setProgressValues(tx, "bm-1", [
+    {
+      propertyId: "progress-1",
+      current: 3,
+      total: 12,
+      textOverride: {
+        afterText: " chapters",
+      },
+    },
+    {
+      propertyId: "progress-2",
+      current: 1,
+      total: 2,
+    },
+  ]);
+  assert.equal(state.inserted[0].table, bookmarkProgressValues);
+  assert.deepEqual(state.inserted[0].rows, [
+    {
+      bookmarkId: "bm-1",
+      propertyId: "progress-1",
+      current: 3,
+      total: 12,
+      textOverride: {
+        afterText: " chapters",
+      },
+    },
+    {
+      bookmarkId: "bm-1",
+      propertyId: "progress-2",
+      current: 1,
+      total: 2,
+      textOverride: null,
+    },
+  ]);
+});
+
+test("recomputeDerivedProgress recomputes only counts, never touching textOverride (the override survives)", async () => {
+  const {
+    tx, state,
+  } = makeFakeTx();
+  state.tableRows.set(customProperties, [{
+    id: "progress-1",
+    sourcePropertyId: "sections-1",
+  }]);
+  state.tableRows.set(bookmarkSectionsValues, [{
+    propertyId: "sections-1",
+    sections: [
+      {
+        id: "a",
+        name: "Ch 1",
+        type: "page",
+        startValue: "1",
+        completed: true,
+      },
+    ],
+  }]);
+  await recomputeDerivedProgress(tx, "bm-1");
+  assert.equal(state.upserts.length, 1);
+  // The upsert's `set` clause must update ONLY the counts, so a per-bookmark textOverride written
+  // earlier by setProgressValues is preserved across the derived recompute.
+  assert.deepEqual(Object.keys(state.upserts[0].set ?? {}).sort(), ["current", "total"]);
 });
 
 test("recomputeDerivedProgress leaves the progress row alone when the source sections are empty or absent", async () => {

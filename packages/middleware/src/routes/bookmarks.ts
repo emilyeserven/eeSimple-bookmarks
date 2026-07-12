@@ -274,6 +274,23 @@ const createBookmarkBody = {
           total: {
             type: "number",
           },
+          // Per-bookmark counter-word override. AJV strips unknown props on whole-set PATCH, so
+          // every optional segment must be declared here or it silently vanishes on save.
+          textOverride: {
+            type: ["object", "null"],
+            additionalProperties: false,
+            properties: {
+              beforeText: {
+                type: ["string", "null"],
+              },
+              betweenText: {
+                type: ["string", "null"],
+              },
+              afterText: {
+                type: ["string", "null"],
+              },
+            },
+          },
         },
       },
     },

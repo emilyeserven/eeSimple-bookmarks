@@ -171,3 +171,64 @@ test("resolveItemInItemsTexts with a null media type uses the base texts", () =>
     after: " pages",
   });
 });
+
+test("resolveItemInItemsTexts: a per-bookmark override wins over the media-type override and base", () => {
+  const source = textSource({
+    itemInItemsMediaTypeTexts: {
+      "mt-course": {
+        afterText: " modules",
+      },
+    },
+  });
+  assert.deepEqual(
+    resolveItemInItemsTexts(source, "mt-course", {
+      beforeText: "chapter ",
+      afterText: " sections",
+    }),
+    {
+      before: "chapter ",
+      between: " of ",
+      after: " sections",
+    },
+  );
+});
+
+test("resolveItemInItemsTexts: per-bookmark override falls through per field to media-type then base", () => {
+  const source = textSource({
+    itemInItemsMediaTypeTexts: {
+      "mt-course": {
+        afterText: " modules",
+      },
+    },
+  });
+  // Only `before` is overridden per bookmark; `after` inherits the media-type override, `between` the base.
+  assert.deepEqual(
+    resolveItemInItemsTexts(source, "mt-course", {
+      beforeText: "on page ",
+      afterText: null,
+    }),
+    {
+      before: "on page ",
+      between: " of ",
+      after: " modules",
+    },
+  );
+});
+
+test("resolveItemInItemsTexts: an absent/null per-bookmark override is byte-identical to the two-arg call", () => {
+  const source = textSource({
+    itemInItemsMediaTypeTexts: {
+      "mt-course": {
+        afterText: " modules",
+      },
+    },
+  });
+  assert.deepEqual(
+    resolveItemInItemsTexts(source, "mt-course", null),
+    resolveItemInItemsTexts(source, "mt-course"),
+  );
+  assert.deepEqual(
+    resolveItemInItemsTexts(source, "mt-course", {}),
+    resolveItemInItemsTexts(source, "mt-course"),
+  );
+});
