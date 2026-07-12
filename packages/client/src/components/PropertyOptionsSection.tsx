@@ -13,6 +13,7 @@ import {
   DATE_TIME_FORMAT_OPTIONS,
   NUMBER_FORMAT_OPTIONS,
   OperandCheckboxList,
+  RATING_DISPLAY_OPTIONS,
   RATING_MAX_OPTIONS,
   summarizeBooleanOptions,
   summarizeItemInItemsOptions,
@@ -822,6 +823,8 @@ function RatingOptions({
               ratingLabel: state.values.ratingLabel,
               ratingAllowRange: state.values.ratingAllowRange,
               ratingLabelCount: Object.values(state.values.ratingLabels).filter(v => v.trim() !== "").length,
+              ratingDisplay: state.values.ratingDisplay,
+              ratingRangeIncludeStart: state.values.ratingRangeIncludeStart,
             })}
           >
             {values => summarizeRatingOptions(values)}
@@ -829,6 +832,15 @@ function RatingOptions({
         )}
       >
         <div className="space-y-4">
+          <form.AppField name="ratingDisplay">
+            {field => (
+              <field.SelectField
+                label="Display"
+                options={RATING_DISPLAY_OPTIONS}
+              />
+            )}
+          </form.AppField>
+
           <form.AppField name="ratingMax">
             {field => (
               <field.SelectField
@@ -908,6 +920,28 @@ function RatingOptions({
               </div>
             )}
           </form.AppField>
+
+          <form.Subscribe selector={state => state.values.ratingAllowRange}>
+            {allowRange =>
+              allowRange
+                ? (
+                  <form.AppField name="ratingRangeIncludeStart">
+                    {field => (
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id={`${idPrefix}-rating-range-include-start`}
+                          checked={field.state.value}
+                          onCheckedChange={checked => field.handleChange(checked === true)}
+                        />
+                        <Label htmlFor={`${idPrefix}-rating-range-include-start`}>
+                          Include the start level in the range fill (3–5 fills 3,4,5)
+                        </Label>
+                      </div>
+                    )}
+                  </form.AppField>
+                )
+                : null}
+          </form.Subscribe>
 
           <RatingLabelsField
             form={form}

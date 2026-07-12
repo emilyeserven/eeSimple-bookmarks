@@ -7,7 +7,7 @@
 
 import type { BookmarkContentKind } from "./bookmarkContentKind.js";
 import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from "./conditions.js";
-import type { BookmarkSectionsValue, BookmarkTextValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, ItemInItemsMediaTypeTexts, NumberFormat, SectionEntryType } from "./customProperties.js";
+import type { BookmarkSectionsValue, BookmarkTextValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, ItemInItemsMediaTypeTexts, NumberFormat, RatingDisplay, SectionEntryType } from "./customProperties.js";
 import type { EntityName, UpdateEntityNameEntry } from "./entityNames.js";
 import type { WebsiteExtensionFillRule } from "./extensionFill.js";
 import type { ExtensionFillRuleGroup } from "./extensionFillGroups.js";
@@ -2587,6 +2587,14 @@ export interface CustomProperty {
    * as their number). A level absent from the map falls back to its number.
    */
   ratingLabels: Record<string, string> | null;
+  /** How a `ratingScale` renders — `"stars"` (glyphs) or `"ticks"` (tick-mark scale); `null` = `"stars"`. */
+  ratingDisplay: RatingDisplay | null;
+  /**
+   * When true, a `ratingScale` **range** fills its start level too (an inclusive band — 3→5 fills
+   * 3,4,5), instead of the default start-exclusive band (3→5 fills 4,5). Only affects range values.
+   * Defaults to false.
+   */
+  ratingRangeIncludeStart: boolean;
   /** For a `calculate` property: ids of the `number` properties summed to produce its value. */
   operandPropertyIds: string[];
   /** Ids of the categories this property is assigned to (zero, one, or many). */
@@ -2724,6 +2732,10 @@ export interface CreateCustomPropertyInput {
   ratingAllowRange?: boolean;
   /** Per-number labels for a `ratingScale`, keyed by the level as a string (`"0".."ratingMax"`). */
   ratingLabels?: Record<string, string> | null;
+  /** How a `ratingScale` renders — `"stars"` or `"ticks"`. Defaults to `"stars"`. */
+  ratingDisplay?: RatingDisplay | null;
+  /** When true, a `ratingScale` range fills its start level too (inclusive band). Defaults to false. */
+  ratingRangeIncludeStart?: boolean;
   /** Selectable options for a `choices` property. Required when `type` is `"choices"`. */
   choicesItems?: ChoicesItem[];
   /** How a `choices` property is rendered in the bookmark form. Defaults to `"radio"`. */

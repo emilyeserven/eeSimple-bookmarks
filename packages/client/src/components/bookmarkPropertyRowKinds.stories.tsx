@@ -111,6 +111,8 @@ export const Rating: Story = {
           allowHalf: true,
           label: "4 of 5",
           caption: null,
+          display: "stars",
+          rangeIncludeStart: false,
           search,
         }}
       />

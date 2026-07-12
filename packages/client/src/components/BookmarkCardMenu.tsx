@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { BookmarkCardEditMenuItem } from "./BookmarkCardEditMenuItem";
 import { CardNumberPropertyEditor } from "./CardNumberPropertyEditor";
 import { DateTimePicker } from "./DateTimePicker";
-import { StarRating } from "./StarRating";
+import { RatingValue } from "./RatingValue";
 import { useBasketStore } from "../stores/basketStore";
 
 import {
@@ -262,7 +262,8 @@ export function BookmarkCardMenu({
                   >
                     <Label className="text-xs text-muted-foreground">{property.name}</Label>
                     <div className="mt-1">
-                      <StarRating
+                      <RatingValue
+                        display={property.ratingDisplay ?? "stars"}
                         value={current}
                         max={property.ratingMax ?? 5}
                         allowHalf={property.ratingAllowHalf}

@@ -4,6 +4,7 @@ import {
   CUSTOM_PROPERTY_TYPES,
   DATE_TIME_FORMATS,
   NUMBER_FORMATS,
+  RATING_DISPLAYS,
   SECTION_ENTRY_TYPES,
 } from "@eesimple/types";
 import type {
@@ -164,6 +165,13 @@ const createPropertyBody = {
         type: "string",
       },
     },
+    ratingDisplay: {
+      type: ["string", "null"],
+      enum: [...RATING_DISPLAYS, null],
+    },
+    ratingRangeIncludeStart: {
+      type: "boolean",
+    },
     choicesItems: {
       type: "array",
       items: {
@@ -279,6 +287,8 @@ const updatePropertyBody = {
     ratingLabel: createPropertyBody.properties.ratingLabel,
     ratingAllowRange: createPropertyBody.properties.ratingAllowRange,
     ratingLabels: createPropertyBody.properties.ratingLabels,
+    ratingDisplay: createPropertyBody.properties.ratingDisplay,
+    ratingRangeIncludeStart: createPropertyBody.properties.ratingRangeIncludeStart,
     choicesItems: createPropertyBody.properties.choicesItems,
     choicesDisplay: createPropertyBody.properties.choicesDisplay,
     choicesMultiple: createPropertyBody.properties.choicesMultiple,

@@ -1,6 +1,6 @@
 import type { BookmarkSearch } from "./bookmarkSearch";
 import type { IsbnLink } from "./isbnLinks";
-import type { Bookmark, BookmarkSectionsValue, CardFieldZones, ChoicesDisplayType, ChoicesItem, CustomProperty, SectionEntry } from "@eesimple/types";
+import type { Bookmark, BookmarkSectionsValue, CardFieldZones, ChoicesDisplayType, ChoicesItem, CustomProperty, RatingDisplay, SectionEntry } from "@eesimple/types";
 
 import { countSectionLeaves } from "@eesimple/types";
 
@@ -29,6 +29,10 @@ export interface RatingPropertyRow {
   label: string | undefined;
   /** Per-number label caption (single label, or `from → to`); `null` when there's nothing to add. */
   caption: string | null;
+  /** How to render — stars or tick marks. */
+  display: RatingDisplay;
+  /** When true, a range fills its start level's glyph too (inclusive band). */
+  rangeIncludeStart: boolean;
   search: BookmarkSearch;
 }
 
@@ -155,6 +159,8 @@ export function buildBookmarkPropertyRows(
           allowHalf: property.ratingAllowHalf,
           label: property.ratingShowLabel ? (property.ratingLabel ?? undefined) : undefined,
           caption: formatRatingCaption(property, entry.value, entry.valueEnd),
+          display: property.ratingDisplay ?? "stars",
+          rangeIncludeStart: property.ratingRangeIncludeStart,
           search: buildPropertyQuickSearch(property, entry.value),
         }
         : null;

@@ -52,3 +52,39 @@ describe("StarRating clear-to-zero button", () => {
     })).toBeNull();
   });
 });
+
+describe("StarRating range band", () => {
+  /** Count the filled (amber) star overlays in a read-only render. */
+  function filledStars(node: HTMLElement): number {
+    return node.querySelectorAll(".text-amber-400").length;
+  }
+
+  it("draws a start-exclusive band by default (3→5 fills stars 4,5)", () => {
+    const {
+      container,
+    } = render(
+      <StarRating
+        value={3}
+        rangeEnd={5}
+        max={5}
+        readOnly
+      />,
+    );
+    expect(filledStars(container)).toBe(2);
+  });
+
+  it("includes the start level when rangeIncludeStart is set (3→5 fills 3,4,5)", () => {
+    const {
+      container,
+    } = render(
+      <StarRating
+        value={3}
+        rangeEnd={5}
+        max={5}
+        readOnly
+        rangeIncludeStart
+      />,
+    );
+    expect(filledStars(container)).toBe(3);
+  });
+});

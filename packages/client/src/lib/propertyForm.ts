@@ -10,6 +10,8 @@ import {
   DATE_TIME_FORMATS,
   NUMBER_FORMAT_LABELS,
   NUMBER_FORMATS,
+  RATING_DISPLAY_LABELS,
+  RATING_DISPLAYS,
 } from "@eesimple/types";
 
 import i18n from "../i18n";
@@ -37,6 +39,12 @@ export const RATING_MAX_OPTIONS = [
     label: i18n.t("1 – 5"),
   },
 ];
+
+/** `ratingScale` display styles for the Display select. Derived from {@link RATING_DISPLAYS}. */
+export const RATING_DISPLAY_OPTIONS = RATING_DISPLAYS.map(value => ({
+  value,
+  label: i18n.t(RATING_DISPLAY_LABELS[value]),
+}));
 
 /** How `true`/`false` values of a `boolean` property are rendered. */
 export const BOOLEAN_LABEL_PRESET_OPTIONS = [
@@ -150,14 +158,23 @@ export function summarizeRatingOptions(values: {
   ratingLabel: string;
   ratingAllowRange?: boolean;
   ratingLabelCount?: number;
+  ratingDisplay?: string;
+  ratingRangeIncludeStart?: boolean;
 }): string {
   const min = values.ratingAllowZero ? 0 : 1;
-  const parts: string[] = [i18n.t("{{min}}–{{max}} stars", {
-    min,
-    max: values.ratingMax.trim() || "5",
-  })];
+  const unit = values.ratingDisplay === "ticks"
+    ? i18n.t("{{min}}–{{max}} ticks", {
+      min,
+      max: values.ratingMax.trim() || "5",
+    })
+    : i18n.t("{{min}}–{{max}} stars", {
+      min,
+      max: values.ratingMax.trim() || "5",
+    });
+  const parts: string[] = [unit];
   if (values.ratingAllowHalf) parts.push(i18n.t("half steps"));
   if (values.ratingAllowRange) parts.push(i18n.t("range"));
+  if (values.ratingRangeIncludeStart) parts.push(i18n.t("incl. start"));
   if (values.ratingShowLabel && values.ratingLabel.trim()) parts.push(i18n.t("label \"{{label}}\"", {
     label: values.ratingLabel.trim(),
   }));
