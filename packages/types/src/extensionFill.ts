@@ -71,7 +71,8 @@ export type FillTarget
    * `ratingScale`; `ratingSelector`/`ratingMatchExact`/`ratingLevels` are read only in this mode.
    * `ratingSelector` is the shared CSS selector applied to every level (a level may override it with
    * its own `selector`); `ratingMatchExact` globally controls how each level's `matchText` is compared
-   * — absent/`true` = exact (`equals`), `false` = `contains` — always case-insensitive.
+   * — absent/`true` = exact (`equals`), `false` = `contains`. `ratingMatchCaseSensitive` globally
+   * controls case sensitivity — absent/`false` = case-insensitive, `true` = case-sensitive.
    */
     | { kind: "customProperty";
       propertyId: string;
@@ -80,6 +81,7 @@ export type FillTarget
       ratingBound?: "from" | "to" | "range";
       ratingSelector?: string;
       ratingMatchExact?: boolean;
+      ratingMatchCaseSensitive?: boolean;
       ratingLevels?: RatingLevelDetector[]; }
   /** Multi-value; unmatched names create a name-only stub. */
       | { kind: "taxonomy";

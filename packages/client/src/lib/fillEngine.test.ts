@@ -1620,6 +1620,40 @@ describe("eesimpleFillEngine.runRules — ratingScale detect range (per-level de
     expect(runOne(rangeRule(), html).values).toEqual([]);
   });
 
+  it("matches regardless of case by default (case-insensitive)", () => {
+    // Page labels are lowercase; the rule's match texts are capitalized. Default = insensitive.
+    const html = "<ul><li class=\"lvl\">beginner</li><li class=\"lvl\">intermediate</li></ul>";
+    expect(runOne(rangeRule(), html).values).toEqual(["1", "2"]);
+  });
+
+  it("ratingMatchCaseSensitive:true requires the label case to match", () => {
+    const rule = {
+      id: "r-case",
+      target: {
+        kind: "customProperty",
+        propertyId: "complexity",
+        ratingBound: "range",
+        ratingSelector: ".lvl",
+        ratingMatchCaseSensitive: true,
+        ratingLevels: [
+          {
+            level: 1,
+            matchText: "Beginner",
+          },
+          {
+            level: 2,
+            matchText: "Intermediate",
+          },
+        ],
+      },
+      extract: {},
+    };
+    // Lowercase page labels do NOT match the capitalized match texts under case-sensitive matching.
+    expect(runOne(rule, "<ul><li class=\"lvl\">beginner</li></ul>").values).toEqual([]);
+    // Exact-case labels do match.
+    expect(runOne(rule, "<ul><li class=\"lvl\">Beginner</li></ul>").values).toEqual(["1"]);
+  });
+
   it("exact (default) does not match a substring label", () => {
     // "Beginner-friendly" is not exactly "Beginner", so level 1 stays absent under exact matching.
     const html = "<ul><li class=\"lvl\">Beginner-friendly</li></ul>";
