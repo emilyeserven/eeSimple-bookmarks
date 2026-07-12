@@ -177,6 +177,7 @@ function FillTransformFields({
     case "date":
     case "trim":
     case "absoluteUrl":
+    case "youtubeThumbnail":
       return null;
   }
 }
@@ -332,6 +333,10 @@ function TRANSFORM_KIND_OPTIONS(t: (key: string) => string): KindOption<Transfor
     {
       value: "absoluteUrl",
       label: t("Resolve relative URL"),
+    },
+    {
+      value: "youtubeThumbnail",
+      label: t("YouTube thumbnail"),
     },
   ];
 }
