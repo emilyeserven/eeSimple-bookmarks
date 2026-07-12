@@ -67,6 +67,7 @@ function toLocation(
     boundary: row.boundary ?? null,
     wikidataId: row.wikidataId,
     usesWikidataCoordinates: row.usesWikidataCoordinates === true,
+    hiddenOnMainMap: row.hiddenOnMainMap === true,
     officialLink: row.officialLink,
     wikipediaLinkEn: row.wikipediaLinkEn,
     wikipediaLinkLocal: row.wikipediaLinkLocal,
@@ -284,6 +285,7 @@ export async function createLocation(input: CreateLocationInput): Promise<Locati
         boundary: input.boundary ?? null,
         wikidataId: input.wikidataId ?? null,
         usesWikidataCoordinates: input.usesWikidataCoordinates ?? false,
+        hiddenOnMainMap: input.hiddenOnMainMap ?? false,
         officialLink: input.officialLink ?? null,
         wikipediaLinkEn: input.wikipediaLinkEn ?? null,
         wikipediaLinkLocal: input.wikipediaLinkLocal ?? null,
@@ -404,6 +406,7 @@ export function locationInputToPatch(input: UpdateLocationInput): Partial<Locati
   if (input.boundary !== undefined) patch.boundary = input.boundary;
   if (input.wikidataId !== undefined) patch.wikidataId = input.wikidataId;
   if (input.usesWikidataCoordinates !== undefined) patch.usesWikidataCoordinates = input.usesWikidataCoordinates;
+  if (input.hiddenOnMainMap !== undefined) patch.hiddenOnMainMap = input.hiddenOnMainMap;
   if (input.officialLink !== undefined) patch.officialLink = input.officialLink;
   if (input.wikipediaLinkEn !== undefined) patch.wikipediaLinkEn = input.wikipediaLinkEn;
   if (input.wikipediaLinkLocal !== undefined) patch.wikipediaLinkLocal = input.wikipediaLinkLocal;

@@ -11,6 +11,7 @@ import {
   LocationDescriptionEditField,
   LocationGenreMoodsEditField,
   LocationGeoLookupEditField,
+  LocationHiddenOnMainMapEditField,
   LocationLabeledWebsitesEditField,
   LocationMapUrlEditField,
   LocationNameEditField,
@@ -70,6 +71,7 @@ type LocationFieldKey
     | "coordinates"
     | "mapUrl"
     | "usesWikidataCoordinates"
+    | "hiddenOnMainMap"
     | "plusCode"
     | "placeType"
     | "countryCode"
@@ -140,6 +142,11 @@ const locationFields = {
     key: "usesWikidataCoordinates",
     label: i18n.t("Uses Wikidata for coordinates"),
     edit: () => <LocationUsesWikidataEditField />,
+  },
+  hiddenOnMainMap: {
+    key: "hiddenOnMainMap",
+    label: i18n.t("Hide on main map"),
+    edit: () => <LocationHiddenOnMainMapEditField />,
   },
   plusCode: {
     key: "plusCode",
@@ -276,6 +283,7 @@ const LOCATION_DEFAULT_LAYOUT: EntityLayout = {
           "coordinates",
           "mapUrl",
           "usesWikidataCoordinates",
+          "hiddenOnMainMap",
           "plusCode",
           "placeType",
           "countryCode",
@@ -326,6 +334,7 @@ const LOCATION_SHARED_FORM_FIELD_KEYS = new Set<string>([
   "coordinates",
   "mapUrl",
   "usesWikidataCoordinates",
+  "hiddenOnMainMap",
   "plusCode",
   "placeType",
   "countryCode",

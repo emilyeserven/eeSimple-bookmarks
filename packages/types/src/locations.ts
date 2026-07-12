@@ -81,6 +81,13 @@ export interface Location {
    * only — Nominatim is skipped, since this place's lat/long source of truth is Wikidata.
    */
   usesWikidataCoordinates: boolean;
+  /**
+   * Whether this location — and its whole subtree — is hidden from the main all-locations map plot
+   * (`scope.kind === "main"`). Display-only: the location still appears in the card listing and on its
+   * own detail-page / bookmark maps. Lets an operator keep a large region (e.g. all of the USA) off the
+   * main map so it can zoom to the region they want to see first.
+   */
+  hiddenOnMainMap: boolean;
   /** The location's official website, or `null`. */
   officialLink: string | null;
   /** English Wikipedia article URL, or `null`. Can be filled by hand or via the Wikipedia autofill action. */
@@ -144,6 +151,8 @@ export interface CreateLocationInput {
   wikidataId?: string | null;
   /** Whether the latitude/longitude came from Wikidata; gates Nominatim out of future refreshes. */
   usesWikidataCoordinates?: boolean;
+  /** Whether this location (and its subtree) is hidden from the main all-locations map plot. */
+  hiddenOnMainMap?: boolean;
   officialLink?: string | null;
   wikipediaLinkEn?: string | null;
   wikipediaLinkLocal?: string | null;
@@ -172,6 +181,8 @@ export interface UpdateLocationInput {
   wikidataId?: string | null;
   /** Whether the latitude/longitude came from Wikidata; gates Nominatim out of future refreshes. */
   usesWikidataCoordinates?: boolean;
+  /** Whether this location (and its subtree) is hidden from the main all-locations map plot. */
+  hiddenOnMainMap?: boolean;
   officialLink?: string | null;
   wikipediaLinkEn?: string | null;
   wikipediaLinkLocal?: string | null;

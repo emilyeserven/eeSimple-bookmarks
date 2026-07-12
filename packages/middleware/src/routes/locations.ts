@@ -114,6 +114,9 @@ const locationFields = {
   usesWikidataCoordinates: {
     type: "boolean",
   },
+  hiddenOnMainMap: {
+    type: "boolean",
+  },
   officialLink: {
     type: "string",
     nullable: true,

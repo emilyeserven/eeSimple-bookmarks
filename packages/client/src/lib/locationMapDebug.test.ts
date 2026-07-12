@@ -20,6 +20,7 @@ function node(overrides: Partial<LocationNode> & Pick<LocationNode, "id">): Loca
     countryCode: null,
     wikidataId: null,
     usesWikidataCoordinates: false,
+    hiddenOnMainMap: false,
     officialLink: null,
     wikipediaLinkEn: null,
     wikipediaLinkLocal: null,

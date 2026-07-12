@@ -1053,6 +1053,10 @@ export const locations = pgTable("locations", {
   // than NOT NULL DEFAULT false — a NOT NULL column added to an existing table prompts `push` even
   // with a column default (see CLAUDE.md → Database schema changes); null reads as false.
   usesWikidataCoordinates: boolean("uses_wikidata_coordinates"),
+  // Whether this location (and its subtree) is hidden from the main all-locations map plot. Nullable
+  // (null = false) so it stays a push-safe additive column — a NOT NULL column added to an existing
+  // table prompts `push` even with a default (see CLAUDE.md → Database schema changes).
+  hiddenOnMainMap: boolean("hidden_on_main_map"),
   sortOrder: integer("sort_order").notNull().default(0),
   parentId: uuid("parent_id").references((): AnyPgColumn => locations.id, {
     onDelete: "cascade",

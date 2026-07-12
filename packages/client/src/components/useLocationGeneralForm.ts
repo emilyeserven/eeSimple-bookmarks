@@ -39,6 +39,7 @@ const LABELS: Record<keyof UpdateLocationInput, string> = {
   boundary: "Boundary",
   wikidataId: "Wikidata ID",
   usesWikidataCoordinates: "Uses Wikidata coordinates",
+  hiddenOnMainMap: "Hide on main map",
   officialLink: "Official link",
   wikipediaLinkEn: "Wikipedia link (EN)",
   wikipediaLinkLocal: "Wikipedia link (Local)",
@@ -96,6 +97,7 @@ function useLocationEditState(node: LocationNode) {
   const [addPlaceTypeOpen, setAddPlaceTypeOpen] = useState(false);
   const [wikidataId, setWikidataId] = useState<string | null>(node.wikidataId);
   const [usesWikidataCoordinates, setUsesWikidataCoordinates] = useState(node.usesWikidataCoordinates);
+  const [hiddenOnMainMap, setHiddenOnMainMap] = useState(node.hiddenOnMainMap);
   return {
     alternateNames,
     setAlternateNames,
@@ -107,6 +109,8 @@ function useLocationEditState(node: LocationNode) {
     setWikidataId,
     usesWikidataCoordinates,
     setUsesWikidataCoordinates,
+    hiddenOnMainMap,
+    setHiddenOnMainMap,
   };
 }
 
@@ -136,6 +140,7 @@ export function useLocationGeneralForm(node: LocationNode) {
   const {
     alternateNames, setAlternateNames, tagIds, setTagIds, addPlaceTypeOpen, setAddPlaceTypeOpen,
     wikidataId, setWikidataId, usesWikidataCoordinates, setUsesWikidataCoordinates,
+    hiddenOnMainMap, setHiddenOnMainMap,
   } = useLocationEditState(node);
 
   const autoSave = useFieldAutoSave<UpdateLocationInput, Location>({
@@ -148,6 +153,11 @@ export function useLocationGeneralForm(node: LocationNode) {
   function saveUsesWikidataCoordinates(next: boolean): void {
     setUsesWikidataCoordinates(next);
     autoSave.saveField("usesWikidataCoordinates", next);
+  }
+
+  function saveHiddenOnMainMap(next: boolean): void {
+    setHiddenOnMainMap(next);
+    autoSave.saveField("hiddenOnMainMap", next);
   }
 
   // The slug derives from the name/English name; when a save moves it, follow it so the edit
@@ -285,6 +295,8 @@ export function useLocationGeneralForm(node: LocationNode) {
     wikidataId,
     usesWikidataCoordinates,
     saveUsesWikidataCoordinates,
+    hiddenOnMainMap,
+    saveHiddenOnMainMap,
     existingOptions,
     parentOptions,
     placeTypeChoices: (placeTypesData ?? []).map(pt => ({
