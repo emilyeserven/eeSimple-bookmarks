@@ -20,7 +20,6 @@ import { ChevronRight, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { FillRuleCard, SortableFillRuleRow } from "./SortableFillRuleRow";
-import { LabeledSection } from "../LabeledSection";
 
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -85,12 +84,15 @@ export function ExtensionFillRulesEditor({
   };
 
   return (
-    <LabeledSection
-      title={t("Extension Fill Rules")}
-      description={t(
-        "Rules the browser extension uses to scrape this site's pages and offer the extracted values back to a matching bookmark.",
-      )}
-    >
+    <div className="space-y-3">
+      <div className="space-y-1">
+        <h3 className="text-sm font-semibold">{t("Extension Fill Rules")}</h3>
+        <p className="text-xs text-muted-foreground">
+          {t(
+            "Rules the browser extension uses to scrape this site's pages and offer the extracted values back to a matching bookmark.",
+          )}
+        </p>
+      </div>
       <div className="space-y-4">
         {rules.length === 0
           ? <p className="text-sm text-muted-foreground">{t("No extension fill rules yet.")}</p>
@@ -127,7 +129,7 @@ export function ExtensionFillRulesEditor({
           {t("Add extraction rule")}
         </Button>
       </div>
-    </LabeledSection>
+    </div>
   );
 }
 
