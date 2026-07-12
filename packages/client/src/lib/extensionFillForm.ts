@@ -898,6 +898,12 @@ export function normalizeExtensionFillRules(
         : {}),
       target,
       extract,
+      // Preserve group membership so the rule reopens in its group after the round-trip.
+      ...(rule.groupId
+        ? {
+          groupId: rule.groupId,
+        }
+        : {}),
     });
   }
   return result;

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import type { WebsiteExtensionFillRule } from "@eesimple/types";
+import type { ExtensionFillRuleGroup, WebsiteExtensionFillRule } from "@eesimple/types";
 
 import { builtInWebsiteRenamedOrMoved, buildWebsiteScalarPatch, normalizeWebsiteDomain } from "@/services/websiteUpdate";
 
@@ -130,6 +130,38 @@ test("buildWebsiteScalarPatch: extensionFillRules omitted leaves it out; provide
     extensionFillRules: rules,
   }), {
     extensionFillRules: rules,
+  });
+});
+
+test("buildWebsiteScalarPatch: extensionFillRuleGroups omitted leaves it out; provided replaces verbatim", () => {
+  assert.equal("extensionFillRuleGroups" in buildWebsiteScalarPatch({}), false);
+
+  const groups: ExtensionFillRuleGroup[] = [
+    {
+      id: "outer",
+      label: "Courses",
+      overrides: {
+        pathMatch: {
+          mode: "prefix",
+          value: "/course/",
+        },
+      },
+    },
+    {
+      id: "inner",
+      label: "Content Status",
+      parentId: "outer",
+      overrides: {
+        "target.kind": "customProperty",
+        "customProperty.propertyId": "prop-1",
+      },
+    },
+  ];
+
+  assert.deepEqual(buildWebsiteScalarPatch({
+    extensionFillRuleGroups: groups,
+  }), {
+    extensionFillRuleGroups: groups,
   });
 });
 

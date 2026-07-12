@@ -368,6 +368,38 @@ const fillExtractSchema = {
   },
 } as const;
 
+// `taxonomyDirect` target: how the entity is resolved from the page. `select` (match mode) is a
+// full extract sub-schema; declared standalone so both the target schema and the fill-rule-group
+// `taxonomyDirect.resolve` override schema can reuse it.
+const fillResolveSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["mode"],
+  properties: {
+    mode: {
+      type: "string",
+      enum: ["url", "match"],
+    },
+    select: fillExtractSchema,
+  },
+  allOf: [
+    {
+      if: {
+        properties: {
+          mode: {
+            const: "match",
+          },
+        },
+      },
+      then: {
+        required: ["mode", "select"],
+      },
+    },
+  ],
+} as const;
+
+const FILL_TARGET_KINDS = ["field", "customProperty", "taxonomy", "image", "taxonomyEntity", "taxonomyDirect", "sections"] as const;
+
 const fillTargetSchema = {
   type: "object",
   additionalProperties: false,
@@ -375,41 +407,14 @@ const fillTargetSchema = {
   properties: {
     kind: {
       type: "string",
-      enum: ["field", "customProperty", "taxonomy", "image", "taxonomyEntity", "taxonomyDirect", "sections"],
+      enum: [...FILL_TARGET_KINDS],
     },
     field: {
       type: "string",
       // `field` is reused by the `field` (bookmark scalar), `taxonomyEntity`, and `taxonomyDirect`
       // targets; the per-kind `if/then` below picks which enum applies via a nested `field` schema.
     },
-    // `taxonomyDirect` target: how the entity is resolved from the page. `select` (match mode) is a
-    // full extract sub-schema; declared here because the body is `additionalProperties: false`.
-    resolve: {
-      type: "object",
-      additionalProperties: false,
-      required: ["mode"],
-      properties: {
-        mode: {
-          type: "string",
-          enum: ["url", "match"],
-        },
-        select: fillExtractSchema,
-      },
-      allOf: [
-        {
-          if: {
-            properties: {
-              mode: {
-                const: "match",
-              },
-            },
-          },
-          then: {
-            required: ["mode", "select"],
-          },
-        },
-      ],
-    },
+    resolve: fillResolveSchema,
     propertyId: {
       type: "string",
       format: "uuid",
@@ -584,6 +589,126 @@ const extensionFillRulesSchema = {
       pathMatch: pathMatchSchema,
       target: fillTargetSchema,
       extract: fillExtractSchema,
+      // Membership in an extension-fill-rule group. Declared here (and NOT stripped by
+      // `removeAdditional`) so a grouped rule reopens in its group after the PATCH round-trip.
+      groupId: {
+        type: "string",
+      },
+    },
+  },
+} as const;
+
+// The scraping-layout bundle a `sections.layout` override carries (see `extensionFillGroups.ts`).
+const sectionsLayoutOverrideSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    container: {
+      type: "string",
+    },
+    header: {
+      type: "string",
+    },
+    itemName: {
+      type: "string",
+    },
+    itemUrl: {
+      type: "string",
+    },
+    sectionMatch: textMatchSchema,
+    sectionHeaderSelector: {
+      type: "string",
+    },
+  },
+} as const;
+
+// A fill-rule group's overrides — one optional property per OverrideKey (kept in lockstep with
+// `packages/types/src/extensionFillGroups.ts`; `additionalProperties: false` 400s an unknown key).
+const extensionFillOverridesSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    "pathMatch": pathMatchSchema,
+    "target.kind": {
+      type: "string",
+      enum: [...FILL_TARGET_KINDS],
+    },
+    "field.field": {
+      type: "string",
+      enum: ["title", "description", "isbn", "year"],
+    },
+    "customProperty.propertyId": {
+      type: "string",
+      format: "uuid",
+    },
+    "customProperty.subField": {
+      type: "string",
+      enum: ["current", "total"],
+    },
+    "customProperty.choiceValue": {
+      type: "string",
+    },
+    "taxonomy.taxonomy": {
+      type: "string",
+      enum: ["people", "groups", "locations", "tags"],
+    },
+    "image.setMain": {
+      type: "boolean",
+    },
+    "taxonomyEntity.association": {
+      type: "string",
+      enum: [...TAXONOMY_ENTITY_ASSOCIATIONS],
+    },
+    "taxonomyEntity.field": {
+      type: "string",
+      enum: [...TAXONOMY_ENTITY_WRITE_KEYS],
+    },
+    "taxonomyEntity.socialPlatform": {
+      type: "string",
+      enum: SOCIAL_MEDIA_PLATFORMS,
+    },
+    "taxonomyDirect.association": {
+      type: "string",
+      enum: [...TAXONOMY_ENTITY_ASSOCIATIONS],
+    },
+    "taxonomyDirect.resolve": fillResolveSchema,
+    "taxonomyDirect.field": {
+      type: "string",
+      enum: [...TAXONOMY_ENTITY_FIELDS, "image"],
+    },
+    "taxonomyDirect.socialPlatform": {
+      type: "string",
+      enum: SOCIAL_MEDIA_PLATFORMS,
+    },
+    "sections.propertyId": {
+      type: "string",
+      format: "uuid",
+    },
+    "sections.entryType": {
+      type: "string",
+      enum: [...SECTION_ENTRY_TYPES],
+    },
+    "sections.layout": sectionsLayoutOverrideSchema,
+  },
+} as const;
+
+const extensionFillRuleGroupsSchema = {
+  type: "array",
+  items: {
+    type: "object",
+    additionalProperties: false,
+    required: ["id", "label", "overrides"],
+    properties: {
+      id: {
+        type: "string",
+      },
+      label: {
+        type: "string",
+      },
+      parentId: {
+        type: "string",
+      },
+      overrides: extensionFillOverridesSchema,
     },
   },
 } as const;
@@ -675,6 +800,7 @@ const updateWebsiteBody = {
     },
     alternateNames: alternateNamesSchema,
     extensionFillRules: extensionFillRulesSchema,
+    extensionFillRuleGroups: extensionFillRuleGroupsSchema,
     scanObservations: scanObservationsSchema,
     redirectResolutionFailure: {
       type: "boolean",

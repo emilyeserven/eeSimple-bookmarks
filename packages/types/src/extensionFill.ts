@@ -30,6 +30,12 @@ export interface WebsiteExtensionFillRule {
   pathMatch?: PathMatch;
   target: FillTarget;
   extract: FillExtract;
+  /**
+   * Membership in an {@link ExtensionFillRuleGroup} (`extensionFillGroups.ts`). The group's (and its
+   * parent's) override values are **materialized** onto this rule's `target`/`pathMatch`, so the
+   * stored rule is always self-complete — the extension ignores this field.
+   */
+  groupId?: string;
 }
 
 /**

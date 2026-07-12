@@ -697,3 +697,96 @@ test("PATCH /api/websites/:id rejects a scanObservations entry with an unknown k
   assert.equal(res.statusCode, 400);
   await app.close();
 });
+
+// --- Extension-fill rule groups (extensionFillRuleGroups + a rule's groupId) ---
+
+test("PATCH /api/websites/:id accepts extensionFillRuleGroups + a grouped rule (groupId preserved)", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "PATCH",
+    url: "/api/websites/11111111-1111-1111-1111-111111111111",
+    payload: {
+      extensionFillRuleGroups: [
+        {
+          id: "outer",
+          label: "Courses",
+          overrides: {
+            pathMatch: {
+              mode: "prefix",
+              value: "/course/",
+            },
+          },
+        },
+        {
+          id: "inner",
+          label: "Content Status",
+          parentId: "outer",
+          overrides: {
+            "target.kind": "customProperty",
+            "customProperty.propertyId": "22222222-2222-2222-2222-222222222222",
+          },
+        },
+      ],
+      extensionFillRules: [
+        {
+          id: "r1",
+          label: "Status",
+          groupId: "inner",
+          pathMatch: {
+            mode: "prefix",
+            value: "/course/",
+          },
+          target: {
+            kind: "customProperty",
+            propertyId: "22222222-2222-2222-2222-222222222222",
+          },
+          extract: {
+            selector: ".status",
+          },
+        },
+      ],
+    },
+  });
+  // Schema-valid (groupId is not stripped by removeAdditional); a nonexistent id may still 404.
+  assert.notEqual(res.statusCode, 400);
+  await app.close();
+});
+
+test("PATCH /api/websites/:id rejects an override with an out-of-enum value", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "PATCH",
+    url: "/api/websites/11111111-1111-1111-1111-111111111111",
+    payload: {
+      extensionFillRuleGroups: [
+        {
+          id: "g1",
+          label: "Bad",
+          overrides: {
+            "target.kind": "bogus-kind",
+          },
+        },
+      ],
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});
+
+test("PATCH /api/websites/:id rejects a group missing its required overrides object", async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: "PATCH",
+    url: "/api/websites/11111111-1111-1111-1111-111111111111",
+    payload: {
+      extensionFillRuleGroups: [
+        {
+          id: "g1",
+          label: "No overrides",
+        },
+      ],
+    },
+  });
+  assert.equal(res.statusCode, 400);
+  await app.close();
+});

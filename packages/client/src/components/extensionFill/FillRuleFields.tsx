@@ -1,6 +1,6 @@
 import type { KindOption } from "./controls";
 import type { ComboboxOption } from "../Combobox";
-import type { CustomProperty, FillExtract, FillTarget, PathMatch, WebsiteExtensionFillRule } from "@eesimple/types";
+import type { CustomProperty, FillExtract, FillTarget, OverrideKey, PathMatch, WebsiteExtensionFillRule } from "@eesimple/types";
 
 import { useTranslation } from "react-i18next";
 
@@ -86,16 +86,19 @@ function applyTargetChange(
 
 /** The body of one extraction rule: path gate, target, selector, read mode, split, filters, transforms. */
 export function FillRuleFields({
-  rule, propertyOptions, propertiesById, onChange,
+  rule, propertyOptions, propertiesById, onChange, lockedKeys,
 }: {
   rule: WebsiteExtensionFillRule;
   propertyOptions: ComboboxOption[];
   propertiesById: Map<string, CustomProperty>;
   onChange: (rule: WebsiteExtensionFillRule) => void;
+  /** Options a fill-rule group overrides — rendered read-only here. */
+  lockedKeys?: Set<OverrideKey>;
 }) {
   const {
     t,
   } = useTranslation();
+  const pathMatchLocked = lockedKeys?.has("pathMatch") ?? false;
   function patchExtract(patch: Partial<FillExtract>): void {
     onChange({
       ...rule,
@@ -127,6 +130,7 @@ export function FillRuleFields({
         propertyOptions={propertyOptions}
         propertiesById={propertiesById}
         onChange={target => onChange(applyTargetChange(rule, target))}
+        lockedKeys={lockedKeys}
       />
       <div
         className="
@@ -136,6 +140,7 @@ export function FillRuleFields({
       >
         <KindSelect
           label={t("Path match")}
+          disabled={pathMatchLocked}
           value={pathMatch.mode}
           options={PATH_MATCH_MODE_OPTIONS.map(option => ({
             ...option,
@@ -147,6 +152,7 @@ export function FillRuleFields({
         />
         <LabeledInput
           label={t("Path value")}
+          disabled={pathMatchLocked}
           placeholder="/course/"
           value={pathMatch.value}
           onChange={value => patchPathMatch({

@@ -1,6 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { type AnyPgColumn, boolean, index, integer, jsonb, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { BookmarkAddFormAdvancedRule, BookmarkFieldSort, BookmarkGraphSettings, BookmarkSort, CardDisplaySection, CardFieldZones, CardZoneLayouts, ConditionTree, EntityLayout, HomepageWidget, ImportBlacklistEntry, LabeledWebsite, LocationAlternateName, LocationBoundary, ParseTag, PersonSourceLabelSettings, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteExtensionFillRule, WebsiteParamRule, WebsiteScanObservation } from "@eesimple/types";
+import type { BookmarkAddFormAdvancedRule, BookmarkFieldSort, BookmarkGraphSettings, BookmarkSort, CardDisplaySection, CardFieldZones, CardZoneLayouts, ConditionTree, EntityLayout, ExtensionFillRuleGroup, HomepageWidget, ImportBlacklistEntry, LabeledWebsite, LocationAlternateName, LocationBoundary, ParseTag, PersonSourceLabelSettings, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteExtensionFillRule, WebsiteParamRule, WebsiteScanObservation } from "@eesimple/types";
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -326,6 +326,9 @@ export const websites = pgTable("websites", {
   // of field/property/taxonomy values from the live page. Nullable (push-safe additive); NULL = no
   // rules configured. See packages/types/src/extensionFill.ts for the shape.
   extensionFillRules: jsonb("extension_fill_rules").$type<WebsiteExtensionFillRule[]>(),
+  // Groups over this site's fill rules (shared/overridden option values). Nullable (push-safe
+  // additive); NULL = no groups. See packages/types/src/extensionFillGroups.ts for the shape.
+  extensionFillRuleGroups: jsonb("extension_fill_rule_groups").$type<ExtensionFillRuleGroup[]>(),
   // Structural facts the scanner learns about this site (blocks crawlers, needs headless rendering,
   // …) plus operator-added notes. Nullable (push-safe additive); NULL = none. See
   // packages/types/src/websiteScanObservations.ts for the shape.
