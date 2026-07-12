@@ -629,7 +629,7 @@ export function SectionsPropertyField({
           ))}
         </div>
       )}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4">
         <button
           type="button"
           className="
@@ -656,6 +656,14 @@ export function SectionsPropertyField({
             {t("Exhaustive")}
           </Label>
         </div>
+        {/* Paste-to-parse sits in the same actions row as the other list-filling tools; its
+            expanded panel is w-full, so it wraps onto its own line below the row when opened. */}
+        <SectionPasteParser
+          allowedTypes={allowedTypes}
+          defaultType={defaultType}
+          onAppendSections={appendSections}
+          onAddPeople={onAddPeople}
+        />
         {onImport
           ? (
             <Button
@@ -674,12 +682,6 @@ export function SectionsPropertyField({
           )
           : null}
       </div>
-      <SectionPasteParser
-        allowedTypes={allowedTypes}
-        defaultType={defaultType}
-        onAppendSections={appendSections}
-        onAddPeople={onAddPeople}
-      />
       <FieldDescription text={property.description} />
     </div>
   );
