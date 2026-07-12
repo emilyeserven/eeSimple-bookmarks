@@ -25,6 +25,7 @@ import { useTranslation } from "react-i18next";
 import { PinnedItemsCard } from "./PinnedItemsCard";
 import { SidebarCategoryVisibilityList } from "./SidebarCategoryVisibilityList";
 import { SidebarConnectorLinksSettings } from "./SidebarConnectorLinksSettings";
+import { SidebarCustomTaxonomyVisibilityList } from "./SidebarCustomTaxonomyVisibilityList";
 import { SidebarExternalLinksSettings } from "./SidebarExternalLinksSettings";
 import { SidebarItemsMatrix } from "./SidebarItemsCard";
 import { useSidebarSettings } from "../hooks/useSidebarSettings";
@@ -217,6 +218,7 @@ export function DisplaySidebarSettings() {
           onSetMode={setTaxonomyItemMode}
           hiddenLabel={t("Hide")}
         />
+        <SidebarCustomTaxonomyVisibilityList />
       </SidebarSettingsSection>,
     );
   }

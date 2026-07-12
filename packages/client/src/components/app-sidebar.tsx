@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import { GENRES_MOODS_TAXONOMY_SLUG } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { Bookmark, ChevronDown, ChevronUp } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -20,8 +21,8 @@ import { SidebarPrimaryNav } from "./SidebarPrimaryNav";
 import { SidebarSavedFiltersSection } from "./SidebarSavedFiltersSection";
 import { SidebarScratchpad } from "./SidebarScratchpad";
 import { SidebarTabBasket } from "./SidebarTabBasket";
-import { SidebarUserTaxonomiesSection } from "./SidebarUserTaxonomiesSection";
 import { useAppSidebarData } from "./useAppSidebarData";
+import { useTaxonomies } from "../hooks/useTaxonomies";
 
 import {
   Sidebar,
@@ -34,6 +35,7 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { CategoryIcon } from "@/lib/icons";
 import {
   actionItems,
   customizationItems,
@@ -195,6 +197,31 @@ export function AppSidebar({
     setOpenMobile,
   } = useSidebar();
   const {
+    data: taxonomies,
+  } = useTaxonomies();
+  const customTaxonomyItems = React.useMemo(
+    () => (taxonomies ?? [])
+      .filter(taxonomy =>
+        taxonomy.showInSidebar && !taxonomy.hidden && taxonomy.slug !== GENRES_MOODS_TAXONOMY_SLUG)
+      .map(taxonomy => ({
+        key: `taxonomy:${taxonomy.id}`,
+        title: taxonomy.name,
+        to: `/taxonomies/${taxonomy.slug}`,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        icon: (props: any) => (
+          <CategoryIcon
+            name={taxonomy.icon}
+            {...props}
+          />
+        ),
+      })),
+    [taxonomies],
+  );
+  const mergedTaxonomyItems = React.useMemo(
+    () => [...taxonomyItems, ...customTaxonomyItems],
+    [customTaxonomyItems],
+  );
+  const {
     pathname,
     visibleCategories,
     seeMoreCategories,
@@ -221,7 +248,7 @@ export function AppSidebar({
     groupTypesCount,
     hiddenSidebarGroups,
     advanced,
-  } = useAppSidebarData(taxonomyItems, customizationItems);
+  } = useAppSidebarData(mergedTaxonomyItems, customizationItems);
 
   // On mobile the sidebar is an overlay sheet; collapse it once navigation lands
   // on a new route so the tapped destination isn't hidden behind it.
@@ -312,13 +339,6 @@ export function AppSidebar({
             />
           )
           : null}
-
-        {!hiddenSidebarGroups.includes("taxonomies") && (
-          <SidebarUserTaxonomiesSection
-            sidebarState={state}
-            pathname={pathname}
-          />
-        )}
 
         {!hiddenSidebarGroups.includes("customization") && (visibleCustomizationItems.length > 0 || seeMoreCustomizationItemsList.length > 0)
           ? (
