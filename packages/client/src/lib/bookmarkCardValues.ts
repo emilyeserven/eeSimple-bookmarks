@@ -14,6 +14,7 @@ import { CARD_BODY_ZONES, CARD_FIELD_ZONES, emptyCardFieldZones, zoneToCorner } 
 import { eligibleCustomCardFields, HEADER_CARD_FIELD_KEYS, STANDARD_CARD_FIELDS } from "./bookmarkCardFieldDefs";
 import { formatBoolean, formatBooleanBadge, formatChoices, formatDateTime, formatNumber } from "./bookmarkFormat";
 import { formatDateTimeValue } from "./datetime";
+import { composeProgressText } from "./propertyFormat";
 import i18n from "../i18n";
 
 /**
@@ -81,6 +82,10 @@ export interface ResolvedFieldPlacement {
   maxTerms: number | null;
   /** Multi-value taxonomy fields: collapse to the field icon + count instead of showing "+N more". */
   collapseToCount: boolean;
+  /** Progress (itemInItems) fields: show the "X of Y" numbers (defaults to true). */
+  showProgressCount: boolean;
+  /** Progress (itemInItems) fields: show the unit / counter-word text (defaults to true). */
+  showProgressUnit: boolean;
 }
 
 /** Resolve one stored {@link CardFieldPlacement} into a {@link ResolvedFieldPlacement} at `zone`. */
@@ -104,6 +109,8 @@ function toResolvedPlacement(placement: CardFieldPlacement, zone: CardFieldZone)
     showGenreMoodHierarchyOnHover: placement.showGenreMoodHierarchyOnHover ?? false,
     maxTerms: placement.maxTerms ?? null,
     collapseToCount: placement.collapseToCount ?? false,
+    showProgressCount: placement.showProgressCount ?? true,
+    showProgressUnit: placement.showProgressUnit ?? true,
   };
 }
 
@@ -170,6 +177,8 @@ function bodyPlacement(zone: CardFieldZone): ResolvedFieldPlacement {
     showGenreMoodHierarchyOnHover: false,
     maxTerms: null,
     collapseToCount: false,
+    showProgressCount: true,
+    showProgressUnit: true,
   };
 }
 
@@ -322,6 +331,23 @@ export type BookmarkValueItem
   | (BookmarkValueItemBase & {
     kind: "rating";
     value: number;
+  })
+  | (BookmarkValueItemBase & {
+    kind: "progress";
+    /** Completed count (the numerator). */
+    current: number;
+    /** Total count (the denominator). */
+    total: number;
+    /** `current / total` clamped to 0–1 (0 when `total` is 0). Drives the overlay radial ring. */
+    fraction: number;
+    /**
+     * Whether a radial ring should render for this value in an image overlay: `total > 0` and the
+     * denominator is authoritative — the linked Sections value is exhaustive, or the progress was
+     * entered manually (no source property). Non-exhaustive derived progress falls back to text.
+     */
+    ringEligible: boolean;
+    /** Composed display text honoring `showProgressCount`/`showProgressUnit` (may be `""`). */
+    text: string;
   });
 
 /** Shared placement fields every value item carries. */
@@ -426,6 +452,41 @@ function choicesValueItem(
   };
 }
 
+/**
+ * A progress (`itemInItems`) value → a `progress` item. `ringEligible` gates the overlay radial: a
+ * *derived* property reads its source Sections value's `exhaustive` flag; *manual* progress (no source)
+ * is always authoritative. Returns `null` when there is nothing to show (`0 of 0`).
+ */
+function progressValueItem(
+  entry: Bookmark["progressValues"][number],
+  property: CustomProperty,
+  placement: ResolvedFieldPlacement,
+  bookmark: Bookmark,
+): BookmarkValueItem | null {
+  const {
+    current, total,
+  } = entry;
+  if (total <= 0 && current <= 0) return null;
+  const derived = property.itemInItemsSourcePropertyId != null;
+  const exhaustive = derived
+    ? bookmark.sectionsValues.find(s => s.propertyId === property.itemInItemsSourcePropertyId)?.exhaustive
+    ?? false
+    : true;
+  const fraction = total > 0 ? Math.min(Math.max(current / total, 0), 1) : 0;
+  return {
+    ...placementBase(property, placement),
+    kind: "progress",
+    current,
+    total,
+    fraction,
+    ringEligible: total > 0 && exhaustive,
+    text: composeProgressText(entry, property, bookmark.mediaType?.id ?? null, {
+      showCount: placement.showProgressCount,
+      showUnit: placement.showProgressUnit,
+    }),
+  };
+}
+
 /** An image/file value → a `badge`. Image values carry a serving url and show only the prop name. */
 function fileValueItem(
   entry: Bookmark["fileValues"][number],
@@ -497,6 +558,12 @@ export function buildBookmarkValueItems(
     const ctx = visible(entry.propertyId);
     if (!ctx) continue;
     const item = choicesValueItem(entry, ctx.property, ctx.placement);
+    if (item) items.push(item);
+  }
+  for (const entry of bookmark.progressValues) {
+    const ctx = visible(entry.propertyId);
+    if (!ctx) continue;
+    const item = progressValueItem(entry, ctx.property, ctx.placement, bookmark);
     if (item) items.push(item);
   }
 

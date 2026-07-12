@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import { makeCustomProperty } from "../test-utils/factories";
 import {
+  composeProgressText,
   DATE_TIME_FORMAT_LABELS,
   formatProgressValue,
   formatSectionEntry,
@@ -93,6 +94,36 @@ describe("formatProgressValue", () => {
       itemInItemsAfterText: " pages",
     });
     expect(formatProgressValue(progress(3, 10), property)).toBe("3 of 10 pages");
+  });
+});
+
+describe("composeProgressText", () => {
+  const property = makeCustomProperty({
+    itemInItemsBeforeText: "chapter ",
+    itemInItemsAfterText: " pages",
+  });
+
+  it("shows both the numbers and the unit words by default", () => {
+    expect(composeProgressText(progress(3, 10), property)).toBe("chapter 3 of 10 pages");
+  });
+
+  it("shows only the 'X of Y' numbers when the unit is hidden", () => {
+    expect(composeProgressText(progress(3, 10), property, null, {
+      showUnit: false,
+    })).toBe("3 of 10");
+  });
+
+  it("shows only the trimmed unit words when the numbers are hidden", () => {
+    expect(composeProgressText(progress(3, 10), property, null, {
+      showCount: false,
+    })).toBe("chapter pages");
+  });
+
+  it("returns an empty string when both parts are hidden", () => {
+    expect(composeProgressText(progress(3, 10), property, null, {
+      showCount: false,
+      showUnit: false,
+    })).toBe("");
   });
 });
 

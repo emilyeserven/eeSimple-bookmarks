@@ -42,6 +42,8 @@ function placementMap(
     showGenreMoodHierarchyOnHover: false,
     maxTerms: null,
     collapseToCount: false,
+    showProgressCount: true,
+    showProgressUnit: true,
     ...extra,
   }]]);
 }
@@ -241,6 +243,138 @@ describe("buildBookmarkValueItems by value kind", () => {
       expect(item.label).toBe("Doc: report.pdf");
       expect(item.imageUrl).toBeUndefined();
     }
+  });
+});
+
+describe("buildBookmarkValueItems progress items", () => {
+  it("emits a progress item for a manual progress value (ring-eligible)", () => {
+    const prop = property({
+      type: "itemInItems",
+      name: "Progress",
+    });
+    const [item] = buildBookmarkValueItems(
+      makeBookmark({
+        progressValues: [{
+          propertyId: prop.id,
+          current: 3,
+          total: 10,
+        }],
+      }),
+      [prop],
+      placementMap(prop.id, "top-left", true),
+    );
+    expect(item.kind).toBe("progress");
+    if (item.kind === "progress") {
+      expect(item.current).toBe(3);
+      expect(item.total).toBe(10);
+      expect(item.fraction).toBeCloseTo(0.3);
+      expect(item.ringEligible).toBe(true);
+      expect(item.text).toBe("3 of 10");
+    }
+  });
+
+  it("is ring-eligible for a 0-of-N exhaustive derived value (all unchecked)", () => {
+    const sections = property({
+      type: "sections",
+      name: "Sections",
+    });
+    const prog = property({
+      type: "itemInItems",
+      name: "Progress",
+      itemInItemsSourcePropertyId: sections.id,
+    });
+    const [item] = buildBookmarkValueItems(
+      makeBookmark({
+        progressValues: [{
+          propertyId: prog.id,
+          current: 0,
+          total: 5,
+        }],
+        sectionsValues: [{
+          propertyId: sections.id,
+          exhaustive: true,
+          sections: [],
+        }],
+      }),
+      [prog],
+      placementMap(prog.id, "top-left", true),
+    );
+    expect(item.kind).toBe("progress");
+    if (item.kind === "progress") {
+      expect(item.fraction).toBe(0);
+      expect(item.ringEligible).toBe(true);
+    }
+  });
+
+  it("is not ring-eligible when the derived source sections are not exhaustive", () => {
+    const sections = property({
+      type: "sections",
+      name: "Sections",
+    });
+    const prog = property({
+      type: "itemInItems",
+      name: "Progress",
+      itemInItemsSourcePropertyId: sections.id,
+    });
+    const [item] = buildBookmarkValueItems(
+      makeBookmark({
+        progressValues: [{
+          propertyId: prog.id,
+          current: 2,
+          total: 5,
+        }],
+        sectionsValues: [{
+          propertyId: sections.id,
+          exhaustive: false,
+          sections: [],
+        }],
+      }),
+      [prog],
+      placementMap(prog.id, "top-left", true),
+    );
+    expect(item.kind).toBe("progress");
+    if (item.kind === "progress") expect(item.ringEligible).toBe(false);
+  });
+
+  it("honors the showProgressCount/showProgressUnit knobs", () => {
+    const prop = property({
+      type: "itemInItems",
+      name: "Progress",
+      itemInItemsAfterText: " pages",
+    });
+    const [item] = buildBookmarkValueItems(
+      makeBookmark({
+        progressValues: [{
+          propertyId: prop.id,
+          current: 3,
+          total: 10,
+        }],
+      }),
+      [prop],
+      placementMap(prop.id, "top-left", true, {
+        showProgressCount: false,
+      }),
+    );
+    expect(item.kind).toBe("progress");
+    if (item.kind === "progress") expect(item.text).toBe("pages");
+  });
+
+  it("skips a 0-of-0 progress value", () => {
+    const prop = property({
+      type: "itemInItems",
+    });
+    const items = buildBookmarkValueItems(
+      makeBookmark({
+        progressValues: [{
+          propertyId: prop.id,
+          current: 0,
+          total: 0,
+        }],
+      }),
+      [prop],
+      placementMap(prop.id, null, false),
+    );
+    expect(items).toHaveLength(0);
   });
 });
 

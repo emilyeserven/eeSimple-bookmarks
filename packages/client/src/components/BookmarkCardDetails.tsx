@@ -18,6 +18,8 @@ import { bodySectionsFromZones } from "../lib/cardBodySections";
 import { cardBodyContainerClass, gapClass } from "../lib/cardZoneLayoutClasses";
 import { formatDateTimeValue } from "../lib/datetime";
 
+import { Badge } from "@/components/ui/badge";
+
 /** The card header field keys, rendered as a justified header row when co-located in a single zone. */
 const HEADER_FIELD_KEYS = new Set(["title", "externalLink", "more"]);
 
@@ -171,6 +173,18 @@ export function BookmarkCardDetails({
         block: labeled,
         tableName: item.property.name,
         tableValue: ratingStars(item, false, onSaveRating),
+      };
+    }
+    if (item.kind === "progress") {
+      // Body zones show the text only (no ring); the two knobs already control count/unit.
+      if (!item.text) return null;
+      const label = item.hideLabel ? item.text : `${item.property.name}: ${item.text}`;
+      const pill = <Badge variant="outline">{label}</Badge>;
+      return {
+        inline: pill,
+        block: pill,
+        tableName: item.property.name,
+        tableValue: <span className="text-sm">{item.text}</span>,
       };
     }
     // Image values can show their thumbnail; other badges show their formatted value.

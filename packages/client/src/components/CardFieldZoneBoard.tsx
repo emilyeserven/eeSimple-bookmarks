@@ -176,6 +176,11 @@ export function CardFieldZoneBoard({
     const property = propertyById.get(key);
     return property?.type === "boolean" ? property : undefined;
   }
+  /** The progress (itemInItems) custom property for `key`, or undefined when it isn't one. */
+  function progressPropertyFor(key: string): CustomProperty | undefined {
+    const property = propertyById.get(key);
+    return property?.type === "itemInItems" ? property : undefined;
+  }
   const placedKeys = new Set(CARD_FIELD_ZONES.flatMap(zone => (value[zone] ?? []).map(p => p.key)));
   const unplaced = fields.filter(field => !placedKeys.has(field.key));
 
@@ -293,20 +298,34 @@ export function CardFieldZoneBoard({
               highlight={overZone === def.zone}
               items={(value[def.zone] ?? []).map(p => p.key)}
             >
-              {(value[def.zone] ?? []).map(placement => (
-                <FieldChip
-                  key={placement.key}
-                  fieldKey={placement.key}
-                  label={labelByKey.get(placement.key) ?? placement.key}
-                  onMoveTo={zone => moveKey(placement.key, zone)}
-                >
-                  <ImagePlacementControls
-                    placement={placement}
-                    idPrefix={`${idPrefix}-${def.zone}-${placement.key}`}
-                    onPatch={patch => patchPlacement(def.zone, placement.key, patch)}
-                  />
-                </FieldChip>
-              ))}
+              {(value[def.zone] ?? []).map((placement) => {
+                const chipIdPrefix = `${idPrefix}-${def.zone}-${placement.key}`;
+                const onPatch = (patch: Partial<CardFieldPlacement>) =>
+                  patchPlacement(def.zone, placement.key, patch);
+                return (
+                  <FieldChip
+                    key={placement.key}
+                    fieldKey={placement.key}
+                    label={labelByKey.get(placement.key) ?? placement.key}
+                    onMoveTo={zone => moveKey(placement.key, zone)}
+                  >
+                    <ImagePlacementControls
+                      placement={placement}
+                      idPrefix={chipIdPrefix}
+                      onPatch={onPatch}
+                    />
+                    {progressPropertyFor(placement.key)
+                      ? (
+                        <ProgressTextControls
+                          placement={placement}
+                          idPrefix={chipIdPrefix}
+                          onPatch={onPatch}
+                        />
+                      )
+                      : null}
+                  </FieldChip>
+                );
+              })}
             </ZoneDropArea>
           ))}
         </div>
@@ -360,15 +379,23 @@ export function CardFieldZoneBoard({
                             onPatch={onPatch}
                           />
                         )
-                        : def.zone === "card-table"
+                        : progressPropertyFor(placement.key)
                           ? (
-                            <TablePlacementControls
+                            <ProgressBodyControls
                               placement={placement}
                               idPrefix={chipIdPrefix}
                               onPatch={onPatch}
                             />
                           )
-                          : null}
+                          : def.zone === "card-table"
+                            ? (
+                              <TablePlacementControls
+                                placement={placement}
+                                idPrefix={chipIdPrefix}
+                                onPatch={onPatch}
+                              />
+                            )
+                            : null}
                 </FieldChip>
               );
             })}
@@ -599,6 +626,74 @@ function TablePlacementControls({
   return (
     <div className="flex flex-col items-start gap-1.5 pl-5 text-xs">
       <HideLabelToggle
+        placement={placement}
+        idPrefix={idPrefix}
+        onPatch={onPatch}
+      />
+    </div>
+  );
+}
+
+/** The two progress (itemInItems) text toggles: "Show numbers" (X of Y) and "Show unit text". */
+function ProgressTextToggles({
+  placement, idPrefix, onPatch,
+}: PlacementControlsProps) {
+  return (
+    <>
+      <PlacementCheckbox
+        id={`${idPrefix}-progress-count`}
+        label={i18n.t("Show numbers")}
+        checked={placement.showProgressCount ?? true}
+        onCheckedChange={showProgressCount => onPatch({
+          showProgressCount,
+        })}
+      />
+      <PlacementCheckbox
+        id={`${idPrefix}-progress-unit`}
+        label={i18n.t("Show unit text")}
+        checked={placement.showProgressUnit ?? true}
+        onCheckedChange={showProgressUnit => onPatch({
+          showProgressUnit,
+        })}
+      />
+    </>
+  );
+}
+
+/**
+ * The progress text toggles for a field placed in an image corner (stacked under the image controls).
+ * Both default on (absent = true), so a card can show either, both, or none of the numbers and unit.
+ */
+function ProgressTextControls({
+  placement, idPrefix, onPatch,
+}: PlacementControlsProps) {
+  return (
+    <div className="flex flex-col items-start gap-1.5 pl-5 text-xs">
+      <ProgressTextToggles
+        placement={placement}
+        idPrefix={idPrefix}
+        onPatch={onPatch}
+      />
+    </div>
+  );
+}
+
+/**
+ * Controls for a progress (itemInItems) field placed in a card-body zone: a "Hide label" checkbox
+ * (whether the property name prefixes the value) plus the two text toggles. No ring renders in the
+ * body — only in an image overlay.
+ */
+function ProgressBodyControls({
+  placement, idPrefix, onPatch,
+}: PlacementControlsProps) {
+  return (
+    <div className="flex flex-col items-start gap-1.5 pl-5 text-xs">
+      <HideLabelToggle
+        placement={placement}
+        idPrefix={idPrefix}
+        onPatch={onPatch}
+      />
+      <ProgressTextToggles
         placement={placement}
         idPrefix={idPrefix}
         onPatch={onPatch}

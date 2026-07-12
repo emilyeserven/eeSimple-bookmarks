@@ -1,6 +1,6 @@
 import type { CardDisplayFields, CardFieldTarget } from "../lib/cardDisplaySectionMutations";
 import type { CollisionDetection } from "@dnd-kit/core";
-import type { CardDisplaySection, CardImageCorner, CardSectionForm, CardZoneLayout, CustomProperty } from "@eesimple/types";
+import type { CardDisplaySection, CardFieldPlacement, CardImageCorner, CardSectionForm, CardZoneLayout, CustomProperty } from "@eesimple/types";
 
 import { useState } from "react";
 
@@ -140,6 +140,8 @@ export function CardDisplaySectionBoard({
     [...STANDARD_CARD_FIELDS, ...eligibleCustomCardFields(properties)].map(f => [f.key, f.label]),
   );
   const labelFor = (key: string) => fieldLabels.get(key) ?? key;
+  // The progress (itemInItems) property ids — these fields get the "Show numbers"/"Show unit text" toggles.
+  const progressKeys = new Set(properties.filter(p => p.type === "itemInItems").map(p => p.id));
 
   const placed = placedFieldKeys(value);
   const trayKeys = [...fieldLabels.keys()].filter(key => !placed.has(key));
@@ -217,6 +219,7 @@ export function CardDisplaySectionBoard({
             index={index}
             total={value.sections.length}
             labelFor={labelFor}
+            progressKeys={progressKeys}
             moveTargets={moveTargets.filter(mt => !(mt.target.type === "section" && mt.target.key === section.key))}
             idPrefix={idPrefix}
             value={value}
@@ -250,11 +253,13 @@ export function CardDisplaySectionBoard({
                 corner={corner}
                 fields={value.imageCorners[corner]}
                 labelFor={labelFor}
+                progressKeys={progressKeys}
                 moveTargets={moveTargets.filter(mt => !(mt.target.type === "corner" && mt.target.corner === corner))}
                 onMoveField={(fieldKey, target) => onChange(moveCardField(value, fieldKey, target))}
                 onToggleHideLabel={(fieldKey, on) => onChange(patchFieldPlacement(value, fieldKey, {
                   hideLabel: on,
                 }))}
+                onPatchField={(fieldKey, patch) => onChange(patchFieldPlacement(value, fieldKey, patch))}
               />
             ))}
           </div>
@@ -303,12 +308,13 @@ interface MoveTargetList {
 }
 
 function SectionCard({
-  section, index, total, labelFor, moveTargets, idPrefix, value, onChange,
+  section, index, total, labelFor, progressKeys, moveTargets, idPrefix, value, onChange,
 }: {
   section: CardDisplaySection;
   index: number;
   total: number;
   labelFor: (key: string) => string;
+  progressKeys: Set<string>;
   moveTargets: MoveTargetList[];
   idPrefix: string;
   value: CardDisplayFields;
@@ -431,6 +437,8 @@ function SectionCard({
                     hideLabel={field.hideLabel ?? false}
                     maxTerms={field.maxTerms ?? null}
                     collapseToCount={field.collapseToCount ?? false}
+                    progressCount={field.showProgressCount ?? true}
+                    progressUnit={field.showProgressUnit ?? true}
                     idPrefix={idPrefix}
                     moveTargets={moveTargets}
                     onMove={target => onChange(moveCardField(value, field.key, target))}
@@ -443,6 +451,16 @@ function SectionCard({
                     onToggleCollapseToCount={on => onChange(patchFieldPlacement(value, field.key, {
                       collapseToCount: on,
                     }))}
+                    onToggleProgressCount={progressKeys.has(field.key)
+                      ? on => onChange(patchFieldPlacement(value, field.key, {
+                        showProgressCount: on,
+                      }))
+                      : undefined}
+                    onToggleProgressUnit={progressKeys.has(field.key)
+                      ? on => onChange(patchFieldPlacement(value, field.key, {
+                        showProgressUnit: on,
+                      }))
+                      : undefined}
                   />
                 ))}
               </div>
@@ -514,14 +532,19 @@ function SectionLayoutControls({
 }
 
 function FieldChip({
-  fieldKey, label, hideLabel, maxTerms = null, collapseToCount = false, idPrefix, moveTargets, onMove,
-  onToggleHideLabel, onSetMaxTerms, onToggleCollapseToCount,
+  fieldKey, label, hideLabel, maxTerms = null, collapseToCount = false,
+  progressCount = true, progressUnit = true, idPrefix, moveTargets, onMove,
+  onToggleHideLabel, onSetMaxTerms, onToggleCollapseToCount, onToggleProgressCount, onToggleProgressUnit,
 }: {
   fieldKey: string;
   label: string;
   hideLabel: boolean;
   maxTerms?: number | null;
   collapseToCount?: boolean;
+  /** Progress (itemInItems) "Show numbers" knob; absent = true. */
+  progressCount?: boolean;
+  /** Progress (itemInItems) "Show unit text" knob; absent = true. */
+  progressUnit?: boolean;
   idPrefix: string;
   moveTargets: MoveTargetList[];
   onMove: (target: CardFieldTarget) => void;
@@ -529,6 +552,9 @@ function FieldChip({
   /** Present only for body-zone fields; when omitted the term-display controls are hidden (corners/tray). */
   onSetMaxTerms?: (max: number | null) => void;
   onToggleCollapseToCount?: (on: boolean) => void;
+  /** Present only for a progress (itemInItems) field; both wired together to show the text toggles. */
+  onToggleProgressCount?: (on: boolean) => void;
+  onToggleProgressUnit?: (on: boolean) => void;
 }) {
   const {
     t,
@@ -536,6 +562,8 @@ function FieldChip({
   // Term-display controls only apply to multi-value taxonomy fields in a body zone (where the
   // handlers are wired) — not to image-corner overlays or the hidden tray.
   const showTermControls = isMultiValueTaxonomyField(fieldKey) && !!onSetMaxTerms && !!onToggleCollapseToCount;
+  // Progress text toggles apply to a progress field in a section or image corner (not the tray).
+  const showProgressControls = !!onToggleProgressCount && !!onToggleProgressUnit;
   const {
     attributes, listeners, setNodeRef, transform, transition, isDragging,
   } = useSortable({
@@ -607,6 +635,17 @@ function FieldChip({
             collapseToCount={collapseToCount}
             onSetMaxTerms={max => onSetMaxTerms?.(max)}
             onToggleCollapseToCount={on => onToggleCollapseToCount?.(on)}
+          />
+        )
+        : null}
+      {showProgressControls
+        ? (
+          <ProgressDisplayControls
+            label={label}
+            progressCount={progressCount}
+            progressUnit={progressUnit}
+            onToggleProgressCount={on => onToggleProgressCount?.(on)}
+            onToggleProgressUnit={on => onToggleProgressUnit?.(on)}
           />
         )
         : null}
@@ -685,16 +724,78 @@ function TermDisplayControls({
   );
 }
 
+/**
+ * Per-field text toggles for a progress (itemInItems) field: "Show numbers" (the "X of Y" count) and
+ * "Show unit text" (the counter-word). Both default on, so a card can show either, both, or none. A ring
+ * still renders in an image overlay regardless of these; they only control the accompanying text.
+ */
+function ProgressDisplayControls({
+  label, progressCount, progressUnit, onToggleProgressCount, onToggleProgressUnit,
+}: {
+  label: string;
+  progressCount: boolean;
+  progressUnit: boolean;
+  onToggleProgressCount: (on: boolean) => void;
+  onToggleProgressUnit: (on: boolean) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <Popover>
+      <PopoverTrigger
+        aria-label={t("Progress display options for {{label}}", {
+          label,
+        })}
+        className="
+          text-muted-foreground
+          hover:text-foreground
+        "
+        onPointerDown={e => e.stopPropagation()}
+      >
+        <SlidersHorizontal className="size-3.5" />
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        className="w-56 space-y-3 text-xs"
+        onPointerDown={e => e.stopPropagation()}
+      >
+        <label className="flex items-center gap-2">
+          <Checkbox
+            checked={progressCount}
+            onCheckedChange={checked => onToggleProgressCount(checked === true)}
+          />
+          {t("Show numbers")}
+        </label>
+        <label className="flex items-center gap-2">
+          <Checkbox
+            checked={progressUnit}
+            onCheckedChange={checked => onToggleProgressUnit(checked === true)}
+          />
+          {t("Show unit text")}
+        </label>
+        <p className="text-muted-foreground">
+          {t("Choose whether the \"X of Y\" numbers and/or the unit text show beside the progress ring.")}
+        </p>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 function CornerDropArea({
-  corner, fields, labelFor, moveTargets, onMoveField, onToggleHideLabel,
+  corner, fields, labelFor, progressKeys, moveTargets, onMoveField, onToggleHideLabel, onPatchField,
 }: {
   corner: CardImageCorner;
   fields: { key: string;
-    hideLabel?: boolean; }[];
+    hideLabel?: boolean;
+    showProgressCount?: boolean;
+    showProgressUnit?: boolean; }[];
   labelFor: (key: string) => string;
+  progressKeys: Set<string>;
   moveTargets: MoveTargetList[];
   onMoveField: (fieldKey: string, target: CardFieldTarget) => void;
   onToggleHideLabel: (fieldKey: string, on: boolean) => void;
+  onPatchField: (fieldKey: string, patch: Partial<CardFieldPlacement>) => void;
 }) {
   const {
     t,
@@ -726,10 +827,22 @@ function CornerDropArea({
               fieldKey={field.key}
               label={labelFor(field.key)}
               hideLabel={field.hideLabel ?? false}
+              progressCount={field.showProgressCount ?? true}
+              progressUnit={field.showProgressUnit ?? true}
               idPrefix={`corner-${corner}`}
               moveTargets={moveTargets}
               onMove={target => onMoveField(field.key, target)}
               onToggleHideLabel={on => onToggleHideLabel(field.key, on)}
+              onToggleProgressCount={progressKeys.has(field.key)
+                ? on => onPatchField(field.key, {
+                  showProgressCount: on,
+                })
+                : undefined}
+              onToggleProgressUnit={progressKeys.has(field.key)
+                ? on => onPatchField(field.key, {
+                  showProgressUnit: on,
+                })
+                : undefined}
             />
           ))}
         </div>

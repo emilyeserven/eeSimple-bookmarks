@@ -11,6 +11,7 @@ import { STANDARD_CARD_FIELDS } from "../lib/bookmarkCardFieldDefs";
 import { standardFieldOverlayLabel } from "../lib/bookmarkCardValues";
 
 import { Badge } from "@/components/ui/badge";
+import { RadialProgress } from "@/components/ui/radial-progress";
 import { CategoryIcon } from "@/lib/icons";
 
 /**
@@ -105,6 +106,29 @@ function valueItemOverlayNode(item: BookmarkValueItem): ReactNode {
         />
       </div>
     );
+  }
+  if (item.kind === "progress") {
+    // A radial ring when the denominator is authoritative (exhaustive sections / manual entry),
+    // otherwise fall back to the plain text badge. The text (if any) honors the per-field knobs.
+    if (item.ringEligible) {
+      return (
+        <div
+          className="
+            inline-flex items-center gap-1.5 rounded-md bg-background/85 px-2
+            py-1 text-sm backdrop-blur-sm
+          "
+        >
+          <RadialProgress
+            value={item.current}
+            max={item.total}
+            size={22}
+            label={item.property.name}
+          />
+          {item.text ? <span>{item.text}</span> : null}
+        </div>
+      );
+    }
+    return item.text ? overlayBadge(null, item.text) : null;
   }
   const icon = !item.hideIcon && item.imageUrl
     ? (

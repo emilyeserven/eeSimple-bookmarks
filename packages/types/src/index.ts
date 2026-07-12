@@ -2311,6 +2311,19 @@ export interface CardFieldPlacement {
    * Defaults to false.
    */
   collapseToCount?: boolean;
+  /**
+   * Progress (`itemInItems`) custom-property fields only. When false, the "X of Y" numbers are dropped
+   * from the field's text (in image overlays the radial ring still shows). **Absent/omitted means
+   * true** (the default). Combines with {@link showProgressUnit} to show either, both, or none of the
+   * numbers and the unit words.
+   */
+  showProgressCount?: boolean;
+  /**
+   * Progress (`itemInItems`) custom-property fields only. When false, the unit / counter-word text (the
+   * before/after segments, e.g. "chapter"/"pages") is dropped, leaving just the "X of Y" numbers.
+   * **Absent/omitted means true** (the default).
+   */
+  showProgressUnit?: boolean;
 }
 
 /**

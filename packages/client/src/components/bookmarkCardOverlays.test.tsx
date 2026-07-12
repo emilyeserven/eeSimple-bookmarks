@@ -2,6 +2,7 @@
 import type { ResolvedFieldPlacement } from "../lib/bookmarkCardValues";
 import type { CardImageCorner } from "@eesimple/types";
 
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { buildCardOverlayItems } from "./bookmarkCardOverlays";
@@ -32,6 +33,8 @@ function cornerPlacement(
     showGenreMoodHierarchyOnHover: false,
     maxTerms: null,
     collapseToCount: false,
+    showProgressCount: true,
+    showProgressUnit: true,
     ...overrides,
   };
 }
@@ -165,6 +168,70 @@ describe("buildCardOverlayItems", () => {
 
     // Without an action node, `externalLink` has no text label, so nothing is overlaid.
     expect(buildCardOverlayItems(bookmark, [], placements, undefined)).toHaveLength(0);
+  });
+
+  it("renders a radial progressbar for a ring-eligible progress value in a corner", () => {
+    const sections = makeCustomProperty({
+      type: "sections",
+      name: "Sections",
+    });
+    const prog = makeCustomProperty({
+      type: "itemInItems",
+      name: "Progress",
+      itemInItemsSourcePropertyId: sections.id,
+    });
+    const bookmark = makeBookmark({
+      progressValues: [{
+        propertyId: prog.id,
+        current: 0,
+        total: 5,
+      }],
+      sectionsValues: [{
+        propertyId: sections.id,
+        exhaustive: true,
+        sections: [],
+      }],
+    });
+    const placements = new Map([[prog.id, cornerPlacement("top-left")]]);
+    const valueItems = buildBookmarkValueItems(bookmark, [prog], placements);
+
+    const overlays = buildCardOverlayItems(bookmark, valueItems, placements, undefined);
+
+    expect(overlays).toHaveLength(1);
+    expect(renderToStaticMarkup(overlays[0].node)).toContain("role=\"progressbar\"");
+  });
+
+  it("falls back to a text badge for a non-exhaustive progress value (no ring)", () => {
+    const sections = makeCustomProperty({
+      type: "sections",
+      name: "Sections",
+    });
+    const prog = makeCustomProperty({
+      type: "itemInItems",
+      name: "Progress",
+      itemInItemsSourcePropertyId: sections.id,
+    });
+    const bookmark = makeBookmark({
+      progressValues: [{
+        propertyId: prog.id,
+        current: 2,
+        total: 5,
+      }],
+      sectionsValues: [{
+        propertyId: sections.id,
+        exhaustive: false,
+        sections: [],
+      }],
+    });
+    const placements = new Map([[prog.id, cornerPlacement("top-left")]]);
+    const valueItems = buildBookmarkValueItems(bookmark, [prog], placements);
+
+    const overlays = buildCardOverlayItems(bookmark, valueItems, placements, undefined);
+
+    expect(overlays).toHaveLength(1);
+    const markup = renderToStaticMarkup(overlays[0].node);
+    expect(markup).not.toContain("role=\"progressbar\"");
+    expect(markup).toContain("2 of 5");
   });
 
   it("hides the website overlay on a YouTube bookmark when hideWebsiteForYouTube is set", () => {

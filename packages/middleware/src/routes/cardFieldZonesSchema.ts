@@ -77,6 +77,13 @@ const PLACEMENT_PROP_SCHEMAS = {
   collapseToCount: {
     type: "boolean",
   },
+  // Progress (itemInItems) custom-property fields only (see CardFieldPlacement in @eesimple/types).
+  showProgressCount: {
+    type: "boolean",
+  },
+  showProgressUnit: {
+    type: "boolean",
+  },
 } as const satisfies Record<keyof CardFieldPlacement, unknown>;
 
 /** One `CardFieldPlacement` object (a `key` plus its optional per-field knobs). */
