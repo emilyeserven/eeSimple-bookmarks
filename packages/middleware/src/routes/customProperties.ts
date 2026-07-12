@@ -39,7 +39,7 @@ const uuidArray = {
   },
 } as const;
 
-const createPropertyBody = {
+export const createPropertyBody = {
   type: "object",
   required: ["name", "type"],
   additionalProperties: false,
@@ -229,7 +229,7 @@ const createPropertyBody = {
   },
 } as const;
 
-const updatePropertyBody = {
+export const updatePropertyBody = {
   type: "object",
   additionalProperties: false,
   properties: {
@@ -257,6 +257,7 @@ const updatePropertyBody = {
     allCategories: createPropertyBody.properties.allCategories,
     allMediaTypes: createPropertyBody.properties.allMediaTypes,
     editableOnCard: createPropertyBody.properties.editableOnCard,
+    editableViaCmdk: createPropertyBody.properties.editableViaCmdk,
     enabledInInbox: createPropertyBody.properties.enabledInInbox,
     enabled: createPropertyBody.properties.enabled,
     allowDefault: createPropertyBody.properties.allowDefault,

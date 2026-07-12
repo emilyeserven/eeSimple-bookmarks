@@ -3,6 +3,16 @@ import type { CustomProperty } from "@eesimple/types";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  booleanPayloadFields,
+  choicesPayloadFields,
+  CREATE_DEFAULTS,
+  dateTimePayloadFields,
+  itemInItemsPayloadFields,
+  numberPayloadFields,
+  ratingPayloadFields,
+  sectionsPayloadFields,
+} from "./propertyFormSchema";
 import { PropertyOptionsEditForm } from "./PropertyOptionsEditForm";
 import { OPTIONS_KEYS } from "./propertyOptionsKeys";
 import { makeCustomProperty } from "../test-utils/factories";
@@ -93,22 +103,60 @@ describe("PropertyOptionsEditForm (choices auto-save)", () => {
   });
 });
 
+describe("dateTime options auto-save", () => {
+  beforeEach(() => {
+    updateMutate.mockReset();
+    notifyFieldSaved.mockReset();
+  });
+
+  it("persists dateTimeAllowYearMonth when the month-only checkbox is toggled", async () => {
+    const dateTimeProperty = makeCustomProperty({
+      id: "prop-date",
+      name: "Published",
+      slug: "published",
+      type: "datetime",
+      dateTimeFormat: "date",
+      dateTimeAllowYearMonth: false,
+    });
+    await renderWithRouter(
+      <PropertyOptionsEditForm
+        property={dateTimeProperty}
+        numberProperties={[]}
+      />,
+    );
+
+    fireEvent.click(screen.getByLabelText("Allow month-only (YYYY-MM) dates"));
+
+    await waitFor(() => expect(updateMutate).toHaveBeenCalledTimes(1));
+    expect(updateMutate.mock.calls[0][0].input).toEqual({
+      dateTimeAllowYearMonth: true,
+    });
+    expect(notifyFieldSaved).toHaveBeenCalledWith("Month-only dates");
+  });
+});
+
 describe("OPTIONS_KEYS coverage", () => {
-  // Guards against the original bug: a type-specific option key emitted by `payloadFromValues` but
-  // missing from `OPTIONS_KEYS` is never saved. Every options-owned key must be listed here.
-  it.each([
-    ["choicesItems"],
-    ["choicesDisplay"],
-    ["choicesMultiple"],
-    ["itemInItemsBeforeText"],
-    ["itemInItemsBetweenText"],
-    ["itemInItemsAfterText"],
-    ["itemInItemsMediaTypeTexts"],
-    ["itemInItemsSourcePropertyId"],
-    ["sectionsDefaultType"],
-    ["sectionsAllowedTypes"],
-    ["sectionsTiered"],
-  ])("includes %s", (key) => {
+  // Derives the source of truth from `payloadFromValues`' type-specific helpers: every key they emit
+  // is an options-owned payload field that MUST be in `OPTIONS_KEYS`, or the Options auto-saver never
+  // persists it (the silent-drop bug this list guards against — a hardcoded list missed
+  // `dateTimeAllowYearMonth`). Adding a field to any helper now fails this test until it is wired.
+  const optionOwnedKeys = [
+    ...Object.keys(dateTimePayloadFields(CREATE_DEFAULTS)),
+    ...Object.keys(numberPayloadFields(CREATE_DEFAULTS)),
+    ...Object.keys(booleanPayloadFields(CREATE_DEFAULTS)),
+    ...Object.keys(ratingPayloadFields(CREATE_DEFAULTS)),
+    ...Object.keys(choicesPayloadFields(CREATE_DEFAULTS)),
+    ...Object.keys(itemInItemsPayloadFields(CREATE_DEFAULTS)),
+    ...Object.keys(sectionsPayloadFields(CREATE_DEFAULTS)),
+    // Non-helper option-owned keys emitted inline by `payloadFromValues`.
+    "quickFilterRange",
+    "operandPropertyIds",
+    "allowDefault",
+    "showInDetails",
+    "showInGallery",
+  ];
+
+  it.each(optionOwnedKeys.map(key => [key]))("OPTIONS_KEYS includes %s", (key) => {
     expect(OPTIONS_KEYS).toContain(key);
   });
 });

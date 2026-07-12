@@ -19,6 +19,7 @@ export const OPTIONS_KEYS = [
   "quickFilterRange",
   "operandPropertyIds",
   "dateTimeFormat",
+  "dateTimeAllowYearMonth",
   "booleanLabelPreset",
   "booleanTrueLabel",
   "booleanFalseLabel",

@@ -342,7 +342,7 @@ export function valuesFromProperty(property: CustomProperty): PropertyFormValues
 const trimOrNull = (value: string): string | null => (value.trim() ? value.trim() : null);
 
 /** Number/calculate-only fields, nulled out for every other property type. */
-function numberPayloadFields(values: PropertyFormValues): Pick<
+export function numberPayloadFields(values: PropertyFormValues): Pick<
   CreateCustomPropertyInput,
   "numberMin" | "numberMax" | "unitSingular" | "unitPlural" | "valuePrefix" | "zeroLabel" | "maxLabel" | "numberFormat"
 > {
@@ -360,7 +360,7 @@ function numberPayloadFields(values: PropertyFormValues): Pick<
 }
 
 /** Boolean-only value-formatting fields, left `null` for every other property type. */
-function booleanPayloadFields(values: PropertyFormValues): Pick<
+export function booleanPayloadFields(values: PropertyFormValues): Pick<
   CreateCustomPropertyInput,
   "booleanLabelPreset" | "booleanTrueLabel" | "booleanFalseLabel"
 > {
@@ -374,7 +374,7 @@ function booleanPayloadFields(values: PropertyFormValues): Pick<
 }
 
 /** Rating-scale-only fields, nulled out / left `undefined` for every other property type. */
-function ratingPayloadFields(values: PropertyFormValues): Pick<
+export function ratingPayloadFields(values: PropertyFormValues): Pick<
   CreateCustomPropertyInput,
   "ratingMax" | "ratingAllowZero" | "ratingAllowHalf" | "ratingShowLabel" | "ratingLabel"
 > {
@@ -389,7 +389,7 @@ function ratingPayloadFields(values: PropertyFormValues): Pick<
 }
 
 /** Choices-only fields, nulled out / left undefined for every other property type. */
-function choicesPayloadFields(values: PropertyFormValues): Pick<
+export function choicesPayloadFields(values: PropertyFormValues): Pick<
   CreateCustomPropertyInput,
   "choicesItems" | "choicesDisplay" | "choicesMultiple"
 > {
@@ -402,7 +402,7 @@ function choicesPayloadFields(values: PropertyFormValues): Pick<
 }
 
 /** itemInItems-only text-segment fields, nulled out for every other property type. */
-function itemInItemsPayloadFields(values: PropertyFormValues): Pick<
+export function itemInItemsPayloadFields(values: PropertyFormValues): Pick<
   CreateCustomPropertyInput,
   "itemInItemsBeforeText" | "itemInItemsBetweenText" | "itemInItemsAfterText"
   | "itemInItemsMediaTypeTexts" | "itemInItemsSourcePropertyId"
@@ -429,7 +429,7 @@ function itemInItemsPayloadFields(values: PropertyFormValues): Pick<
 }
 
 /** Sections-only config fields, nulled out for every other property type. */
-function sectionsPayloadFields(values: PropertyFormValues): Pick<
+export function sectionsPayloadFields(values: PropertyFormValues): Pick<
   CreateCustomPropertyInput,
   "sectionsDefaultType" | "sectionsAllowedTypes" | "sectionsTiered"
 > {
@@ -443,13 +443,23 @@ function sectionsPayloadFields(values: PropertyFormValues): Pick<
   };
 }
 
+/** Datetime-only fields, reset to their empty state for every other property type. */
+export function dateTimePayloadFields(values: PropertyFormValues): Pick<
+  CreateCustomPropertyInput,
+  "dateTimeFormat" | "dateTimeAllowYearMonth"
+> {
+  const isDateTime = values.type === "datetime";
+  return {
+    dateTimeFormat: isDateTime ? values.dateTimeFormat : null,
+    dateTimeAllowYearMonth: isDateTime ? values.dateTimeAllowYearMonth : false,
+  };
+}
+
 /** Build the create/update payload from form values (`type` is ignored by the update route). */
 export function payloadFromValues(values: PropertyFormValues): CreateCustomPropertyInput {
   return {
     name: values.name.trim(),
     type: values.type,
-    dateTimeFormat: values.type === "datetime" ? values.dateTimeFormat : null,
-    dateTimeAllowYearMonth: values.type === "datetime" ? values.dateTimeAllowYearMonth : false,
     description: trimOrNull(values.description),
     quickFilterRange: quickFilterRangeFromValues(values),
     operandPropertyIds: values.type === "calculate" ? values.operandIds : undefined,
@@ -470,6 +480,7 @@ export function payloadFromValues(values: PropertyFormValues): CreateCustomPrope
     enabledInInbox: values.enabledInInbox,
     enabled: values.enabled,
     allowDefault: values.allowDefault,
+    ...dateTimePayloadFields(values),
     ...numberPayloadFields(values),
     ...booleanPayloadFields(values),
     ...ratingPayloadFields(values),

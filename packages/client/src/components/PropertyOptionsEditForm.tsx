@@ -24,6 +24,7 @@ const LABELS: Partial<Record<OptionsKey, string>> = {
   quickFilterRange: i18n.t("Quick filter range"),
   operandPropertyIds: i18n.t("Operands"),
   dateTimeFormat: i18n.t("Captures"),
+  dateTimeAllowYearMonth: i18n.t("Month-only dates"),
   booleanLabelPreset: i18n.t("Value display"),
   booleanTrueLabel: i18n.t("True label"),
   booleanFalseLabel: i18n.t("False label"),
