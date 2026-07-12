@@ -455,6 +455,10 @@ const fillTargetSchema = {
     },
     // `sections` target: text-content classifier grouping a flat item list into sections/subsections.
     sectionMatch: textMatchSchema,
+    // `sections` target: global selector matching each section header on a flat page (items group under it).
+    sectionHeaderSelector: {
+      type: "string",
+    },
   },
   allOf: [
     {

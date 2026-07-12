@@ -176,7 +176,10 @@ export function describeFillTarget(target: FillTarget, property?: CustomProperty
     }
     case "sections": {
       const name = property?.name ?? "Sections";
-      const grouped = target.sectionMatch?.value.trim() ? " · grouped" : "";
+      const isGrouped = Boolean(
+        target.sectionMatch?.value.trim() || target.sectionHeaderSelector?.trim() || target.container?.trim(),
+      );
+      const grouped = isGrouped ? " · grouped" : "";
       return `${name} · ${SECTION_FILL_ENTRY_TYPE_LABELS[target.entryType]}${grouped}`;
     }
   }
@@ -599,9 +602,10 @@ function cleanTaxonomyDirectTarget(
 
 /**
  * Clean a `sections` target; no selected property is incomplete. Keep sub-selectors only when
- * non-blank, and enforce a single grouping mode: a non-blank text match (`sectionMatch`) drops
- * `container`/`header` (text grouping wins, as the engine's precedence does), so the saved target is
- * never the self-contradictory "container + text match" the editor's mode switch already prevents.
+ * non-blank, and enforce a single grouping mode by the engine's precedence
+ * (`sectionMatch` > `sectionHeaderSelector` > `container`): the higher-priority mode's presence drops
+ * the lower ones' fields, so the saved target is never the self-contradictory multi-mode the editor's
+ * mode switch already prevents.
  */
 function cleanSectionsTarget(
   target: Extract<FillTarget, { kind: "sections" }>,
@@ -612,9 +616,11 @@ function cleanSectionsTarget(
   const sectionMatch = target.sectionMatch?.value.trim()
     ? target.sectionMatch
     : undefined;
-  // Text grouping and container grouping are mutually exclusive; text match wins.
-  const container = sectionMatch ? undefined : target.container?.trim();
-  const header = sectionMatch ? undefined : target.header?.trim();
+  // Grouping modes are mutually exclusive, in precedence order (text match > header selector > container).
+  const sectionHeaderSelector = sectionMatch ? undefined : target.sectionHeaderSelector?.trim();
+  const groupedAbove = sectionMatch || sectionHeaderSelector;
+  const container = groupedAbove ? undefined : target.container?.trim();
+  const header = groupedAbove ? undefined : target.header?.trim();
   return {
     kind: "sections",
     propertyId: target.propertyId,
@@ -637,6 +643,11 @@ function cleanSectionsTarget(
     ...(itemUrl
       ? {
         itemUrl,
+      }
+      : {}),
+    ...(sectionHeaderSelector
+      ? {
+        sectionHeaderSelector,
       }
       : {}),
     ...(sectionMatch

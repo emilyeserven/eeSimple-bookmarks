@@ -194,21 +194,53 @@ function FillTargetValue({
 type SectionsTarget = Extract<FillTarget, { kind: "sections" }>;
 type SectionEntryTypeName = SectionsTarget["entryType"];
 /** Which grouping strategy a sections target uses. Inferred from which optional fields are present. */
-type SectionGroupingMode = "flat" | "container" | "text";
+type SectionGroupingMode = "flat" | "container" | "text" | "headerSelector";
 
-/** Derive the grouping mode from the target — text match wins over a container (as the engine does). */
+/** Derive the grouping mode from the target — precedence matches the engine (text > header > container). */
 function sectionGroupingMode(target: SectionsTarget): SectionGroupingMode {
   if (target.sectionMatch != null) return "text";
+  if (target.sectionHeaderSelector != null) return "headerSelector";
   if (target.container != null) return "container";
   return "flat";
 }
 
+/** Clear every grouping field, then set the chosen mode's holder (present-but-empty = mode is active). */
+function applyGroupingMode(target: SectionsTarget, next: SectionGroupingMode): SectionsTarget {
+  const cleared: SectionsTarget = {
+    ...target,
+    container: undefined,
+    header: undefined,
+    sectionMatch: undefined,
+    sectionHeaderSelector: undefined,
+  };
+  if (next === "container") return {
+    ...cleared,
+    container: target.container ?? "",
+  };
+  if (next === "headerSelector") return {
+    ...cleared,
+    sectionHeaderSelector: target.sectionHeaderSelector ?? "",
+  };
+  if (next === "text") {
+    return {
+      ...cleared,
+      sectionMatch: target.sectionMatch ?? {
+        mode: "regex",
+        value: "",
+      },
+    };
+  }
+  return cleared;
+}
+
 /**
  * Controls for a `sections` target: pick the sections-typed property, the entry type, and how the
- * page's items are grouped into sections/subsections. The three grouping modes are mutually exclusive
- * and each shows only its own fields, so a rule can't silently combine a container with a text match:
+ * page's items are grouped into sections/subsections. The grouping modes are mutually exclusive and
+ * each shows only its own fields, so a rule can't silently combine two:
  * - **flat** — every row matched by the top-level Selector is its own section (no nesting);
  * - **container** — a repeated container element wraps each section and its items (`container`/`header`);
+ * - **headerSelector** — headers and items sit in one flat list (no per-section wrapper);
+ *   `sectionHeaderSelector` matches each header globally and items group under the header above them;
  * - **text** — one flat list, where a row whose name matches `sectionMatch` starts a new top-level
  *   section and the rows after it nest as children (the items come from the top-level Selector, which
  *   must match every row including the section headers).
@@ -233,35 +265,8 @@ function SectionsTarget({
   const isTimestamp = target.entryType === "timestamp";
   const mode = sectionGroupingMode(target);
   // Switching mode clears the other modes' fields so the saved target stays single-mode; a present
-  // (even empty) `container` / `sectionMatch` is what holds the chosen mode while the fields are edited.
-  const changeMode = (next: SectionGroupingMode) => {
-    if (next === "flat") {
-      onChange({
-        ...target,
-        container: undefined,
-        header: undefined,
-        sectionMatch: undefined,
-      });
-    }
-    else if (next === "container") {
-      onChange({
-        ...target,
-        container: target.container ?? "",
-        sectionMatch: undefined,
-      });
-    }
-    else {
-      onChange({
-        ...target,
-        container: undefined,
-        header: undefined,
-        sectionMatch: target.sectionMatch ?? {
-          mode: "regex",
-          value: "",
-        },
-      });
-    }
-  };
+  // (even empty) grouping field is what holds the chosen mode while the fields are edited.
+  const changeMode = (next: SectionGroupingMode) => onChange(applyGroupingMode(target, next));
   return (
     <div className="space-y-2">
       <Combobox
@@ -323,6 +328,11 @@ function SectionsTarget({
                   description: t("Every row matched by the Selector becomes a flat entry (no nesting)."),
                 },
                 {
+                  value: "headerSelector",
+                  label: t("By section header"),
+                  description: t("Headers and items sit in one flat list (no per-section wrapper). A selector matches each section header; items group under the header above them (e.g. a Udemy curriculum)."),
+                },
+                {
                   value: "container",
                   label: t("By container element"),
                   description: t("A repeated container wraps each section and its items (e.g. one accordion per Part)."),
@@ -359,6 +369,19 @@ function SectionsTarget({
                   hint={t("Read within each section container to get its title.")}
                 />
               </>
+            )}
+
+            {mode === "headerSelector" && (
+              <LabeledInput
+                label={t("Section header selector")}
+                placeholder={"[class*=\"section-title\"]"}
+                value={target.sectionHeaderSelector ?? ""}
+                onChange={sectionHeaderSelector => onChange({
+                  ...target,
+                  sectionHeaderSelector,
+                })}
+                hint={t("A page-wide selector matching each section title. Items from the \"Selector\" field are grouped under the header that precedes them in the page.")}
+              />
             )}
 
             {mode === "text" && (
@@ -410,18 +433,16 @@ function SectionsTarget({
   );
 }
 
-/** A collapsible worked example: configuring a Udemy course curriculum as a name-only, tiered list. */
+/** A collapsible worked example: configuring a Udemy course curriculum as a name-only, grouped list. */
 function SectionsUdemyExample() {
   const {
     t,
   } = useTranslation();
   const rows: [string, string][] = [
     [t("Entry type"), t("Name only")],
-    [t("Grouping"), t("By container element")],
-    [t("Section container selector"), "[data-purpose=\"course-curriculum\"] [class*=\"section--\"]"],
-    [t("Section name selector"), "[class*=\"section-title\"]"],
+    [t("Grouping"), t("By section header")],
+    [t("Section header selector"), "[class*=\"section-title\"]"],
     [t("Selector (each item)"), "[class*=\"course-lecture-title\"]"],
-    [t("Item name selector"), "(leave blank — uses the item's own text)"],
   ];
   return (
     <details className="rounded-md border bg-muted/30 p-2 text-xs">
