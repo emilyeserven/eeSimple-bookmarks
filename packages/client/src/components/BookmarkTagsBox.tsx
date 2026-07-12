@@ -80,7 +80,16 @@ export function BookmarkTagsBox({
       {display.mode === "limit"
         ? (
           <li>
-            <MoreTermsBadge hidden={display.hidden} />
+            <MoreTermsBadge hidden={display.hidden}>
+              {tags.slice(display.visible).map(tag => (
+                <div key={tag.id}>
+                  <TagBadge
+                    tag={tag}
+                    showHierarchyOnHover={showHierarchyOnHover}
+                  />
+                </div>
+              ))}
+            </MoreTermsBadge>
           </li>
         )
         : null}
