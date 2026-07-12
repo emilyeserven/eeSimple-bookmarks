@@ -38,7 +38,7 @@ function treeToOptions<E extends { id: string }, N extends E & { children: N[] }
 
 /**
  * Real instances of every layout-driven kind, as picker options for the Page Layouts preview (#1225).
- * Mirrors `useDynamicLayoutFieldsByKind`: each source list/tree hook is called **unconditionally**
+ * Mirrors `baseWorkbenchForKind`: each source list/tree hook is called **unconditionally**
  * (Rules of Hooks) and sourced from the entity's own `ENTITY_DESCRIPTORS` listing config — flat kinds
  * via `listing.useItems`, tree kinds via `treeListing.useTree` (flattened), with bookmarks (a bespoke
  * listing) read directly. Only exercised when the preview pane is mounted.
