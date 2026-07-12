@@ -32,5 +32,8 @@ export function carryOverPlacement(
   if (existing?.showMediaTypeHierarchyOnHover) placement.showMediaTypeHierarchyOnHover = true;
   if (existing?.showLocationHierarchyOnHover) placement.showLocationHierarchyOnHover = true;
   if (existing?.showGenreMoodHierarchyOnHover) placement.showGenreMoodHierarchyOnHover = true;
+  // Multi-value taxonomy term-display knobs apply in every body zone; preserve them across a move.
+  if (existing?.maxTerms != null) placement.maxTerms = existing.maxTerms;
+  if (existing?.collapseToCount) placement.collapseToCount = true;
   return placement;
 }

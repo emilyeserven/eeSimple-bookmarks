@@ -1,29 +1,44 @@
+import type { TermDisplayProps } from "./bookmarkCardTermBadges";
 import type { BookmarkGroup } from "@eesimple/types";
-
-import { Fragment } from "react";
 
 import { Link } from "@tanstack/react-router";
 import { Users } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
+import { TaxonomyBadgeRow, TaxonomyLinkList } from "./bookmarkCardTermBadges";
 
-interface GroupsBoxProps {
+import { Badge } from "@/components/ui/badge";
+import i18n from "@/i18n";
+
+interface GroupsBoxProps extends TermDisplayProps {
   groups: BookmarkGroup[];
+}
+
+/** The count-form label for a bookmark's groups, e.g. "5 groups". */
+function groupsCountLabel(count: number): string {
+  return i18n.t("{{count}} groups", {
+    count,
+  });
 }
 
 /**
  * A bookmark's group-credit badges — each renders standalone so it flows alongside the card's other
  * pills (category, media type, website, …) in the `card-labels` zone's flex row. Mirrors
  * {@link BookmarkLocationBadges}. This is the multi-valued `bookmark.groups` creator-credit relation.
+ * Honors the `maxTerms` / `collapseToCount` term-display knobs.
  */
 export function BookmarkGroupBadges({
-  groups,
+  groups, maxTerms = null, collapseToCount = false,
 }: GroupsBoxProps) {
   return (
-    <div className="flex flex-wrap items-center gap-1">
-      {groups.map(group => (
+    <TaxonomyBadgeRow
+      items={groups}
+      keyOf={group => group.id}
+      icon={Users}
+      countLabel={groupsCountLabel}
+      maxTerms={maxTerms}
+      collapseToCount={collapseToCount}
+      renderBadge={group => (
         <Link
-          key={group.id}
           to="/taxonomies/groups/$groupSlug"
           params={{
             groupSlug: group.slug,
@@ -38,8 +53,8 @@ export function BookmarkGroupBadges({
             {group.name}
           </Badge>
         </Link>
-      ))}
-    </div>
+      )}
+    />
   );
 }
 
@@ -49,28 +64,30 @@ export function BookmarkGroupBadges({
  * plain inline text to fit the table value column. Mirrors {@link BookmarkTagLinks}.
  */
 export function BookmarkGroupLinks({
-  groups,
+  groups, maxTerms = null, collapseToCount = false,
 }: GroupsBoxProps) {
   return (
-    <span className="text-sm">
-      {groups.map((group, index) => (
-        <Fragment key={group.id}>
-          {index > 0 ? ", " : null}
-          <Link
-            to="/taxonomies/groups/$groupSlug"
-            params={{
-              groupSlug: group.slug,
-            }}
-            title={group.name}
-            className="
-              text-primary
-              hover:underline
-            "
-          >
-            {group.name}
-          </Link>
-        </Fragment>
-      ))}
-    </span>
+    <TaxonomyLinkList
+      items={groups}
+      keyOf={group => group.id}
+      countLabel={groupsCountLabel}
+      maxTerms={maxTerms}
+      collapseToCount={collapseToCount}
+      renderLink={group => (
+        <Link
+          to="/taxonomies/groups/$groupSlug"
+          params={{
+            groupSlug: group.slug,
+          }}
+          title={group.name}
+          className="
+            text-primary
+            hover:underline
+          "
+        >
+          {group.name}
+        </Link>
+      )}
+    />
   );
 }

@@ -1,7 +1,10 @@
 import type { ResolvedFieldPlacement } from "../lib/bookmarkCardValues";
-import type { Bookmark, Category } from "@eesimple/types";
+import type { Bookmark, BookmarkGenreMood, Category } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { Drama } from "lucide-react";
+
+import { TaxonomyBadgeRow, TaxonomyLinkList } from "./bookmarkCardTermBadges";
 import { BookmarkGroupBadges, BookmarkGroupLinks } from "./BookmarkGroupsBox";
 import { BookmarkLocationBadges, BookmarkLocationLinks } from "./BookmarkLocationsBox";
 import { BookmarkPeopleBadges, BookmarkPeopleLinks } from "./BookmarkPeopleBox";
@@ -13,6 +16,17 @@ import { SourcePill } from "./SourcePill";
 
 import { Badge } from "@/components/ui/badge";
 import i18n from "@/i18n";
+
+/** Read the multi-value term-display knobs off a field's resolved placement. */
+function termDisplayKnobs(placement: ResolvedFieldPlacement | undefined): {
+  maxTerms: number | null;
+  collapseToCount: boolean;
+} {
+  return {
+    maxTerms: placement?.maxTerms ?? null,
+    collapseToCount: placement?.collapseToCount ?? false,
+  };
+}
 
 /**
  * How one field can render in the card body. `inline` is its compact pill/badge form (the `label`
@@ -119,10 +133,12 @@ function tagsField({
   // render as plain text, or as clickable links when the placement opts in via `clickableTags`.
   const clickableTags = tagsPlacement?.clickableTags ?? false;
   const showHierarchyOnHover = tagsPlacement?.showTagHierarchyOnHover ?? false;
+  const knobs = termDisplayKnobs(tagsPlacement);
   const box = (
     <BookmarkTagsBox
       tags={bookmark.tags}
       showHierarchyOnHover={showHierarchyOnHover}
+      {...knobs}
     />
   );
   return {
@@ -134,46 +150,68 @@ function tagsField({
         <BookmarkTagLinks
           tags={bookmark.tags}
           showHierarchyOnHover={showHierarchyOnHover}
+          {...knobs}
         />
       )
-      : <span className="text-sm">{bookmark.tags.map(tag => tag.name).join(", ")}</span>,
+      : (
+        <TaxonomyLinkList
+          items={bookmark.tags}
+          keyOf={tag => tag.id}
+          countLabel={count => i18n.t("{{count}} tags", {
+            count,
+          })}
+          renderLink={tag => tag.name}
+          {...knobs}
+        />
+      ),
   };
+}
+
+/** A genre/mood badge, optionally wrapped in an ancestor-chain hover card. */
+function genreMoodBadge(entry: BookmarkGenreMood, showHierarchyOnHover: boolean): ReactNode {
+  const badge = <Badge variant="secondary">{entry.name}</Badge>;
+  return showHierarchyOnHover
+    ? (
+      <GenreMoodHierarchyHoverCard genreMood={entry}>
+        {badge}
+      </GenreMoodHierarchyHoverCard>
+    )
+    : badge;
 }
 
 function genreMoodsField({
   bookmark, placements,
 }: TaxonomyFieldArgs): FieldRender | null {
   if (bookmark.genreMoods.length === 0) return null;
-  const showHierarchyOnHover = placements.get("genreMoods")?.showGenreMoodHierarchyOnHover ?? false;
+  const placement = placements.get("genreMoods");
+  const showHierarchyOnHover = placement?.showGenreMoodHierarchyOnHover ?? false;
+  const knobs = termDisplayKnobs(placement);
+  const countLabel = (count: number) => i18n.t("{{count}} genres & moods", {
+    count,
+  });
   const badges = (
-    <div className="flex flex-wrap gap-1">
-      {bookmark.genreMoods.map((entry) => {
-        const badge = (
-          <Badge
-            variant="secondary"
-          >
-            {entry.name}
-          </Badge>
-        );
-        return (
-          <div key={entry.id}>
-            {showHierarchyOnHover
-              ? (
-                <GenreMoodHierarchyHoverCard genreMood={entry}>
-                  {badge}
-                </GenreMoodHierarchyHoverCard>
-              )
-              : badge}
-          </div>
-        );
-      })}
-    </div>
+    <TaxonomyBadgeRow
+      items={bookmark.genreMoods}
+      keyOf={entry => entry.id}
+      icon={Drama}
+      countLabel={countLabel}
+      renderBadge={entry => genreMoodBadge(entry, showHierarchyOnHover)}
+      {...knobs}
+    />
   );
   return {
     inline: badges,
     block: badges,
     tableName: i18n.t("Genres & Moods"),
-    tableValue: <span className="text-sm">{bookmark.genreMoods.map(entry => entry.name).join(", ")}</span>,
+    tableValue: (
+      <TaxonomyLinkList
+        items={bookmark.genreMoods}
+        keyOf={entry => entry.id}
+        countLabel={countLabel}
+        renderLink={entry => entry.name}
+        {...knobs}
+      />
+    ),
   };
 }
 
@@ -181,11 +219,14 @@ function locationsField({
   bookmark, placements,
 }: TaxonomyFieldArgs): FieldRender | null {
   if (bookmark.locations.length === 0) return null;
-  const showHierarchyOnHover = placements.get("locations")?.showLocationHierarchyOnHover ?? false;
+  const placement = placements.get("locations");
+  const showHierarchyOnHover = placement?.showLocationHierarchyOnHover ?? false;
+  const knobs = termDisplayKnobs(placement);
   const badges = (
     <BookmarkLocationBadges
       locations={bookmark.locations}
       showHierarchyOnHover={showHierarchyOnHover}
+      {...knobs}
     />
   );
   // Inline, unboxed badges — they flow alongside the card's other pills in the Labels zone
@@ -199,34 +240,57 @@ function locationsField({
       <BookmarkLocationLinks
         locations={bookmark.locations}
         showHierarchyOnHover={showHierarchyOnHover}
+        {...knobs}
       />
     ),
   };
 }
 
 function peopleField({
-  bookmark,
+  bookmark, placements,
 }: TaxonomyFieldArgs): FieldRender | null {
   if (bookmark.people.length === 0) return null;
-  const badges = <BookmarkPeopleBadges people={bookmark.people} />;
+  const knobs = termDisplayKnobs(placements.get("people"));
+  const badges = (
+    <BookmarkPeopleBadges
+      people={bookmark.people}
+      {...knobs}
+    />
+  );
   return {
     inline: badges,
     block: badges,
     tableName: i18n.t("People"),
-    tableValue: <BookmarkPeopleLinks people={bookmark.people} />,
+    tableValue: (
+      <BookmarkPeopleLinks
+        people={bookmark.people}
+        {...knobs}
+      />
+    ),
   };
 }
 
 function groupsField({
-  bookmark,
+  bookmark, placements,
 }: TaxonomyFieldArgs): FieldRender | null {
   if (bookmark.groups.length === 0) return null;
-  const badges = <BookmarkGroupBadges groups={bookmark.groups} />;
+  const knobs = termDisplayKnobs(placements.get("groups"));
+  const badges = (
+    <BookmarkGroupBadges
+      groups={bookmark.groups}
+      {...knobs}
+    />
+  );
   return {
     inline: badges,
     block: badges,
     tableName: i18n.t("Groups"),
-    tableValue: <BookmarkGroupLinks groups={bookmark.groups} />,
+    tableValue: (
+      <BookmarkGroupLinks
+        groups={bookmark.groups}
+        {...knobs}
+      />
+    ),
   };
 }
 

@@ -77,6 +77,10 @@ export interface ResolvedFieldPlacement {
   showLocationHierarchyOnHover: boolean;
   /** Genres & Moods field, any zone: show a genre/mood's ancestor chain in a hover popover. */
   showGenreMoodHierarchyOnHover: boolean;
+  /** Multi-value taxonomy fields: cap on visible term names (`null` = no cap). */
+  maxTerms: number | null;
+  /** Multi-value taxonomy fields: collapse to the field icon + count instead of showing "+N more". */
+  collapseToCount: boolean;
 }
 
 /** Resolve one stored {@link CardFieldPlacement} into a {@link ResolvedFieldPlacement} at `zone`. */
@@ -98,6 +102,8 @@ function toResolvedPlacement(placement: CardFieldPlacement, zone: CardFieldZone)
     showMediaTypeHierarchyOnHover: placement.showMediaTypeHierarchyOnHover ?? false,
     showLocationHierarchyOnHover: placement.showLocationHierarchyOnHover ?? false,
     showGenreMoodHierarchyOnHover: placement.showGenreMoodHierarchyOnHover ?? false,
+    maxTerms: placement.maxTerms ?? null,
+    collapseToCount: placement.collapseToCount ?? false,
   };
 }
 
@@ -162,6 +168,8 @@ function bodyPlacement(zone: CardFieldZone): ResolvedFieldPlacement {
     showMediaTypeHierarchyOnHover: false,
     showLocationHierarchyOnHover: false,
     showGenreMoodHierarchyOnHover: false,
+    maxTerms: null,
+    collapseToCount: false,
   };
 }
 

@@ -30,6 +30,8 @@ function cornerPlacement(
     showMediaTypeHierarchyOnHover: false,
     showLocationHierarchyOnHover: false,
     showGenreMoodHierarchyOnHover: false,
+    maxTerms: null,
+    collapseToCount: false,
     ...overrides,
   };
 }
