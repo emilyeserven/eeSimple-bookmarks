@@ -1,6 +1,6 @@
 import type { PropertyFormApi } from "./propertyFormSchema";
 import type { OptionsKey } from "./propertyOptionsKeys";
-import type { CreateCustomPropertyInput, CustomProperty, UpdateCustomPropertyInput } from "@eesimple/types";
+import type { CustomProperty, UpdateCustomPropertyInput } from "@eesimple/types";
 
 import { useEffect, useRef } from "react";
 
@@ -48,36 +48,6 @@ const LABELS: Partial<Record<OptionsKey, string>> = {
   showInGallery: i18n.t("Show in Media Management"),
 };
 
-/**
- * Watches the form's values and saves whichever Options-owned payload keys changed. The heavy
- * type-specific mapping is reused from `payloadFromValues`; each key persists independently (so the
- * per-field no-op guard means a single change emits a single named toast). `undefined` payload keys
- * (a field that doesn't apply to the current type) are skipped so they never overwrite stored values.
- */
-function OptionsAutoSaver({
-  payload,
-  save,
-}: {
-  payload: CreateCustomPropertyInput;
-  save: ReturnType<typeof useFieldAutoSave<UpdateCustomPropertyInput, CustomProperty>>["saveField"];
-}) {
-  const seeded = useRef(false);
-  useEffect(() => {
-    if (!seeded.current) {
-      seeded.current = true;
-      return;
-    }
-    for (const key of OPTIONS_KEYS) {
-      const value = payload[key];
-      if (value === undefined) continue;
-      save(key, value as UpdateCustomPropertyInput[typeof key]);
-    }
-    // The per-field no-op guard means only the changed key(s) actually persist.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(OPTIONS_KEYS.map(key => payload[key]))]);
-  return null;
-}
-
 interface PropertyOptionsEditFormProps {
   property: CustomProperty;
   numberProperties: CustomProperty[];
@@ -85,8 +55,11 @@ interface PropertyOptionsEditFormProps {
 
 /**
  * The Options edit tab: reuses the shared `PropertyOptionsSection` markup bound to a local form, and
- * auto-saves each type-specific option (no Save button). Text/number inputs settle on blur, selects
- * and toggles on change; the heavy value→payload mapping is shared with the create form.
+ * auto-saves each type-specific option **on blur** (no Save button, no per-keystroke writes) — a text
+ * input settles when you leave it, a select/toggle when focus moves off it. A section-level `onBlur`
+ * (React's focus-out bubbles from every child field) runs the save pass; the per-field no-op guard in
+ * `useFieldAutoSave` means only the key(s) that actually changed PATCH and toast. An unmount flush
+ * covers a control changed as the very last action (leaving the tab before any blur fires).
  */
 export function PropertyOptionsEditForm({
   property,
@@ -109,8 +82,24 @@ export function PropertyOptionsEditForm({
     },
   });
 
+  /** Persist whichever Options-owned keys changed since the last save. Reused by blur and unmount. */
+  function saveChangedOptions() {
+    const payload = payloadFromValues(form.state.values);
+    for (const key of OPTIONS_KEYS) {
+      const value = payload[key];
+      if (value === undefined) continue;
+      saveField(key, value as UpdateCustomPropertyInput[typeof key]);
+    }
+  }
+
+  // Flush on unmount so a value changed as the last action (which never blurred, e.g. leaving the tab)
+  // still persists. The ref keeps the empty-deps cleanup pointed at the latest closure.
+  const saveRef = useRef(saveChangedOptions);
+  saveRef.current = saveChangedOptions;
+  useEffect(() => () => saveRef.current(), []);
+
   return (
-    <>
+    <div onBlur={saveChangedOptions}>
       <PropertyOptionsSection
         form={form}
         idPrefix={`property-${property.id}`}
@@ -119,14 +108,6 @@ export function PropertyOptionsEditForm({
         section="options"
         full={false}
       />
-      <form.Subscribe selector={state => payloadFromValues(state.values)}>
-        {payload => (
-          <OptionsAutoSaver
-            payload={payload}
-            save={saveField}
-          />
-        )}
-      </form.Subscribe>
-    </>
+    </div>
   );
 }
