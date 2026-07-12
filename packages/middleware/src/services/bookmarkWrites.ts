@@ -236,10 +236,14 @@ export async function setTextValues(
  * `sections` source property (`itemInItemsSourcePropertyId`), for one bookmark: `total` = the
  * source's leaf count, `current` = its completed leaves (the shared `countSectionLeaves` rule, so
  * client previews and stored values can never disagree). Upserts `bookmark_progress_values`, so the
- * derived value overrides a stale client-sent manual value; when the bookmark has no (or an empty)
- * source sections value the row is left alone — manual entry still works before any sections exist.
- * Must run after the bookmark's progress AND sections values are written; runs on create and
- * update, which also covers the detail-page completion toggle and the extension's PATCH.
+ * derived value overrides a stale client-sent manual value.
+ *
+ * Derivation is gated on the source sections value being **exhaustive** — only then is the section
+ * list the complete set, so the total is an authoritative denominator worth locking. When the
+ * bookmark has no source sections value, an empty one, or a non-exhaustive one, the progress row is
+ * left alone — manual entry still works for a still-in-progress list. Must run after the bookmark's
+ * progress AND sections values are written; runs on create and update, which also covers the
+ * detail-page completion toggle and the extension's PATCH.
  */
 export async function recomputeDerivedProgress(tx: Tx, bookmarkId: string): Promise<void> {
   const linkedProps = await tx
@@ -256,14 +260,20 @@ export async function recomputeDerivedProgress(tx: Tx, bookmarkId: string): Prom
     .select({
       propertyId: bookmarkSectionsValues.propertyId,
       sections: bookmarkSectionsValues.sections,
+      exhaustive: bookmarkSectionsValues.exhaustive,
     })
     .from(bookmarkSectionsValues)
     .where(and(eq(bookmarkSectionsValues.bookmarkId, bookmarkId), inArray(bookmarkSectionsValues.propertyId, sourceIds)));
-  const sectionsBySourceId = new Map(sourceRows.map(row => [row.propertyId, row.sections as SectionEntry[]]));
+  const sourceBySourceId = new Map(sourceRows.map(row => [row.propertyId, {
+    sections: row.sections as SectionEntry[],
+    exhaustive: row.exhaustive,
+  }]));
 
   for (const prop of linkedProps) {
-    const sections = prop.sourcePropertyId ? sectionsBySourceId.get(prop.sourcePropertyId) : undefined;
-    if (!sections || sections.length === 0) continue;
+    const source = prop.sourcePropertyId ? sourceBySourceId.get(prop.sourcePropertyId) : undefined;
+    if (!source || !source.exhaustive) continue;
+    const sections = source.sections;
+    if (sections.length === 0) continue;
     const counts = countSectionLeaves(sections);
     await tx
       .insert(bookmarkProgressValues)

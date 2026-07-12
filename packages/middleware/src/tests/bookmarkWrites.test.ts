@@ -260,6 +260,7 @@ test("recomputeDerivedProgress upserts leaf counts — children count individual
   }]);
   state.tableRows.set(bookmarkSectionsValues, [{
     propertyId: "sections-1",
+    exhaustive: true,
     sections: [
       {
         id: "a",
@@ -354,6 +355,7 @@ test("recomputeDerivedProgress recomputes only counts, never touching textOverri
   }]);
   state.tableRows.set(bookmarkSectionsValues, [{
     propertyId: "sections-1",
+    exhaustive: true,
     sections: [
       {
         id: "a",
@@ -387,7 +389,68 @@ test("recomputeDerivedProgress leaves the progress row alone when the source sec
   ]);
   state.tableRows.set(bookmarkSectionsValues, [{
     propertyId: "sections-empty",
+    exhaustive: true,
     sections: [],
+  }]);
+  await recomputeDerivedProgress(tx, "bm-1");
+  assert.deepEqual(state.inserted, []);
+});
+
+test("recomputeDerivedProgress derives 0 of N when the exhaustive source has no completed leaves", async () => {
+  const {
+    tx, state,
+  } = makeFakeTx();
+  state.tableRows.set(customProperties, [{
+    id: "progress-1",
+    sourcePropertyId: "sections-1",
+  }]);
+  state.tableRows.set(bookmarkSectionsValues, [{
+    propertyId: "sections-1",
+    exhaustive: true,
+    sections: [
+      {
+        id: "a",
+        name: "Ch 1",
+        type: "page",
+        startValue: "1",
+      },
+      {
+        id: "b",
+        name: "Ch 2",
+        type: "page",
+        startValue: "2",
+      },
+    ],
+  }]);
+  await recomputeDerivedProgress(tx, "bm-1");
+  assert.deepEqual(state.inserted[0].rows, [{
+    bookmarkId: "bm-1",
+    propertyId: "progress-1",
+    current: 0, // nothing checked off
+    total: 2, // the complete list
+  }]);
+});
+
+test("recomputeDerivedProgress leaves the progress row alone when the source is NOT exhaustive (manual entry stays)", async () => {
+  const {
+    tx, state,
+  } = makeFakeTx();
+  state.tableRows.set(customProperties, [{
+    id: "progress-1",
+    sourcePropertyId: "sections-1",
+  }]);
+  state.tableRows.set(bookmarkSectionsValues, [{
+    propertyId: "sections-1",
+    exhaustive: false,
+    sections: [
+      {
+        id: "a",
+        name: "Ch 1",
+        type: "page",
+        startValue: "1",
+        completed: true,
+      },
+    ],
   }]);
   await recomputeDerivedProgress(tx, "bm-1");
   assert.deepEqual(state.inserted, []);

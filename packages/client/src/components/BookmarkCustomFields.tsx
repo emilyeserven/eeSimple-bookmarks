@@ -16,7 +16,7 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import { selectVisibleFormProperties } from "./bookmarkFormProperties";
-import { DATE_POSTED_SLUG, ISBN_SLUG, RUNTIME_SLUG, SECTIONS_SLUG } from "./bookmarkFormSchema";
+import { DATE_POSTED_SLUG, deriveItemInItemsDisplay, ISBN_SLUG, RUNTIME_SLUG, SECTIONS_SLUG } from "./bookmarkFormSchema";
 import {
   BooleanPropertyField,
   CategoryPropertyFileField,
@@ -248,18 +248,17 @@ function ChoicesField({
 function ItemInItemsField({
   property, bookmark, mediaTypeId, progressInputs, sectionsInputs, onProgressChange,
 }: CategoryPropertyFieldProps) {
-  // Derived when the property is linked to a sections source that currently has entries — the
-  // server recomputes on save, so the inputs render disabled (the same countSectionLeaves rule
-  // seeds the live preview in useBookmarkPropertiesForm).
-  const sourceSections = property.itemInItemsSourcePropertyId
-    ? sectionsInputs[property.itemInItemsSourcePropertyId]?.sections
-    : undefined;
+  // Read-only + live-computed from the linked Sections when that value is exhaustive; otherwise the
+  // user's own manual counts (see deriveItemInItemsDisplay).
+  const {
+    derived, progress,
+  } = deriveItemInItemsDisplay(property, sectionsInputs, progressInputs[property.id]);
   return (
     <ItemInItemsPropertyField
       property={property}
-      progress={progressInputs[property.id]}
+      progress={progress}
       mediaTypeId={mediaTypeId ?? bookmark?.mediaType?.id ?? null}
-      derived={(sourceSections?.length ?? 0) > 0}
+      derived={derived}
       onChange={(field, value) => onProgressChange(property.id, field, value)}
     />
   );

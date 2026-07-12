@@ -167,9 +167,11 @@ export function useBookmarkPropertiesForm(bookmark: Bookmark) {
       [id]: value,
     }));
     // Live-preview any linked derived Progress value (the same countSectionLeaves rule the server
-    // applies on save, so the disabled inputs track the checkboxes in real time).
+    // applies on save, so the disabled inputs track the checkboxes in real time). Gated on
+    // `exhaustive` to match the server: a non-exhaustive list stays manual, so we must not clobber
+    // the user's typed current/total.
     const derived = (customProperties ?? []).filter(p => p.itemInItemsSourcePropertyId === id);
-    if (derived.length > 0 && value.sections.length > 0) {
+    if (derived.length > 0 && value.exhaustive && value.sections.length > 0) {
       const counts = countSectionLeaves(value.sections);
       setProgressInputs(current => ({
         ...current,
