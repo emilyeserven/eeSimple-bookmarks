@@ -17,7 +17,6 @@ import type {
   PlaceTypeIconConfig,
   PlaceTypeLevelGroupConfig,
   PreferredLanguage,
-  ScratchpadSettings,
   SidebarCustomizationSettings,
   SidebarOpenModifier,
   UpdateAdvancedSettingsInput,
@@ -792,10 +791,6 @@ export function useUpdateAiSummarizationSettings() {
 
 export { AI_SUMMARIZATION_DEFAULTS };
 
-const SCRATCHPAD_DEFAULTS: ScratchpadSettings = {
-  scratchpadText: "",
-};
-
 /** The stored Scratchpad note (free-form Markdown kept in the sidebar footer). */
 export function useScratchpadSettings() {
   return useQuery({
@@ -816,8 +811,6 @@ export function useUpdateScratchpadSettings() {
     onError: error => notifyFieldSaveError("Scratchpad", describeError(error)),
   });
 }
-
-export { SCRATCHPAD_DEFAULTS };
 
 const AI_AUTOTAG_DEFAULTS: AiAutotagSettings = {
   aiAutotagPrompt: "",
