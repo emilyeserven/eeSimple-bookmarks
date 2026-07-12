@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { randomId } from "@/lib/utils";
 
 /** The optional muted description line shown under most property fields. */
 export function FieldDescription({
@@ -295,7 +296,7 @@ export function ChoicesPropertyField({
 /** A blank section entry (or child) with a stable id. */
 function newSectionEntry(defaultType: SectionEntryType): SectionEntry {
   return {
-    id: crypto.randomUUID(),
+    id: randomId(),
     name: "",
     type: defaultType,
     startValue: "",

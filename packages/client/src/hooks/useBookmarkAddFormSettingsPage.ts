@@ -34,6 +34,7 @@ import { useCustomProperties, useUpdateCustomProperty } from "./useCustomPropert
 import { useTagTree } from "./useTags";
 import { useTranslatedLabel } from "./useTranslatedLabel";
 import { notifyError, notifySuccess } from "../lib/notifications";
+import { randomId } from "../lib/utils";
 
 /** Human labels for each standard Add Bookmark form field (used for both rows and toast wording). */
 export const BOOKMARK_ADD_FORM_STANDARD_LABELS: Record<BookmarkAddFormStandardField, string> = {
@@ -221,7 +222,7 @@ export function useBookmarkAddFormSettingsPage() {
 
   function addAdvancedRule(): void {
     const nextSortOrder = config.advancedRules.reduce((max, rule) => Math.max(max, rule.sortOrder), 0) + 1;
-    persistAdvancedRules([...config.advancedRules, makeEmptyAdvancedRule(crypto.randomUUID(), nextSortOrder)]);
+    persistAdvancedRules([...config.advancedRules, makeEmptyAdvancedRule(randomId(), nextSortOrder)]);
   }
 
   function updateAdvancedRule(id: string, patch: Partial<BookmarkAddFormAdvancedRule>): void {
