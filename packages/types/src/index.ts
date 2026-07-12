@@ -763,6 +763,44 @@ export interface AiSummaryApplyResult {
   tagsCreated: number;
 }
 
+/** AI Autotag settings: the reusable prompt template and whether to include the user's existing tags. */
+export interface AiAutotagSettings {
+  aiAutotagPrompt: string;
+  /** When true, the generated prompt lists the user's existing tags so the AI reuses them where relevant. */
+  aiAutotagIncludeExistingTags: boolean;
+}
+
+/** Payload for replacing the AI autotag settings. */
+export type UpdateAiAutotagInput = AiAutotagSettings;
+
+/** An untagged bookmark offered to the AI Autotag prompt — the minimal shape needed to build the prompt. */
+export interface AiUntaggedBookmark {
+  id: string;
+  url: string | null;
+  title: string;
+}
+
+/** One AI-returned set of suggested tags keyed by the bookmark's id. */
+export interface AiAutotagApplyItem {
+  id: string;
+  tags: string[];
+}
+
+/** Payload for applying a batch of AI-returned tags to their bookmarks. */
+export interface AiAutotagApplyInput {
+  items: AiAutotagApplyItem[];
+}
+
+/** Outcome of applying AI autotags: how many bookmarks were tagged, which ids matched nothing, and how many tags were newly created. */
+export interface AiAutotagApplyResult {
+  /** Bookmarks that had at least one tag unioned onto them. */
+  updated: number;
+  /** Ids present in the pasted JSON that matched no bookmark. */
+  notFound: string[];
+  /** Tags newly created while resolving suggested tag names. */
+  tagsCreated: number;
+}
+
 /**
  * A media type in the built-in "Media Types" taxonomy (Video, Article, Podcast, …). Classifies what
  * a bookmark is; chosen in the form or auto-set from fetched metadata. Built-ins can't be

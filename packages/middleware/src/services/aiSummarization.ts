@@ -1,11 +1,11 @@
 import type { AiSummaryApplyInput, AiSummaryApplyResult, AiSummaryQueueItem, UpdateBookmarkInput } from "@eesimple/types";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { bookmarkChoicesValues, bookmarks, bookmarkTags, customProperties, tags } from "@/db/schema";
+import { bookmarkChoicesValues, bookmarks, bookmarkTags, customProperties } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { updateBookmark } from "@/services/bookmarks";
 import { CONTENT_STATUS_SLUG } from "@/services/customProperties";
-import { createTag } from "@/services/tags";
+import { resolveTagIdsByName } from "@/services/tags";
 
 const SUMMARIZED_BY_AI_VALUE = "summarized-by-ai";
 
@@ -67,39 +67,6 @@ export async function markAiQueueSummarized(): Promise<{ count: number }> {
   return {
     count,
   };
-}
-
-/** Resolve tag names to tag ids, creating any that don't yet exist (case-insensitive match). */
-async function resolveTagIdsByName(
-  names: string[],
-  created: { count: number },
-): Promise<string[]> {
-  const cleaned = [...new Set(names.map(name => name.trim()).filter(Boolean))];
-  if (cleaned.length === 0) return [];
-
-  const existing = await db
-    .select({
-      id: tags.id,
-      name: tags.name,
-    })
-    .from(tags);
-  const idByLowerName = new Map(existing.map(tag => [tag.name.toLowerCase(), tag.id]));
-
-  const ids: string[] = [];
-  for (const name of cleaned) {
-    const hit = idByLowerName.get(name.toLowerCase());
-    if (hit) {
-      ids.push(hit);
-      continue;
-    }
-    const tag = await createTag({
-      name,
-    });
-    idByLowerName.set(name.toLowerCase(), tag.id);
-    created.count += 1;
-    ids.push(tag.id);
-  }
-  return ids;
 }
 
 /**

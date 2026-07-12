@@ -4,6 +4,7 @@ import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import Fastify, { type FastifyInstance } from "fastify";
 import { errorHandler } from "@/utils/errorHandler";
+import { aiAutotagRoutes } from "@/routes/aiAutotag";
 import { aiSummarizationRoutes } from "@/routes/aiSummarization";
 import { appSettingsRoutes } from "@/routes/appSettings";
 import { personRoutes } from "@/routes/people";
@@ -278,6 +279,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(customAspectRatioRoutes);
   await app.register(appSettingsRoutes);
   await app.register(aiSummarizationRoutes);
+  await app.register(aiAutotagRoutes);
   await app.register(maintenanceRoutes);
   await app.register(galleryRoutes);
 

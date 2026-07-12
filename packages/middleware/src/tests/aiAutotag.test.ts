@@ -4,11 +4,11 @@ import * as schema from "@/db/schema";
 import { createFakeDb } from "./testUtils/fakeDb";
 
 /**
- * Covers `applyAiSummaries` — the paste-JSON-to-apply flow. `updateBookmark`/`createTag` pull in a
- * deep dependency chain (see `bookmarksCacheInvalidation.test.ts`), so they're mocked here and this
- * file exercises `applyAiSummaries`'s own logic: description-patch shape, tag match-or-create + union,
- * the per-bookmark "Summarized by AI" upsert, `notFound` collection, and the single cache invalidation.
- * The fake db is fixture-per-table (it ignores `where`), so a single-bookmark shape is asserted.
+ * Covers `applyAiTags` — the paste-JSON-to-apply flow. `updateBookmark`/`resolveTagIdsByName` pull in a
+ * deep dependency chain, so they're mocked here and this file exercises `applyAiTags`'s own logic: the
+ * tag union onto current tags, `notFound` collection, the empty-tags skip, and the single cache
+ * invalidation. The fake db is fixture-per-table (it ignores `where`), so a single-bookmark shape is
+ * asserted. Mirrors `aiSummarization.test.ts`.
  */
 
 const fakeDb = createFakeDb();
@@ -48,7 +48,7 @@ mock.module("@/services/bookmarks", {
 mock.module("@/services/tags", {
   namedExports: {
     // Mirror the real `resolveTagIdsByName`: match names against `existingTags` case-insensitively,
-    // create the rest (tracked in `createdTagNames`), union-safe via a Set.
+    // create the rest (tracked in `createdTagNames`).
     resolveTagIdsByName: (names: string[], created: { count: number }): Promise<string[]> => {
       const cleaned = [...new Set(names.map(name => name.trim()).filter(Boolean))];
       const idByLowerName = new Map(existingTags.map(tag => [tag.name.toLowerCase(), tag.id]));
@@ -71,8 +71,8 @@ mock.module("@/services/tags", {
 });
 
 const {
-  applyAiSummaries,
-} = await import("@/services/aiSummarization");
+  applyAiTags,
+} = await import("@/services/aiAutotag");
 
 function reset(): void {
   fakeDb.reset();
@@ -80,54 +80,9 @@ function reset(): void {
   updateCalls.length = 0;
   createdTagNames.length = 0;
   existingTags.length = 0;
-  fakeDb.setRows(schema.customProperties, [{
-    id: "content-status-prop",
-  }]);
 }
 
-test("writes description, marks summarized, and skips unknown ids", async () => {
-  reset();
-  fakeDb.setRows(schema.bookmarks, [{
-    id: "bm-1",
-  }]);
-
-  const result = await applyAiSummaries({
-    items: [
-      {
-        id: "bm-1",
-        summary: "A concise summary.",
-      },
-      {
-        id: "missing",
-        summary: "Never applied.",
-      },
-    ],
-  });
-
-  assert.equal(result.updated, 1);
-  assert.deepEqual(result.notFound, ["missing"]);
-  assert.equal(result.tagsCreated, 0);
-
-  // Only the existing bookmark got an update, with just the description patch (no tagIds).
-  assert.equal(updateCalls.length, 1);
-  assert.equal(updateCalls[0]?.id, "bm-1");
-  assert.deepEqual(updateCalls[0]?.input, {
-    description: "A concise summary.",
-  });
-
-  // Content Status upserted to "summarized-by-ai" for the applied bookmark.
-  const statusInsert = fakeDb.inserted.find(entry => entry.table === schema.bookmarkChoicesValues);
-  assert.ok(statusInsert, "expected a content-status upsert");
-  assert.deepEqual(statusInsert?.rows, {
-    bookmarkId: "bm-1",
-    propertyId: "content-status-prop",
-    values: ["summarized-by-ai"],
-  });
-
-  assert.equal(invalidateCalls, 1);
-});
-
-test("matches an existing tag and creates a missing one, unioning onto current tags", async () => {
+test("matches an existing tag, creates a missing one, unions onto current tags, skips unknown ids", async () => {
   reset();
   fakeDb.setRows(schema.bookmarks, [{
     id: "bm-1",
@@ -140,30 +95,56 @@ test("matches an existing tag and creates a missing one, unioning onto current t
     tagId: "tag-existing",
   }]);
 
-  const result = await applyAiSummaries({
+  const result = await applyAiTags({
     items: [
       {
         id: "bm-1",
-        summary: "Summary.",
         tags: ["reading", "AI"],
+      },
+      {
+        id: "missing",
+        tags: ["ignored"],
       },
     ],
   });
 
   assert.equal(result.updated, 1);
+  assert.deepEqual(result.notFound, ["missing"]);
   assert.equal(result.tagsCreated, 1);
   assert.deepEqual(createdTagNames, ["AI"]);
 
-  // "reading" matched "Reading" case-insensitively; "AI" was created; both unioned with the existing tag.
-  const patch = updateCalls[0]?.input as { description: string;
-    tagIds: string[]; };
-  assert.equal(patch.description, "Summary.");
+  // Only the existing bookmark got an update, with just the unioned tagIds (no description).
+  assert.equal(updateCalls.length, 1);
+  assert.equal(updateCalls[0]?.id, "bm-1");
+  const patch = updateCalls[0]?.input as { tagIds: string[] };
   assert.deepEqual([...patch.tagIds].sort(), ["created-1", "tag-existing", "tag-reading"]);
+
+  assert.equal(invalidateCalls, 1);
+});
+
+test("skips an item whose tag list is empty", async () => {
+  reset();
+  fakeDb.setRows(schema.bookmarks, [{
+    id: "bm-1",
+  }]);
+
+  const result = await applyAiTags({
+    items: [
+      {
+        id: "bm-1",
+        tags: [],
+      },
+    ],
+  });
+
+  assert.equal(result.updated, 0);
+  assert.equal(updateCalls.length, 0);
+  assert.equal(invalidateCalls, 0);
 });
 
 test("no-ops on an empty batch", async () => {
   reset();
-  const result = await applyAiSummaries({
+  const result = await applyAiTags({
     items: [],
   });
   assert.deepEqual(result, {

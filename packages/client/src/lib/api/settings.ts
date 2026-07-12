@@ -1,9 +1,13 @@
 import type {
   AdvancedSettings,
+  AiAutotagApplyInput,
+  AiAutotagApplyResult,
+  AiAutotagSettings,
   AiSummarizationSettings,
   AiSummaryApplyInput,
   AiSummaryApplyResult,
   AiSummaryQueueItem,
+  AiUntaggedBookmark,
   AutomationSettings,
   BookmarkAddFormSettings,
   BookmarkGraphSettings,
@@ -39,6 +43,7 @@ import type {
   SavedFilter,
   SidebarCustomizationSettings,
   UpdateAdvancedSettingsInput,
+  UpdateAiAutotagInput,
   UpdateAiSummarizationInput,
   UpdateAutomationInput,
   UpdateBookmarkAddFormInput,
@@ -173,6 +178,13 @@ export const appSettingsApi = {
       method: "PUT",
       body: JSON.stringify(input),
     }),
+  getAiAutotag: () =>
+    request<AiAutotagSettings>("/app-settings/ai-autotag"),
+  updateAiAutotag: (input: UpdateAiAutotagInput) =>
+    request<AiAutotagSettings>("/app-settings/ai-autotag", {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
   getConnectorsSettings: () =>
     request<ConnectorsAppSettings>("/app-settings/connectors"),
   updateConnectorsSettings: (input: UpdateConnectorsSettingsInput) =>
@@ -197,6 +209,16 @@ export const aiSummarizationApi = {
     }),
   apply: (input: AiSummaryApplyInput) =>
     request<AiSummaryApplyResult>("/ai-summarization/apply", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+};
+
+export const aiAutotagApi = {
+  getUntagged: (limit: number) =>
+    request<AiUntaggedBookmark[]>(`/ai-autotag/untagged?limit=${limit}`),
+  apply: (input: AiAutotagApplyInput) =>
+    request<AiAutotagApplyResult>("/ai-autotag/apply", {
       method: "POST",
       body: JSON.stringify(input),
     }),

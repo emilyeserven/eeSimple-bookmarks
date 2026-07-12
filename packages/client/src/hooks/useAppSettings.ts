@@ -1,4 +1,5 @@
 import type {
+  AiAutotagSettings,
   AiSummarizationSettings,
   AutomationSettings,
   BookmarkAddFormSettings,
@@ -19,6 +20,7 @@ import type {
   SidebarCustomizationSettings,
   SidebarOpenModifier,
   UpdateAdvancedSettingsInput,
+  UpdateAiAutotagInput,
   UpdateAiSummarizationInput,
   UpdateAutomationInput,
   UpdateBookmarkAddFormInput,
@@ -65,6 +67,7 @@ const PLACE_TYPE_COLORS_KEY = ["app-settings", "place-type-colors"] as const;
 const EMPTY_PLACE_TYPE_COLORS: PlaceTypeColorConfig = {};
 const DISPLAY_PREFERENCES_KEY = ["app-settings", "display-preferences"] as const;
 const AI_SUMMARIZATION_KEY = ["app-settings", "ai-summarization"] as const;
+const AI_AUTOTAG_KEY = ["app-settings", "ai-autotag"] as const;
 
 /**
  * Variables for a mutation shared by many differently-worded call sites: each call supplies its own
@@ -785,6 +788,37 @@ export function useUpdateAiSummarizationSettings() {
 }
 
 export { AI_SUMMARIZATION_DEFAULTS };
+
+const AI_AUTOTAG_DEFAULTS: AiAutotagSettings = {
+  aiAutotagPrompt: "",
+  aiAutotagIncludeExistingTags: false,
+};
+
+/** The stored AI autotag prompt and related settings. */
+export function useAiAutotagSettings() {
+  return useQuery({
+    queryKey: AI_AUTOTAG_KEY,
+    queryFn: appSettingsApi.getAiAutotag,
+  });
+}
+
+export function useUpdateAiAutotagSettings() {
+  const queryClient = useQueryClient();
+  const {
+    t,
+  } = useTranslation();
+  return useMutation({
+    mutationFn: (input: UpdateAiAutotagInput) =>
+      appSettingsApi.updateAiAutotag(input),
+    onSuccess: (saved) => {
+      queryClient.setQueryData(AI_AUTOTAG_KEY, saved);
+      notifySuccess(t("AI autotag prompt saved"));
+    },
+    onError: error => notifyError(describeError(error)),
+  });
+}
+
+export { AI_AUTOTAG_DEFAULTS };
 
 /** Hosted-metadata connector settings: endpoint, provider label, and whether an API key is stored. */
 export function useConnectorsSettings() {

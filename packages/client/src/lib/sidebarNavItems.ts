@@ -1,5 +1,6 @@
 import {
   Bookmark,
+  Bot,
   Building2,
   Clapperboard,
   Drama,
@@ -123,6 +124,11 @@ export const actionItems = [
     title: i18n.t("AI Summarization"),
     to: "/ai-summarization",
     icon: Sparkles,
+  },
+  {
+    title: i18n.t("AI Autotag"),
+    to: "/ai-autotag",
+    icon: Bot,
   },
 ] as const;
 
