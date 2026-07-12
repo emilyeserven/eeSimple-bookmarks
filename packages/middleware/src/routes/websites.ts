@@ -428,7 +428,24 @@ const fillTargetSchema = {
     },
     ratingBound: {
       type: "string",
-      enum: ["from", "to"],
+      enum: ["from", "to", "range"],
+    },
+    ratingLevels: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["level", "selector"],
+        properties: {
+          level: {
+            type: "number",
+          },
+          selector: {
+            type: "string",
+          },
+          match: textMatchSchema,
+        },
+      },
     },
     taxonomy: {
       type: "string",

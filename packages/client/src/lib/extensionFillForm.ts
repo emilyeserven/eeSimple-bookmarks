@@ -151,6 +151,7 @@ export function describeFillTarget(target: FillTarget, property?: CustomProperty
     case "customProperty": {
       const name = property?.name ?? "Custom property";
       if (target.subField) return `${name} · ${target.subField === "current" ? "Current" : "Total"}`;
+      if (target.ratingBound === "range") return `${name} · Range (detected)`;
       if (target.ratingBound) return `${name} · ${target.ratingBound === "from" ? "From" : "To"}`;
       if (target.choiceValue) {
         const option = property?.choicesItems.find(item => item.value === target.choiceValue);
@@ -316,6 +317,11 @@ function coerceCustomPropertyTarget(prev: FillTarget): Extract<FillTarget, { kin
     ...(same?.ratingBound !== undefined
       ? {
         ratingBound: same.ratingBound,
+      }
+      : {}),
+    ...(same?.ratingLevels !== undefined
+      ? {
+        ratingLevels: same.ratingLevels,
       }
       : {}),
   };
@@ -552,6 +558,22 @@ function cleanCustomPropertyTarget(
     ...(target.ratingBound !== undefined
       ? {
         ratingBound: target.ratingBound,
+      }
+      : {}),
+    // Per-level detectors ride only in "range" mode; drop detectors with no selector to fill.
+    ...(target.ratingBound === "range" && target.ratingLevels && target.ratingLevels.length > 0
+      ? {
+        ratingLevels: target.ratingLevels
+          .filter(detector => detector.selector.trim() !== "")
+          .map(detector => ({
+            level: detector.level,
+            selector: detector.selector.trim(),
+            ...(detector.match && detector.match.value.trim() !== ""
+              ? {
+                match: detector.match,
+              }
+              : {}),
+          })),
       }
       : {}),
   };

@@ -62,12 +62,19 @@ export type FillTarget
    * rule fills one specific sub-value: `subField` picks the number of a Two-Numbers (`itemInItems`)
    * property; `choiceValue` picks the option of a `choices` property; `ratingBound` picks the From
    * or To end of a range-enabled `ratingScale` property (absent for a single-value rating).
+   *
+   * `ratingBound: "range"` is the auto-detect mode: instead of filling one end from the rule's
+   * `extract`, the popup evaluates the per-level {@link ratingLevels} detectors against the page and
+   * sets the range to `[min, max]` of the **present** levels — so one rule covers a whole scale
+   * (e.g. "beginner" + "intermediate" present → From 1, To 2). Only meaningful for a range-enabled
+   * `ratingScale`; `ratingLevels` is read only in this mode.
    */
     | { kind: "customProperty";
       propertyId: string;
       subField?: "current" | "total";
       choiceValue?: string;
-      ratingBound?: "from" | "to"; }
+      ratingBound?: "from" | "to" | "range";
+      ratingLevels?: RatingLevelDetector[]; }
   /** Multi-value; unmatched names create a name-only stub. */
       | { kind: "taxonomy";
         taxonomy: "people" | "groups" | "locations" | "tags"; }
@@ -216,6 +223,18 @@ export interface TextMatch {
   mode: "equals" | "contains" | "regex";
   value: string;
   caseSensitive?: boolean;
+}
+
+/**
+ * One rating level's page detector for a `customProperty` target in `ratingBound: "range"` mode. The
+ * level counts as **present** when `selector` matches at least one element and — if {@link match} is
+ * set — that element's trimmed text matches (the editor defaults it to an exact, case-insensitive
+ * match against the level's label). The detected range spans `[min, max]` of the present levels.
+ */
+export interface RatingLevelDetector {
+  level: number;
+  selector: string;
+  match?: TextMatch;
 }
 
 /** String transform applied to an extracted value, in the order listed on `FillExtract.transform`. */
