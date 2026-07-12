@@ -23,7 +23,7 @@ function node(id: string, children: LocationNode[] = [], overrides: Partial<Loca
 }
 
 /**
- * japan → honshu → chugoku → yamaguchi → hagi, a separate root kyushu, and a hidden usa → california.
+ * japan → honshu → chugoku → yamaguchi → hagi, a separate root kyushu, and a flag-hidden usa → california.
  */
 function fixture(): LocationNode[] {
   return [
@@ -49,68 +49,88 @@ function ids(tree: LocationNode[]): string[] {
 }
 
 describe("pruneHiddenSubtrees", () => {
-  it("drops a hidden node and its whole subtree", () => {
+  it("drops a flag-hidden node and its whole subtree (default predicate)", () => {
     expect(ids(pruneHiddenSubtrees(fixture()))).toEqual(
       ["chugoku", "hagi", "honshu", "japan", "kyushu", "yamaguchi"],
     );
   });
 
-  it("leaves a tree with no hidden nodes untouched", () => {
-    const tree = [node("a", [node("b")])];
-    expect(ids(pruneHiddenSubtrees(tree))).toEqual(["a", "b"]);
+  it("honours a custom predicate (e.g. session ids), ignoring the flag", () => {
+    const hidden = new Set(["honshu"]);
+    // usa is flag-hidden but the custom predicate doesn't hide it, so it stays; honshu's subtree drops.
+    expect(ids(pruneHiddenSubtrees(fixture(), n => hidden.has(n.id)))).toEqual(
+      ["california", "japan", "kyushu", "losangeles", "usa"],
+    );
   });
 });
 
 describe("buildFocusedMapTree", () => {
   it("returns the hidden-pruned tree when no row is focused", () => {
+    const hiddenIds = new Set(["usa", "california", "losangeles"]);
     const result = buildFocusedMapTree(fixture(), {
       itemFocusIds: [],
-      chainFocusIds: [],
+      hiddenIds,
     });
     expect(ids(result)).toEqual(["chugoku", "hagi", "honshu", "japan", "kyushu", "yamaguchi"]);
+  });
+
+  it("session hiddenIds can show a flag-hidden node (override absent from the set)", () => {
+    // usa is flag-hidden, but the session set is empty → nothing hidden, usa shows.
+    const result = buildFocusedMapTree(fixture(), {
+      itemFocusIds: [],
+      hiddenIds: new Set(),
+    });
+    expect(ids(result)).toContain("usa");
+    expect(ids(result)).toContain("california");
+  });
+
+  it("session hiddenIds can hide a flag-visible node (override present in the set)", () => {
+    const result = buildFocusedMapTree(fixture(), {
+      itemFocusIds: [],
+      hiddenIds: new Set(["kyushu"]),
+    });
+    expect(ids(result)).not.toContain("kyushu");
+  });
+
+  it("hiding a node drops its whole subtree", () => {
+    const result = buildFocusedMapTree(fixture(), {
+      itemFocusIds: [],
+      hiddenIds: new Set(["honshu"]),
+    });
+    expect(ids(result).filter(id => ["honshu", "chugoku", "yamaguchi", "hagi"].includes(id))).toEqual([]);
+    expect(ids(result)).toContain("japan");
   });
 
   it("item focus plots the node + its descendants, not its ancestors", () => {
     const result = buildFocusedMapTree(fixture(), {
       itemFocusIds: ["chugoku"],
-      chainFocusIds: [],
+      hiddenIds: new Set(),
     });
     expect(ids(result)).toEqual(["chugoku", "hagi", "yamaguchi"]);
     // chugoku is promoted to a root (its dropped parent honshu is not plotted).
     expect(result.map(n => n.id)).toEqual(["chugoku"]);
   });
 
-  it("chain focus additionally plots the node's ancestor spine (siblings excluded)", () => {
+  it("unions item focuses across rows", () => {
     const result = buildFocusedMapTree(fixture(), {
-      itemFocusIds: [],
-      chainFocusIds: ["chugoku"],
-    });
-    expect(ids(result)).toEqual(["chugoku", "hagi", "honshu", "japan", "yamaguchi"]);
-    // The spine stays nested under its real root, kyushu is excluded.
-    expect(result.map(n => n.id)).toEqual(["japan"]);
-    expect(result[0]?.children.map(n => n.id)).toEqual(["honshu"]);
-  });
-
-  it("unions item and chain focuses across rows", () => {
-    const result = buildFocusedMapTree(fixture(), {
-      itemFocusIds: ["chugoku"],
-      chainFocusIds: ["kyushu"],
+      itemFocusIds: ["chugoku", "kyushu"],
+      hiddenIds: new Set(),
     });
     expect(ids(result)).toEqual(["chugoku", "hagi", "kyushu", "yamaguchi"]);
   });
 
   it("keeps a focused-but-hidden location off the map (hidden wins)", () => {
     const result = buildFocusedMapTree(fixture(), {
-      itemFocusIds: [],
-      chainFocusIds: ["california"],
+      itemFocusIds: ["kyushu"],
+      hiddenIds: new Set(["kyushu"]),
     });
     expect(ids(result)).toEqual([]);
   });
 
-  it("ignores stale ids not present in the tree", () => {
+  it("ignores stale focus ids not present in the tree", () => {
     const result = buildFocusedMapTree(fixture(), {
       itemFocusIds: ["ghost"],
-      chainFocusIds: [],
+      hiddenIds: new Set(),
     });
     expect(ids(result)).toEqual([]);
   });
