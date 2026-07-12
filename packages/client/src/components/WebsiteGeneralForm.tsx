@@ -54,6 +54,7 @@ export function WebsiteNameEditField({
             label={t("Site name")}
             disabled={website.builtIn}
             onBlur={() => saveSiteName(field.state.value, field.state.meta.errors.length === 0)}
+            debounceSave
           />
         )}
       </form.AppField>
@@ -101,6 +102,7 @@ export function WebsiteDescriptionEditField() {
       {field => (
         <field.TextareaField
           label={t("Description")}
+          debounceSave
           onBlur={() => saveField(
             "description",
             field.state.value.trim() || null,

@@ -185,6 +185,7 @@ export function CategoryDescriptionEditField({
       {field => (
         <field.TextareaField
           label={t("Description")}
+          debounceSave
           onBlur={() => autoSave.saveField(
             "description",
             field.state.value.trim() || null,

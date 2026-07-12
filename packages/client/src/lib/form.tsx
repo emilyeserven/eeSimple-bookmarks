@@ -5,7 +5,7 @@ import type { ComboboxOption } from "@/components/Combobox";
 import type { TreeComboboxOption } from "@/components/TreeMultiCombobox";
 import type { ReactNode } from "react";
 
-import { useId } from "react";
+import { useEffect, useId, useRef } from "react";
 
 import { createFormHook, createFormHookContexts } from "@tanstack/react-form";
 import { useTranslation } from "react-i18next";
@@ -30,6 +30,57 @@ const {
   fieldContext, formContext, useFieldContext, useFormContext,
 }
   = createFormHookContexts();
+
+/**
+ * How long a text/textarea field waits after the last keystroke before firing its auto-save. Text
+ * inputs on edit tabs commit on blur; `debounceSave` layers a while-typing save on top so a long edit
+ * persists progressively (and survives navigating away without blurring). Blur still flushes
+ * immediately, and the per-field no-op guard in `useFieldAutoSave` means an already-saved value is
+ * skipped — so the debounce and the blur never double-write.
+ */
+const SAVE_DEBOUNCE_MS = 700;
+
+/**
+ * Debounce a text field's save handler (its `onBlur` closure) while the user types. `schedule` is
+ * called on each keystroke to (re)start the timer; `cancel` is called on blur so the immediate
+ * blur-save wins and no stale timer fires afterward. A pending save is flushed on unmount so a
+ * typed-but-not-blurred edit is never lost. Reads the latest handler through a ref so the deferred
+ * call always sees the current field value. A no-op when `enabled` is false or no handler is given.
+ */
+function useTypingDebounce(handler: (() => void) | undefined, enabled: boolean) {
+  const handlerRef = useRef(handler);
+  handlerRef.current = handler;
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cancel = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+  const schedule = () => {
+    if (!enabled || !handlerRef.current) return;
+    cancel();
+    timerRef.current = setTimeout(() => {
+      timerRef.current = null;
+      handlerRef.current?.();
+    }, SAVE_DEBOUNCE_MS);
+  };
+
+  // Flush any pending save when the field unmounts (e.g. the tab is left mid-edit before blur).
+  useEffect(() => () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+      handlerRef.current?.();
+    }
+  }, []);
+
+  return {
+    schedule,
+    cancel,
+  };
+}
 
 /** Normalise a field's errors (string | { message } | …) into displayable strings. */
 export function fieldErrorMessages(errors: unknown[]): string[] {
@@ -63,18 +114,25 @@ interface TextFieldProps {
   inputClassName?: string;
   /** Visually hide the label but keep it as the input's accessible name. */
   hideLabel?: boolean;
-  /** Extra blur handler (runs after the field's own blur), e.g. submit-on-blur. */
+  /** Extra blur handler (runs after the field's own blur), e.g. submit-on-blur / auto-save. */
   onBlur?: () => void;
+  /**
+   * Auto-save while typing: debounce the `onBlur` save handler on each keystroke (blur still flushes
+   * it). Opt-in per field so non-save blur handlers (URL scan, autofill) and slug-driving name fields
+   * stay blur-only. See {@link SAVE_DEBOUNCE_MS}.
+   */
+  debounceSave?: boolean;
   /** Optional control rendered at the inline-end of the input (input-group pattern). */
   action?: ReactNode;
 }
 
 /** Labelled text input bound to the surrounding field. */
 function TextField({
-  label, type = "text", placeholder, disabled, className, inputClassName, hideLabel, onBlur, action,
+  label, type = "text", placeholder, disabled, className, inputClassName, hideLabel, onBlur, debounceSave, action,
 }: TextFieldProps) {
   const field = useFieldContext<string>();
   const id = useId();
+  const debounce = useTypingDebounce(onBlur, Boolean(debounceSave));
 
   const input = (
     <Input
@@ -85,10 +143,14 @@ function TextField({
       className={action ? `pe-10 ${inputClassName ?? ""}`.trim() : inputClassName}
       value={field.state.value}
       onBlur={() => {
+        debounce.cancel();
         field.handleBlur();
         onBlur?.();
       }}
-      onChange={event => field.handleChange(event.target.value)}
+      onChange={(event) => {
+        field.handleChange(event.target.value);
+        debounce.schedule();
+      }}
     />
   );
 
@@ -120,10 +182,15 @@ interface TextareaFieldProps {
   disabled?: boolean;
   /** Class applied to the textarea itself (e.g. a tighter min-height to start at one row). */
   inputClassName?: string;
-  /** Extra blur handler (runs after the field's own blur), e.g. autofill-on-blur. */
+  /** Extra blur handler (runs after the field's own blur), e.g. autofill-on-blur / auto-save. */
   onBlur?: () => void;
   /** Extra change handler (runs after the field's own change), e.g. clearing an undo banner. */
   onChange?: () => void;
+  /**
+   * Auto-save while typing: debounce the `onBlur` save handler on each keystroke (blur still flushes
+   * it). Opt-in per field so non-save blur handlers stay blur-only. See {@link SAVE_DEBOUNCE_MS}.
+   */
+  debounceSave?: boolean;
   /** Optional control rendered at the inline-end of the textarea (input-group pattern). */
   action?: ReactNode;
   /** Stretch the textarea to fill its container's height (for equal-height grid cells). */
@@ -132,10 +199,11 @@ interface TextareaFieldProps {
 
 /** Labelled multi-line text input bound to the surrounding field. */
 function TextareaField({
-  label, placeholder, rows = 2, disabled, inputClassName, onBlur, onChange, action, fill,
+  label, placeholder, rows = 2, disabled, inputClassName, onBlur, onChange, debounceSave, action, fill,
 }: TextareaFieldProps) {
   const field = useFieldContext<string>();
   const id = useId();
+  const debounce = useTypingDebounce(onBlur, Boolean(debounceSave));
 
   const textarea = (
     <Textarea
@@ -146,12 +214,14 @@ function TextareaField({
       className={`${fill ? "h-full flex-1" : ""} ${action ? "pe-10" : ""} ${inputClassName ?? ""}`.trim() || undefined}
       value={field.state.value}
       onBlur={() => {
+        debounce.cancel();
         field.handleBlur();
         onBlur?.();
       }}
       onChange={(event) => {
         field.handleChange(event.target.value);
         onChange?.();
+        debounce.schedule();
       }}
     />
   );

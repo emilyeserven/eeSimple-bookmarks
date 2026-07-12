@@ -68,6 +68,7 @@ export function YouTubeChannelDescriptionEdit({
       {field => (
         <field.TextareaField
           label={t("Description")}
+          debounceSave
           onBlur={() => saveField(
             "description",
             field.state.value.trim() || null,

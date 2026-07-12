@@ -90,6 +90,7 @@ export function SavedFilterGeneralForm({
         {field => (
           <field.TextareaField
             label={t("Description")}
+            debounceSave
             placeholder={t("Optional — what this filter is for.")}
             onBlur={() => autoSave.saveField(
               "description",

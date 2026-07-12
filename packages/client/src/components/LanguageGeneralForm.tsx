@@ -96,6 +96,7 @@ export function LanguageGeneralForm({
             label={t("ISO code")}
             placeholder={t("e.g. en")}
             onBlur={() => autoSave.saveField("isoCode", field.state.value.trim())}
+            debounceSave
           />
         )}
       </form.AppField>
@@ -107,6 +108,7 @@ export function LanguageGeneralForm({
         {field => (
           <field.TextareaField
             label={t("Description")}
+            debounceSave
             onBlur={() => autoSave.saveField(
               "description",
               field.state.value.trim() || null,
