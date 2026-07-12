@@ -10,6 +10,7 @@ import { I18nextProvider } from "react-i18next";
 import { FallbackDisplayLanguageProvider } from "./hooks/FallbackDisplayLanguageProvider";
 import { SecondaryDisplayLanguageProvider } from "./hooks/SecondaryDisplayLanguageProvider";
 import i18n from "./i18n";
+import { initPwa } from "./lib/pwa";
 import { queryClient } from "./lib/queryClient";
 import { watchTheme } from "./lib/theme";
 import { routeTree } from "./routeTree.gen";
@@ -26,6 +27,10 @@ useUiStore.subscribe((state) => {
   stopWatching();
   stopWatching = watchTheme(currentTheme);
 });
+
+// Register the service worker for the whole app at startup so newly deployed builds auto-apply on
+// the next load (autoUpdate) everywhere — not only while the Updates settings page is open.
+initPwa();
 
 const router = createRouter({
   routeTree,

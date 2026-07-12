@@ -1,11 +1,11 @@
-import type { PwaUpdateState } from "../hooks/usePwaUpdate";
+import type { PwaUpdateState, UpdateCheckOutcome } from "../hooks/usePwaUpdate";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PwaUpdateCard } from "./PwaUpdateCard";
 
-const checkForUpdate = vi.fn<() => Promise<void>>(() => Promise.resolve());
+const checkForUpdate = vi.fn<() => Promise<UpdateCheckOutcome>>(() => Promise.resolve("up-to-date"));
 const applyUpdate = vi.fn<() => void>();
 let state: PwaUpdateState;
 
@@ -58,13 +58,22 @@ describe("PwaUpdateCard", () => {
     expect(screen.getByText(new Date(when).toLocaleString())).toBeInTheDocument();
   });
 
-  it("checks for updates and fires a success toast", async () => {
+  it("reports 'already on the latest version' when the check finds nothing new", async () => {
     render(<PwaUpdateCard />);
     fireEvent.click(screen.getByRole("button", {
       name: "Check for updates",
     }));
     await waitFor(() => expect(checkForUpdate).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(notifySuccess).toHaveBeenCalledWith("Checked for updates"));
+    await waitFor(() => expect(notifySuccess).toHaveBeenCalledWith("You're already on the latest version."));
+  });
+
+  it("reports 'updating' when the check finds a newer build", async () => {
+    checkForUpdate.mockResolvedValueOnce("updating");
+    render(<PwaUpdateCard />);
+    fireEvent.click(screen.getByRole("button", {
+      name: "Check for updates",
+    }));
+    await waitFor(() => expect(notifySuccess).toHaveBeenCalledWith("Updating to the latest version…"));
   });
 
   it("reports a failed check via an error toast", async () => {
