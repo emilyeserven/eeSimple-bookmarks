@@ -34,6 +34,7 @@ function makeStatus(overrides: Partial<ConnectorsStatus> = {}): ConnectorsStatus
     kavita: {
       enabled: false,
       baseUrl: null,
+      sidebarUrl: null,
     },
     plex: {
       enabled: false,
@@ -85,11 +86,35 @@ describe("CONNECTOR_LINKS", () => {
       kavita: {
         enabled: false,
         baseUrl: "http://localhost:5000",
+        sidebarUrl: null,
       },
     });
     expect(link("kavita").isConfigured(status)).toBe(true);
     expect(link("kavita").href(status)).toBe("http://localhost:5000");
     expect(link("kavita").label(status)).toBe("Kavita");
+  });
+
+  it("prefers the kavita sidebar URL over the base URL when it is set", () => {
+    const status = makeStatus({
+      kavita: {
+        enabled: true,
+        baseUrl: "http://100.68.29.108:5000",
+        sidebarUrl: "http://yohoho:5000",
+      },
+    });
+    // The base URL stays the server-reachable address; the link-out opens the browser-facing one.
+    expect(link("kavita").href(status)).toBe("http://yohoho:5000");
+  });
+
+  it("falls back to the kavita base URL when no sidebar URL is set", () => {
+    const status = makeStatus({
+      kavita: {
+        enabled: true,
+        baseUrl: "http://localhost:5000",
+        sidebarUrl: null,
+      },
+    });
+    expect(link("kavita").href(status)).toBe("http://localhost:5000");
   });
 
   it("labels archivebox and resolves its href", () => {

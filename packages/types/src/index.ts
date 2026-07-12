@@ -3320,9 +3320,15 @@ export interface ConnectorsStatus {
    * (`KAVITA_ENDPOINT` / `KAVITA_API_KEY` env vars or the saved settings). The base URL is not a
    * secret and is returned so the client can build series deep links
    * (`<base>/library/{libraryId}/series/{seriesId}`); the API key never leaves the middleware.
+   *
+   * `sidebarUrl` is an optional, browser-facing override for the sidebar's "Kavita" link-out: the
+   * `baseUrl` must be reachable from the middleware container (e.g. a LAN/tailnet IP), which isn't
+   * always the address a person opens in their browser (e.g. a MagicDNS hostname). `null` when
+   * unset — the sidebar link falls back to `baseUrl`. Does not affect the server-side connector.
    */
   kavita: { enabled: boolean;
-    baseUrl: string | null; };
+    baseUrl: string | null;
+    sidebarUrl: string | null; };
   /**
    * Plex media server — active only when BOTH a base URL and an `X-Plex-Token` are configured
    * (`PLEX_ENDPOINT` / `PLEX_TOKEN` env vars or the saved settings). The base URL is not a secret
@@ -3362,6 +3368,12 @@ export interface ConnectorsAppSettings {
   archiveBoxEndpoint: string;
   /** Base URL of the Kavita instance (e.g. `http://localhost:5000`), or `""` when unset. */
   kavitaEndpoint: string;
+  /**
+   * Optional browser-facing URL for the sidebar's Kavita link-out, when the person's browser reaches
+   * Kavita at a different address than the middleware container does (e.g. a MagicDNS hostname vs a
+   * LAN/tailnet IP). `""` when unset — the sidebar link then falls back to `kavitaEndpoint`.
+   */
+  kavitaSidebarUrl: string;
   /** Whether a Kavita API key is stored (encrypted or plain); the raw value is never returned. */
   kavitaApiKeySet: boolean;
   /** Base URL of the Plex instance (e.g. `http://localhost:32400`), or `""` when unset. */
@@ -3398,6 +3410,8 @@ export interface UpdateConnectorsSettingsInput {
   archiveBoxEndpoint: string;
   /** Base URL of the Kavita instance; `""` clears it. */
   kavitaEndpoint: string;
+  /** Browser-facing URL for the sidebar's Kavita link-out; `""` clears it (link falls back to `kavitaEndpoint`). */
+  kavitaSidebarUrl: string;
   /**
    * Raw Kavita API key to store (encrypted when `APP_SECRET` is set).
    * `null` = leave the stored key unchanged.

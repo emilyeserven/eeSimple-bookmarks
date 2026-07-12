@@ -40,7 +40,9 @@ export const CONNECTOR_LINKS: readonly ConnectorLink[] = [
     icon: BookMarked,
     // The web UI opens without the plugin key, so gate on the base URL alone (not `kavita.enabled`).
     isConfigured: c => Boolean(c.kavita.baseUrl),
-    href: c => c.kavita.baseUrl,
+    // Prefer the browser-facing sidebar override (e.g. a MagicDNS hostname) when set; the connector
+    // base URL is only guaranteed reachable from the middleware container, not from the browser.
+    href: c => c.kavita.sidebarUrl || c.kavita.baseUrl,
     label: () => i18n.t("Kavita"),
   },
   {

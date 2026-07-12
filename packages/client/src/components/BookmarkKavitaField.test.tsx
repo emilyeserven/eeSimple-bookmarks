@@ -13,6 +13,7 @@ vi.mock("../hooks/useConnectors", () => ({
       kavita: {
         enabled: connectorsEnabled,
         baseUrl: connectorsEnabled ? "http://localhost:5000" : null,
+        sidebarUrl: null,
       },
     },
   }),

@@ -34,6 +34,7 @@ const connectorsStatus: ConnectorsStatus = {
   kavita: {
     enabled: false,
     baseUrl: null,
+    sidebarUrl: null,
   },
   plex: {
     enabled: false,
@@ -57,6 +58,7 @@ const connectorsSettings: ConnectorsAppSettings = {
   encryptionEnabled: true,
   archiveBoxEndpoint: "",
   kavitaEndpoint: "",
+  kavitaSidebarUrl: "",
   kavitaApiKeySet: false,
   plexEndpoint: "",
   plexTokenSet: false,
@@ -107,6 +109,7 @@ export const ProvidersActive: Story = {
           kavita: {
             enabled: true,
             baseUrl: "http://localhost:5000",
+            sidebarUrl: null,
           },
           plex: {
             enabled: true,

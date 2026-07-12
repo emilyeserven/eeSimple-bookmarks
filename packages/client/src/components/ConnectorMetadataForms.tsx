@@ -132,6 +132,7 @@ export function HostedMetadataForm() {
           // The connectors PUT body requires every field; preserve the other connectors' values.
           archiveBoxEndpoint: data.archiveBoxEndpoint,
           kavitaEndpoint: data.kavitaEndpoint,
+          kavitaSidebarUrl: data.kavitaSidebarUrl,
           kavitaApiKey: null,
           plexEndpoint: data.plexEndpoint,
           plexToken: null,
@@ -301,6 +302,7 @@ export function ArchiveBoxForm() {
         hostedMetadataApiKey: null,
         archiveBoxEndpoint: endpoint,
         kavitaEndpoint: data.kavitaEndpoint,
+        kavitaSidebarUrl: data.kavitaSidebarUrl,
         kavitaApiKey: null,
         plexEndpoint: data.plexEndpoint,
         plexToken: null,
@@ -398,6 +400,8 @@ export function KavitaForm() {
   const update = useUpdateConnectorsSettings();
 
   const [endpoint, setEndpoint] = useState(data?.kavitaEndpoint ?? "");
+  // Optional browser-facing override for the sidebar link-out; blank = fall back to the base URL.
+  const [sidebarUrl, setSidebarUrl] = useState(data?.kavitaSidebarUrl ?? "");
   // apiKey field is always blank on load; user must type to set/replace/clear the stored key.
   const [apiKey, setApiKey] = useState("");
   const [apiKeyDirty, setApiKeyDirty] = useState(false);
@@ -416,15 +420,20 @@ export function KavitaForm() {
   useEffect(() => {
     if (data) {
       setEndpoint(data.kavitaEndpoint);
+      setSidebarUrl(data.kavitaSidebarUrl);
       setCheckResult(null);
     }
   }, [data]);
 
-  function saveField(field: "endpoint" | "apiKey"): void {
+  function saveField(field: "endpoint" | "sidebarUrl" | "apiKey"): void {
     if (!data) return;
     // API key field: skip when the user hasn't typed anything (would silently no-op server-side).
     if (field === "apiKey" && !apiKeyDirty) return;
-    const label = field === "endpoint" ? "Kavita URL" : "Kavita API key";
+    const label = field === "endpoint"
+      ? "Kavita URL"
+      : field === "sidebarUrl"
+        ? "Kavita sidebar link"
+        : "Kavita API key";
     update.mutate(
       {
         input: {
@@ -433,7 +442,9 @@ export function KavitaForm() {
           hostedMetadataProvider: data.hostedMetadataProvider,
           hostedMetadataApiKey: null,
           archiveBoxEndpoint: data.archiveBoxEndpoint,
+          // Both URL fields are plain (non-secret) text — always send their live values.
           kavitaEndpoint: endpoint,
+          kavitaSidebarUrl: sidebarUrl,
           kavitaApiKey: field === "apiKey" ? apiKey : null,
           plexEndpoint: data.plexEndpoint,
           plexToken: null,
@@ -517,6 +528,23 @@ export function KavitaForm() {
         </div>
       </div>
       <div className="space-y-1.5">
+        <Label htmlFor="kv-sidebar-url">{t("Sidebar link URL")}</Label>
+        <Input
+          id="kv-sidebar-url"
+          type="url"
+          placeholder={endpoint || "http://localhost:5000"}
+          value={sidebarUrl}
+          onChange={e => setSidebarUrl(e.target.value)}
+          onBlur={() => saveField("sidebarUrl")}
+        />
+        <p className="text-xs text-muted-foreground">
+          {t("Optional. The address the sidebar's \"Kavita\" link opens in your browser. Leave blank to use the Base URL. Set this when your browser reaches Kavita at a different address than this server does — e.g. the Base URL is a LAN/tailnet IP the server can reach, but you browse to a hostname like")}
+          {" "}
+          <code>http://kavita.local:5000</code>
+          {t(". This only changes the link-out; the server still uses the Base URL above.")}
+        </p>
+      </div>
+      <div className="space-y-1.5">
         <Label htmlFor="kv-apikey">{t("API key")}</Label>
         <Input
           id="kv-apikey"
@@ -591,6 +619,7 @@ export function PlexForm() {
           hostedMetadataApiKey: null,
           archiveBoxEndpoint: data.archiveBoxEndpoint,
           kavitaEndpoint: data.kavitaEndpoint,
+          kavitaSidebarUrl: data.kavitaSidebarUrl,
           kavitaApiKey: null,
           plexEndpoint: endpoint,
           plexToken: field === "token" ? token : null,
@@ -743,6 +772,7 @@ export function YoutubeForm() {
           hostedMetadataApiKey: null,
           archiveBoxEndpoint: data.archiveBoxEndpoint,
           kavitaEndpoint: data.kavitaEndpoint,
+          kavitaSidebarUrl: data.kavitaSidebarUrl,
           kavitaApiKey: null,
           plexEndpoint: data.plexEndpoint,
           plexToken: null,
@@ -771,6 +801,7 @@ export function YoutubeForm() {
         hostedMetadataApiKey: null,
         archiveBoxEndpoint: data.archiveBoxEndpoint,
         kavitaEndpoint: data.kavitaEndpoint,
+        kavitaSidebarUrl: data.kavitaSidebarUrl,
         kavitaApiKey: null,
         plexEndpoint: data.plexEndpoint,
         plexToken: null,
@@ -873,6 +904,7 @@ export function ImageBlacklistForm() {
         hostedMetadataApiKey: null,
         archiveBoxEndpoint: data.archiveBoxEndpoint,
         kavitaEndpoint: data.kavitaEndpoint,
+        kavitaSidebarUrl: data.kavitaSidebarUrl,
         kavitaApiKey: null,
         plexEndpoint: data.plexEndpoint,
         plexToken: null,

@@ -34,6 +34,7 @@ vi.mock("../hooks/useConnectors", () => ({
       kavita: {
         enabled: false,
         baseUrl: null,
+        sidebarUrl: null,
       },
       plex: {
         enabled: false,
@@ -68,6 +69,7 @@ vi.mock("../hooks/useAppSettings", () => ({
       encryptionEnabled: false,
       archiveBoxEndpoint: "",
       kavitaEndpoint: "",
+      kavitaSidebarUrl: "",
       kavitaApiKeySet: false,
       plexEndpoint: "",
       plexTokenSet: false,

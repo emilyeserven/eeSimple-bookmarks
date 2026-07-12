@@ -35,6 +35,7 @@ const connectorsStatus: ConnectorsStatus = {
   kavita: {
     enabled: true,
     baseUrl: "http://localhost:5000",
+    sidebarUrl: null,
   },
   plex: {
     enabled: false,

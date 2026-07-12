@@ -389,7 +389,7 @@ const placeTypeDisplayBody = {
 
 const connectorsBody = {
   type: "object",
-  required: ["hostedMetadataEndpoint", "hostedMetadataProvider", "hostedMetadataApiKey", "archiveBoxEndpoint", "kavitaEndpoint", "kavitaApiKey", "plexEndpoint", "plexToken", "youtubeApiKey", "imageUrlBlacklist", "useNoCookieYoutubeEmbeds"],
+  required: ["hostedMetadataEndpoint", "hostedMetadataProvider", "hostedMetadataApiKey", "archiveBoxEndpoint", "kavitaEndpoint", "kavitaSidebarUrl", "kavitaApiKey", "plexEndpoint", "plexToken", "youtubeApiKey", "imageUrlBlacklist", "useNoCookieYoutubeEmbeds"],
   additionalProperties: false,
   properties: {
     hostedMetadataEndpoint: {
@@ -408,6 +408,10 @@ const connectorsBody = {
     },
     kavitaEndpoint: {
       // Kavita base URL; "" clears it.
+      type: "string",
+    },
+    kavitaSidebarUrl: {
+      // Browser-facing URL for the sidebar Kavita link-out; "" clears it (link falls back to kavitaEndpoint).
       type: "string",
     },
     kavitaApiKey: {

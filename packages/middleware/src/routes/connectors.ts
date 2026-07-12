@@ -7,7 +7,7 @@ import { hostedMetadataEnabledAsync, hostedMetadataProviderAsync } from "@/servi
 import { instagramApiEnabled } from "@/services/socialImages";
 import { kavitaEnabledAsync } from "@/services/kavita";
 import { getPlexMachineIdentifier, plexEnabledAsync } from "@/services/plex";
-import { getActiveHostedEndpoint, getActiveKavitaEndpoint, getActivePlexEndpoint, getYoutubeEmbedUsesNoCookie } from "@/services/appSettings";
+import { getActiveHostedEndpoint, getActiveKavitaEndpoint, getActiveKavitaSidebarUrl, getActivePlexEndpoint, getYoutubeEmbedUsesNoCookie } from "@/services/appSettings";
 import { youtubeApiEnabledAsync } from "@/services/youtube";
 import { isObjectStoreConfigured } from "@/utils/objectStore";
 
@@ -59,6 +59,8 @@ export async function connectorsRoutes(app: FastifyInstance): Promise<void> {
         // (non-secret) so the client can build series deep links.
         enabled: await kavitaEnabledAsync(),
         baseUrl: await getActiveKavitaEndpoint(),
+        // Optional browser-facing override for the sidebar link-out; null = fall back to baseUrl.
+        sidebarUrl: await getActiveKavitaSidebarUrl(),
       },
       plex: {
         // Enabled requires both the base URL and the token. The base URL and the server's
