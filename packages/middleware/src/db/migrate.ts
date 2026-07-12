@@ -499,13 +499,18 @@ const migrations: RuntimeMigration[] = [
     // Clean up the merge's visible artifact: two "Sections" properties showing at once. The
     // "park colliding user slug sections" step above reslugged a pre-existing user property from
     // `sections` → `sections-user` to free the slug, but left its NAME as "Sections", so it renders
-    // side-by-side with the new built-in. Fold every NON-built-in `sections`-type property named
-    // "Sections" into the built-in survivor (entries concatenated after the survivor's, data
-    // preserved), rewrite its UUID across the same jsonb columns the merge step touches, then delete
-    // it. Guarded on the built-in survivor existing and scoped to `built_in = false` + the exact
-    // name match, so it no-ops on clean installs and never touches an intentionally-separate
-    // sections property (different name). One statement (a single DO block) so an interrupted boot
-    // re-runs it cleanly.
+    // side-by-side with the new built-in (each enabled custom property becomes a placeable Page-Layout
+    // field labeled by its name, so two "Sections" rows = two indistinguishable fields). Fold every
+    // NON-built-in property named "Sections" into the built-in survivor and delete it. The park step
+    // reslugged the colliding row regardless of TYPE, so this is scoped by name only (not `type =
+    // 'sections'`): a sections-type leftover has its entries concatenated after the survivor's (data
+    // preserved); an other-type leftover has no `bookmark_sections_values` rows (the fold is a
+    // harmless self-write of the survivor's own rows) and its own value rows cascade-delete with the
+    // property, so it is removed. Its UUID is rewritten across the same jsonb columns the merge step
+    // touches (self-heals on the next user save). Guarded on the built-in survivor existing and
+    // scoped to `built_in = false` + the exact name match, so it no-ops on clean installs and never
+    // touches an intentionally-separate property with a different name. One statement (a single DO
+    // block) so an interrupted boot re-runs it cleanly.
     name: "remove duplicate user Sections property left by the merge",
     run: db => db.execute(sql`
       DO $$
@@ -520,7 +525,7 @@ const migrations: RuntimeMigration[] = [
         IF survivor IS NULL THEN RETURN; END IF;
         FOR dup IN
           SELECT "id"::text FROM "custom_properties"
-            WHERE "type" = 'sections' AND "built_in" = false AND "name" = 'Sections'
+            WHERE "built_in" = false AND "name" = 'Sections'
         LOOP
           -- Fold the duplicate's value rows into the survivor (survivor's entries first, then the
           -- duplicate's), then drop the duplicate's rows so the delete below doesn't cascade them.
