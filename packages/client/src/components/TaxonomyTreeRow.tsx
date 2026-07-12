@@ -41,20 +41,19 @@ interface TaxonomyTreeListProps {
    */
   onExpandSubtree?: (node: TaxonomyTreeNode) => void;
   /**
-   * When set, every row shows a "Filter on map" toggle button calling this with the node. Pair with
+   * When set, every row shows a "Focus on Map" toggle button calling this with the node. Pair with
    * {@link isFiltered} to show the active state. Opt-in.
    */
   onToggleFilter?: (node: TaxonomyTreeNode) => void;
-  /** Whether a node is currently in the active filter (highlights its filter button). */
+  /** Whether a node is currently the map-focus target (highlights its focus button). */
   isFiltered?: (node: TaxonomyTreeNode) => boolean;
   /**
-   * When set, every row shows a second "Focus map on this and its chain" toggle calling this with the
-   * node — focuses the map on the node plus its ancestor spine (and descendants). Pair with
-   * {@link isChainFiltered}. Opt-in, independent of {@link onToggleFilter}.
+   * When set, every row shows an eye toggle calling this with the node — shows/hides the node's shape on
+   * the map entirely. Pair with {@link isHidden}. Opt-in, independent of {@link onToggleFilter}.
    */
-  onToggleChainFilter?: (node: TaxonomyTreeNode) => void;
-  /** Whether a node is currently in the active chain filter (highlights its chain-filter button). */
-  isChainFiltered?: (node: TaxonomyTreeNode) => boolean;
+  onToggleVisibility?: (node: TaxonomyTreeNode) => void;
+  /** Whether a node is currently hidden from the map (drives the eye icon + row de-emphasis). */
+  isHidden?: (node: TaxonomyTreeNode) => boolean;
 }
 
 /** Grid wrapper for a collapsible taxonomy tree. Each root node gets its own RowCard. */
@@ -96,8 +95,8 @@ interface TaxonomyTreeRowProps {
   onExpandSubtree?: (node: TaxonomyTreeNode) => void;
   onToggleFilter?: (node: TaxonomyTreeNode) => void;
   isFiltered?: (node: TaxonomyTreeNode) => boolean;
-  onToggleChainFilter?: (node: TaxonomyTreeNode) => void;
-  isChainFiltered?: (node: TaxonomyTreeNode) => boolean;
+  onToggleVisibility?: (node: TaxonomyTreeNode) => void;
+  isHidden?: (node: TaxonomyTreeNode) => boolean;
 }
 
 /**
@@ -135,12 +134,13 @@ function NoChildRow({
 
 function TaxonomyTreeRow(props: TaxonomyTreeRowProps) {
   const {
-    node, depth, expanded, onToggle, isFiltered, isChainFiltered,
+    node, depth, expanded, onToggle, isFiltered, isHidden,
   } = props;
   const hasChildren = node.children.length > 0;
   const isOpen = expanded.has(node.id);
-  // Zero-count nodes are de-emphasized (still clickable); each row mutes independently.
-  const muted = node.bookmarkCount === 0;
+  const hidden = isHidden?.(node) ?? false;
+  // Zero-count nodes, and nodes hidden from the map, are de-emphasized (still clickable); each row mutes independently.
+  const muted = node.bookmarkCount === 0 || hidden;
 
   const rowInner = (
     <TaxonomyTreeRowInner
@@ -149,7 +149,7 @@ function TaxonomyTreeRow(props: TaxonomyTreeRowProps) {
       isOpen={isOpen}
       onToggle={onToggle}
       filtered={isFiltered?.(node) ?? false}
-      chainFiltered={isChainFiltered?.(node) ?? false}
+      hidden={hidden}
     />
   );
 

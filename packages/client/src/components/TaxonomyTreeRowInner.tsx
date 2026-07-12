@@ -1,7 +1,7 @@
 import type { TaxonomyTreeNode } from "./TaxonomyTreeRow";
 import type { ReactNode } from "react";
 
-import { ChevronDown, ChevronRight, ChevronsUpDown, MapPin, Waypoints } from "lucide-react";
+import { ChevronDown, ChevronRight, ChevronsUpDown, Eye, EyeOff, MapPin } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Badge } from "@/components/ui/badge";
@@ -122,13 +122,13 @@ function TaxonomyTreeRowFilterButton({
   } = useTranslation();
   if (!onToggleFilter) return null;
   const label = filtered
-    ? t("Remove {{name}} from map filter", {
+    ? t("Remove {{name}} from map focus", {
       name: node.name,
     })
-    : t("Filter map to {{name}}", {
+    : t("Focus map on {{name}}", {
       name: node.name,
     });
-  const title = filtered ? t("Filtering map (click to clear)") : t("Filter on map");
+  const title = filtered ? t("Focusing map (click to clear)") : t("Focus on map");
   return (
     <Button
       type="button"
@@ -154,41 +154,44 @@ function TaxonomyTreeRowFilterButton({
   );
 }
 
-/** Chain-focus toggle button (node + its ancestor chain on the map), shown only when a handler is provided. */
-function TaxonomyTreeRowChainFilterButton({
-  node, chainFiltered, onToggleChainFilter,
+/**
+ * Map-visibility (eye) toggle: show/hide this node's shape on the map entirely. Session-only (resets on
+ * reload), seeded from the location's "Hide on Main Map" setting. Shown only when a handler is provided.
+ * When hidden the button is always visible (so the location can be un-hidden); when visible it is
+ * hover-revealed like the other row actions.
+ */
+function TaxonomyTreeRowVisibilityButton({
+  node, hidden, onToggleVisibility,
 }: {
   node: TaxonomyTreeNode;
-  chainFiltered: boolean;
-  onToggleChainFilter?: (node: TaxonomyTreeNode) => void;
+  hidden: boolean;
+  onToggleVisibility?: (node: TaxonomyTreeNode) => void;
 }) {
   const {
     t,
   } = useTranslation();
-  if (!onToggleChainFilter) return null;
-  const label = chainFiltered
-    ? t("Remove {{name}} and its chain from map filter", {
+  if (!onToggleVisibility) return null;
+  const label = hidden
+    ? t("Show {{name}} on map", {
       name: node.name,
     })
-    : t("Focus map on {{name}} and its chain", {
+    : t("Hide {{name}} on map", {
       name: node.name,
     });
-  const title = chainFiltered
-    ? t("Showing chain on map (click to clear)")
-    : t("Show on map with chain");
+  const title = hidden ? t("Hidden on map (click to show)") : t("Hide on map");
   return (
     <Button
       type="button"
       variant="ghost"
       size="sm"
       aria-label={label}
-      aria-pressed={chainFiltered}
+      aria-pressed={hidden}
       title={title}
-      onClick={() => onToggleChainFilter(node)}
+      onClick={() => onToggleVisibility(node)}
       className={cn(
         "transition-opacity",
-        chainFiltered
-          ? "text-primary opacity-100"
+        hidden
+          ? "text-muted-foreground opacity-100"
           : `
             opacity-0
             group-hover:opacity-100
@@ -196,7 +199,7 @@ function TaxonomyTreeRowChainFilterButton({
           `,
       )}
     >
-      <Waypoints className="size-4" />
+      {hidden ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
     </Button>
   );
 }
@@ -212,17 +215,17 @@ interface TaxonomyTreeRowInnerProps {
   renderIcon?: (node: TaxonomyTreeNode) => ReactNode;
   onExpandSubtree?: (node: TaxonomyTreeNode) => void;
   onToggleFilter?: (node: TaxonomyTreeNode) => void;
-  /** Whether this node is currently in the active map filter (highlights its filter button). */
+  /** Whether this node is currently the map-focus target (highlights its focus button). */
   filtered: boolean;
-  onToggleChainFilter?: (node: TaxonomyTreeNode) => void;
-  /** Whether this node is currently in the active chain filter (highlights its chain-filter button). */
-  chainFiltered: boolean;
+  onToggleVisibility?: (node: TaxonomyTreeNode) => void;
+  /** Whether this node is currently hidden from the map (drives the eye icon + row de-emphasis). */
+  hidden: boolean;
 }
 
 /** The single-row content of a taxonomy tree row: icon, expander, name link, badges, hover actions. */
 export function TaxonomyTreeRowInner({
   node, hasChildren, isOpen, onToggle, renderNameLink, renderEditLink, renderInfoLink, renderIcon,
-  onExpandSubtree, onToggleFilter, filtered, onToggleChainFilter, chainFiltered,
+  onExpandSubtree, onToggleFilter, filtered, onToggleVisibility, hidden,
 }: TaxonomyTreeRowInnerProps) {
   const {
     t,
@@ -263,10 +266,10 @@ export function TaxonomyTreeRowInner({
         onToggleFilter={onToggleFilter}
       />
 
-      <TaxonomyTreeRowChainFilterButton
+      <TaxonomyTreeRowVisibilityButton
         node={node}
-        chainFiltered={chainFiltered}
-        onToggleChainFilter={onToggleChainFilter}
+        hidden={hidden}
+        onToggleVisibility={onToggleVisibility}
       />
 
       {node.bookmarkCount != null

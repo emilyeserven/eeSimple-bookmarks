@@ -51,21 +51,21 @@ export function useLocationSortedTree(tree: LocationNode[]): LocationNode[] {
 
 /**
  * Built as a factory (not a static module-level config) because `renderTree` must close over
- * Manager-local map-filter state (`filterIds`/`onToggleFilter`) — the per-row "Filter on map"
- * buttons share the id set the `LocationMapSection` above the tree is focused on (the PlaceType
- * pattern). `LocationManager.tsx` builds a fresh, memoized config each render;
+ * Manager-local state (`filterIds`/`onToggleFilter` for map focus, `hiddenOverrides`/`onToggleVisibility`
+ * for the per-row eye toggle) — the per-row "Focus on Map" buttons share the id set the
+ * `LocationMapSection` above the tree is focused on. `LocationManager.tsx` builds a fresh, memoized config each render;
  * `locationDescriptor` below references a no-op instance since `EntityDescriptor.treeListing`
  * isn't consumed by anything yet.
  */
 export function buildLocationTreeListingConfig(opts: {
   /** Location ids currently focusing the map (empty = all). */
   filterIds: string[];
-  /** Toggle a location into/out of the map filter from a per-row button. */
+  /** Toggle a location into/out of the map focus from a per-row button. */
   onToggleFilter: (id: string) => void;
-  /** Location ids currently chain-focusing the map (node + its ancestor chain). */
-  chainFilterIds: string[];
-  /** Toggle a location + its chain into/out of the map filter from a per-row button. */
-  onToggleChainFilter: (id: string) => void;
+  /** Session map-visibility overrides per location id (absent = the persisted `hiddenOnMainMap` default). */
+  hiddenOverrides: Record<string, boolean>;
+  /** Show/hide a location on the map from its per-row eye button (passes the current hidden state). */
+  onToggleVisibility: (id: string, currentlyHidden: boolean) => void;
 }): EntityTreeListingConfig<LocationNode> {
   return {
     pageKey: "locations-listing",
@@ -98,8 +98,8 @@ export function buildLocationTreeListingConfig(opts: {
         columns={columns}
         filterIds={opts.filterIds}
         onToggleFilter={opts.onToggleFilter}
-        chainFilterIds={opts.chainFilterIds}
-        onToggleChainFilter={opts.onToggleChainFilter}
+        hiddenOverrides={opts.hiddenOverrides}
+        onToggleVisibility={opts.onToggleVisibility}
       />
     ),
     renderTable: ({
@@ -122,7 +122,7 @@ export const locationDescriptor: EntityDescriptor<LocationNode, LocationNode> = 
   treeListing: buildLocationTreeListingConfig({
     filterIds: [],
     onToggleFilter: () => undefined,
-    chainFilterIds: [],
-    onToggleChainFilter: () => undefined,
+    hiddenOverrides: {},
+    onToggleVisibility: () => undefined,
   }),
 };
