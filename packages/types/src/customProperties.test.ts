@@ -65,6 +65,51 @@ test("countSectionLeaves of an empty list is 0/0", () => {
   });
 });
 
+test("countSectionLeaves skips a childless entry excluded from progress", () => {
+  const result = countSectionLeaves([
+    entry({
+      id: "a",
+      completed: true,
+      excludeFromProgress: true,
+    }),
+    entry({
+      id: "b",
+      completed: true,
+    }),
+  ]);
+  assert.deepEqual(result, {
+    total: 1,
+    completed: 1,
+  });
+});
+
+test("countSectionLeaves skips excluded children of a tiered entry, counting only non-excluded ones", () => {
+  const result = countSectionLeaves([
+    entry({
+      id: "parent",
+      children: [
+        entry({
+          id: "c1",
+          completed: true,
+          excludeFromProgress: true,
+        }),
+        entry({
+          id: "c2",
+          completed: true,
+        }),
+        entry({
+          id: "c3",
+          excludeFromProgress: true,
+        }),
+      ],
+    }),
+  ]);
+  assert.deepEqual(result, {
+    total: 1,
+    completed: 1,
+  });
+});
+
 test("setSectionCompleted on a parent cascades to all children", () => {
   const sections = [
     entry({

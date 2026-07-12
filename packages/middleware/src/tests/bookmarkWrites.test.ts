@@ -305,6 +305,60 @@ test("recomputeDerivedProgress upserts leaf counts — children count individual
   assert.ok(state.calls.includes("upsert"), "the write must be an upsert on the composite PK");
 });
 
+test("recomputeDerivedProgress skips leaves excluded from progress counting", async () => {
+  const {
+    tx, state,
+  } = makeFakeTx();
+  state.tableRows.set(customProperties, [{
+    id: "progress-1",
+    sourcePropertyId: "sections-1",
+  }]);
+  state.tableRows.set(bookmarkSectionsValues, [{
+    propertyId: "sections-1",
+    exhaustive: true,
+    sections: [
+      {
+        id: "a",
+        name: "Unit 1",
+        type: "url",
+        startValue: "",
+        children: [
+          {
+            id: "a1",
+            name: "1.1",
+            type: "url",
+            startValue: "",
+            completed: true,
+            excludeFromProgress: true, // excluded: neither counted nor completed
+          },
+          {
+            id: "a2",
+            name: "1.2",
+            type: "url",
+            startValue: "",
+            completed: true,
+          },
+        ],
+      },
+      {
+        id: "b",
+        name: "Credits",
+        type: "url",
+        startValue: "",
+        completed: true,
+        excludeFromProgress: true, // excluded childless entry
+      },
+    ],
+  }]);
+  await recomputeDerivedProgress(tx, "bm-1");
+  assert.deepEqual(state.inserted[0].rows, [{
+    bookmarkId: "bm-1",
+    propertyId: "progress-1",
+    current: 1, // completed, non-excluded leaves: 1.2
+    total: 1, // non-excluded leaves: 1.2
+  }]);
+});
+
 test("setProgressValues persists the per-bookmark counter-word override (null when absent)", async () => {
   const {
     tx, state,

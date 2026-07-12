@@ -149,6 +149,12 @@ export interface SectionEntry {
    * legitimately disagree after later edits.
    */
   completed?: boolean;
+  /**
+   * Whether this section/sub-item is excluded from {@link countSectionLeaves}'s progress tally.
+   * Checking a tier-1 entry also excludes all its children — the same write-time cascade as
+   * {@link completed} — since only leaves are actually counted.
+   */
+  excludeFromProgress?: boolean;
 }
 
 export interface BookmarkSectionsValue {
@@ -159,7 +165,8 @@ export interface BookmarkSectionsValue {
 
 /**
  * Count the completion "leaves" of a sections list: a tier-1 entry with children is measured by its
- * children (each child is one leaf); one without children counts as one leaf itself. Powers the
+ * children (each child is one leaf); one without children counts as one leaf itself. A leaf whose
+ * `excludeFromProgress` is `true` is skipped entirely (neither `total` nor `completed`). Powers the
  * derived-Progress feature ("24 of 230 modules"), so middleware and client must share this exact rule.
  */
 export function countSectionLeaves(sections: SectionEntry[]): { total: number;
@@ -169,6 +176,7 @@ export function countSectionLeaves(sections: SectionEntry[]): { total: number;
   for (const entry of sections) {
     const leaves = entry.children && entry.children.length > 0 ? entry.children : [entry];
     for (const leaf of leaves) {
+      if (leaf.excludeFromProgress === true) continue;
       total += 1;
       if (leaf.completed === true) completed += 1;
     }

@@ -172,6 +172,37 @@ describe("SectionEntryList", () => {
     expect(screen.queryByRole("checkbox")).toBeNull();
   });
 
+  it("reserves the toggle's width for a childless entry so its name aligns with siblings that have one", () => {
+    const {
+      container,
+    } = render(
+      <SectionEntryList
+        sections={[
+          entry({
+            id: "s1",
+            name: "Has children",
+            children: [entry({
+              id: "c1",
+              name: "Sub",
+            })],
+          }),
+          entry({
+            id: "s2",
+            name: "No children",
+          }),
+        ]}
+      />,
+    );
+    // The parent entry has a real toggle button; the childless entries (the top-level "No children"
+    // entry and the nested leaf "Sub") each get an equal-size empty spacer in the same position
+    // instead of nothing, so every entry's name starts at the same x-position as one with a toggle.
+    expect(screen.getByRole("button", {
+      name: "Collapse Has children",
+    })).toBeInTheDocument();
+    const spacers = container.querySelectorAll("span.size-4[aria-hidden=\"true\"]");
+    expect(spacers).toHaveLength(2);
+  });
+
   it("with onToggleCompleted, renders a clickable done-checkbox per entry and child", () => {
     const onToggle = vi.fn();
     render(
