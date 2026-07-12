@@ -1,10 +1,13 @@
 import type { ProgressInputEntry } from "./bookmarkFormSchema";
+import type { SectionTypeScope } from "@/lib/sectionBulkType";
 import type {
   Bookmark,
   CustomProperty,
   SectionEntry,
   SectionEntryType,
 } from "@eesimple/types";
+
+import { useState } from "react";
 
 import { resolveItemInItemsTexts, SECTION_ENTRY_TYPES, SECTION_ENTRY_TYPE_LABELS } from "@eesimple/types";
 import { BookOpen, Loader2, Sparkles } from "lucide-react";
@@ -13,7 +16,9 @@ import { useTranslation } from "react-i18next";
 import { BookmarkPropertyFileField } from "./BookmarkPropertyFileField";
 import { ChoicesCheckboxList } from "./ChoicesCheckboxList";
 import { DateTimePicker } from "./DateTimePicker";
+import { SectionCollapseToggle } from "./SectionCollapseToggle";
 import { SectionPasteParser } from "./SectionPasteParser";
+import { SectionsSummary } from "./SectionsSummary";
 import { StarRating } from "./StarRating";
 
 import { Button } from "@/components/ui/button";
@@ -27,7 +32,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { randomId } from "@/lib/utils";
+import { applyBulkSectionType } from "@/lib/sectionBulkType";
+import { cn, randomId } from "@/lib/utils";
 
 /** The optional muted description line shown under most property fields. */
 export function FieldDescription({
@@ -490,14 +496,34 @@ function SectionRow({
     t,
   } = useTranslation();
   const children = entry.children ?? [];
+  const hasChildren = children.length > 0;
+  const [collapsed, setCollapsed] = useState(false);
+  const name = entry.name || t("section");
   return (
     <div className="space-y-2">
       <div
         className="grid items-start gap-2"
         style={{
-          gridTemplateColumns: "auto 1fr auto",
+          gridTemplateColumns: "auto auto 1fr auto",
         }}
       >
+        <div className="mt-2.5 flex size-4 items-center justify-center">
+          {hasChildren
+            ? (
+              <SectionCollapseToggle
+                collapsed={collapsed}
+                onToggle={() => setCollapsed(prev => !prev)}
+                label={collapsed
+                  ? t("Expand {{name}}", {
+                    name,
+                  })
+                  : t("Collapse {{name}}", {
+                    name,
+                  })}
+              />
+            )
+            : null}
+        </div>
         <CompletedCheckbox
           entry={entry}
           // Checking a section also checks all its sub-items (write-time cascade; unchecking too).
@@ -525,8 +551,17 @@ function SectionRow({
           onClick={onRemove}
         />
       </div>
+      {hasChildren && collapsed
+        ? (
+          <div className="ml-4 border-l pl-3">
+            <SectionsSummary sections={[entry]} />
+          </div>
+        )
+        : null}
       <div
-        className="ml-4 space-y-2 border-l pl-3"
+        className={cn("ml-4 space-y-2 border-l pl-3", hasChildren && collapsed && `
+          hidden
+        `)}
       >
         {children.map(child => (
           <div
@@ -588,6 +623,84 @@ function SectionRow({
   );
 }
 
+const SECTION_TYPE_SCOPE_LABELS: Record<SectionTypeScope, string> = {
+  all: "All entries",
+  sections: "Sections",
+  subsections: "Sub-sections",
+};
+
+/**
+ * Bulk-set the entry type across a Sections list. Offers a scope (`All entries` / `Sections` /
+ * `Sub-sections` when the property is tiered, else just `All entries`) and a type over `allowedTypes`,
+ * then applies via the pure {@link applyBulkSectionType}. Only rendered when more than one type is
+ * allowed (otherwise there's no choice to make).
+ */
+function SectionBulkTypeControl({
+  allowedTypes, tiered, onApply,
+}: {
+  allowedTypes: SectionEntryType[];
+  tiered: boolean;
+  onApply: (scope: SectionTypeScope, type: SectionEntryType) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const scopes: SectionTypeScope[] = tiered ? ["all", "sections", "subsections"] : ["all"];
+  const [scope, setScope] = useState<SectionTypeScope>("all");
+  const [type, setType] = useState<SectionEntryType>(allowedTypes[0]);
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-sm text-muted-foreground">{t("Set type")}</span>
+      {scopes.length > 1
+        ? (
+          <Select
+            value={scope}
+            onValueChange={next => setScope(next as SectionTypeScope)}
+          >
+            <SelectTrigger className="h-8 w-auto">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {scopes.map(s => (
+                <SelectItem
+                  key={s}
+                  value={s}
+                >{t(SECTION_TYPE_SCOPE_LABELS[s])}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )
+        : null}
+      <Select
+        value={type}
+        onValueChange={next => setType(next as SectionEntryType)}
+      >
+        <SelectTrigger className="h-8 w-auto">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {allowedTypes.map(entryType => (
+            <SelectItem
+              key={entryType}
+              value={entryType}
+            >{t(SECTION_ENTRY_TYPE_LABELS[entryType])}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => onApply(scope, type)}
+      >
+        {t("Apply")}
+      </Button>
+    </div>
+  );
+}
+
 export function SectionsPropertyField({
   property, value, onChange, onImport, isImportPending, onAddPeople, defaultTypeHint,
 }: {
@@ -613,6 +726,7 @@ export function SectionsPropertyField({
   const allowedTypes = property.sectionsAllowedTypes ?? [...SECTION_ENTRY_TYPES];
   const hint = defaultTypeHint && allowedTypes.includes(defaultTypeHint) ? defaultTypeHint : undefined;
   const defaultType: SectionEntryType = (property.sectionsDefaultType ?? hint ?? allowedTypes[0] ?? "url") as SectionEntryType;
+  const [collapsed, setCollapsed] = useState(false);
 
   function addSection(): void {
     onChange({
@@ -646,8 +760,22 @@ export function SectionsPropertyField({
 
   return (
     <div className="col-span-full space-y-2">
-      <Label>{property.name}</Label>
-      {value.sections.length > 0 && (
+      <div className="flex items-center gap-2">
+        {value.sections.length > 0
+          ? (
+            <SectionCollapseToggle
+              collapsed={collapsed}
+              onToggle={() => setCollapsed(prev => !prev)}
+              label={collapsed ? t("Expand all sections") : t("Collapse all sections")}
+            />
+          )
+          : null}
+        <Label>{property.name}</Label>
+        {value.sections.length > 0 && collapsed
+          ? <SectionsSummary sections={value.sections} />
+          : null}
+      </div>
+      {value.sections.length > 0 && !collapsed && (
         <div className="space-y-2">
           {value.sections.map(entry => (
             <SectionRow
@@ -672,6 +800,18 @@ export function SectionsPropertyField({
         >
           {t("+ Add section")}
         </button>
+        {allowedTypes.length > 1 && value.sections.length > 0
+          ? (
+            <SectionBulkTypeControl
+              allowedTypes={allowedTypes}
+              tiered={property.sectionsTiered === true}
+              onApply={(scope, type) => onChange({
+                ...value,
+                sections: applyBulkSectionType(value.sections, scope, type),
+              })}
+            />
+          )
+          : null}
         <div className="flex items-center gap-2">
           <Checkbox
             id={`${fieldId}-exhaustive`}

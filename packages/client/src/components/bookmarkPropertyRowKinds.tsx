@@ -12,8 +12,12 @@ import type {
 import type { SectionEntry } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { useState } from "react";
+
 import { IsbnLinksPanel } from "./IsbnLinksPanel";
 import { PropertyQuickFilterLink } from "./PropertyQuickFilterLink";
+import { SectionCollapseToggle } from "./SectionCollapseToggle";
+import { SectionsSummary } from "./SectionsSummary";
 import { StarRating } from "./StarRating";
 import i18n from "../i18n";
 import { sectionEntryLink, sectionEntryPositional } from "../lib/propertyFormat";
@@ -276,9 +280,28 @@ function SectionEntryItem({
   const link = sectionEntryLink(entry);
   const positional = sectionEntryPositional(entry);
   const done = entry.completed === true;
+  const hasChildren = !!entry.children && entry.children.length > 0;
+  const [collapsed, setCollapsed] = useState(false);
+  const name = entry.name || i18n.t("section");
   return (
     <li>
       <span className={done ? "line-through opacity-60" : undefined}>
+        {hasChildren
+          ? (
+            <SectionCollapseToggle
+              collapsed={collapsed}
+              onToggle={() => setCollapsed(prev => !prev)}
+              label={collapsed
+                ? i18n.t("Expand {{name}}", {
+                  name,
+                })
+                : i18n.t("Collapse {{name}}", {
+                  name,
+                })}
+            />
+          )
+          : null}
+        {hasChildren ? " " : null}
         {onToggleCompleted
           ? (
             <SectionCompletedToggle
@@ -303,11 +326,18 @@ function SectionEntryItem({
         {positional
           ? <span className="ml-2 text-muted-foreground">{positional}</span>
           : null}
+        {hasChildren && collapsed
+          ? (
+            <span className="ml-2">
+              <SectionsSummary sections={[entry]} />
+            </span>
+          )
+          : null}
       </span>
-      {entry.children && entry.children.length > 0
+      {hasChildren && !collapsed
         ? (
           <ul className="ml-4 space-y-0.5 border-l pl-2 text-muted-foreground">
-            {entry.children.map((child: SectionEntry) => (
+            {entry.children?.map((child: SectionEntry) => (
               <SectionEntryItem
                 key={child.id}
                 entry={child}
@@ -329,19 +359,36 @@ export function SectionEntryList({
   /** When set, each entry renders a clickable done-checkbox that calls back with its id. */
   onToggleCompleted?: (entryId: string, completed: boolean) => void;
 }) {
+  const [collapsed, setCollapsed] = useState(false);
   if (sections.length === 0) {
     return <span className="text-xs text-muted-foreground">{i18n.t("No sections")}</span>;
   }
   return (
-    <ul className="space-y-0.5 text-sm">
-      {sections.map(entry => (
-        <SectionEntryItem
-          key={entry.id}
-          entry={entry}
-          onToggleCompleted={onToggleCompleted}
+    <div className="space-y-1">
+      <div className="flex items-center gap-1 text-sm">
+        <SectionCollapseToggle
+          collapsed={collapsed}
+          onToggle={() => setCollapsed(prev => !prev)}
+          label={collapsed ? i18n.t("Expand all sections") : i18n.t("Collapse all sections")}
         />
-      ))}
-    </ul>
+        {collapsed
+          ? <SectionsSummary sections={sections} />
+          : null}
+      </div>
+      {collapsed
+        ? null
+        : (
+          <ul className="space-y-0.5 text-sm">
+            {sections.map(entry => (
+              <SectionEntryItem
+                key={entry.id}
+                entry={entry}
+                onToggleCompleted={onToggleCompleted}
+              />
+            ))}
+          </ul>
+        )}
+    </div>
   );
 }
 

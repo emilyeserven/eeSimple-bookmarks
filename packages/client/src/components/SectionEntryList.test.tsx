@@ -101,6 +101,66 @@ describe("SectionEntryList", () => {
     expect(screen.getByText("No sections")).toBeInTheDocument();
   });
 
+  it("collapses a single section to its own completed/unfinished summary", () => {
+    render(
+      <SectionEntryList
+        sections={[entry({
+          name: "Chapter 1",
+          children: [
+            entry({
+              id: "c1",
+              name: "Sub A",
+              completed: true,
+            }),
+            entry({
+              id: "c2",
+              name: "Sub B",
+              completed: false,
+            }),
+          ],
+        })]}
+      />,
+    );
+    // Children are visible while expanded.
+    expect(screen.getByText("Sub A")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", {
+      name: "Collapse Chapter 1",
+    }));
+    // Children hidden, replaced by the section's own summary.
+    expect(screen.queryByText("Sub A")).toBeNull();
+    expect(screen.getByText("1 completed, 1 unfinished")).toBeInTheDocument();
+  });
+
+  it("collapses the whole block to a total summary across all entries", () => {
+    render(
+      <SectionEntryList
+        sections={[
+          entry({
+            id: "s1",
+            name: "One",
+            completed: true,
+          }),
+          entry({
+            id: "s2",
+            name: "Two",
+            completed: false,
+          }),
+          entry({
+            id: "s3",
+            name: "Three",
+            completed: false,
+          }),
+        ]}
+      />,
+    );
+    expect(screen.getByText("One")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", {
+      name: "Collapse all sections",
+    }));
+    expect(screen.queryByText("One")).toBeNull();
+    expect(screen.getByText("1 completed, 2 unfinished")).toBeInTheDocument();
+  });
+
   it("renders no checkboxes without onToggleCompleted (view stays read-only)", () => {
     render(
       <SectionEntryList
