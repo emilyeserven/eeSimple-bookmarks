@@ -199,6 +199,7 @@ export async function setProgressValues(
     current: entry.current,
     total: entry.total,
     textOverride: entry.textOverride ?? null,
+    autoSpace: entry.autoSpace ?? null,
   })));
 }
 
@@ -285,9 +286,10 @@ export async function recomputeDerivedProgress(tx: Tx, bookmarkId: string): Prom
       })
       .onConflictDoUpdate({
         target: [bookmarkProgressValues.bookmarkId, bookmarkProgressValues.propertyId],
-        // Only counts are recomputed — deliberately NOT textOverride, so a per-bookmark counter-word
-        // override survives every derived recompute. setProgressValues writes the client-sent row
-        // (incl. the override) before this runs, so the override is already present on conflict.
+        // Only counts are recomputed — deliberately NOT textOverride/autoSpace, so the per-bookmark
+        // counter-word override and auto-spacing toggle survive every derived recompute.
+        // setProgressValues writes the client-sent row (incl. those) before this runs, so they are
+        // already present on conflict.
         set: {
           current: counts.completed,
           total: counts.total,

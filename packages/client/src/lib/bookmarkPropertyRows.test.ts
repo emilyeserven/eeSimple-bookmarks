@@ -142,3 +142,78 @@ describe("buildBookmarkPropertyRows", () => {
     expect(hasAnyPropertyRow(buildBookmarkPropertyRows(bookmark, properties, undefined))).toBe(true);
   });
 });
+
+describe("buildBookmarkPropertyRows — sections-derived Progress on View", () => {
+  const progressProp = makeCustomProperty({
+    id: "prog",
+    type: "itemInItems",
+    name: "Progress",
+    showInDetails: true,
+    itemInItemsSourcePropertyId: "sec",
+  });
+  const sectionsProp = makeCustomProperty({
+    id: "sec",
+    type: "sections",
+    name: "Sections",
+    showInDetails: true,
+  });
+  const sectionsValue = (exhaustive: boolean) => ({
+    propertyId: "sec",
+    exhaustive,
+    sections: [
+      {
+        id: "a",
+        name: "Ch 1",
+        type: "page" as const,
+        startValue: "1",
+        completed: true,
+      },
+      {
+        id: "b",
+        name: "Ch 2",
+        type: "page" as const,
+        startValue: "2",
+      },
+    ],
+  });
+
+  it("synthesizes a Progress row from an exhaustive Sections value when none is stored", () => {
+    const bookmark = makeBookmark({
+      progressValues: [],
+      sectionsValues: [sectionsValue(true)],
+    });
+    const rows = buildBookmarkPropertyRows(bookmark, [progressProp, sectionsProp], undefined);
+    expect(rows.progressRows).toHaveLength(1);
+    expect(rows.progressRows[0]).toMatchObject({
+      id: "prog",
+      current: 1,
+      total: 2,
+    });
+  });
+
+  it("does NOT synthesize a Progress row when the Sections value is not exhaustive", () => {
+    const bookmark = makeBookmark({
+      progressValues: [],
+      sectionsValues: [sectionsValue(false)],
+    });
+    const rows = buildBookmarkPropertyRows(bookmark, [progressProp, sectionsProp], undefined);
+    expect(rows.progressRows).toEqual([]);
+  });
+
+  it("a stored progress value takes precedence (no duplicate synthetic row)", () => {
+    const bookmark = makeBookmark({
+      progressValues: [{
+        propertyId: "prog",
+        current: 5,
+        total: 5,
+      }],
+      sectionsValues: [sectionsValue(true)],
+    });
+    const rows = buildBookmarkPropertyRows(bookmark, [progressProp, sectionsProp], undefined);
+    expect(rows.progressRows).toHaveLength(1);
+    expect(rows.progressRows[0]).toMatchObject({
+      current: 5,
+      total: 5,
+    });
+  });
+});

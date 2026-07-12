@@ -317,6 +317,7 @@ test("setProgressValues persists the per-bookmark counter-word override (null wh
       textOverride: {
         afterText: " chapters",
       },
+      autoSpace: false,
     },
     {
       propertyId: "progress-2",
@@ -334,6 +335,7 @@ test("setProgressValues persists the per-bookmark counter-word override (null wh
       textOverride: {
         afterText: " chapters",
       },
+      autoSpace: false,
     },
     {
       bookmarkId: "bm-1",
@@ -341,6 +343,7 @@ test("setProgressValues persists the per-bookmark counter-word override (null wh
       current: 1,
       total: 2,
       textOverride: null,
+      autoSpace: null,
     },
   ]);
 });

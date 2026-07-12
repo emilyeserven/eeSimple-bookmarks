@@ -43,6 +43,7 @@ export function useSeededPropertyInputs(bookmark?: Bookmark): SeededPropertyInpu
         beforeText: entry.textOverride?.beforeText ?? undefined,
         betweenText: entry.textOverride?.betweenText ?? undefined,
         afterText: entry.textOverride?.afterText ?? undefined,
+        autoSpace: entry.autoSpace ?? undefined,
       },
     ])));
   const [sectionsInputs, setSectionsInputs] = useState<Record<string, { exhaustive: boolean;

@@ -12,7 +12,7 @@ export interface CustomFieldControls extends CustomPropertyInputs {
   onBooleanChange: (id: string, value: boolean) => void;
   onDateTimeChange: (id: string, value: string) => void;
   onChoicesChange: (id: string, values: string[]) => void;
-  onProgressChange: (id: string, field: keyof ProgressInputEntry, value: string) => void;
+  onProgressChange: (id: string, field: keyof ProgressInputEntry, value: string | boolean) => void;
   onSectionsChange: (id: string, value: { exhaustive: boolean;
     sections: SectionEntry[]; }) => void;
   onTextChange: (id: string, value: string) => void;

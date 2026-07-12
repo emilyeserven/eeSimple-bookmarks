@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useMediaTypes } from "../hooks/useMediaTypes";
 import { hasPropertyOptions } from "../lib/propertyForm";
-import { DATE_TIME_FORMAT_LABELS, NUMBER_FORMAT_LABELS } from "../lib/propertyFormat";
+import { DATE_TIME_FORMAT_LABELS, joinProgressDisplay, NUMBER_FORMAT_LABELS } from "../lib/propertyFormat";
 
 import { DetailField } from "@/components/DetailField";
 import { Badge } from "@/components/ui/badge";
@@ -221,7 +221,7 @@ function ItemInItemsMediaTypeTextsField({
             <li key={mediaTypeId}>
               {nameById.get(mediaTypeId) ?? mediaTypeId}
               {": "}
-              {`${texts.before ?? ""}10${texts.between ?? t(" of ")}100${texts.after ?? ""}`}
+              {joinProgressDisplay(texts.before ?? "", 10, texts.between ?? t(" of "), 100, texts.after ?? "")}
             </li>
           );
         })}
@@ -248,7 +248,7 @@ function ItemInItemsOptionsFields({
     : undefined;
   return (
     <>
-      <DetailField label={t("Format preview")}>{`${before}10${between}100${after}`}</DetailField>
+      <DetailField label={t("Format preview")}>{joinProgressDisplay(before, 10, between, 100, after)}</DetailField>
       {before ? <DetailField label={t("Text before")}>{before}</DetailField> : null}
       <DetailField label={t("Text between")}>{between}</DetailField>
       {after ? <DetailField label={t("Text after")}>{after}</DetailField> : null}

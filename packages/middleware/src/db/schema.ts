@@ -1597,6 +1597,9 @@ export const bookmarkProgressValues = pgTable("bookmark_progress_values", {
   // @eesimple/types). Nullable jsonb → push-safe additive lone column; null = inherit the
   // property's media-type override, then its base text.
   textOverride: jsonb("text_override"),
+  // Per-bookmark auto-spacing toggle for the counter-word segments. Nullable boolean → push-safe
+  // additive lone column; null/true = join segments with spaces (default), false = raw concat.
+  autoSpace: boolean("auto_space"),
 }, table => [
   primaryKey({
     columns: [table.bookmarkId, table.propertyId],

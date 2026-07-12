@@ -2815,6 +2815,13 @@ export interface BookmarkProgressValue {
    * `null` = inherit everything.
    */
   textOverride?: ItemInItemsMediaTypeTexts[string] | null;
+  /**
+   * Per-bookmark toggle for auto-spacing the counter-word segments when rendered: `null`/absent/`true`
+   * (the default) joins the non-empty segments with single spaces (e.g. `page`/`of`/`pages` →
+   * "page 5 of 200 pages"); `false` concatenates the raw segments verbatim (e.g. a tight `between:"/"`
+   * → "5/200"). Display-only.
+   */
+  autoSpace?: boolean | null;
 }
 
 /**

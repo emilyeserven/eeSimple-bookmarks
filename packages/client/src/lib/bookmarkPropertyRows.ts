@@ -2,6 +2,8 @@ import type { BookmarkSearch } from "./bookmarkSearch";
 import type { IsbnLink } from "./isbnLinks";
 import type { Bookmark, BookmarkSectionsValue, CardFieldZones, ChoicesDisplayType, ChoicesItem, CustomProperty, SectionEntry } from "@eesimple/types";
 
+import { countSectionLeaves } from "@eesimple/types";
+
 import { resolveBooleanDisplay } from "./bookmarkCardValues";
 import { formatBoolean, formatDateTime, formatNumber } from "./bookmarkFormat";
 import { buildPropertyQuickSearch } from "./bookmarkPropertyQuickFilter";
@@ -223,7 +225,8 @@ export function buildBookmarkPropertyRows(
     })
     .filter((row): row is ChoicesPropertyRow => row !== null);
 
-  const progressRows = bookmark.progressValues
+  const storedProgressIds = new Set(bookmark.progressValues.map(entry => entry.propertyId));
+  const storedProgressRows = bookmark.progressValues
     .map((entry): ProgressPropertyRow | null => {
       const property = byId.get(entry.propertyId);
       return property && property.type === "itemInItems" && property.showInDetails
@@ -238,6 +241,32 @@ export function buildBookmarkPropertyRows(
         : null;
     })
     .filter((row): row is ProgressPropertyRow => row !== null);
+  // A sections-derived Progress with no stored value still renders on View when its linked Sections
+  // value is exhaustive (the total is authoritative) — the field appears as soon as an exhaustive
+  // Sections list exists, before any manual/recomputed save, deriving current/total from completion.
+  const derivedProgressRows = properties
+    .map((property): ProgressPropertyRow | null => {
+      if (property.type !== "itemInItems" || !property.showInDetails || !property.itemInItemsSourcePropertyId) return null;
+      if (storedProgressIds.has(property.id)) return null;
+      const sectionsValue = bookmark.sectionsValues.find(value => value.propertyId === property.itemInItemsSourcePropertyId);
+      if (!sectionsValue || !sectionsValue.exhaustive || sectionsValue.sections.length === 0) return null;
+      const counts = countSectionLeaves(sectionsValue.sections);
+      const value = {
+        propertyId: property.id,
+        current: counts.completed,
+        total: counts.total,
+      };
+      return {
+        id: property.id,
+        name: property.name,
+        current: counts.completed,
+        total: counts.total,
+        formatted: formatProgressValue(value, property, bookmark.mediaType?.id ?? null),
+        search: buildPropertyQuickSearch(property, formatProgressValue(value, property, bookmark.mediaType?.id ?? null)),
+      };
+    })
+    .filter((row): row is ProgressPropertyRow => row !== null);
+  const progressRows = [...storedProgressRows, ...derivedProgressRows];
 
   const sectionsRows = bookmark.sectionsValues
     .map((entry): SectionsPropertyRow | null => {
