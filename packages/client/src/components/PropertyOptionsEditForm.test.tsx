@@ -54,7 +54,12 @@ const choicesProperty = makeCustomProperty({
   }],
 });
 
-describe("PropertyOptionsEditForm (choices auto-save)", () => {
+/** The most recent update call whose input carried the given key (blur saves every changed key). */
+function callWithKey(key: string) {
+  return updateMutate.mock.calls.find(([vars]) => key in vars.input);
+}
+
+describe("PropertyOptionsEditForm (options save on blur)", () => {
   beforeEach(() => {
     updateMutate.mockReset();
     notifyFieldSaved.mockReset();
@@ -71,7 +76,22 @@ describe("PropertyOptionsEditForm (choices auto-save)", () => {
     expect(updateMutate).not.toHaveBeenCalled();
   });
 
-  it("persists choicesItems when a choice is added and toasts the field", async () => {
+  it("does not save a change until focus leaves the field", async () => {
+    await renderWithRouter(
+      <PropertyOptionsEditForm
+        property={choicesProperty}
+        numberProperties={[]}
+      />,
+    );
+
+    // Adding a choice mutates the form, but nothing has blurred yet — no save fires.
+    fireEvent.click(screen.getByRole("button", {
+      name: "Add choice",
+    }));
+    expect(updateMutate).not.toHaveBeenCalled();
+  });
+
+  it("persists the changed option on blur and toasts the field", async () => {
     await renderWithRouter(
       <PropertyOptionsEditForm
         property={choicesProperty}
@@ -82,14 +102,37 @@ describe("PropertyOptionsEditForm (choices auto-save)", () => {
     fireEvent.click(screen.getByRole("button", {
       name: "Add choice",
     }));
+    // Blur bubbles to the section's onBlur, which runs the save pass.
+    fireEvent.blur(screen.getByRole("button", {
+      name: "Add choice",
+    }));
 
-    await waitFor(() => expect(updateMutate).toHaveBeenCalledTimes(1));
-    const {
-      input,
-    } = updateMutate.mock.calls[0][0];
-    expect(input).toHaveProperty("choicesItems");
-    expect((input.choicesItems as unknown[]).length).toBe(2);
+    await waitFor(() => expect(callWithKey("choicesItems")).toBeTruthy());
+    const call = callWithKey("choicesItems");
+    if (!call) throw new Error("expected a choicesItems save");
+    expect((call[0].input.choicesItems as unknown[]).length).toBe(2);
     expect(notifyFieldSaved).toHaveBeenCalledWith("Choices");
+  });
+
+  it("flushes a changed option on unmount (leaving the tab before blur)", async () => {
+    const {
+      unmount,
+    } = await renderWithRouter(
+      <PropertyOptionsEditForm
+        property={choicesProperty}
+        numberProperties={[]}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", {
+      name: "Add choice",
+    }));
+    expect(updateMutate).not.toHaveBeenCalled();
+
+    unmount();
+    const call = callWithKey("choicesItems");
+    if (!call) throw new Error("expected a choicesItems save on unmount");
+    expect((call[0].input.choicesItems as unknown[]).length).toBe(2);
   });
 });
 
