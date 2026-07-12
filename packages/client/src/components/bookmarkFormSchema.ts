@@ -282,14 +282,25 @@ export function buildBookmarkDefaultValues(
   };
 }
 
+/**
+ * The editable progress inputs for one itemInItems property: the two counts plus the optional
+ * per-bookmark counter-word segments (blank = inherit the media-type/property default).
+ */
+export interface ProgressInputEntry {
+  current: string;
+  total: string;
+  beforeText?: string;
+  betweenText?: string;
+  afterText?: string;
+}
+
 /** The raw custom-property inputs the submit handler reads off its ref. */
 export interface CustomPropertyInputs {
   numberInputs: Record<string, string>;
   booleanInputs: Record<string, boolean>;
   dateTimeInputs: Record<string, string>;
   choicesInputs: Record<string, string[]>;
-  progressInputs: Record<string, { current: string;
-    total: string; }>;
+  progressInputs: Record<string, ProgressInputEntry>;
   sectionsInputs: Record<string, { exhaustive: boolean;
     sections: SectionEntry[]; }>;
   textInputs: Record<string, string>;
@@ -328,8 +339,7 @@ export function initialImageIntent(autoFetchImage: boolean): ImageIntent {
 export function buildProgressValuesFromInputs(
   customProperties: CustomProperty[],
   categoryId: string,
-  progressInputs: Record<string, { current: string;
-    total: string; }>,
+  progressInputs: Record<string, ProgressInputEntry>,
   mediaTypeId: string | null = null,
 ): BookmarkProgressValue[] {
   const categoryProps = customProperties.filter(property =>
@@ -343,13 +353,39 @@ export function buildProgressValuesFromInputs(
     const current = Number(entry.current);
     const total = Number(entry.total);
     if (!Number.isFinite(current) || !Number.isFinite(total)) return [];
-    if (entry.current === "" && entry.total === "") return [];
+    const textOverride = buildProgressTextOverride(entry);
+    // Emit a value when either count is filled OR a counter-word override is set (the override is
+    // meaningful for a derived-progress bookmark whose counts the server recomputes). Counts default
+    // to 0 when blank; a derived property overwrites them on save.
+    if (entry.current === "" && entry.total === "" && !textOverride) return [];
     return [{
       propertyId: property.id,
       current,
       total,
+      ...(textOverride
+        ? {
+          textOverride,
+        }
+        : {}),
     }];
   });
+}
+
+/**
+ * Build the per-bookmark `textOverride` from the three optional segment inputs: an empty string means
+ * "inherit this segment" (dropped), and the whole override is omitted (→ `null` on the wire) when no
+ * segment is set. Returns `null` when nothing is overridden.
+ */
+export function buildProgressTextOverride(
+  entry: ProgressInputEntry,
+): BookmarkProgressValue["textOverride"] | null {
+  const segments: { beforeText?: string;
+    betweenText?: string;
+    afterText?: string; } = {};
+  if (entry.beforeText) segments.beforeText = entry.beforeText;
+  if (entry.betweenText) segments.betweenText = entry.betweenText;
+  if (entry.afterText) segments.afterText = entry.afterText;
+  return Object.keys(segments).length > 0 ? segments : null;
 }
 
 /**

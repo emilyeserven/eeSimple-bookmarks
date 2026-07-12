@@ -1,4 +1,4 @@
-import type { CustomPropertyInputs } from "./bookmarkFormSchema";
+import type { CustomPropertyInputs, ProgressInputEntry } from "./bookmarkFormSchema";
 import type { Bookmark, SectionEntry } from "@eesimple/types";
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 
@@ -10,8 +10,7 @@ export interface SeededPropertyInputs extends CustomPropertyInputs {
   setBooleanInputs: Dispatch<SetStateAction<Record<string, boolean>>>;
   setDateTimeInputs: Dispatch<SetStateAction<Record<string, string>>>;
   setChoicesInputs: Dispatch<SetStateAction<Record<string, string[]>>>;
-  setProgressInputs: Dispatch<SetStateAction<Record<string, { current: string;
-    total: string; }>>>;
+  setProgressInputs: Dispatch<SetStateAction<Record<string, ProgressInputEntry>>>;
   setSectionsInputs: Dispatch<SetStateAction<Record<string, { exhaustive: boolean;
     sections: SectionEntry[]; }>>>;
   setTextInputs: Dispatch<SetStateAction<Record<string, string>>>;
@@ -35,13 +34,15 @@ export function useSeededPropertyInputs(bookmark?: Bookmark): SeededPropertyInpu
     Object.fromEntries((bookmark?.dateTimeValues ?? []).map(entry => [entry.propertyId, entry.value])));
   const [choicesInputs, setChoicesInputs] = useState<Record<string, string[]>>(() =>
     Object.fromEntries((bookmark?.choicesValues ?? []).map(entry => [entry.propertyId, entry.values])));
-  const [progressInputs, setProgressInputs] = useState<Record<string, { current: string;
-    total: string; }>>(() =>
+  const [progressInputs, setProgressInputs] = useState<Record<string, ProgressInputEntry>>(() =>
     Object.fromEntries((bookmark?.progressValues ?? []).map(entry => [
       entry.propertyId,
       {
         current: String(entry.current),
         total: String(entry.total),
+        beforeText: entry.textOverride?.beforeText ?? undefined,
+        betweenText: entry.textOverride?.betweenText ?? undefined,
+        afterText: entry.textOverride?.afterText ?? undefined,
       },
     ])));
   const [sectionsInputs, setSectionsInputs] = useState<Record<string, { exhaustive: boolean;

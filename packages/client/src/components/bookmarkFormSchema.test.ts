@@ -4,10 +4,12 @@ import { describe, expect, it } from "vitest";
 import {
   bookmarkInputHint,
   buildBookmarkDefaultValues,
+  buildProgressTextOverride,
+  buildProgressValuesFromInputs,
   detectBookmarkInputType,
   normalizeIsbn,
 } from "./bookmarkFormSchema";
-import { makeBookmark } from "../test-utils/factories";
+import { makeBookmark, makeCustomProperty } from "../test-utils/factories";
 
 describe("buildBookmarkDefaultValues", () => {
   it("seeds url/title from initial values in create mode", () => {
@@ -104,5 +106,101 @@ describe("bookmarkInputHint", () => {
     expect(bookmarkInputHint("9780134685991")).toBe("ISBN-13");
     expect(bookmarkInputHint("0-306-40615-2")).toBe("ISBN-10");
     expect(bookmarkInputHint("just some text")).toBe("Text — saved as the name");
+  });
+});
+
+describe("buildProgressTextOverride", () => {
+  it("drops empty segments and returns null when nothing is overridden", () => {
+    expect(buildProgressTextOverride({
+      current: "3",
+      total: "10",
+    })).toBe(null);
+    expect(buildProgressTextOverride({
+      current: "3",
+      total: "10",
+      beforeText: "",
+      afterText: "",
+    })).toBe(null);
+  });
+
+  it("keeps only the non-empty segments", () => {
+    expect(buildProgressTextOverride({
+      current: "3",
+      total: "10",
+      beforeText: "chapter ",
+      betweenText: "",
+      afterText: " chapters",
+    })).toEqual({
+      beforeText: "chapter ",
+      afterText: " chapters",
+    });
+  });
+});
+
+describe("buildProgressValuesFromInputs", () => {
+  const property = makeCustomProperty({
+    id: "prog-1",
+    type: "itemInItems",
+    allCategories: true,
+  });
+
+  it("attaches a per-bookmark textOverride to the built value", () => {
+    const values = buildProgressValuesFromInputs([property], "cat-1", {
+      "prog-1": {
+        current: "3",
+        total: "10",
+        afterText: " chapters",
+      },
+    });
+    expect(values).toEqual([{
+      propertyId: "prog-1",
+      current: 3,
+      total: 10,
+      textOverride: {
+        afterText: " chapters",
+      },
+    }]);
+  });
+
+  it("omits textOverride entirely when no segment is set", () => {
+    const values = buildProgressValuesFromInputs([property], "cat-1", {
+      "prog-1": {
+        current: "3",
+        total: "10",
+      },
+    });
+    expect(values).toEqual([{
+      propertyId: "prog-1",
+      current: 3,
+      total: 10,
+    }]);
+  });
+
+  it("emits a value carrying only an override even when both counts are blank", () => {
+    const values = buildProgressValuesFromInputs([property], "cat-1", {
+      "prog-1": {
+        current: "",
+        total: "",
+        afterText: " chapters",
+      },
+    });
+    expect(values).toEqual([{
+      propertyId: "prog-1",
+      current: 0,
+      total: 0,
+      textOverride: {
+        afterText: " chapters",
+      },
+    }]);
+  });
+
+  it("still skips an entry that is entirely empty", () => {
+    const values = buildProgressValuesFromInputs([property], "cat-1", {
+      "prog-1": {
+        current: "",
+        total: "",
+      },
+    });
+    expect(values).toEqual([]);
   });
 });

@@ -1,4 +1,4 @@
-import type { BookmarkFormApi, CustomPropertyInputs } from "./bookmarkFormSchema";
+import type { BookmarkFormApi, CustomPropertyInputs, ProgressInputEntry } from "./bookmarkFormSchema";
 import type {
   AutofillRule,
   Bookmark,
@@ -36,8 +36,7 @@ export interface BookmarkPropertyPrefill {
   booleanInputs: Record<string, boolean>;
   dateTimeInputs: Record<string, string>;
   choicesInputs: Record<string, string[]>;
-  progressInputs: Record<string, { current: string;
-    total: string; }>;
+  progressInputs: Record<string, ProgressInputEntry>;
   sectionsInputs: Record<string, { exhaustive: boolean;
     sections: import("@eesimple/types").SectionEntry[]; }>;
   textInputs: Record<string, string>;
@@ -47,7 +46,7 @@ export interface BookmarkPropertyPrefill {
   handleBooleanChange: (id: string, value: boolean) => void;
   handleDateTimeChange: (id: string, value: string) => void;
   handleChoicesChange: (id: string, values: string[]) => void;
-  handleProgressChange: (id: string, field: "current" | "total", value: string) => void;
+  handleProgressChange: (id: string, field: keyof ProgressInputEntry, value: string) => void;
   handleSectionsChange: (id: string, value: { exhaustive: boolean;
     sections: import("@eesimple/types").SectionEntry[]; }) => void;
   handleTextChange: (id: string, value: string) => void;
@@ -301,7 +300,7 @@ export function useBookmarkPropertyPrefill({
       [id]: values,
     }));
   }
-  function handleProgressChange(id: string, field: "current" | "total", value: string): void {
+  function handleProgressChange(id: string, field: keyof ProgressInputEntry, value: string): void {
     touchedRef.current.add(`progress:${id}`);
     setProgressInputs(current => ({
       ...current,

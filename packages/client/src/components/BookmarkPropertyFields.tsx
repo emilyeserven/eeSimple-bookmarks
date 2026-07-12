@@ -1,3 +1,4 @@
+import type { ProgressInputEntry } from "./bookmarkFormSchema";
 import type {
   Bookmark,
   CustomProperty,
@@ -136,14 +137,14 @@ export function ItemInItemsPropertyField({
   property, progress, onChange, mediaTypeId = null, derived = false,
 }: {
   property: CustomProperty;
-  progress: { current: string;
-    total: string; } | undefined;
-  onChange: (field: "current" | "total", value: string) => void;
+  progress: ProgressInputEntry | undefined;
+  onChange: (field: keyof ProgressInputEntry, value: string) => void;
   /** The bookmark's media type, used to resolve the per-media-type text overrides. */
   mediaTypeId?: string | null;
   /**
-   * When true, this value is derived from the linked sections property's completion — the inputs
-   * render disabled with an explanatory hint (the server recomputes on every save).
+   * When true, the counts are derived from the linked sections property's completion — the number
+   * inputs render disabled with an explanatory hint (the server recomputes on every save). The
+   * counter-word inputs stay editable, since the wording is meaningful for derived progress too.
    */
   derived?: boolean;
 }) {
@@ -152,17 +153,22 @@ export function ItemInItemsPropertyField({
   } = useTranslation();
   const current = progress?.current ?? "";
   const total = progress?.total ?? "";
-  const texts = resolveItemInItemsTexts(property, mediaTypeId);
-  const before = texts.before ?? "";
-  const between = texts.between ?? t(" of ");
-  const after = texts.after ?? "";
+  // Inherited segments (media-type override → property base), used as the placeholders the per-bookmark
+  // inputs fall back to when left blank.
+  const inherited = resolveItemInItemsTexts(property, mediaTypeId);
+  const beforePlaceholder = inherited.before ?? "";
+  const betweenPlaceholder = inherited.between ?? t(" of ");
+  const afterPlaceholder = inherited.after ?? "";
   return (
     <div className="col-span-full space-y-1">
       <Label>{property.name}</Label>
       <div className="flex flex-wrap items-center gap-1.5">
-        {before
-          ? <span className="text-sm text-muted-foreground">{before}</span>
-          : null}
+        <Input
+          className="w-24"
+          placeholder={beforePlaceholder || t("Before")}
+          value={progress?.beforeText ?? ""}
+          onChange={event => onChange("beforeText", event.target.value)}
+        />
         <Input
           type="number"
           className="w-24"
@@ -171,7 +177,12 @@ export function ItemInItemsPropertyField({
           disabled={derived}
           onChange={event => onChange("current", event.target.value)}
         />
-        <span className="text-sm text-muted-foreground">{between}</span>
+        <Input
+          className="w-24"
+          placeholder={betweenPlaceholder || t("Between")}
+          value={progress?.betweenText ?? ""}
+          onChange={event => onChange("betweenText", event.target.value)}
+        />
         <Input
           type="number"
           className="w-24"
@@ -180,10 +191,16 @@ export function ItemInItemsPropertyField({
           disabled={derived}
           onChange={event => onChange("total", event.target.value)}
         />
-        {after
-          ? <span className="text-sm text-muted-foreground">{after}</span>
-          : null}
+        <Input
+          className="w-24"
+          placeholder={afterPlaceholder || t("After")}
+          value={progress?.afterText ?? ""}
+          onChange={event => onChange("afterText", event.target.value)}
+        />
       </div>
+      <p className="text-xs text-muted-foreground">
+        {t("Counter words for this bookmark — leave blank to inherit the default.")}
+      </p>
       {derived
         ? (
           <p className="text-xs text-muted-foreground">

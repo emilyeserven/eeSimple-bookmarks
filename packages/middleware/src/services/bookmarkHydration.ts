@@ -679,6 +679,7 @@ async function progressValuesByBookmarkId(
       propertyId: bookmarkProgressValues.propertyId,
       current: bookmarkProgressValues.current,
       total: bookmarkProgressValues.total,
+      textOverride: bookmarkProgressValues.textOverride,
     })
     .from(bookmarkProgressValues)
     .where(inArray(bookmarkProgressValues.bookmarkId, bookmarkIds));
@@ -689,6 +690,7 @@ async function progressValuesByBookmarkId(
       propertyId: row.propertyId,
       current: row.current,
       total: row.total,
+      textOverride: row.textOverride as BookmarkProgressValue["textOverride"],
     });
     grouped.set(row.bookmarkId, list);
   }

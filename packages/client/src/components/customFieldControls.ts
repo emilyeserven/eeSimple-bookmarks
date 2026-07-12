@@ -1,4 +1,4 @@
-import type { CustomPropertyInputs } from "./bookmarkFormSchema";
+import type { CustomPropertyInputs, ProgressInputEntry } from "./bookmarkFormSchema";
 import type { SectionEntry } from "@eesimple/types";
 
 /**
@@ -12,7 +12,7 @@ export interface CustomFieldControls extends CustomPropertyInputs {
   onBooleanChange: (id: string, value: boolean) => void;
   onDateTimeChange: (id: string, value: string) => void;
   onChoicesChange: (id: string, values: string[]) => void;
-  onProgressChange: (id: string, field: "current" | "total", value: string) => void;
+  onProgressChange: (id: string, field: keyof ProgressInputEntry, value: string) => void;
   onSectionsChange: (id: string, value: { exhaustive: boolean;
     sections: SectionEntry[]; }) => void;
   onTextChange: (id: string, value: string) => void;

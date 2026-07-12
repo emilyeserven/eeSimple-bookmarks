@@ -239,22 +239,27 @@ export interface ItemInItemsTextSource {
 }
 
 /**
- * Resolve an `itemInItems` property's before/between/after text for a bookmark's media type: the
- * media-type override wins per field when it is a non-null string, else the property's base field.
+ * Resolve an `itemInItems` property's before/between/after text, applying the priority chain
+ * **per-bookmark override → per-media-type override → property base**: for each segment the first
+ * non-null value in that order wins. `bookmarkOverride` is a single {@link BookmarkProgressValue}'s
+ * `textOverride`; omitting it (the two-arg call) reduces to the media-type/base behavior unchanged.
  * Returns raw `string | null` segments — display defaults (`between` → `" of "`, others → `""`)
  * stay the caller's job so the client can localize them.
  */
 export function resolveItemInItemsTexts(
   property: ItemInItemsTextSource,
   mediaTypeId: string | null | undefined,
+  bookmarkOverride?: { beforeText?: string | null;
+    betweenText?: string | null;
+    afterText?: string | null; } | null,
 ): { before: string | null;
   between: string | null;
   after: string | null; } {
   const override = mediaTypeId ? property.itemInItemsMediaTypeTexts?.[mediaTypeId] : undefined;
   return {
-    before: override?.beforeText ?? property.itemInItemsBeforeText,
-    between: override?.betweenText ?? property.itemInItemsBetweenText,
-    after: override?.afterText ?? property.itemInItemsAfterText,
+    before: bookmarkOverride?.beforeText ?? override?.beforeText ?? property.itemInItemsBeforeText,
+    between: bookmarkOverride?.betweenText ?? override?.betweenText ?? property.itemInItemsBetweenText,
+    after: bookmarkOverride?.afterText ?? override?.afterText ?? property.itemInItemsAfterText,
   };
 }
 
