@@ -2,6 +2,8 @@ import type { ParseTag, ParseTemplate, SectionEntry, SectionEntryType } from "@e
 
 import { PARSE_TAGS } from "@eesimple/types";
 
+import { randomId } from "./utils";
+
 /** A token of a parsed template pattern: a `{{tag}}` capture or a literal in-item separator. */
 export type PatternToken
   = | { kind: "tag";
@@ -124,7 +126,7 @@ function buildSection(
   const url = (captures.url ?? "").trim() || undefined;
   if (name === "" && startValue === "" && url === undefined) return null;
   return {
-    id: crypto.randomUUID(),
+    id: randomId(),
     name,
     type: entryType,
     startValue,

@@ -6,6 +6,8 @@
 
 import type { KavitaTocResult, SectionEntry } from "@eesimple/types";
 
+import { randomId } from "./utils";
+
 /** Kavita web-UI series page for a linked bookmark. */
 export function kavitaSeriesUrl(baseUrl: string, libraryId: number, seriesId: number): string {
   return `${baseUrl.replace(/\/$/, "")}/library/${libraryId}/series/${seriesId}`;
@@ -28,7 +30,7 @@ export function kavitaTocToSections(toc: KavitaTocResult): SectionEntry[] {
       endValue = String(toc.pages);
     }
     return {
-      id: crypto.randomUUID(),
+      id: randomId(),
       name: entry.title,
       type: "page",
       startValue: String(entry.page),
