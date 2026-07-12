@@ -1,47 +1,16 @@
 import type { PropertyFormApi } from "./propertyFormSchema";
+import type { OptionsKey } from "./propertyOptionsKeys";
 import type { CreateCustomPropertyInput, CustomProperty, UpdateCustomPropertyInput } from "@eesimple/types";
 
 import { useEffect, useRef } from "react";
 
 import i18n from "../i18n";
 import { payloadFromValues, propertySchema, valuesFromProperty } from "./propertyFormParts";
+import { OPTIONS_KEYS } from "./propertyOptionsKeys";
 import { PropertyOptionsSection } from "./PropertyOptionsSection";
 import { useUpdateCustomProperty } from "../hooks/useCustomProperties";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useAppForm } from "../lib/form";
-
-/**
- * The payload keys the Options tab owns. Everything else in the property payload belongs to another
- * tab (name/enabled → General, scope arrays → Categories/Media Types, show-in flags → Display), so the
- * Options auto-saver only ever persists these. `showInDetails`/`showInGallery` are listed because the
- * image/file options live on this tab.
- */
-const OPTIONS_KEYS = [
-  "numberMin",
-  "numberMax",
-  "unitSingular",
-  "unitPlural",
-  "valuePrefix",
-  "zeroLabel",
-  "maxLabel",
-  "numberFormat",
-  "quickFilterRange",
-  "operandPropertyIds",
-  "dateTimeFormat",
-  "booleanLabelPreset",
-  "booleanTrueLabel",
-  "booleanFalseLabel",
-  "ratingMax",
-  "ratingAllowZero",
-  "ratingAllowHalf",
-  "ratingShowLabel",
-  "ratingLabel",
-  "allowDefault",
-  "showInDetails",
-  "showInGallery",
-] as const satisfies readonly (keyof UpdateCustomPropertyInput)[];
-
-type OptionsKey = (typeof OPTIONS_KEYS)[number];
 
 const LABELS: Partial<Record<OptionsKey, string>> = {
   numberMin: i18n.t("Slider minimum"),
@@ -63,6 +32,17 @@ const LABELS: Partial<Record<OptionsKey, string>> = {
   ratingAllowHalf: i18n.t("Allow half ratings"),
   ratingShowLabel: i18n.t("Rating label"),
   ratingLabel: i18n.t("Rating label"),
+  choicesItems: i18n.t("Choices"),
+  choicesDisplay: i18n.t("Display"),
+  choicesMultiple: i18n.t("Selection mode"),
+  itemInItemsBeforeText: i18n.t("Before text"),
+  itemInItemsBetweenText: i18n.t("Between text"),
+  itemInItemsAfterText: i18n.t("After text"),
+  itemInItemsMediaTypeTexts: i18n.t("Per media type text"),
+  itemInItemsSourcePropertyId: i18n.t("Source property"),
+  sectionsDefaultType: i18n.t("Default entry type"),
+  sectionsAllowedTypes: i18n.t("Allowed entry types"),
+  sectionsTiered: i18n.t("Tiered sections"),
   allowDefault: i18n.t("Default value"),
   showInDetails: i18n.t("Show in detail view"),
   showInGallery: i18n.t("Show in Media Management"),
