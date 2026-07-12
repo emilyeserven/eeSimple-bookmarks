@@ -122,11 +122,14 @@
     return firstBackgroundImageUrl((el.style && el.style.backgroundImage) || "");
   }
 
-  // Turn a YouTube video URL into its thumbnail image URL, or null when it isn't one. Inline mirror of
-  // `parseYouTubeVideo` in @eesimple/types (the engine can't import). Handles `watch?v=`, `youtu.be/<id>`,
-  // and `/shorts|embed|live|v/<id>` on any youtube.com subdomain (the caller normalizes the
-  // `youtube-nocookie.com` host to `youtube.com` first, matching the TS side).
-  function youtubeThumbnailFromUrl(value) {
+  function isValidVideoId(id) {
+    return !!id && /^[\w-]{11}$/.test(id);
+  }
+
+  // Parse a single URL string into a YouTube video id, or null. Inline mirror of `parseYouTubeVideo`
+  // in @eesimple/types (the engine can't import). Handles `watch?v=`, `youtu.be/<id>`, and
+  // `/shorts|embed|live|v/<id>` on any youtube.com subdomain.
+  function youtubeIdFromUrl(value) {
     var parsed;
     try {
       parsed = new URL(value);
@@ -135,25 +138,59 @@
       return null;
     }
     var host = parsed.hostname.replace(/^www\./i, "").toLowerCase();
-    var isValidId = function (id) {
-      return !!id && /^[\w-]{11}$/.test(id);
-    };
-    var videoId = null;
+    var id = null;
     if (host === "youtu.be") {
-      videoId = parsed.pathname.split("/").filter(Boolean)[0];
+      id = parsed.pathname.split("/").filter(Boolean)[0];
     }
     else if (host === "youtube.com" || host.endsWith(".youtube.com")) {
       if (parsed.pathname === "/watch") {
-        videoId = parsed.searchParams.get("v");
+        id = parsed.searchParams.get("v");
       }
       else {
         var segments = parsed.pathname.split("/").filter(Boolean);
         if (segments.length >= 2 && ["shorts", "embed", "live", "v"].indexOf(segments[0]) !== -1) {
-          videoId = segments[1];
+          id = segments[1];
         }
       }
     }
-    return isValidId(videoId) ? "https://img.youtube.com/vi/" + videoId + "/hqdefault.jpg" : null;
+    return isValidVideoId(id) ? id : null;
+  }
+
+  // Extract a YouTube video id from a value that only *contains* a YouTube reference. Inline mirror of
+  // `findYouTubeVideoId` in @eesimple/types. The live `<iframe src>` of a lazy / facade embed is usually
+  // absent at fill time, so the reachable attribute is a noisy string — a URL buried in a
+  // `data-src`/`data-attrs` blob, a `videoId` key, or a bare id — rather than a clean URL.
+  function findYouTubeVideoId(text) {
+    if (!text) return null;
+    var normalized = text.replace(/youtube-nocookie\.com/gi, "youtube.com");
+
+    // 1. The whole value is already a clean YouTube URL.
+    var direct = youtubeIdFromUrl(normalized);
+    if (direct) return direct;
+
+    // 2. A YouTube URL embedded somewhere inside the value (JSON blob, srcdoc, escaped href, …).
+    var urlMatch = normalized.match(/https?:\/\/[^\s"'<>\\]*(?:youtube\.com|youtu\.be)[^\s"'<>\\]*/i);
+    if (urlMatch) {
+      var fromUrl = youtubeIdFromUrl(urlMatch[0]);
+      if (fromUrl) return fromUrl;
+    }
+
+    // 3. A `videoId` / `video_id` / `data-video-id` key carrying a bare id (Substack `data-attrs`).
+    var keyMatch = normalized.match(/["']?video[_-]?id["']?\s*[:=]\s*["']?([\w-]{11})(?![\w-])/i);
+    if (keyMatch && isValidVideoId(keyMatch[1])) return keyMatch[1];
+
+    // 4. The whole trimmed value is exactly an 11-char id.
+    var trimmed = text.trim();
+    if (isValidVideoId(trimmed)) return trimmed;
+
+    return null;
+  }
+
+  // Build a video's thumbnail image URL from a (possibly noisy) value, or null when it carries no
+  // YouTube reference.
+  function youtubeThumbnailFromUrl(value) {
+    var videoId = findYouTubeVideoId(value);
+    return videoId ? "https://img.youtube.com/vi/" + videoId + "/hqdefault.jpg" : null;
   }
 
   // Read a raw string from an element. Returns null for a missing attribute so the caller drops it.
@@ -300,8 +337,9 @@
       }
     }
     if (transform.kind === "youtubeThumbnail") {
-      // Normalize the privacy-enhanced `youtube-nocookie.com` host to `youtube.com` (mirrors the TS side).
-      var thumb = youtubeThumbnailFromUrl(value.replace(/youtube-nocookie\.com/i, "youtube.com"));
+      // `youtubeThumbnailFromUrl` digs the id out of a noisy value (and normalizes `youtube-nocookie.com`);
+      // passthrough when there's no YouTube reference.
+      var thumb = youtubeThumbnailFromUrl(value);
       return thumb == null ? value : thumb;
     }
     throw new Error("Unknown transform kind: " + transform.kind);

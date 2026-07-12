@@ -3,6 +3,7 @@ import { test } from "node:test";
 
 import {
   channelUrlFromKey,
+  findYouTubeVideoId,
   isYouTubeVideoUrl,
   parseYouTubeVideo,
   youtubeEmbedUrl,
@@ -49,6 +50,40 @@ test("parseYouTubeVideo returns null for non-videos and malformed ids", () => {
   assert.equal(parseYouTubeVideo("https://youtu.be/"), null);
   assert.equal(parseYouTubeVideo("not a url"), null);
   assert.equal(parseYouTubeVideo("https://www.youtube.com/channel/UC123"), null);
+});
+
+test("findYouTubeVideoId parses a clean URL, like parseYouTubeVideo", () => {
+  assert.equal(findYouTubeVideoId(`https://youtu.be/${ID}`), ID);
+  assert.equal(findYouTubeVideoId(`https://www.youtube.com/watch?v=${ID}&t=10s`), ID);
+  assert.equal(findYouTubeVideoId(`https://www.youtube.com/embed/${ID}`), ID);
+});
+
+test("findYouTubeVideoId normalizes youtube-nocookie.com embeds", () => {
+  assert.equal(findYouTubeVideoId(`https://www.youtube-nocookie.com/embed/${ID}?rel=0`), ID);
+});
+
+test("findYouTubeVideoId digs a URL out of a containing string (data-src / srcdoc / JSON)", () => {
+  assert.equal(findYouTubeVideoId(`{"src":"https://www.youtube-nocookie.com/embed/${ID}?rel=0"}`), ID);
+  assert.equal(findYouTubeVideoId(`<iframe src="https://youtu.be/${ID}"></iframe>`), ID);
+});
+
+test("findYouTubeVideoId reads a videoId key (Substack data-attrs)", () => {
+  assert.equal(findYouTubeVideoId(`{"videoId":"${ID}","startTime":null}`), ID);
+  assert.equal(findYouTubeVideoId(`video_id=${ID}`), ID);
+  assert.equal(findYouTubeVideoId(`data-video-id="${ID}"`), ID);
+});
+
+test("findYouTubeVideoId accepts a bare 11-char id", () => {
+  assert.equal(findYouTubeVideoId(ID), ID);
+  assert.equal(findYouTubeVideoId(`  ${ID}  `), ID);
+});
+
+test("findYouTubeVideoId returns null for non-YouTube values", () => {
+  assert.equal(findYouTubeVideoId("https://example.com/watch?v=abc"), null);
+  assert.equal(findYouTubeVideoId("just some text"), null);
+  assert.equal(findYouTubeVideoId(""), null);
+  // a bare token that isn't 11 chars is not treated as an id
+  assert.equal(findYouTubeVideoId("shorttoken"), null);
 });
 
 test("isYouTubeVideoUrl mirrors parseYouTubeVideo", () => {
