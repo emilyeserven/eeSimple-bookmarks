@@ -14,6 +14,7 @@ import type {
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
   UpdatePersonSourceLabelInput,
+  UpdateScratchpadInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
 import { BOOKMARK_ADD_FORM_PLACEMENTS, HOMEPAGE_WIDGETS, IMPORT_BLACKLIST_KINDS, INTERFACE_LANGUAGES, LOCATION_DISPLAY_MODES, LOCATION_MAP_LEVEL_MODES } from "@eesimple/types";
@@ -38,6 +39,7 @@ import {
   getPlaceTypeIcons,
   getPlaceTypeLevelGroups,
   getRedirectIgnoreList,
+  getScratchpadSettings,
   getShortenerIgnoreList,
   getSidebarCustomizationSettings,
   updateAdvancedSettings,
@@ -57,6 +59,7 @@ import {
   updatePlaceTypeIcons,
   updatePlaceTypeLevelGroups,
   updateRedirectIgnoreList,
+  updateScratchpadSettings,
   updateShortenerIgnoreList,
   updateSidebarCustomizationSettings,
 } from "@/services/appSettings";
@@ -998,6 +1001,28 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       },
     },
   }, async req => updateAiSummarizationSettings(req.body as UpdateAiSummarizationInput));
+
+  app.get("/api/app-settings/scratchpad", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async () => getScratchpadSettings());
+
+  app.put("/api/app-settings/scratchpad", {
+    schema: {
+      tags: ["app-settings"],
+      body: {
+        type: "object",
+        required: ["scratchpadText"],
+        additionalProperties: false,
+        properties: {
+          scratchpadText: {
+            type: "string",
+          },
+        },
+      },
+    },
+  }, async req => updateScratchpadSettings(req.body as UpdateScratchpadInput));
 
   app.get("/api/app-settings/ai-autotag", {
     schema: {

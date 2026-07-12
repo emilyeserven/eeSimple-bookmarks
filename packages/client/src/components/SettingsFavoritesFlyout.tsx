@@ -1,16 +1,14 @@
 import type { LucideIcon } from "lucide-react";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { useIsMobile } from "../hooks/use-mobile";
 import { useFavoriteSettingsPages } from "../hooks/useFavoriteSettingsPages";
 import { SETTINGS_PAGES } from "../lib/settingsPages";
 
-import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
 import {
   SidebarMenu,
   SidebarMenuAction,
@@ -67,11 +65,12 @@ function FavoritesList({
 }
 
 /**
- * Sidebar footer Settings button with the user's favorited settings pages. On desktop, hovering the
- * button (or the flyout) opens a popover **above** it; on mobile, a chevron expands the list inline
- * (hover popovers don't work on touch). Clicking the button still navigates to `/settings`. Pages
- * are favorited from the header star ({@link HeaderSettingsFavoriteButton}); their label and icon
- * come from the `SETTINGS_PAGES` registry, so a favorited path no longer in the registry is skipped.
+ * Sidebar footer Settings button with the user's favorited settings pages. A chevron toggles the
+ * favorites list inline **above** the button, within the footer flow (click-to-expand, not a hover
+ * popover, so it works the same on desktop and touch). Clicking the button itself still navigates to
+ * `/settings`. Pages are favorited from the header star ({@link HeaderSettingsFavoriteButton}); their
+ * label and icon come from the `SETTINGS_PAGES` registry, so a favorited path no longer in the
+ * registry is skipped.
  */
 export function SettingsFavoritesFlyout({
   pathname,
@@ -84,10 +83,7 @@ export function SettingsFavoritesFlyout({
   const {
     data: favorites = [],
   } = useFavoriteSettingsPages();
-  const isMobile = useIsMobile();
-  const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const resolved: ResolvedFavorite[] = favorites.flatMap((favorite) => {
     const page = SETTINGS_PAGES.find(p => p.path === favorite.path);
@@ -100,23 +96,6 @@ export function SettingsFavoritesFlyout({
       }]
       : [];
   });
-
-  function cancelClose() {
-    if (closeTimer.current) {
-      clearTimeout(closeTimer.current);
-      closeTimer.current = null;
-    }
-  }
-
-  function openNow() {
-    cancelClose();
-    setOpen(true);
-  }
-
-  function closeSoon() {
-    cancelClose();
-    closeTimer.current = setTimeout(() => setOpen(false), 150);
-  }
 
   const settingsButton = (
     <SidebarMenuButton
@@ -142,76 +121,37 @@ export function SettingsFavoritesFlyout({
     </SidebarMenuButton>
   );
 
-  // On touch, expand the favorites inline above the button rather than relying on a hover popover.
-  if (isMobile) {
-    return (
-      <SidebarMenu>
-        {expanded
-          ? (
-            <SidebarMenuItem className="px-1 pb-1">
-              <p className="px-2 pb-1 text-xs font-medium text-muted-foreground">
-                {t("Favorited Settings")}
-              </p>
-              <FavoritesList
-                resolved={resolved}
-                onNavigate={() => setExpanded(false)}
-              />
-            </SidebarMenuItem>
-          )
-          : null}
-        <SidebarMenuItem>
-          {settingsButton}
-          <SidebarMenuAction
-            aria-label={expanded ? t("Hide favorited settings") : t("Show favorited settings")}
-            onClick={() => setExpanded(value => !value)}
-          >
-            <ChevronDown
-              className={`
-                transition-transform duration-200
-                ${expanded ? "" : "-rotate-90"}
-              `}
-            />
-          </SidebarMenuAction>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    );
-  }
-
+  // Click-to-expand the favorites inline above the button, within the footer flow (no hover popover,
+  // so desktop and touch behave the same).
   return (
-    <Popover
-      open={open}
-      onOpenChange={setOpen}
-    >
-      <PopoverAnchor asChild>
-        <div
-          onMouseEnter={openNow}
-          onMouseLeave={closeSoon}
+    <SidebarMenu>
+      {expanded
+        ? (
+          <SidebarMenuItem className="px-1 pb-1">
+            <p className="px-2 pb-1 text-xs font-medium text-muted-foreground">
+              {t("Favorited Settings")}
+            </p>
+            <FavoritesList
+              resolved={resolved}
+              onNavigate={() => setExpanded(false)}
+            />
+          </SidebarMenuItem>
+        )
+        : null}
+      <SidebarMenuItem>
+        {settingsButton}
+        <SidebarMenuAction
+          aria-label={expanded ? t("Hide favorited settings") : t("Show favorited settings")}
+          onClick={() => setExpanded(value => !value)}
         >
-          <SidebarMenu>
-            <SidebarMenuItem>
-              {settingsButton}
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </div>
-      </PopoverAnchor>
-      <PopoverContent
-        side="top"
-        align="start"
-        className="w-56 p-2"
-        onOpenAutoFocus={e => e.preventDefault()}
-        onMouseEnter={openNow}
-        onMouseLeave={closeSoon}
-      >
-        <p
-          className="px-2 pb-1 text-xs font-medium text-muted-foreground"
-        >
-          {t("Favorited Settings")}
-        </p>
-        <FavoritesList
-          resolved={resolved}
-          onNavigate={() => setOpen(false)}
-        />
-      </PopoverContent>
-    </Popover>
+          <ChevronDown
+            className={`
+              transition-transform duration-200
+              ${expanded ? "" : "-rotate-90"}
+            `}
+          />
+        </SidebarMenuAction>
+      </SidebarMenuItem>
+    </SidebarMenu>
   );
 }

@@ -18,6 +18,7 @@ import { SidebarCategoriesSection } from "./SidebarCategoriesSection";
 import { SidebarCountBadge } from "./SidebarCountBadge";
 import { SidebarPrimaryNav } from "./SidebarPrimaryNav";
 import { SidebarSavedFiltersSection } from "./SidebarSavedFiltersSection";
+import { SidebarScratchpad } from "./SidebarScratchpad";
 import { SidebarTabBasket } from "./SidebarTabBasket";
 import { SidebarUserTaxonomiesSection } from "./SidebarUserTaxonomiesSection";
 import { useAppSidebarData } from "./useAppSidebarData";
@@ -374,8 +375,13 @@ export function AppSidebar({
 
         <SidebarAdvancedSection advanced={advanced} />
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter
+        className="
+          border-t border-sidebar-border shadow-[0_-2px_4px_rgba(0,0,0,0.04)]
+        "
+      >
         <SidebarTabBasket />
+        <SidebarScratchpad />
         <SettingsFavoritesFlyout pathname={pathname} />
       </SidebarFooter>
       <SidebarResizeHandle />

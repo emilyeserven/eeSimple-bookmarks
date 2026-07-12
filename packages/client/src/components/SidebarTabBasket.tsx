@@ -4,7 +4,7 @@ import type { MouseEvent } from "react";
 import { useState } from "react";
 
 import { Link } from "@tanstack/react-router";
-import { ChevronDown, ExternalLink, ShoppingBasket, Trash2, X } from "lucide-react";
+import { ChevronDown, ShoppingBasket, Trash2, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { useBookmarks } from "../hooks/useBookmarks";
@@ -115,17 +115,6 @@ export function SidebarTabBasket() {
             `}
           />
         </button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-8 shrink-0"
-          aria-label={t("Open Basket tabs")}
-          title={t("Open all basket links in new tabs")}
-          disabled={openableUrls.length === 0}
-          onClick={openAll}
-        >
-          <ExternalLink className="size-4" />
-        </Button>
       </div>
 
       {expanded && (

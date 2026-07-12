@@ -52,10 +52,10 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-/** Settings button with favorited pages available in its hover flyout. */
+/** Settings button with favorited pages available in its click-to-expand list. */
 export const Default: Story = {};
 
-/** No favorites yet — the flyout shows the empty-state hint. */
+/** No favorites yet — expanding shows the empty-state hint. */
 export const NoFavorites: Story = {
   parameters: {
     msw: {
