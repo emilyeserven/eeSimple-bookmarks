@@ -533,6 +533,16 @@ describe("eesimpleFillEngine.runRules — transforms", () => {
     }]);
     expect(engine.runRules([rule], doc)[0].values).toEqual(["https://x.com/books/1"]);
   });
+
+  it("youtubeThumbnail — turns a reachable embed URL into its thumbnail image URL", () => {
+    const rule = withTransforms([{
+      kind: "youtubeThumbnail",
+    }]);
+    expect(runOne(rule, html("https://www.youtube.com/embed/dQw4w9WgXcQ")).values)
+      .toEqual(["https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg"]);
+    // A non-YouTube value passes through unchanged (mirrors the TS preview).
+    expect(runOne(rule, html("https://example.com/x")).values).toEqual(["https://example.com/x"]);
+  });
 });
 
 describe("eesimpleFillEngine.runRules — split & multi-value", () => {

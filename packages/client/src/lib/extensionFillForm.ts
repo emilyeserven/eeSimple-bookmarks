@@ -269,6 +269,8 @@ export function describeFillTransform(transform: FillTransform): string {
       ].filter(Boolean).join(" + ") || "Affix";
     case "absoluteUrl":
       return "Resolve relative URL";
+    case "youtubeThumbnail":
+      return "YouTube thumbnail";
   }
 }
 
@@ -471,6 +473,10 @@ export function coerceFillTransform(kind: FillTransform["kind"], prev: FillTrans
     case "absoluteUrl":
       return {
         kind: "absoluteUrl",
+      };
+    case "youtubeThumbnail":
+      return {
+        kind: "youtubeThumbnail",
       };
   }
 }
@@ -780,6 +786,10 @@ function cleanTransform(transform: FillTransform): FillTransform | null {
     case "absoluteUrl":
       return {
         kind: "absoluteUrl",
+      };
+    case "youtubeThumbnail":
+      return {
+        kind: "youtubeThumbnail",
       };
   }
 }

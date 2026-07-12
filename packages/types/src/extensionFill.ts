@@ -231,7 +231,15 @@ export type FillTransform
    * relative `href` ("/books/123") or a protocol-relative one ("//host/path") into an absolute URL.
    * A no-op when the value is already absolute, unresolvable, or no page URL is available.
    */
-        | { kind: "absoluteUrl" };
+        | { kind: "absoluteUrl" }
+  /**
+   * Turn a YouTube video URL (watch / `youtu.be` / `/embed/` / `/shorts/` / `/live/` / `/v/`, any
+   * subdomain incl. `youtube-nocookie.com`) into its thumbnail image URL
+   * (`https://img.youtube.com/vi/<id>/hqdefault.jpg`). How you grab an embedded video's cover from
+   * the reachable `<iframe src>` (the player's own thumbnail lives inside the cross-origin frame and
+   * can't be read directly). Passthrough — returns the value unchanged — when it isn't a YouTube URL.
+   */
+        | { kind: "youtubeThumbnail" };
 
 /** Compact option shown in the popup's taxonomy match list. */
 export interface ExtensionFillTaxonomyOption {

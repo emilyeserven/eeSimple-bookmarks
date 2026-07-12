@@ -82,6 +82,23 @@ describe("applyFillTransform", () => {
     })).toBe("/books/1");
   });
 
+  it("youtubeThumbnail — derives the thumbnail URL from any YouTube URL; passes through others", () => {
+    const thumb = "https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg";
+    expect(applyFillTransform("https://www.youtube.com/watch?v=dQw4w9WgXcQ", {
+      kind: "youtubeThumbnail",
+    })).toBe(thumb);
+    expect(applyFillTransform("https://youtu.be/dQw4w9WgXcQ", {
+      kind: "youtubeThumbnail",
+    })).toBe(thumb);
+    expect(applyFillTransform("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0", {
+      kind: "youtubeThumbnail",
+    })).toBe(thumb);
+    // Not a YouTube URL → passthrough.
+    expect(applyFillTransform("https://example.com/video", {
+      kind: "youtubeThumbnail",
+    })).toBe("https://example.com/video");
+  });
+
   it("duration — parity with the worked example and units", () => {
     expect(applyFillTransform("77h 32m", {
       kind: "duration",
