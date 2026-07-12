@@ -42,6 +42,57 @@ export interface CreateSimulationOptions {
 export const VIEW_WIDTH = 800;
 export const VIEW_HEIGHT = 560;
 
+/**
+ * A viewport transform layered on top of the fixed viewBox — `scale(k)` about the origin then
+ * `translate(tx, ty)`, matching the SVG `<g transform="translate(tx ty) scale(k)">` render order.
+ * It is purely visual: the force layout and node coordinates stay in the same 800×560 space.
+ */
+export interface ViewTransform {
+  k: number;
+  tx: number;
+  ty: number;
+}
+
+/** The un-zoomed, un-panned view — the graph as it renders today. */
+export const IDENTITY_TRANSFORM: ViewTransform = {
+  k: 1,
+  tx: 0,
+  ty: 0,
+};
+
+/** Zoom bounds for the viewport transform. */
+export const MIN_ZOOM = 0.4;
+export const MAX_ZOOM = 4;
+
+/** Clamp a zoom scale into the supported range. */
+export function clampZoom(k: number): number {
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, k));
+}
+
+/**
+ * Scale `current` by `factor` while keeping `focus` (a point in viewBox space) fixed on screen —
+ * the "zoom toward the cursor" transform. Derived from `screen = focus * k + t` held constant as
+ * `k` changes: `t' = focus - (focus - t) * (k'/k)`. `factor` is clamped implicitly by clamping `k`.
+ */
+export function zoomAtPoint(current: ViewTransform, factor: number, focus: BookmarkGraphPoint): ViewTransform {
+  const k = clampZoom(current.k * factor);
+  const ratio = k / current.k;
+  return {
+    k,
+    tx: focus.x - (focus.x - current.tx) * ratio,
+    ty: focus.y - (focus.y - current.ty) * ratio,
+  };
+}
+
+/** Pan the view by a delta already expressed in viewBox (SVG) units. */
+export function panBy(current: ViewTransform, dxSvg: number, dySvg: number): ViewTransform {
+  return {
+    k: current.k,
+    tx: current.tx + dxSvg,
+    ty: current.ty + dySvg,
+  };
+}
+
 /** Padding (beyond each node's radius) kept between a node and the viewBox edge / other nodes, for labels. */
 const EDGE_PAD = 20;
 /** Ring radius the free nodes are seeded on around the pinned center. */
