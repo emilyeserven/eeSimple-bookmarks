@@ -55,6 +55,47 @@ export function isYouTubeVideoUrl(url: string): boolean {
 }
 
 /**
+ * Extract a YouTube video id from a value that only *contains* a YouTube reference — more permissive
+ * than {@link parseYouTubeVideo} (which requires the whole value to be a clean YouTube URL). Tries, in
+ * order: the value parsed as a URL; the first YouTube URL found anywhere inside it (buried in a
+ * `data-src` / `data-attrs` / `srcdoc` blob, or an escaped `href`); a `videoId` / `video_id` /
+ * `data-video-id` key carrying a bare id (Substack's `data-attrs='{"videoId":"…"}'`); and finally the
+ * whole trimmed value being exactly an 11-char id. `youtube-nocookie.com` is normalized to
+ * `youtube.com` first. Returns `null` when no YouTube reference is present, so a non-YouTube value is
+ * left for the caller to pass through unchanged.
+ *
+ * This is what the extension-fill `youtubeThumbnail` transform reads with — the live `<iframe src>` of
+ * a lazy / facade embed is usually absent at fill time, so the reachable attribute is a noisy string
+ * rather than a clean URL.
+ */
+export function findYouTubeVideoId(text: string): string | null {
+  if (!text) return null;
+  const isValidId = (id: string | null | undefined): id is string => !!id && /^[\w-]{11}$/.test(id);
+  const normalized = text.replace(/youtube-nocookie\.com/gi, "youtube.com");
+
+  // 1. The whole value is already a clean YouTube URL.
+  const direct = parseYouTubeVideo(normalized);
+  if (direct) return direct.videoId;
+
+  // 2. A YouTube URL embedded somewhere inside the value (JSON blob, srcdoc, escaped href, …).
+  const urlMatch = normalized.match(/https?:\/\/[^\s"'<>\\]*(?:youtube\.com|youtu\.be)[^\s"'<>\\]*/i);
+  if (urlMatch) {
+    const fromUrl = parseYouTubeVideo(urlMatch[0]);
+    if (fromUrl) return fromUrl.videoId;
+  }
+
+  // 3. A `videoId` / `video_id` / `data-video-id` key carrying a bare id (Substack `data-attrs`).
+  const keyMatch = normalized.match(/["']?video[_-]?id["']?\s*[:=]\s*["']?([\w-]{11})(?![\w-])/i);
+  if (isValidId(keyMatch?.[1])) return keyMatch[1];
+
+  // 4. The whole trimmed value is exactly an 11-char id.
+  const trimmed = text.trim();
+  if (isValidId(trimmed)) return trimmed;
+
+  return null;
+}
+
+/**
  * Build an embed URL for a YouTube video URL, or `null` when `url` isn't a recognizable YouTube
  * video. `useNoCookie` (default `true`) selects the privacy-enhanced `youtube-nocookie.com` host
  * over plain `youtube.com` — a per-deploy preference, not a protocol fact.

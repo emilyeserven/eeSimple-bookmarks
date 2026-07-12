@@ -93,6 +93,17 @@ describe("applyFillTransform", () => {
     expect(applyFillTransform("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0", {
       kind: "youtubeThumbnail",
     })).toBe(thumb);
+    // A URL / videoId buried in a lazy embed's attribute (Substack-style data-attrs) still resolves.
+    expect(applyFillTransform("{\"videoId\":\"dQw4w9WgXcQ\",\"startTime\":null}", {
+      kind: "youtubeThumbnail",
+    })).toBe(thumb);
+    expect(applyFillTransform("<iframe src=\"https://youtu.be/dQw4w9WgXcQ\"></iframe>", {
+      kind: "youtubeThumbnail",
+    })).toBe(thumb);
+    // A bare 11-char id resolves too.
+    expect(applyFillTransform("dQw4w9WgXcQ", {
+      kind: "youtubeThumbnail",
+    })).toBe(thumb);
     // Not a YouTube URL → passthrough.
     expect(applyFillTransform("https://example.com/video", {
       kind: "youtubeThumbnail",

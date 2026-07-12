@@ -538,8 +538,17 @@ describe("eesimpleFillEngine.runRules — transforms", () => {
     const rule = withTransforms([{
       kind: "youtubeThumbnail",
     }]);
-    expect(runOne(rule, html("https://www.youtube.com/embed/dQw4w9WgXcQ")).values)
-      .toEqual(["https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg"]);
+    const thumb = "https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg";
+    expect(runOne(rule, html("https://www.youtube.com/embed/dQw4w9WgXcQ")).values).toEqual([thumb]);
+    // A privacy-enhanced embed URL still resolves.
+    expect(runOne(rule, html("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0")).values)
+      .toEqual([thumb]);
+    // A videoId buried in a lazy embed's attribute blob (Substack-style data-attrs) resolves.
+    expect(runOne(rule, html("{\"videoId\":\"dQw4w9WgXcQ\",\"startTime\":null}")).values).toEqual([thumb]);
+    // A URL embedded in surrounding text resolves.
+    expect(runOne(rule, html("watch here https://youtu.be/dQw4w9WgXcQ now")).values).toEqual([thumb]);
+    // A bare 11-char id resolves.
+    expect(runOne(rule, html("dQw4w9WgXcQ")).values).toEqual([thumb]);
     // A non-YouTube value passes through unchanged (mirrors the TS preview).
     expect(runOne(rule, html("https://example.com/x")).values).toEqual(["https://example.com/x"]);
   });

@@ -1,6 +1,6 @@
 import type { FillTransform } from "@eesimple/types";
 
-import { parseYouTubeVideo } from "@eesimple/types";
+import { findYouTubeVideoId } from "@eesimple/types";
 
 /**
  * Pure TS mirror of the browser extension's transform runtime, used by the Transforms editor's
@@ -158,10 +158,11 @@ export function applyFillTransform(value: string, transform: FillTransform, base
       }
     }
     case "youtubeThumbnail": {
-      // Privacy-enhanced embeds use `youtube-nocookie.com`, which the shared parser doesn't treat as a
-      // YouTube host — normalize it so `/embed/<id>` on that host resolves too.
-      const video = parseYouTubeVideo(value.replace(/youtube-nocookie\.com/i, "youtube.com"));
-      return video ? `https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg` : value;
+      // Dig a video id out of whatever the rule read — a clean URL, a URL buried in a lazy embed's
+      // `data-src`/`data-attrs` blob, a `videoId` key, or a bare id (see `findYouTubeVideoId`).
+      // Passthrough when the value carries no YouTube reference.
+      const videoId = findYouTubeVideoId(value);
+      return videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : value;
     }
   }
 }

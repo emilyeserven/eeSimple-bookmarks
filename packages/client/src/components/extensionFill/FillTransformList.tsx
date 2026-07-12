@@ -337,6 +337,7 @@ function TRANSFORM_KIND_OPTIONS(t: (key: string) => string): KindOption<Transfor
     {
       value: "youtubeThumbnail",
       label: t("YouTube thumbnail"),
+      description: t("Reads a YouTube URL or video id out of the value. If the iframe src is lazy-loaded, point the selector at data-src / data-attrs or an <a href> instead."),
     },
   ];
 }

@@ -249,11 +249,19 @@ export type FillTransform
    */
         | { kind: "absoluteUrl" }
   /**
-   * Turn a YouTube video URL (watch / `youtu.be` / `/embed/` / `/shorts/` / `/live/` / `/v/`, any
-   * subdomain incl. `youtube-nocookie.com`) into its thumbnail image URL
-   * (`https://img.youtube.com/vi/<id>/hqdefault.jpg`). How you grab an embedded video's cover from
-   * the reachable `<iframe src>` (the player's own thumbnail lives inside the cross-origin frame and
-   * can't be read directly). Passthrough — returns the value unchanged — when it isn't a YouTube URL.
+   * Turn a YouTube video reference into its thumbnail image URL
+   * (`https://img.youtube.com/vi/<id>/hqdefault.jpg`) — how you grab an embedded video's cover (the
+   * player's own thumbnail lives inside the cross-origin frame and can't be read directly). Tolerant
+   * of a noisy value: it extracts the id from a clean URL, a URL buried anywhere inside the value
+   * (JSON blob / `srcdoc` / escaped `href`), a `videoId`-style key, or a bare 11-char id — any
+   * subdomain incl. `youtube-nocookie.com` (see `findYouTubeVideoId`). Passthrough — returns the value
+   * unchanged — when it carries no YouTube reference.
+   *
+   * On lazy / facade embeds (Substack, "click to play", below-the-fold players) the live
+   * `<iframe src>` is usually absent at fill time, so `iframe[src*="youtube"]` matches nothing. Point
+   * the rule at the reachable attribute instead — e.g. selector `iframe[data-src*="youtube"]` reading
+   * `data-src`, a `[data-attrs*="videoId"]` element reading `data-attrs`, or an `<a href*="youtu">`
+   * reading `href` — then this transform digs the id out.
    */
         | { kind: "youtubeThumbnail" };
 
