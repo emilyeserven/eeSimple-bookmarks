@@ -116,6 +116,7 @@ export function PropertyDescriptionField({
       {field => (
         <field.TextareaField
           label={t("Description")}
+          debounceSave
           placeholder={t("Optional — shown as a hint where this property appears.")}
           rows={2}
           onBlur={() => saveDescription(field.state.value, field.state.meta.errors.length === 0)}

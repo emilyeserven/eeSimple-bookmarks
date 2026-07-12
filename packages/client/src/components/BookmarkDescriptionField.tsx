@@ -40,6 +40,7 @@ export function BookmarkDescriptionField({
             <field.TextareaField
               label={t("Description")}
               onBlur={onBlur}
+              debounceSave
               action={(
                 <Button
                   type="button"

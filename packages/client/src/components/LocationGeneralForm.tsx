@@ -119,6 +119,7 @@ export function LocationDescriptionEditField() {
       {field => (
         <field.TextareaField
           label={t("Description")}
+          debounceSave
           onBlur={() => saveField(
             "description",
             field.state.value.trim() || null,
@@ -223,6 +224,7 @@ export function LocationMapUrlEditField() {
         <field.TextField
           label={t("Map URL")}
           placeholder="https://maps.google.com/…"
+          debounceSave
           onBlur={() => saveField("mapUrl", field.state.value.trim() || null)}
         />
       )}
@@ -309,6 +311,7 @@ export function LocationPlusCodeEditField() {
         <field.TextField
           label={t("Plus code")}
           placeholder="e.g. 8Q7XMP+2J"
+          debounceSave
           onBlur={() => saveField("plusCode", field.state.value.trim() || null)}
         />
       )}
@@ -374,6 +377,7 @@ export function LocationCountryCodeEditField() {
         <field.TextField
           label={t("Country code")}
           placeholder="e.g. JP"
+          debounceSave
           onBlur={() => saveField("countryCode", field.state.value.trim() || null)}
         />
       )}
@@ -398,6 +402,7 @@ export function LocationOfficialLinkEditField() {
         <field.TextField
           label={t("Official link")}
           placeholder="https://…"
+          debounceSave
           onBlur={() => saveField("officialLink", field.state.value.trim() || null)}
         />
       )}
@@ -429,6 +434,7 @@ export function LocationWikipediaLinksEditField() {
             <field.TextField
               label={t("Wikipedia link (EN)")}
               placeholder="https://en.wikipedia.org/wiki/…"
+              debounceSave
               onBlur={() => saveField("wikipediaLinkEn", field.state.value.trim() || null)}
             />
           )}
@@ -438,6 +444,7 @@ export function LocationWikipediaLinksEditField() {
             <field.TextField
               label={t("Wikipedia link (Local)")}
               placeholder="https://ja.wikipedia.org/wiki/…"
+              debounceSave
               onBlur={() => saveField("wikipediaLinkLocal", field.state.value.trim() || null)}
             />
           )}

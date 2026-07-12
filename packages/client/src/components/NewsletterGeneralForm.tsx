@@ -59,6 +59,7 @@ export function NewsletterDescriptionEdit({
       {field => (
         <field.TextareaField
           label={t("Description")}
+          debounceSave
           onBlur={() => saveDescription(field.state.value, field.state.meta.errors.length === 0)}
         />
       )}

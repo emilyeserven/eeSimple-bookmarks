@@ -79,6 +79,7 @@ export function GroupDescriptionEditField({
       {field => (
         <field.TextareaField
           label={t("Description")}
+          debounceSave
           onBlur={() => saveField(
             "description",
             field.state.value.trim() || null,
