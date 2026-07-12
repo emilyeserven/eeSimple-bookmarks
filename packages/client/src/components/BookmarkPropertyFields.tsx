@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { applyBulkSectionType } from "@/lib/sectionBulkType";
 import { cn, randomId } from "@/lib/utils";
 
@@ -486,7 +487,10 @@ function RemoveEntryButton({
   );
 }
 
-/** The per-entry "done" checkbox shown at the left edge of a section/sub-item row. */
+/**
+ * The per-entry "done" checkbox shown at the left edge of a section/sub-item row. Wrapped in a
+ * hover tooltip since the row is too tight for a visible text label.
+ */
 function CompletedCheckbox({
   entry, onToggle,
 }: {
@@ -497,24 +501,28 @@ function CompletedCheckbox({
     t,
   } = useTranslation();
   return (
-    <Checkbox
-      className="mt-2.5"
-      checked={entry.completed === true}
-      aria-label={t("Completed")}
-      title={t("Completed")}
-      onCheckedChange={checked => onToggle(checked === true)}
-    />
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Checkbox
+          className="mt-2.5"
+          checked={entry.completed === true}
+          aria-label={t("Completed")}
+          onCheckedChange={checked => onToggle(checked === true)}
+        />
+      </TooltipTrigger>
+      <TooltipContent>{t("Completed")}</TooltipContent>
+    </Tooltip>
   );
 }
 
 /**
- * The per-entry "exclude from progress count" checkbox. Excluding an entry hides its
- * {@link CompletedCheckbox} (a spacer of the same size takes its place, see {@link SectionRow}) since
- * an excluded entry no longer contributes to the progress tally.
+ * The per-entry "exclude from progress count" checkbox, rendered on its own labeled row below the
+ * entry's Name/Type/Value inputs (see {@link SectionRow}) so it has room for a visible text label.
  */
 function ExcludeFromProgressCheckbox({
-  entry, onToggle,
+  id, entry, onToggle,
 }: {
+  id: string;
   entry: SectionEntry;
   onToggle: (excludeFromProgress: boolean) => void;
 }) {
@@ -522,13 +530,19 @@ function ExcludeFromProgressCheckbox({
     t,
   } = useTranslation();
   return (
-    <Checkbox
-      className="mt-2.5"
-      checked={entry.excludeFromProgress === true}
-      aria-label={t("Exclude from progress count")}
-      title={t("Exclude from progress count")}
-      onCheckedChange={checked => onToggle(checked === true)}
-    />
+    <div className="flex items-center gap-2">
+      <Checkbox
+        id={id}
+        checked={entry.excludeFromProgress === true}
+        onCheckedChange={checked => onToggle(checked === true)}
+      />
+      <Label
+        htmlFor={id}
+        className="text-xs font-normal text-muted-foreground"
+      >
+        {t("Exclude from progress count")}
+      </Label>
+    </div>
   );
 }
 
@@ -564,7 +578,7 @@ function SectionRow({
       <div
         className="grid items-start gap-2"
         style={{
-          gridTemplateColumns: "auto auto auto 1fr auto",
+          gridTemplateColumns: "auto auto 1fr auto",
         }}
       >
         <div className="mt-2.5 flex size-4 items-center justify-center">
@@ -602,7 +616,29 @@ function SectionRow({
               })}
             />
           )}
+        <SectionEntryInputs
+          entry={entry}
+          allowedTypes={allowedTypes}
+          onPatch={patch => onChange({
+            ...entry,
+            ...patch,
+          })}
+        />
+        <RemoveEntryButton
+          label={t("Remove section")}
+          onClick={onRemove}
+        />
+      </div>
+      <div
+        className="grid items-start gap-2"
+        style={{
+          gridTemplateColumns: "auto auto 1fr auto",
+        }}
+      >
+        <div />
+        <div />
         <ExcludeFromProgressCheckbox
+          id={`sections-exclude-${entry.id}`}
           entry={entry}
           // Excluding a section also excludes all its sub-items — only leaves are counted.
           onToggle={excludeFromProgress => onChange({
@@ -616,18 +652,7 @@ function SectionRow({
             }),
           })}
         />
-        <SectionEntryInputs
-          entry={entry}
-          allowedTypes={allowedTypes}
-          onPatch={patch => onChange({
-            ...entry,
-            ...patch,
-          })}
-        />
-        <RemoveEntryButton
-          label={t("Remove section")}
-          onClick={onRemove}
-        />
+        <div />
       </div>
       {hasChildren && collapsed
         ? (
@@ -644,59 +669,73 @@ function SectionRow({
         {children.map(child => (
           <div
             key={child.id}
-            className="grid items-start gap-2"
-            style={{
-              gridTemplateColumns: "auto auto 1fr auto",
-            }}
+            className="space-y-2"
           >
-            {child.excludeFromProgress === true
-              ? <CompletedCheckboxSpacer />
-              : (
-                <CompletedCheckbox
-                  entry={child}
-                  onToggle={completed => onChange({
-                    ...entry,
-                    children: children.map(c => c.id === child.id
-                      ? {
-                        ...c,
-                        completed,
-                      }
-                      : c),
-                  })}
-                />
-              )}
-            <ExcludeFromProgressCheckbox
-              entry={child}
-              onToggle={excludeFromProgress => onChange({
-                ...entry,
-                children: children.map(c => c.id === child.id
-                  ? {
-                    ...c,
-                    excludeFromProgress,
-                  }
-                  : c),
-              })}
-            />
-            <SectionEntryInputs
-              entry={child}
-              allowedTypes={allowedTypes}
-              onPatch={patch => onChange({
-                ...entry,
-                children: children.map(c => c.id === child.id
-                  ? {
-                    ...c,
-                    ...patch,
-                  }
-                  : c),
-              })}
-            />
-            <RemoveEntryButton
-              label={t("Remove item")}
-              onClick={() => onChange({
-                ...entry,
-                children: children.filter(c => c.id !== child.id),
-              })}
-            />
+            <div
+              className="grid items-start gap-2"
+              style={{
+                gridTemplateColumns: "auto 1fr auto",
+              }}
+            >
+              {child.excludeFromProgress === true
+                ? <CompletedCheckboxSpacer />
+                : (
+                  <CompletedCheckbox
+                    entry={child}
+                    onToggle={completed => onChange({
+                      ...entry,
+                      children: children.map(c => c.id === child.id
+                        ? {
+                          ...c,
+                          completed,
+                        }
+                        : c),
+                    })}
+                  />
+                )}
+              <SectionEntryInputs
+                entry={child}
+                allowedTypes={allowedTypes}
+                onPatch={patch => onChange({
+                  ...entry,
+                  children: children.map(c => c.id === child.id
+                    ? {
+                      ...c,
+                      ...patch,
+                    }
+                    : c),
+                })}
+              />
+              <RemoveEntryButton
+                label={t("Remove item")}
+                onClick={() => onChange({
+                  ...entry,
+                  children: children.filter(c => c.id !== child.id),
+                })}
+              />
+            </div>
+            <div
+              className="grid items-start gap-2"
+              style={{
+                gridTemplateColumns: "auto 1fr auto",
+              }}
+            >
+              <div />
+              <ExcludeFromProgressCheckbox
+                id={`sections-exclude-${child.id}`}
+                entry={child}
+                onToggle={excludeFromProgress => onChange({
+                  ...entry,
+                  children: children.map(c => c.id === child.id
+                    ? {
+                      ...c,
+                      excludeFromProgress,
+                    }
+                    : c),
+                })}
+              />
+              <div />
+            </div>
           </div>
         ))}
         <button
