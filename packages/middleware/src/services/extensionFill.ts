@@ -201,6 +201,7 @@ export async function getExtensionFillContext(url: string): Promise<ExtensionFil
       id: website?.id ?? "youtube-chapters",
       siteName: website?.siteName ?? "YouTube",
       extensionFillRules: rules,
+      extensionFillRuleGroups: website?.extensionFillRuleGroups ?? [],
     },
     ...(properties.length > 0 && {
       properties,
@@ -274,6 +275,7 @@ async function buildTaxonomyMode(
       id: website.id,
       siteName: website.siteName,
       extensionFillRules: storedRules,
+      extensionFillRuleGroups: website.extensionFillRuleGroups ?? [],
     },
     ...(associatedTerms && {
       associatedTerms,
