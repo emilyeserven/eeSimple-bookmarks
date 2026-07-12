@@ -6,15 +6,17 @@ import type { ComponentType } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
-import { ExternalLink, Minus, Plus } from "lucide-react";
+import { ExternalLink, Minus, Plus, RotateCcw } from "lucide-react";
 
 import { useBookmarkGraphSimulation } from "../hooks/useBookmarkGraphSimulation";
+import { useBookmarkGraphViewport } from "../hooks/useBookmarkGraphViewport";
 import { useCategories } from "../hooks/useCategories";
 import { edgeOpacity, edgeStrokeWidth, neighborsOf, nodeOpacityForDistance, nodeRadius, truncateLabel } from "../lib/bookmarkGraph";
 import { VIEW_HEIGHT, VIEW_WIDTH } from "../lib/bookmarkGraphLayout";
 import { explainRelatedness } from "../lib/relatedBookmarks";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import { Toggle } from "@/components/ui/toggle";
@@ -50,13 +52,20 @@ export function BookmarkGraph({
   const spacing = useUiStore(state => state.bookmarkGraphSpacing);
   const setSpacing = useUiStore(state => state.setBookmarkGraphSpacing);
   const {
-    svgRef, getPoint, nodeHandlers,
+    svgRef, contentRef, getPoint, nodeHandlers,
   } = useBookmarkGraphSimulation(graph, {
     width: VIEW_WIDTH,
     height: VIEW_HEIGHT,
     spacing,
     justExpandedRef,
     onSelect: setSelectedId,
+  });
+  const centerId = graph.nodes.find(node => node.isCenter)?.bookmark.id ?? "";
+  const {
+    transform, isPanning, zoomIn, zoomOut, reset, onBackgroundPointerDown,
+  } = useBookmarkGraphViewport(svgRef, {
+    resetKey: centerId,
+    onBackgroundTap: () => setSelectedId(null),
   });
 
   // Drop the selection if its node disappears (e.g. after collapsing the ring that held it).
@@ -92,7 +101,7 @@ export function BookmarkGraph({
     }
     : null;
   const hoverAnchor = hoverPair?.hovered
-    ? toClientPoint(svgRef.current, getPoint(hoverPair.hovered.bookmark.id))
+    ? toClientPoint(contentRef.current, getPoint(hoverPair.hovered.bookmark.id))
     : null;
 
   return (
@@ -102,44 +111,53 @@ export function BookmarkGraph({
         onSpacingChange={setSpacing}
         showSecondLayer={showSecondLayer}
         onToggleSecondLayer={toggleSecondLayer}
+        onZoomIn={zoomIn}
+        onZoomOut={zoomOut}
+        onResetView={reset}
       />
       <div className="relative">
         <svg
           ref={svgRef}
           viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
-          className="h-auto w-full rounded-md border select-none"
-          onPointerDown={(e) => {
-            if (e.target === e.currentTarget) setSelectedId(null);
-          }}
+          className={`
+            h-auto w-full rounded-md border select-none
+            ${isPanning ? "cursor-grabbing" : "cursor-grab"}
+          `}
+          onPointerDown={onBackgroundPointerDown}
           onKeyDown={(e) => {
             if (e.key === "Escape") setSelectedId(null);
           }}
         >
-          {graph.edges.map(edge => (
-            <GraphEdgeLine
-              key={`${edge.sourceId}:${edge.targetId}`}
-              edge={edge}
-              maxScore={graph.maxScore}
-              selectedId={selectedId}
-              getPoint={getPoint}
-            />
-          ))}
-          {orderedForPaint(graph.nodes, selectedId).map(node => (
-            <GraphNode
-              key={node.bookmark.id}
-              node={node}
-              maxWeight={graph.maxWeight}
-              point={getPoint(node.bookmark.id)}
-              selected={node.bookmark.id === selectedId}
-              dimmed={connectedIds !== null && !connectedIds.has(node.bookmark.id)}
-              expanded={expandedIds.has(node.bookmark.id) || (showSecondLayer && node.distance === 1)}
-              handlers={nodeHandlers(node.bookmark.id)}
-              onSelect={setSelectedId}
-              onHover={setHoveredId}
-              onOpen={goTo}
-              onExpand={onExpand}
-            />
-          ))}
+          <g
+            ref={contentRef}
+            transform={transform}
+          >
+            {graph.edges.map(edge => (
+              <GraphEdgeLine
+                key={`${edge.sourceId}:${edge.targetId}`}
+                edge={edge}
+                maxScore={graph.maxScore}
+                selectedId={selectedId}
+                getPoint={getPoint}
+              />
+            ))}
+            {orderedForPaint(graph.nodes, selectedId).map(node => (
+              <GraphNode
+                key={node.bookmark.id}
+                node={node}
+                maxWeight={graph.maxWeight}
+                point={getPoint(node.bookmark.id)}
+                selected={node.bookmark.id === selectedId}
+                dimmed={connectedIds !== null && !connectedIds.has(node.bookmark.id)}
+                expanded={expandedIds.has(node.bookmark.id) || (showSecondLayer && node.distance === 1)}
+                handlers={nodeHandlers(node.bookmark.id)}
+                onSelect={setSelectedId}
+                onHover={setHoveredId}
+                onOpen={goTo}
+                onExpand={onExpand}
+              />
+            ))}
+          </g>
         </svg>
         {hoverPair?.selected && hoverPair.hovered && hoverAnchor
           ? (
@@ -155,17 +173,23 @@ export function BookmarkGraph({
   );
 }
 
-/** The node-spacing slider + show-second-layer toggle, above the graph. */
+/** The node-spacing slider, show-second-layer toggle, and zoom controls above the graph. */
 function BookmarkGraphControls({
   spacing,
   onSpacingChange,
   showSecondLayer,
   onToggleSecondLayer,
+  onZoomIn,
+  onZoomOut,
+  onResetView,
 }: {
   spacing: number;
   onSpacingChange: (value: number) => void;
   showSecondLayer: boolean;
   onToggleSecondLayer: () => void;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  onResetView: () => void;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
@@ -190,17 +214,52 @@ function BookmarkGraphControls({
       >
         {i18n.t("Show second layer")}
       </Toggle>
+      <div className="flex items-center gap-1">
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={onZoomOut}
+          aria-label={i18n.t("Zoom out")}
+        >
+          <Minus />
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={onZoomIn}
+          aria-label={i18n.t("Zoom in")}
+        >
+          <Plus />
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={onResetView}
+          aria-label={i18n.t("Reset view")}
+        >
+          <RotateCcw />
+        </Button>
+      </div>
     </div>
   );
 }
 
-/** Map a viewBox point to fixed/client coordinates using the live rendered svg size. */
-function toClientPoint(svg: SVGSVGElement | null, point: BookmarkGraphPoint | undefined): BookmarkGraphPoint | null {
-  if (!svg || !point) return null;
-  const rect = svg.getBoundingClientRect();
+/**
+ * Map a content-space point (a node position) to fixed/client coordinates via the transformed content
+ * `<g>`'s CTM — which composes the zoom/pan transform, so the popover stays pinned to its node at any
+ * view. Falls back to null before the `<g>` (or its CTM) is available.
+ */
+function toClientPoint(content: SVGGElement | null, point: BookmarkGraphPoint | undefined): BookmarkGraphPoint | null {
+  if (!content || !point) return null;
+  const ctm = content.getScreenCTM();
+  if (!ctm) return null;
+  const mapped = new DOMPoint(point.x, point.y).matrixTransform(ctm);
   return {
-    x: rect.left + (point.x / VIEW_WIDTH) * rect.width,
-    y: rect.top + (point.y / VIEW_HEIGHT) * rect.height,
+    x: mapped.x,
+    y: mapped.y,
   };
 }
 

@@ -15,6 +15,8 @@ interface NodePointerHandlers {
 
 export interface UseBookmarkGraphSimulationResult {
   svgRef: RefObject<SVGSVGElement | null>;
+  /** The transformed content `<g>` — its CTM composes the zoom/pan, so pointer math stays correct. */
+  contentRef: RefObject<SVGGElement | null>;
   /** Clamped current position for a node id, read fresh each render (positions come from the sim, not state). */
   getPoint: (id: string) => BookmarkGraphPoint | undefined;
   /** Per-node pointer handlers implementing drag-vs-tap; a tap (no drag) calls `onSelect`. */
@@ -46,6 +48,7 @@ export function useBookmarkGraphSimulation(
   }: UseBookmarkGraphSimulationOptions,
 ): UseBookmarkGraphSimulationResult {
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const contentRef = useRef<SVGGElement | null>(null);
   const simRef = useRef<BookmarkGraphSimulation | null>(null);
   const [, bumpTick] = useReducer((count: number) => count + 1, 0);
 
@@ -120,12 +123,14 @@ export function useBookmarkGraphSimulation(
   const nodeHandlers = useCallback((id: string): NodePointerHandlers => ({
     onPointerDown: (e) => {
       const sim = simRef.current;
-      const svg = svgRef.current;
+      // Map through the transformed content <g> (its CTM includes zoom/pan) so a dragged node lands
+      // under the pointer at any view; fall back to the svg before the <g> has mounted.
+      const mapEl = contentRef.current ?? svgRef.current;
       const node = sim?.nodeById.get(id);
-      if (!sim || !svg || !node) return;
+      if (!sim || !mapEl || !node) return;
       beginDrag({
         simulation: sim.simulation,
-        svg,
+        mapEl,
         node,
         pointerId: e.pointerId,
         startClient: {
@@ -140,6 +145,7 @@ export function useBookmarkGraphSimulation(
 
   return {
     svgRef,
+    contentRef,
     getPoint,
     nodeHandlers,
   };
@@ -164,9 +170,12 @@ function createRafScheduler(cb: () => void): { schedule: () => void;
   };
 }
 
-/** Map a client (screen) point into the SVG's viewBox coordinate space — robust to CSS scaling. */
-function clientToSvgPoint(svg: SVGSVGElement, clientX: number, clientY: number): BookmarkGraphPoint | null {
-  const ctm = svg.getScreenCTM();
+/**
+ * Map a client (screen) point into an SVG element's local coordinate space — robust to CSS scaling
+ * and, when `el` is the transformed content `<g>`, to the zoom/pan transform (its CTM composes it).
+ */
+function clientToLocalPoint(el: SVGGraphicsElement, clientX: number, clientY: number): BookmarkGraphPoint | null {
+  const ctm = el.getScreenCTM();
   if (!ctm) return null;
   const pt = new DOMPoint(clientX, clientY).matrixTransform(ctm.inverse());
   return {
@@ -177,7 +186,7 @@ function clientToSvgPoint(svg: SVGSVGElement, clientX: number, clientY: number):
 
 interface DragContext {
   simulation: BookmarkGraphSimulation["simulation"];
-  svg: SVGSVGElement;
+  mapEl: SVGGraphicsElement;
   node: GraphSimNode;
   pointerId: number;
   startClient: BookmarkGraphPoint;
@@ -208,7 +217,7 @@ function handleDragMove(ctx: DragContext, state: { moved: boolean }, ev: Pointer
   if (distance < DRAG_THRESHOLD_PX) return;
   state.moved = true;
   if (ctx.node.isCenter) return;
-  const point = clientToSvgPoint(ctx.svg, ev.clientX, ev.clientY);
+  const point = clientToLocalPoint(ctx.mapEl, ev.clientX, ev.clientY);
   if (!point) return;
   ctx.node.fx = point.x;
   ctx.node.fy = point.y;
