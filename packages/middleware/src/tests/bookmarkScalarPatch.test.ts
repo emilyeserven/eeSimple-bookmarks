@@ -31,6 +31,22 @@ test("scalarBookmarkPatch coalesces nullable fields to null", () => {
   });
 });
 
+test("scalarBookmarkPatch copies secondaryUrl as a plain scalar (no website derivation)", () => {
+  // The secondary "Download URL" is inert — it rides through the scalar patch and, unlike `url`,
+  // never triggers website/channel/duplicate derivation (that stays in the `url` branch of updateBookmark).
+  assert.deepEqual(scalarBookmarkPatch({
+    secondaryUrl: "https://example.com/download.pdf",
+  } as UpdateBookmarkInput, undefined), {
+    secondaryUrl: "https://example.com/download.pdf",
+  });
+  // An explicit null clears it.
+  assert.deepEqual(scalarBookmarkPatch({
+    secondaryUrl: null,
+  } as UpdateBookmarkInput, undefined), {
+    secondaryUrl: null,
+  });
+});
+
 test("scalarBookmarkPatch copies the Kavita link fields, coalescing null to unlink", () => {
   const input: UpdateBookmarkInput = {
     kavitaSeriesId: 12,

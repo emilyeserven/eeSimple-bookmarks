@@ -10,6 +10,7 @@ export const STANDARD_CARD_FIELD_KEYS = [
   "secondaryName",
   "description",
   "url",
+  "secondaryUrl",
   "category",
   "website",
   "mediaType",

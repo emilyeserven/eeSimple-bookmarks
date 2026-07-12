@@ -550,6 +550,7 @@ function newBookmarkScalarColumns(input: CreateBookmarkInput) {
   return {
     url: input.url ?? null,
     originalUrl: input.originalUrl ?? null,
+    secondaryUrl: input.secondaryUrl ?? null,
     title: input.title,
     description: input.description ?? null,
     newsletterId: input.newsletterId ?? null,
@@ -701,7 +702,7 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
 
 /** The scalar (non-URL-derived) bookmark columns an update may touch. */
 type ScalarBookmarkPatch = Partial<
-  Pick<BookmarkRow, "originalUrl" | "title" | "description" | "categoryId" | "mediaTypeId" | "youtubeChannelId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "isbn" | "year" | "wikidataId" | "wikipediaLinkEn" | "wikipediaLinkLocal" | "feedUrl" | "itunesId" | "itunesUrl" | "spotifyUrl" | "pocketCastsUuid" | "pocketCastsUrl" | "defaultLinkProvider" | "priority" | "imageDisplayPreference">
+  Pick<BookmarkRow, "originalUrl" | "secondaryUrl" | "title" | "description" | "categoryId" | "mediaTypeId" | "youtubeChannelId" | "kavitaSeriesId" | "kavitaLibraryId" | "kavitaSeriesName" | "plexRatingKey" | "plexItemType" | "plexItemTitle" | "isbn" | "year" | "wikidataId" | "wikipediaLinkEn" | "wikipediaLinkLocal" | "feedUrl" | "itunesId" | "itunesUrl" | "spotifyUrl" | "pocketCastsUuid" | "pocketCastsUrl" | "defaultLinkProvider" | "priority" | "imageDisplayPreference">
 >;
 
 /**
@@ -709,7 +710,7 @@ type ScalarBookmarkPatch = Partial<
  * explicit `null`/`undefined` value to `null` (an omitted key leaves the column untouched).
  */
 const NULLABLE_SCALAR_FIELDS = [
-  "originalUrl", "description", "mediaTypeId", "youtubeChannelId", "kavitaSeriesId",
+  "originalUrl", "secondaryUrl", "description", "mediaTypeId", "youtubeChannelId", "kavitaSeriesId",
   "kavitaLibraryId", "kavitaSeriesName", "plexRatingKey", "plexItemType", "plexItemTitle", "isbn",
   "year", "wikidataId", "wikipediaLinkEn", "wikipediaLinkLocal", "feedUrl", "itunesId", "itunesUrl",
   "spotifyUrl", "pocketCastsUuid", "pocketCastsUrl", "defaultLinkProvider", "imageDisplayPreference",

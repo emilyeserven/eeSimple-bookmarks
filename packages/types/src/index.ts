@@ -1384,6 +1384,12 @@ export interface Bookmark {
   url: string | null;
   /** Original URL before any cleanup was applied, or `null` when no cleanup was performed. */
   originalUrl: string | null;
+  /**
+   * Optional second link (surfaced as "Download URL" in the UI) — e.g. a download / read link vs the
+   * primary landing page. A passive scalar: unlike {@link url} it drives no website/channel/duplicate
+   * derivation and is not scanned.
+   */
+  secondaryUrl: string | null;
   /** Human-friendly title, e.g. "GitHub". */
   title: string;
   /** Optional free-form description. */
@@ -1514,6 +1520,8 @@ export interface CreateBookmarkInput {
   url?: string | null;
   /** Original URL before cleanup; omit when no cleanup was applied. */
   originalUrl?: string | null;
+  /** Optional second link ("Download URL"); a passive scalar, unlike {@link url}. */
+  secondaryUrl?: string | null;
   title: string;
   description?: string | null;
   /** Id of the category to assign; omit to fall back to the built-in "Default" category. */

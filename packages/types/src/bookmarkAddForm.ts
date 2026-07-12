@@ -65,6 +65,7 @@ export const BOOKMARK_ADD_FORM_STANDARD_FIELDS = [
   "mediaLink",
   "blacklistedTagIds",
   "blacklistedLocationIds",
+  "secondaryUrl",
 ] as const;
 
 /** A standard Add Bookmark form field. Derived from {@link BOOKMARK_ADD_FORM_STANDARD_FIELDS}. */
@@ -158,6 +159,7 @@ const DEFAULT_STANDARD_FIELD_PLACEMENTS: Record<BookmarkAddFormStandardField, Bo
   mediaLink: "hidden",
   blacklistedTagIds: "hidden",
   blacklistedLocationIds: "hidden",
+  secondaryUrl: "hidden",
 };
 
 /**

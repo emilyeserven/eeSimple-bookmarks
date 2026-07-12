@@ -24,6 +24,10 @@ export const STANDARD_CARD_FIELDS = [
     label: "URL",
   },
   {
+    key: "secondaryUrl",
+    label: "Download URL",
+  },
+  {
     key: "category",
     label: "Category",
   },
