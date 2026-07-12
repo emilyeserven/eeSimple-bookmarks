@@ -2,7 +2,7 @@ import type { TaxonomyName } from "./-appHeaderData";
 import type { SwitcherSpec } from "@/components/BreadcrumbSwitcher";
 import type { BreadcrumbSegment } from "@/components/header/HeaderBreadcrumbs";
 import type { EntityRoute } from "@/lib/entityRoutes";
-import type { EntityName, LocationNode, MediaTypeNode, TagNode } from "@eesimple/types";
+import type { EntityName, LocationNode, MediaTypeNode, TagNode, TaxonomyTermNode } from "@eesimple/types";
 
 import { slugFor, useTaxonomyCrumbData } from "./-appHeaderData";
 
@@ -11,6 +11,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useLocationTree } from "@/hooks/useLocations";
 import { useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { useTagTree } from "@/hooks/useTags";
+import { useTaxonomyBySlug, useTaxonomyTermTree } from "@/hooks/useTaxonomies";
 import i18n from "@/i18n";
 import { ENTITY_ROUTES } from "@/lib/entityRoutes";
 import { crumbLabel } from "@/lib/segmentLabels";
@@ -63,6 +64,16 @@ const TAXONOMY_DESCRIPTORS: readonly TaxonomyDescriptor[] = ENTITY_ROUTES
     slugIndex: route.slugIndex,
     makeSwitcher: makeSwitcherFor(route),
   }));
+
+/** Every `/taxonomies/<segment>` reserved by a built-in taxonomy — the remainder are user-created
+ * taxonomy slugs, resolved by `customTaxonomyCrumbs` instead. */
+const RESERVED_TAXONOMY_SLUGS = new Set([
+  "media-types",
+  "locations",
+  ...TAXONOMY_DESCRIPTORS
+    .filter(d => d.prefix.startsWith("/taxonomies/"))
+    .map(d => d.prefix.slice("/taxonomies/".length)),
+]);
 
 /**
  * Breadcrumbs for a slug-routed taxonomy entity: `List(link) → Name` on the detail/view tabs, and
@@ -287,6 +298,81 @@ function locationCrumbs(
   });
 }
 
+/** A resolved user-created taxonomy plus its term ancestor chain, for `customTaxonomyCrumbs`. */
+export interface CustomTaxonomyCrumbData {
+  taxonomyName?: string;
+  taxonomySlug?: string;
+  termAncestors?: TaxonomyTermNode[];
+}
+
+/**
+ * Breadcrumbs for a user-created taxonomy's term pages (`/taxonomies/<slug>/<term>…`): `List(taxonomy,
+ * link) → Term(+ancestor chain, link) → [Section]`. The generic sibling of `tagCrumbs`, for the
+ * dynamic `/taxonomies/$taxonomyKey/$termSlug` route tree — no sibling switcher (unlike Tags/Media
+ * Types) since a taxonomy's identity isn't known at compile time.
+ */
+function customTaxonomyCrumbs(pathname: string, data?: CustomTaxonomyCrumbData): BreadcrumbSegment[] {
+  const parts = pathname.split("/").filter(Boolean);
+  const taxonomySlug = parts[1] ?? "";
+  const listHref = `/taxonomies/${taxonomySlug}`;
+  const listLabel = data?.taxonomyName ?? i18n.t("Taxonomy");
+  // Listing page (no term segment yet).
+  if (parts.length <= 2) return [{
+    label: listLabel,
+  }];
+  const listCrumb: BreadcrumbSegment = {
+    label: listLabel,
+    href: listHref,
+  };
+  const termSlug = parts[2] ?? "";
+  const isEdit = parts[3] === "edit";
+  const ancestors = data?.termAncestors;
+  if (!ancestors?.length) {
+    const fallback: BreadcrumbSegment = isEdit
+      ? {
+        label: i18n.t("Term"),
+        href: `${listHref}/${termSlug}/info`,
+      }
+      : {
+        label: i18n.t("Term"),
+      };
+    return isEdit
+      ? [listCrumb, fallback, {
+        label: i18n.t("Edit"),
+      }]
+      : [listCrumb, fallback];
+  }
+  if (isEdit) {
+    return [
+      listCrumb,
+      ...ancestors.map((node): BreadcrumbSegment => ({
+        label: node.name,
+        names: node.names,
+        href: `${listHref}/${node.slug}/info`,
+        truncatable: true,
+      })),
+      {
+        label: i18n.t("Edit"),
+      },
+    ];
+  }
+  const parents = ancestors.slice(0, -1);
+  const current = ancestors[ancestors.length - 1];
+  return [
+    listCrumb,
+    ...parents.map((node): BreadcrumbSegment => ({
+      label: node.name,
+      names: node.names,
+      href: `${listHref}/${node.slug}`,
+      truncatable: true,
+    })),
+    {
+      label: current.name,
+      names: current.names,
+    },
+  ];
+}
+
 interface BookmarkCrumbData {
   id: string;
   title: string;
@@ -361,6 +447,8 @@ interface BreadcrumbContext {
   taxonomyNames?: Record<string, TaxonomyName | undefined>;
   /** The `?tab=` search param, used to label the edit crumb for entities on the unified edit route. */
   editTab?: string;
+  /** A user-created taxonomy's name + term ancestor chain, for `customTaxonomyCrumbs`. */
+  customTaxonomy?: CustomTaxonomyCrumbData;
 }
 
 /** Derive breadcrumb segments from a pathname. */
@@ -397,6 +485,10 @@ function breadcrumbsForPath(pathname: string, ctx: BreadcrumbContext): Breadcrum
   );
   if (descriptor)
     return taxonomyCrumbs(pathname, descriptor, ctx.taxonomyNames?.[descriptor.prefix], ctx.editTab);
+
+  // Any remaining `/taxonomies/*` path is a user-created taxonomy's term pages (no static descriptor
+  // matches a dynamic taxonomy slug — see `taxonomies.$taxonomyKey.tsx`'s static-beats-dynamic note).
+  if (pathname.startsWith("/taxonomies/")) return customTaxonomyCrumbs(pathname, ctx.customTaxonomy);
 
   return [{
     label: i18n.t("eeSimple Bookmarks"),
@@ -465,6 +557,29 @@ export function useHeaderBreadcrumbs(
     ? (findAncestorPath(locationTree, locationSlug) ?? undefined)
     : undefined;
 
+  // A user-created taxonomy's term pages carry its name + term ancestor chain, the generic sibling of
+  // the tag/media-type/location ancestor resolution above.
+  const customTaxonomySlug = pathParts[0] === "taxonomies" && !RESERVED_TAXONOMY_SLUGS.has(pathParts[1] ?? "")
+    ? (pathParts[1] ?? "")
+    : "";
+  const {
+    taxonomy: customTaxonomyRow,
+  } = useTaxonomyBySlug(customTaxonomySlug);
+  const {
+    data: customTaxonomyTermTree,
+  } = useTaxonomyTermTree(customTaxonomyRow?.id);
+  const customTermSlug = customTaxonomySlug ? (pathParts[2] ?? "") : "";
+  const customTermAncestors = customTermSlug && customTaxonomyTermTree
+    ? (findAncestorPath(customTaxonomyTermTree, customTermSlug) ?? undefined)
+    : undefined;
+  const customTaxonomy: CustomTaxonomyCrumbData | undefined = customTaxonomySlug
+    ? {
+      taxonomyName: customTaxonomyRow?.name,
+      taxonomySlug: customTaxonomySlug,
+      termAncestors: customTermAncestors,
+    }
+    : undefined;
+
   // Bookmark breadcrumbs carry the bookmark's category + title.
   const bookmarkId = slugFor(pathname, pathParts, "/bookmarks", 1);
   const {
@@ -495,6 +610,7 @@ export function useHeaderBreadcrumbs(
     bookmarkData,
     taxonomyNames,
     editTab,
+    customTaxonomy,
   });
 
   return {

@@ -2,11 +2,14 @@ import type {
   CreateTaxonomyInput,
   CreateTaxonomyTermInput,
   UpdateTaxonomyInput,
+  UpdateTaxonomyTermInput,
 } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { taxonomiesApi } from "../lib/api/taxonomies";
+import { flattenTree } from "../lib/tagTree";
 
 const TAXONOMIES_KEY = ["taxonomies"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -37,6 +40,15 @@ export function useTaxonomyTermTree(taxonomyId: string | undefined) {
     queryFn: () => taxonomiesApi.termTree(taxonomyId as string),
     enabled: Boolean(taxonomyId),
   });
+}
+
+/** Look up a single term by its slug from the cached tree (walks nested nodes). */
+export function useTaxonomyTermBySlug(taxonomyId: string | undefined, slug: string) {
+  const query = useTaxonomyTermTree(taxonomyId);
+  return {
+    ...query,
+    term: flattenTree(query.data ?? []).find(item => item.node.slug === slug)?.node,
+  };
 }
 
 /** Invalidate the taxonomy list, a taxonomy's term tree, and bookmark reads (terms ride on bookmarks). */
@@ -92,12 +104,28 @@ export function useCreateTaxonomyTerm(taxonomyId: string) {
   });
 }
 
+export function useUpdateTaxonomyTerm(taxonomyId: string) {
+  const invalidate = useTaxonomyInvalidation();
+  return useMutation({
+    mutationFn: ({
+      id, input,
+    }: { id: string;
+      input: UpdateTaxonomyTermInput; }) => taxonomiesApi.updateTerm(id, input),
+    onSuccess: () => invalidate(taxonomyId),
+  });
+}
+
 export function useDeleteTaxonomyTerm(taxonomyId: string) {
   const invalidate = useTaxonomyInvalidation();
   return useMutation({
     mutationFn: (id: string) => taxonomiesApi.removeTerm(id),
     onSuccess: () => invalidate(taxonomyId),
   });
+}
+
+export function useBulkDeleteTaxonomyTerms(taxonomyId: string) {
+  const invalidate = useTaxonomyInvalidation();
+  return useBulkDeleteEntity(taxonomiesApi.bulkDeleteTerms, () => invalidate(taxonomyId));
 }
 
 /** Promote a tag subtree into its own taxonomy. */
