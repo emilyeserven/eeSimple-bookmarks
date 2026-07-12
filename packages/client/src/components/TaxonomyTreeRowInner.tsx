@@ -9,22 +9,19 @@ import { Button } from "@/components/ui/button";
 import { CategoryIcon } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
-/** Standard hover-revealed ghost button for the edit / info controls in a tree row. */
+/** Ghost button for the edit / info controls in a tree row; `revealClass` controls its visibility. */
 function HoverGhostButton({
-  children,
+  children, revealClass,
 }: {
   children: ReactNode;
+  revealClass: string;
 }) {
   return (
     <Button
       asChild
       variant="ghost"
       size="sm"
-      className="
-        opacity-0 transition-opacity
-        group-hover:opacity-100
-        focus-visible:opacity-100
-      "
+      className={revealClass}
     >
       {children}
     </Button>
@@ -78,11 +75,12 @@ function TaxonomyTreeRowExpander({
 
 /** "Expand all under this node" hover button, shown only when a handler and children exist. */
 function TaxonomyTreeRowExpandAllButton({
-  node, hasChildren, onExpandSubtree,
+  node, hasChildren, onExpandSubtree, revealClass,
 }: {
   node: TaxonomyTreeNode;
   hasChildren: boolean;
   onExpandSubtree?: (node: TaxonomyTreeNode) => void;
+  revealClass: string;
 }) {
   const {
     t,
@@ -98,11 +96,7 @@ function TaxonomyTreeRowExpandAllButton({
       })}
       title={t("Expand all")}
       onClick={() => onExpandSubtree(node)}
-      className="
-        opacity-0 transition-opacity
-        group-hover:opacity-100
-        focus-visible:opacity-100
-      "
+      className={revealClass}
     >
       <ChevronsUpDown className="size-4" />
     </Button>
@@ -111,11 +105,12 @@ function TaxonomyTreeRowExpandAllButton({
 
 /** Map-filter toggle button, shown only when a handler is provided. */
 function TaxonomyTreeRowFilterButton({
-  node, filtered, onToggleFilter,
+  node, filtered, onToggleFilter, revealClass,
 }: {
   node: TaxonomyTreeNode;
   filtered: boolean;
   onToggleFilter?: (node: TaxonomyTreeNode) => void;
+  revealClass: string;
 }) {
   const {
     t,
@@ -140,13 +135,7 @@ function TaxonomyTreeRowFilterButton({
       onClick={() => onToggleFilter(node)}
       className={cn(
         "transition-opacity",
-        filtered
-          ? "text-primary opacity-100"
-          : `
-            opacity-0
-            group-hover:opacity-100
-            focus-visible:opacity-100
-          `,
+        filtered ? "text-primary opacity-100" : revealClass,
       )}
     >
       <MapPin className="size-4" />
@@ -156,11 +145,12 @@ function TaxonomyTreeRowFilterButton({
 
 /** Chain-focus toggle button (node + its ancestor chain on the map), shown only when a handler is provided. */
 function TaxonomyTreeRowChainFilterButton({
-  node, chainFiltered, onToggleChainFilter,
+  node, chainFiltered, onToggleChainFilter, revealClass,
 }: {
   node: TaxonomyTreeNode;
   chainFiltered: boolean;
   onToggleChainFilter?: (node: TaxonomyTreeNode) => void;
+  revealClass: string;
 }) {
   const {
     t,
@@ -187,13 +177,7 @@ function TaxonomyTreeRowChainFilterButton({
       onClick={() => onToggleChainFilter(node)}
       className={cn(
         "transition-opacity",
-        chainFiltered
-          ? "text-primary opacity-100"
-          : `
-            opacity-0
-            group-hover:opacity-100
-            focus-visible:opacity-100
-          `,
+        chainFiltered ? "text-primary opacity-100" : revealClass,
       )}
     >
       <Waypoints className="size-4" />
@@ -217,16 +201,28 @@ interface TaxonomyTreeRowInnerProps {
   onToggleChainFilter?: (node: TaxonomyTreeNode) => void;
   /** Whether this node is currently in the active chain filter (highlights its chain-filter button). */
   chainFiltered: boolean;
+  /**
+   * When true, the action buttons are always visible instead of hover-revealed (touch devices where
+   * hover isn't available).
+   */
+  alwaysShowActions?: boolean;
 }
 
 /** The single-row content of a taxonomy tree row: icon, expander, name link, badges, hover actions. */
 export function TaxonomyTreeRowInner({
   node, hasChildren, isOpen, onToggle, renderNameLink, renderEditLink, renderInfoLink, renderIcon,
-  onExpandSubtree, onToggleFilter, filtered, onToggleChainFilter, chainFiltered,
+  onExpandSubtree, onToggleFilter, filtered, onToggleChainFilter, chainFiltered, alwaysShowActions,
 }: TaxonomyTreeRowInnerProps) {
   const {
     t,
   } = useTranslation();
+  const revealClass = alwaysShowActions
+    ? "opacity-100"
+    : `
+      opacity-0 transition-opacity
+      group-hover:opacity-100
+      focus-visible:opacity-100
+    `;
   return (
     <>
       {renderIcon
@@ -248,25 +244,28 @@ export function TaxonomyTreeRowInner({
 
       {node.builtIn ? <Badge variant="outline">{t("Built-in")}</Badge> : null}
 
-      <HoverGhostButton>{renderEditLink(node)}</HoverGhostButton>
-      <HoverGhostButton>{renderInfoLink(node)}</HoverGhostButton>
+      <HoverGhostButton revealClass={revealClass}>{renderEditLink(node)}</HoverGhostButton>
+      <HoverGhostButton revealClass={revealClass}>{renderInfoLink(node)}</HoverGhostButton>
 
       <TaxonomyTreeRowExpandAllButton
         node={node}
         hasChildren={hasChildren}
         onExpandSubtree={onExpandSubtree}
+        revealClass={revealClass}
       />
 
       <TaxonomyTreeRowFilterButton
         node={node}
         filtered={filtered}
         onToggleFilter={onToggleFilter}
+        revealClass={revealClass}
       />
 
       <TaxonomyTreeRowChainFilterButton
         node={node}
         chainFiltered={chainFiltered}
         onToggleChainFilter={onToggleChainFilter}
+        revealClass={revealClass}
       />
 
       {node.bookmarkCount != null

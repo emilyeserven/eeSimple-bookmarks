@@ -8,6 +8,8 @@ import { LocalizedNameLabel } from "./LocalizedNameLabel";
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
 import { expandableIds } from "../lib/tagTree";
 
+import { useIsMobile } from "@/hooks/use-mobile";
+
 interface LocationTreeListProps {
   /** The root locations to render. */
   tree: LocationNode[];
@@ -40,6 +42,7 @@ export function LocationTreeList({
   const {
     t,
   } = useTranslation();
+  const isMobile = useIsMobile();
   const filterSet = new Set(filterIds);
   const chainFilterSet = new Set(chainFilterIds);
 
@@ -49,6 +52,8 @@ export function LocationTreeList({
       expanded={expanded}
       onToggle={onToggle}
       columns={columns}
+      // Touch devices have no hover, so reveal the per-row action buttons unconditionally there.
+      alwaysShowActions={isMobile}
       onExpandSubtree={onExpandMany ? node => onExpandMany(expandableIds([node])) : undefined}
       onToggleFilter={onToggleFilter ? node => onToggleFilter(node.id) : undefined}
       isFiltered={onToggleFilter ? node => filterSet.has(node.id) : undefined}

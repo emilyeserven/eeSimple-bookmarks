@@ -55,6 +55,11 @@ interface TaxonomyTreeListProps {
   onToggleChainFilter?: (node: TaxonomyTreeNode) => void;
   /** Whether a node is currently in the active chain filter (highlights its chain-filter button). */
   isChainFiltered?: (node: TaxonomyTreeNode) => boolean;
+  /**
+   * When true, the per-row action buttons (edit/info/expand-all/map filters) are always visible
+   * instead of hover-revealed — used on touch devices where hover isn't available. Opt-in.
+   */
+  alwaysShowActions?: boolean;
 }
 
 /** Grid wrapper for a collapsible taxonomy tree. Each root node gets its own RowCard. */
@@ -98,6 +103,7 @@ interface TaxonomyTreeRowProps {
   isFiltered?: (node: TaxonomyTreeNode) => boolean;
   onToggleChainFilter?: (node: TaxonomyTreeNode) => void;
   isChainFiltered?: (node: TaxonomyTreeNode) => boolean;
+  alwaysShowActions?: boolean;
 }
 
 /**
