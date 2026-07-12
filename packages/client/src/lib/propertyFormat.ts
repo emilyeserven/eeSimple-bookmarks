@@ -19,21 +19,53 @@ export const TYPE_LABELS: Record<CustomPropertyType, string> = {
   text: i18n.t("Text"),
 };
 
+/** Which parts of a progress value's text to render (see {@link composeProgressText}). */
+export interface ProgressTextOptions {
+  /** Show the "X of Y" numbers (default true). */
+  showCount?: boolean;
+  /** Show the unit / counter-word text — the before/after segments (default true). */
+  showUnit?: boolean;
+}
+
 /**
- * Format an itemInItems value using the property's configured text segments, honoring the
- * per-media-type overrides when the bookmark's media type is passed (e.g. "3 of 10 pages" on a
- * book vs "24 of 230 modules" on a course).
+ * Compose an itemInItems value's display text from its configured segments, honoring the
+ * per-media-type overrides when the bookmark's media type is passed (e.g. "3 of 10 pages" on a book
+ * vs "24 of 230 modules" on a course). The two flags select which parts render — the "X of Y" count
+ * and/or the unit / counter-word text — so a card field can show either, both, or none:
+ * - both → `before + "X of Y" + after` (the full string, e.g. "chapter 3 of 12" or "3 of 10 pages")
+ * - count only → `"X of Y"` (e.g. "3 of 10")
+ * - unit only → the trimmed before/after words (e.g. "pages" or "chapter")
+ * - neither → `""`
+ */
+export function composeProgressText(
+  value: BookmarkProgressValue,
+  property: CustomProperty,
+  mediaTypeId?: string | null,
+  options?: ProgressTextOptions,
+): string {
+  const showCount = options?.showCount ?? true;
+  const showUnit = options?.showUnit ?? true;
+  const texts = resolveItemInItemsTexts(property, mediaTypeId, value.textOverride);
+  const before = texts.before ?? "";
+  const between = texts.between ?? i18n.t(" of ");
+  const after = texts.after ?? "";
+  const count = `${value.current}${between}${value.total}`;
+  if (showCount && showUnit) return `${before}${count}${after}`;
+  if (showCount) return count;
+  if (showUnit) return [before.trim(), after.trim()].filter(Boolean).join(" ");
+  return "";
+}
+
+/**
+ * Format an itemInItems value using the property's configured text segments (the full "X of Y unit"
+ * string). Thin wrapper over {@link composeProgressText} with both parts shown.
  */
 export function formatProgressValue(
   value: BookmarkProgressValue,
   property: CustomProperty,
   mediaTypeId?: string | null,
 ): string {
-  const texts = resolveItemInItemsTexts(property, mediaTypeId, value.textOverride);
-  const before = texts.before ?? "";
-  const between = texts.between ?? i18n.t(" of ");
-  const after = texts.after ?? "";
-  return `${before}${value.current}${between}${value.total}${after}`;
+  return composeProgressText(value, property, mediaTypeId);
 }
 
 /** Human labels for what a `datetime` property captures. */

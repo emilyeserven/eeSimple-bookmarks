@@ -35,5 +35,8 @@ export function carryOverPlacement(
   // Multi-value taxonomy term-display knobs apply in every body zone; preserve them across a move.
   if (existing?.maxTerms != null) placement.maxTerms = existing.maxTerms;
   if (existing?.collapseToCount) placement.collapseToCount = true;
+  // Progress (itemInItems) text knobs apply in every zone (absent = true); preserve an off choice.
+  if (existing?.showProgressCount === false) placement.showProgressCount = false;
+  if (existing?.showProgressUnit === false) placement.showProgressUnit = false;
   return placement;
 }
