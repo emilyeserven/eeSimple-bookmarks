@@ -1101,3 +1101,46 @@ test("a language target reports primaryLanguageLevelId: null when no Primary Lan
   assert.deepEqual(result.languages, []);
   assert.equal(result.primaryLanguageLevelId, null);
 });
+
+test("passes the website's extensionFillRuleGroups through to the popup context", async () => {
+  resetFixtures();
+  duplicateResult = {
+    exactMatch: {
+      id: "bm-1",
+      url: "https://example.com/a",
+      title: "A",
+    },
+    pathMatch: null,
+    identityMatches: [],
+  };
+  bookmarkById = {
+    "bm-1": {
+      id: "bm-1",
+      title: "A",
+    } as unknown as Bookmark,
+  };
+  websiteForUrl = makeWebsite(
+    [makeRule({
+      id: "rule-1",
+      groupId: "courses",
+    })],
+    {
+      extensionFillRuleGroups: [{
+        id: "courses",
+        label: "Courses",
+        overrides: {
+          pathMatch: {
+            mode: "prefix",
+            value: "/course/",
+          },
+        },
+      }],
+    },
+  );
+  const result = await getExtensionFillContext("https://example.com/a");
+  assert.equal(result.mode, "bookmark");
+  assert.equal(result.website?.extensionFillRuleGroups?.length, 1);
+  assert.equal(result.website?.extensionFillRuleGroups?.[0].label, "Courses");
+  // The grouped rule still rides along with its groupId so the popup can bucket it.
+  assert.equal(result.website?.extensionFillRules[0].groupId, "courses");
+});

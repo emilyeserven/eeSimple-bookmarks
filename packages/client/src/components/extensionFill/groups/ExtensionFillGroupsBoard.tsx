@@ -2,7 +2,6 @@ import type { EditorState } from "../../../hooks/useExtensionFillRulesEditor";
 import type { ComboboxOption } from "../../Combobox";
 import type { CollisionDetection, DragEndEvent } from "@dnd-kit/core";
 import type { ExtensionFillOverrides, ExtensionFillRuleGroup, OverrideKey, WebsiteExtensionFillRule } from "@eesimple/types";
-import type { ReactNode } from "react";
 
 import {
   DndContext,
@@ -24,6 +23,14 @@ import { LabeledInput } from "../controls";
 
 import { Button } from "@/components/ui/button";
 import { RowCard } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useCustomProperties } from "@/hooks/useCustomProperties";
 import {
   addGroup,
@@ -44,6 +51,30 @@ const boardCollision: CollisionDetection = (args) => {
 
 const UNGROUPED_ID = "ungrouped";
 const groupDropId = (id: string) => `group:${id}`;
+
+/** One destination in a rule chip's "Move to…" menu (`id: null` = Ungrouped). */
+interface MoveTarget {
+  id: string | null;
+  label: string;
+}
+
+/** Build the flat, indented list of group destinations (top groups + their children). */
+function buildMoveTargets(groups: ExtensionFillRuleGroup[]): MoveTarget[] {
+  const targets: MoveTarget[] = [];
+  for (const top of groups.filter(group => !group.parentId)) {
+    targets.push({
+      id: top.id,
+      label: top.label,
+    });
+    for (const child of groups.filter(group => group.parentId === top.id)) {
+      targets.push({
+        id: child.id,
+        label: `— ${child.label}`,
+      });
+    }
+  }
+  return targets;
+}
 
 interface BoardProps {
   rules: WebsiteExtensionFillRule[];
@@ -79,6 +110,14 @@ export function ExtensionFillGroupsBoard({
 
   const topGroups = groups.filter(group => !group.parentId);
   const ungrouped = rules.filter(rule => !rule.groupId);
+  const moveTargets = buildMoveTargets(groups);
+
+  /** Click-to-move (the drag alternative): join a group (overwrite) or go Ungrouped (keep values). */
+  function moveRuleToGroup(ruleId: string, targetGroupId: string | null): void {
+    onRulesChange(targetGroupId === null
+      ? removeRuleFromGroup(rules, ruleId)
+      : assignRuleToGroup(groups, rules, ruleId, targetGroupId));
+  }
 
   function handleDragEnd(event: DragEndEvent): void {
     const {
@@ -118,6 +157,8 @@ export function ExtensionFillGroupsBoard({
       onGroupsChange(setGroupOverride(groups, id, key, value as never)),
     onClearOverride: (id: string, key: OverrideKey) => onGroupsChange(clearGroupOverride(groups, id, key)),
     onRemoveRule: (ruleId: string) => onRulesChange(removeRuleFromGroup(rules, ruleId)),
+    moveTargets,
+    onMove: moveRuleToGroup,
   };
 
   return (
@@ -156,7 +197,11 @@ export function ExtensionFillGroupsBoard({
           />
         ))}
 
-        <UngroupedTray rules={ungrouped} />
+        <UngroupedTray
+          rules={ungrouped}
+          moveTargets={moveTargets}
+          onMove={moveRuleToGroup}
+        />
       </DndContext>
     </div>
   );
@@ -210,6 +255,8 @@ interface GroupActions {
   onSetOverride: (id: string, key: OverrideKey, value: ExtensionFillOverrides[OverrideKey]) => void;
   onClearOverride: (id: string, key: OverrideKey) => void;
   onRemoveRule: (ruleId: string) => void;
+  moveTargets: MoveTarget[];
+  onMove: (ruleId: string, targetGroupId: string | null) => void;
 }
 
 /** One top-level group card: header + overrides + its rules, then any nested child groups. */
@@ -240,6 +287,8 @@ function GroupCard({
         dropId={groupDropId(group.id)}
         rules={actions.rules.filter(rule => rule.groupId === group.id)}
         onRemoveRule={actions.onRemoveRule}
+        moveTargets={actions.moveTargets}
+        onMove={actions.onMove}
       />
       {childGroups.map(child => (
         <div
@@ -264,6 +313,8 @@ function GroupCard({
             dropId={groupDropId(child.id)}
             rules={actions.rules.filter(rule => rule.groupId === child.id)}
             onRemoveRule={actions.onRemoveRule}
+            moveTargets={actions.moveTargets}
+            onMove={actions.onMove}
           />
         </div>
       ))}
@@ -321,11 +372,13 @@ function GroupHeader({
 
 /** A droppable, sortable list of rule chips for one group (or the ungrouped tray). */
 function RuleDropZone({
-  dropId, rules, onRemoveRule,
+  dropId, rules, onRemoveRule, moveTargets, onMove,
 }: {
   dropId: string;
   rules: WebsiteExtensionFillRule[];
   onRemoveRule?: (ruleId: string) => void;
+  moveTargets: MoveTarget[];
+  onMove: (ruleId: string, targetGroupId: string | null) => void;
 }) {
   const {
     t,
@@ -358,6 +411,8 @@ function RuleDropZone({
                   key={rule.id}
                   rule={rule}
                   onRemoveRule={onRemoveRule}
+                  moveTargets={moveTargets}
+                  onMove={onMove}
                 />
               ))}
             </div>
@@ -367,12 +422,18 @@ function RuleDropZone({
   );
 }
 
-/** A single draggable rule chip: drag handle + label + (in a group) an explicit "Remove" button. */
+/**
+ * A single draggable rule chip. Alongside dragging, clicking the label opens a "Move to…" menu (the
+ * drag alternative, mirroring `LayoutBoard`'s chip menu) to pick a group or Ungrouped. Grouped rules
+ * also keep an explicit Remove button.
+ */
 function GroupRuleChip({
-  rule, onRemoveRule,
+  rule, onRemoveRule, moveTargets, onMove,
 }: {
   rule: WebsiteExtensionFillRule;
   onRemoveRule?: (ruleId: string) => void;
+  moveTargets: MoveTarget[];
+  onMove: (ruleId: string, targetGroupId: string | null) => void;
 }) {
   const {
     t,
@@ -386,17 +447,7 @@ function GroupRuleChip({
     transform: CSS.Transform.toString(transform),
     transition,
   };
-  const dragHandle: ReactNode = (
-    <button
-      type="button"
-      className="cursor-grab touch-none text-muted-foreground"
-      aria-label={t("Drag rule")}
-      {...attributes}
-      {...listeners}
-    >
-      <GripVertical className="size-4" />
-    </button>
-  );
+  const currentGroupId = rule.groupId ?? null;
   return (
     <div
       ref={setNodeRef}
@@ -408,8 +459,51 @@ function GroupRuleChip({
       : ""}
       `}
     >
-      {dragHandle}
-      <span className="flex-1 truncate">{rule.label.trim() || t("Untitled rule")}</span>
+      <button
+        type="button"
+        className="cursor-grab touch-none text-muted-foreground"
+        aria-label={t("Drag rule")}
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="size-4" />
+      </button>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          className="
+            min-w-0 flex-1 truncate text-left
+            hover:underline
+          "
+          aria-label={t("Move rule to a group")}
+          onPointerDown={event => event.stopPropagation()}
+        >
+          {rule.label.trim() || t("Untitled rule")}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuLabel>{t("Move to…")}</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {moveTargets
+            .filter(target => target.id !== currentGroupId)
+            .map(target => (
+              <DropdownMenuItem
+                key={target.id ?? "ungrouped"}
+                onSelect={() => onMove(rule.id, target.id)}
+              >
+                {target.label}
+              </DropdownMenuItem>
+            ))}
+          {currentGroupId !== null
+            ? (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => onMove(rule.id, null)}>
+                  {t("Ungrouped")}
+                </DropdownMenuItem>
+              </>
+            )
+            : null}
+        </DropdownMenuContent>
+      </DropdownMenu>
       {onRemoveRule && rule.groupId
         ? (
           <Button
@@ -430,9 +524,11 @@ function GroupRuleChip({
 
 /** The tray of ungrouped rules — a drag source. Dropping a grouped rule here is ignored (see board). */
 function UngroupedTray({
-  rules,
+  rules, moveTargets, onMove,
 }: {
   rules: WebsiteExtensionFillRule[];
+  moveTargets: MoveTarget[];
+  onMove: (ruleId: string, targetGroupId: string | null) => void;
 }) {
   const {
     t,
@@ -443,6 +539,8 @@ function UngroupedTray({
       <RuleDropZone
         dropId={UNGROUPED_ID}
         rules={rules}
+        moveTargets={moveTargets}
+        onMove={onMove}
       />
     </div>
   );

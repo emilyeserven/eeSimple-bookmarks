@@ -86,6 +86,23 @@
       border: 1px solid #d1d5db;
       border-radius: 4px;
     }
+    /* Rule groups — collapsible sections in the review list (expanded by default). */
+    .fill-group { border-top: 1px solid #eee; }
+    .fill-group-header {
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12px;
+      color: #374151;
+      padding: 6px 0;
+      list-style: none;
+    }
+    .fill-group-header::-webkit-details-marker { display: none; }
+    .fill-group-header::before { content: "▾ "; color: #9ca3af; }
+    .fill-group:not([open]) > .fill-group-header::before { content: "▸ "; }
+    .fill-group .fill-row { padding-left: 12px; }
+    .fill-group-child { border-top: none; margin-left: 12px; }
+    .fill-group-child > .fill-group-header { font-size: 11px; color: #6b7280; }
+
     .badge-new {
       display: inline-block;
       margin-left: 4px;

@@ -5,6 +5,7 @@
  * jsonb on `websites.extension_fill_rules`.
  */
 
+import type { ExtensionFillRuleGroup } from "./extensionFillGroups.js";
 import type { TaxonomyDirectFieldKey, TaxonomyEntityAssociation, TaxonomyEntityTermRef, TaxonomyEntityWriteKey } from "./extensionFillTaxonomy.js";
 import type { Bookmark, CustomProperty } from "./index.js";
 import type { SocialMediaPlatform } from "./socialMedia.js";
@@ -300,6 +301,8 @@ export interface ExtensionFillContext {
     id: string;
     siteName: string;
     extensionFillRules: WebsiteExtensionFillRule[];
+    /** Groups over the site's rules, so the popup can render grouped rows under collapsible headers. */
+    extensionFillRuleGroups?: ExtensionFillRuleGroup[];
   };
   /**
    * Custom properties referenced by the website's rules (both `customProperty` and `sections`

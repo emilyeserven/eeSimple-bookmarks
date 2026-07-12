@@ -653,7 +653,7 @@ async function enterFillMode(ctx, rules) {
     showReviewError(bookmark, "Couldn't prepare the changes for this page.");
     return;
   }
-  renderReview(bookmark, rows);
+  renderReview(bookmark, rows, ctx.website?.extensionFillRuleGroups ?? []);
 }
 
 // Two-step injection: load the classic engine script into the page, then call it with the rules.
@@ -2091,7 +2091,7 @@ function coerceBoolean(text) {
 }
 
 // --- Review rendering ---------------------------------------------------
-function renderReview(bookmark, rows) {
+function renderReview(bookmark, rows, groups) {
   fillReviewTitle.textContent = bookmark?.title ?? currentTab?.title ?? "";
   fillError.classList.add("hidden");
   fillError.textContent = "";
@@ -2099,14 +2099,61 @@ function renderReview(bookmark, rows) {
   fillApplyBtn.disabled = false;
   fillApplyBtn.textContent = "Apply";
   fillRows.innerHTML = "";
-  for (const row of rows) {
-    fillRows.appendChild(renderRow(row));
-  }
+  appendGroupedRows(fillRows, rows, groups || []);
   // No bookmark (taxonomy mode) → nothing to open.
   fillReviewOpenBtn.classList.toggle("hidden", !bookmark);
   fillReviewOpenBtn.onclick = () => openBookmark(bookmark?.id);
+  // Selection/apply run off the (unchanged) `rows` array, so grouping the DOM never affects them.
   fillApplyBtn.onclick = () => void applyChanges(rows, bookmark);
   show("review");
+}
+
+/** A collapsible group section, expanded by default. `<summary>` (not a `<label>`) never toggles a row checkbox. */
+function makeGroupDetails(label, isChild) {
+  const details = document.createElement("details");
+  details.open = true;
+  details.className = isChild ? "fill-group fill-group-child" : "fill-group";
+  const summary = document.createElement("summary");
+  summary.className = "fill-group-header";
+  summary.textContent = label || "(unnamed group)";
+  details.appendChild(summary);
+  return details;
+}
+
+/**
+ * Render the review rows bucketed by their rule group (two tiers) into collapsible sections, with
+ * ungrouped rows flat. Every row is rendered exactly once — a leftover pass at the end catches
+ * ungrouped, stale-groupId, and orphaned-child rows so nothing is ever dropped.
+ */
+function appendGroupedRows(container, rows, groups) {
+  const rendered = new Set();
+  const rowsForGroup = id => rows.filter(r => r.rule && r.rule.groupId === id);
+  const render = (target, row) => {
+    target.appendChild(renderRow(row));
+    rendered.add(row);
+  };
+  for (const top of groups.filter(g => !g.parentId)) {
+    const childSets = groups
+      .filter(g => g.parentId === top.id)
+      .map(child => ({
+        group: child,
+        rows: rowsForGroup(child.id),
+      }));
+    const ownRows = rowsForGroup(top.id);
+    if (ownRows.length === 0 && childSets.every(cs => cs.rows.length === 0)) continue;
+    const details = makeGroupDetails(top.label, false);
+    for (const row of ownRows) render(details, row);
+    for (const cs of childSets) {
+      if (cs.rows.length === 0) continue;
+      const childDetails = makeGroupDetails(cs.group.label, true);
+      for (const row of cs.rows) render(childDetails, row);
+      details.appendChild(childDetails);
+    }
+    container.appendChild(details);
+  }
+  for (const row of rows) {
+    if (!rendered.has(row)) container.appendChild(renderRow(row));
+  }
 }
 
 function renderRow(row) {
