@@ -329,6 +329,11 @@ function coerceCustomPropertyTarget(prev: FillTarget): Extract<FillTarget, { kin
         ratingMatchExact: same.ratingMatchExact,
       }
       : {}),
+    ...(same?.ratingMatchCaseSensitive !== undefined
+      ? {
+        ratingMatchCaseSensitive: same.ratingMatchCaseSensitive,
+      }
+      : {}),
     ...(same?.ratingLevels !== undefined
       ? {
         ratingLevels: same.ratingLevels,
@@ -611,6 +616,11 @@ function cleanRatingRangeFields(
     ...(typeof target.ratingMatchExact === "boolean"
       ? {
         ratingMatchExact: target.ratingMatchExact,
+      }
+      : {}),
+    ...(typeof target.ratingMatchCaseSensitive === "boolean"
+      ? {
+        ratingMatchCaseSensitive: target.ratingMatchCaseSensitive,
       }
       : {}),
     ...(ratingLevels.length > 0

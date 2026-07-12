@@ -776,11 +776,13 @@ function RatingLevelDetectorsEditor({
     t,
   } = useTranslation();
   const exactId = useId();
+  const caseId = useId();
   const levels = ratingLevelValues(property);
   const existing = target.ratingLevels ?? [];
   const detectorFor = (level: number) => existing.find(detector => detector.level === level);
   const sharedSelector = target.ratingSelector ?? "";
   const exact = target.ratingMatchExact ?? true;
+  const caseSensitive = target.ratingMatchCaseSensitive ?? false;
   // A level's own selector override (blank = use the shared selector).
   const selectorDisplay = (level: number) => detectorFor(level)?.selector ?? "";
   // A level's match text: the stored value, else a first-time prefill of the level's label (so the
@@ -814,6 +816,7 @@ function RatingLevelDetectorsEditor({
   // Rebuild the whole range target; unspecified fields keep their current displayed value.
   const commit = (fields: { ratingSelector?: string;
     ratingMatchExact?: boolean;
+    ratingMatchCaseSensitive?: boolean;
     ratingLevels?: RatingLevelDetector[]; }) => {
     onChange({
       kind: "customProperty",
@@ -821,6 +824,7 @@ function RatingLevelDetectorsEditor({
       ratingBound: "range",
       ratingSelector: fields.ratingSelector ?? sharedSelector,
       ratingMatchExact: fields.ratingMatchExact ?? exact,
+      ratingMatchCaseSensitive: fields.ratingMatchCaseSensitive ?? caseSensitive,
       ratingLevels: fields.ratingLevels ?? buildLevels(null, {}),
     });
   };
@@ -848,6 +852,17 @@ function RatingLevelDetectorsEditor({
         />
         <Label htmlFor={exactId}>{t("Exact match text")}</Label>
         <span className="text-xs text-muted-foreground">{t("Off = \"contains\"")}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id={caseId}
+          checked={caseSensitive}
+          onCheckedChange={checked => commit({
+            ratingMatchCaseSensitive: checked === true,
+          })}
+        />
+        <Label htmlFor={caseId}>{t("Case sensitive")}</Label>
+        <span className="text-xs text-muted-foreground">{t("Off = case-insensitive")}</span>
       </div>
       {levels.map(level => (
         <div

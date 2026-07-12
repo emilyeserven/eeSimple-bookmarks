@@ -128,13 +128,14 @@ describe("coerceFillTarget", () => {
     });
   });
 
-  it("preserves the shared selector, exact toggle, and range detectors across a same-kind rebuild", () => {
+  it("preserves the shared selector, match toggles, and range detectors across a same-kind rebuild", () => {
     const cp = {
       kind: "customProperty" as const,
       propertyId: "p1",
       ratingBound: "range" as const,
       ratingSelector: ".lvl",
       ratingMatchExact: false,
+      ratingMatchCaseSensitive: true,
       ratingLevels: [
         {
           level: 1,
@@ -462,7 +463,7 @@ describe("taxonomyDirect target", () => {
     })])).toEqual([]);
   });
 
-  it("keeps the shared selector + exact toggle, trims levels, and drops fully-empty ones", () => {
+  it("keeps the shared selector + match toggles, trims levels, and drops fully-empty ones", () => {
     const [out] = normalizeExtensionFillRules([rule({
       target: {
         kind: "customProperty",
@@ -470,6 +471,7 @@ describe("taxonomyDirect target", () => {
         ratingBound: "range",
         ratingSelector: " .lvl ",
         ratingMatchExact: false,
+        ratingMatchCaseSensitive: true,
         ratingLevels: [
           {
             level: 0,
@@ -493,6 +495,7 @@ describe("taxonomyDirect target", () => {
       ratingBound: "range",
       ratingSelector: ".lvl",
       ratingMatchExact: false,
+      ratingMatchCaseSensitive: true,
       ratingLevels: [
         {
           level: 1,
@@ -514,6 +517,7 @@ describe("taxonomyDirect target", () => {
         ratingBound: "from",
         ratingSelector: ".lvl",
         ratingMatchExact: false,
+        ratingMatchCaseSensitive: true,
         ratingLevels: [
           {
             level: 1,

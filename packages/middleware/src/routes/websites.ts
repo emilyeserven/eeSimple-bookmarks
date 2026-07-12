@@ -436,6 +436,9 @@ const fillTargetSchema = {
     ratingMatchExact: {
       type: "boolean",
     },
+    ratingMatchCaseSensitive: {
+      type: "boolean",
+    },
     ratingLevels: {
       type: "array",
       items: {

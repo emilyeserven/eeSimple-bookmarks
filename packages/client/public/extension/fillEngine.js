@@ -367,13 +367,15 @@
   // sorted list of present levels (numbers). Each level's effective selector is its own `selector` or,
   // when absent, the target's shared `ratingSelector`; a level is present when that selector matches at
   // least one element and — if the level has match text — that element's trimmed text matches. The
-  // compare mode is global: `target.ratingMatchExact === false` → "contains", else "equals" (always
-  // case-insensitive). A legacy per-detector `match` object (pre-shared-selector rules) is still
-  // honored. Invalid selectors are skipped (never poison the batch). The popup turns these into
-  // From (min) / To (max).
+  // compare mode is global: `target.ratingMatchExact === false` → "contains", else "equals"; case
+  // sensitivity is global too: `target.ratingMatchCaseSensitive === true` → case-sensitive, else
+  // insensitive. A legacy per-detector `match` object (pre-shared-selector rules) is still honored.
+  // Invalid selectors are skipped (never poison the batch). The popup turns these into From (min) /
+  // To (max).
   function detectRatingLevels(target, doc) {
     var sharedSelector = (target.ratingSelector || "").trim();
     var mode = target.ratingMatchExact === false ? "contains" : "equals";
+    var caseSensitive = target.ratingMatchCaseSensitive === true;
     var present = [];
     (target.ratingLevels || []).forEach(function (det) {
       if (!det) return;
@@ -391,7 +393,7 @@
         ? {
           mode: mode,
           value: det.matchText,
-          caseSensitive: false,
+          caseSensitive: caseSensitive,
         }
         : det.match;
       var matched = match
