@@ -229,7 +229,7 @@
     return "";
   }
 
-  function applyTransform(value, transform) {
+  function applyTransform(value, transform, baseUrl) {
     if (transform.kind === "regex") {
       var re = new RegExp(transform.pattern, transform.flags || "");
       var m = re.exec(value);
@@ -252,6 +252,18 @@
     }
     if (transform.kind === "trim") {
       return value.trim();
+    }
+    if (transform.kind === "affix") {
+      return (transform.prefix || "") + value + (transform.suffix || "");
+    }
+    if (transform.kind === "absoluteUrl") {
+      if (!baseUrl) return value;
+      try {
+        return new URL(value, baseUrl).href;
+      }
+      catch {
+        return value;
+      }
     }
     throw new Error("Unknown transform kind: " + transform.kind);
   }
@@ -298,9 +310,10 @@
       if (raw != null) values.push(raw);
     });
 
+    var baseUrl = doc.baseURI;
     (extract.transform || []).forEach(function (transform) {
       values = values.map(function (value) {
-        return applyTransform(value, transform);
+        return applyTransform(value, transform, baseUrl);
       });
     });
 
@@ -342,8 +355,9 @@
     var raw = readValue(el, extract.read);
     if (raw == null) return "";
     var value = raw;
+    var baseUrl = el.ownerDocument ? el.ownerDocument.baseURI : "";
     (extract.transform || []).forEach(function (transform) {
-      value = applyTransform(value, transform);
+      value = applyTransform(value, transform, baseUrl);
     });
     return value.trim();
   }

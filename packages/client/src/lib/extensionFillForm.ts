@@ -264,6 +264,13 @@ export function describeFillTransform(transform: FillTransform): string {
       return `Replace /${transform.pattern}/${transform.flags ?? ""} → "${transform.replacement}"`;
     case "trim":
       return "Trim";
+    case "affix":
+      return [
+        transform.prefix ? `Prefix "${transform.prefix}"` : "",
+        transform.suffix ? `Suffix "${transform.suffix}"` : "",
+      ].filter(Boolean).join(" + ") || "Affix";
+    case "absoluteUrl":
+      return "Resolve relative URL";
   }
 }
 
@@ -462,6 +469,14 @@ export function coerceFillTransform(kind: FillTransform["kind"], prev: FillTrans
     case "trim":
       return {
         kind: "trim",
+      };
+    case "affix":
+      return {
+        kind: "affix",
+      };
+    case "absoluteUrl":
+      return {
+        kind: "absoluteUrl",
       };
   }
 }
@@ -754,6 +769,27 @@ function cleanTransform(transform: FillTransform): FillTransform | null {
     case "trim":
       return {
         kind: "trim",
+      };
+    case "affix": {
+      // Drop a no-op row that sets neither prefix nor suffix (mirrors blank-regex → null).
+      if (!transform.prefix && !transform.suffix) return null;
+      return {
+        kind: "affix",
+        ...(transform.prefix
+          ? {
+            prefix: transform.prefix,
+          }
+          : {}),
+        ...(transform.suffix
+          ? {
+            suffix: transform.suffix,
+          }
+          : {}),
+      };
+    }
+    case "absoluteUrl":
+      return {
+        kind: "absoluteUrl",
       };
   }
 }

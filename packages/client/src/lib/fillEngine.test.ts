@@ -514,6 +514,25 @@ describe("eesimpleFillEngine.runRules — transforms", () => {
     ]);
     expect(runOne(rule, html("336")).values).toEqual([]);
   });
+
+  it("affix — prepends prefix and appends suffix around the value", () => {
+    const rule = withTransforms([{
+      kind: "affix",
+      prefix: "https://x.com",
+      suffix: "?ref=1",
+    }]);
+    expect(runOne(rule, html("/books/1")).values).toEqual(["https://x.com/books/1?ref=1"]);
+  });
+
+  it("absoluteUrl — resolves a relative href against the page's base URL", () => {
+    const doc = docFrom(
+      "<head><base href=\"https://x.com/list/page\"></head><body><span class=\"v\">/books/1</span></body>",
+    );
+    const rule = withTransforms([{
+      kind: "absoluteUrl",
+    }]);
+    expect(engine.runRules([rule], doc)[0].values).toEqual(["https://x.com/books/1"]);
+  });
 });
 
 describe("eesimpleFillEngine.runRules — split & multi-value", () => {

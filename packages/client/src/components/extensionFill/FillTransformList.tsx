@@ -17,6 +17,7 @@ import { applyFillTransforms } from "@/lib/fillTransformPreview";
 type TransformKind = FillTransform["kind"];
 type RegexTransform = Extract<FillTransform, { kind: "regex" }>;
 type ReplaceTransform = Extract<FillTransform, { kind: "replace" }>;
+type AffixTransform = Extract<FillTransform, { kind: "affix" }>;
 
 /** The dynamic list of {@link FillTransform} rows for one rule (add / remove / reorder). */
 export function FillTransformList({
@@ -74,7 +75,9 @@ function TransformPreview({
     t,
   } = useTranslation();
   const [sample, setSample] = useState("");
-  const result = applyFillTransforms(sample, transforms);
+  const [baseUrl, setBaseUrl] = useState("");
+  const needsBaseUrl = transforms.some(transform => transform.kind === "absoluteUrl");
+  const result = applyFillTransforms(sample, transforms, baseUrl);
   return (
     <div className="mt-2 space-y-1 rounded-md border border-dashed p-2">
       <LabeledInput
@@ -83,6 +86,16 @@ function TransformPreview({
         value={sample}
         onChange={setSample}
       />
+      {needsBaseUrl
+        ? (
+          <LabeledInput
+            label={t("Sample page URL")}
+            placeholder="https://example.com/books/123"
+            value={baseUrl}
+            onChange={setBaseUrl}
+          />
+        )
+        : null}
       <p className="text-xs text-muted-foreground">
         {sample && result
           ? (
@@ -152,10 +165,18 @@ function FillTransformFields({
           onChange={onChange}
         />
       );
+    case "affix":
+      return (
+        <AffixFields
+          transform={transform}
+          onChange={onChange}
+        />
+      );
     case "number":
     case "duration":
     case "date":
     case "trim":
+    case "absoluteUrl":
       return null;
   }
 }
@@ -246,6 +267,38 @@ function ReplaceFields({
   );
 }
 
+function AffixFields({
+  transform, onChange,
+}: {
+  transform: AffixTransform;
+  onChange: (transform: FillTransform) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      <LabeledInput
+        label={t("Prefix")}
+        placeholder="https://example.com"
+        value={transform.prefix ?? ""}
+        onChange={prefix => onChange({
+          ...transform,
+          prefix: prefix || undefined,
+        })}
+      />
+      <LabeledInput
+        label={t("Suffix")}
+        value={transform.suffix ?? ""}
+        onChange={suffix => onChange({
+          ...transform,
+          suffix: suffix || undefined,
+        })}
+      />
+    </div>
+  );
+}
+
 function TRANSFORM_KIND_OPTIONS(t: (key: string) => string): KindOption<TransformKind>[] {
   return [
     {
@@ -271,6 +324,14 @@ function TRANSFORM_KIND_OPTIONS(t: (key: string) => string): KindOption<Transfor
     {
       value: "trim",
       label: t("Trim"),
+    },
+    {
+      value: "affix",
+      label: t("Add prefix/suffix"),
+    },
+    {
+      value: "absoluteUrl",
+      label: t("Resolve relative URL"),
     },
   ];
 }

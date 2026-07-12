@@ -108,8 +108,11 @@ export function normalizeDateValue(value: string): string {
   return "";
 }
 
-/** Apply one transform to a single value (empty string on a miss or an invalid regex/replace). */
-export function applyFillTransform(value: string, transform: FillTransform): string {
+/**
+ * Apply one transform to a single value (empty string on a miss or an invalid regex/replace).
+ * `baseUrl` is the page URL an `absoluteUrl` transform resolves against; empty = no-op passthrough.
+ */
+export function applyFillTransform(value: string, transform: FillTransform, baseUrl = ""): string {
   switch (transform.kind) {
     case "regex": {
       try {
@@ -141,10 +144,21 @@ export function applyFillTransform(value: string, transform: FillTransform): str
     }
     case "trim":
       return value.trim();
+    case "affix":
+      return (transform.prefix ?? "") + value + (transform.suffix ?? "");
+    case "absoluteUrl": {
+      if (!baseUrl) return value;
+      try {
+        return new URL(value, baseUrl).href;
+      }
+      catch {
+        return value;
+      }
+    }
   }
 }
 
 /** Run a full transform list over one value, in order — the extension's per-value pipeline. */
-export function applyFillTransforms(value: string, transforms: FillTransform[]): string {
-  return transforms.reduce((current, transform) => applyFillTransform(current, transform), value);
+export function applyFillTransforms(value: string, transforms: FillTransform[], baseUrl = ""): string {
+  return transforms.reduce((current, transform) => applyFillTransform(current, transform, baseUrl), value);
 }

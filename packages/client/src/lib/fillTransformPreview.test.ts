@@ -46,6 +46,42 @@ describe("applyFillTransform", () => {
     })).toBe("padded");
   });
 
+  it("affix — prepends prefix and appends suffix (each optional)", () => {
+    expect(applyFillTransform("/books/1", {
+      kind: "affix",
+      prefix: "https://x.com",
+    })).toBe("https://x.com/books/1");
+    expect(applyFillTransform("abc", {
+      kind: "affix",
+      suffix: "!",
+    })).toBe("abc!");
+    expect(applyFillTransform("mid", {
+      kind: "affix",
+      prefix: "[",
+      suffix: "]",
+    })).toBe("[mid]");
+    expect(applyFillTransform("unchanged", {
+      kind: "affix",
+    })).toBe("unchanged");
+  });
+
+  it("absoluteUrl — resolves against the base URL; passes through without one", () => {
+    const base = "https://x.com/list/page";
+    expect(applyFillTransform("/books/1", {
+      kind: "absoluteUrl",
+    }, base)).toBe("https://x.com/books/1");
+    expect(applyFillTransform("//cdn.x.com/a.jpg", {
+      kind: "absoluteUrl",
+    }, base)).toBe("https://cdn.x.com/a.jpg");
+    expect(applyFillTransform("https://y.com/z", {
+      kind: "absoluteUrl",
+    }, base)).toBe("https://y.com/z");
+    // No base URL supplied → passthrough (the preview's mid-typing default).
+    expect(applyFillTransform("/books/1", {
+      kind: "absoluteUrl",
+    })).toBe("/books/1");
+  });
+
   it("duration — parity with the worked example and units", () => {
     expect(applyFillTransform("77h 32m", {
       kind: "duration",

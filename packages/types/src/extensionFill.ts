@@ -228,7 +228,17 @@ export type FillTransform
       pattern: string;
       flags?: string;
       replacement: string; }
-      | { kind: "trim" };
+      | { kind: "trim" }
+  /** Prepend `prefix` and/or append `suffix` literal text to the value (both optional). */
+      | { kind: "affix";
+        prefix?: string;
+        suffix?: string; }
+  /**
+   * Resolve the value as a URL against the current page's URL (`new URL(value, pageUrl)`), turning a
+   * relative `href` ("/books/123") or a protocol-relative one ("//host/path") into an absolute URL.
+   * A no-op when the value is already absolute, unresolvable, or no page URL is available.
+   */
+        | { kind: "absoluteUrl" };
 
 /** Compact option shown in the popup's taxonomy match list. */
 export interface ExtensionFillTaxonomyOption {
