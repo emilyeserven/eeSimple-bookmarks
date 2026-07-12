@@ -657,6 +657,18 @@ describe("normalizeExtensionFillRules", () => {
     })])).toEqual([]);
   });
 
+  it("preserves a rule's groupId across the round-trip", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      groupId: "g1",
+    })]);
+    expect(out.groupId).toBe("g1");
+  });
+
+  it("omits groupId when the rule is ungrouped", () => {
+    const [out] = normalizeExtensionFillRules([rule({})]);
+    expect("groupId" in out).toBe(false);
+  });
+
   it("keeps a customProperty target once a property is selected", () => {
     const [out] = normalizeExtensionFillRules([rule({
       target: {

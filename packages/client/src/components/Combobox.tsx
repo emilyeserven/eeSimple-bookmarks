@@ -62,6 +62,8 @@ interface ComboboxProps {
   /** Id applied to the trigger button so an external `<Label htmlFor>` can target it. */
   "id"?: string;
   "aria-label"?: string;
+  /** When true the whole control is read-only (the trigger can't be opened). */
+  "disabled"?: boolean;
   /**
    * Optional action pinned to the bottom of the dropdown (e.g. "Create category…"). Rendered outside
    * the filtered list so it stays visible regardless of the search query; selecting it closes the
@@ -129,6 +131,7 @@ export function Combobox({
   className,
   id,
   "aria-label": ariaLabel,
+  disabled,
   createOption,
 }: ComboboxProps) {
   const {
@@ -154,6 +157,7 @@ export function Combobox({
           variant="outline"
           role="combobox"
           id={id}
+          disabled={disabled}
           aria-expanded={open}
           aria-label={ariaLabel}
           data-slot="combobox"

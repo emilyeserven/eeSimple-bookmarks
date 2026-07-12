@@ -1,5 +1,5 @@
 import { and, asc, eq, inArray, ne, or, sql } from "drizzle-orm";
-import type { BulkBookmarkResult, BulkDeleteResult, CreateWebsiteInput, DetectedScanObservation, LabeledWebsite, RedirectFailureBookmark, RedirectFailureWebsite, ShortenedLink, SocialLink, UpdateWebsiteInput, Website, WebsiteExtensionFillRule, WebsiteNode, WebsiteParamRule, WebsiteScanObservation } from "@eesimple/types";
+import type { BulkBookmarkResult, BulkDeleteResult, CreateWebsiteInput, DetectedScanObservation, ExtensionFillRuleGroup, LabeledWebsite, RedirectFailureBookmark, RedirectFailureWebsite, ShortenedLink, SocialLink, UpdateWebsiteInput, Website, WebsiteExtensionFillRule, WebsiteNode, WebsiteParamRule, WebsiteScanObservation } from "@eesimple/types";
 import { mergeScanObservations } from "@eesimple/types";
 import { getShortenerIgnoreList } from "@/services/appSettings";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
@@ -218,6 +218,7 @@ function toWebsite(
     youtubeChannelIds,
     alternateNames: (row.alternateNames as string[] | null) ?? [],
     extensionFillRules: (row.extensionFillRules as WebsiteExtensionFillRule[] | null) ?? [],
+    extensionFillRuleGroups: (row.extensionFillRuleGroups as ExtensionFillRuleGroup[] | null) ?? [],
     scanObservations: (row.scanObservations as WebsiteScanObservation[] | null) ?? [],
     redirectResolutionFailure: row.redirectResolutionFailure ?? false,
     scanUrlForIsbn: row.scanUrlForIsbn ?? false,
@@ -238,6 +239,7 @@ const websiteSelect = {
   labeledWebsites: websites.labeledWebsites,
   alternateNames: websites.alternateNames,
   extensionFillRules: websites.extensionFillRules,
+  extensionFillRuleGroups: websites.extensionFillRuleGroups,
   scanObservations: websites.scanObservations,
   createdAt: websites.createdAt,
   categoryId: websites.categoryId,
@@ -571,7 +573,7 @@ export async function updateWebsite(
     throw new BuiltInWebsiteError("A built-in website cannot be renamed or moved");
   }
 
-  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "description" | "slug" | "shortenedLinks" | "paramRules" | "categoryId" | "mediaTypeId" | "socialLinks" | "labeledWebsites" | "alternateNames" | "extensionFillRules" | "scanObservations" | "redirectResolutionFailure" | "scanUrlForIsbn">> = buildWebsiteScalarPatch(input);
+  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "description" | "slug" | "shortenedLinks" | "paramRules" | "categoryId" | "mediaTypeId" | "socialLinks" | "labeledWebsites" | "alternateNames" | "extensionFillRules" | "extensionFillRuleGroups" | "scanObservations" | "redirectResolutionFailure" | "scanUrlForIsbn">> = buildWebsiteScalarPatch(input);
   if (input.domain !== undefined) {
     const domain = normalizeWebsiteDomain(input.domain);
     const [clash] = await db.select({

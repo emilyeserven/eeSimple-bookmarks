@@ -23,13 +23,15 @@ export interface KindOption<T extends string> {
 
 /** A labeled shadcn `Select` bound to a string-literal union (the discriminated-union `kind`s). */
 export function KindSelect<T extends string>({
-  label, value, options, onValueChange, className,
+  label, value, options, onValueChange, className, disabled,
 }: {
   label: string;
   value: T;
   options: KindOption<T>[];
   onValueChange: (value: T) => void;
   className?: string;
+  /** When true the control is read-only (used when a fill-rule group overrides this option). */
+  disabled?: boolean;
 }) {
   const id = useId();
   const selectedDescription = options.find(option => option.value === value)?.description;
@@ -39,6 +41,7 @@ export function KindSelect<T extends string>({
       <Select
         value={value}
         onValueChange={next => onValueChange(next as T)}
+        disabled={disabled}
       >
         <SelectTrigger
           id={id}
@@ -67,7 +70,7 @@ export function KindSelect<T extends string>({
 
 /** A labeled text `Input`, with optional muted `hint` help text shown under the field. */
 export function LabeledInput({
-  label, value, onChange, placeholder, className, hint,
+  label, value, onChange, placeholder, className, hint, disabled,
 }: {
   label: string;
   value: string;
@@ -75,6 +78,8 @@ export function LabeledInput({
   placeholder?: string;
   className?: string;
   hint?: ReactNode;
+  /** When true the input is read-only (used when a fill-rule group overrides this option). */
+  disabled?: boolean;
 }) {
   const id = useId();
   return (
@@ -84,6 +89,7 @@ export function LabeledInput({
         id={id}
         value={value}
         placeholder={placeholder}
+        disabled={disabled}
         onChange={event => onChange(event.target.value)}
       />
       {hint

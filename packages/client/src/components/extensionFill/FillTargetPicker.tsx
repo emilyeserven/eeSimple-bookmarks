@@ -1,6 +1,6 @@
 import type { KindOption } from "./controls";
 import type { ComboboxOption } from "../Combobox";
-import type { CustomProperty, FillTarget, TaxonomyDirectFieldKey, TaxonomyEntityAssociation, TaxonomyEntityAssociationSpec, TaxonomyEntityWriteKey } from "@eesimple/types";
+import type { CustomProperty, FillTarget, OverrideKey, TaxonomyDirectFieldKey, TaxonomyEntityAssociation, TaxonomyEntityAssociationSpec, TaxonomyEntityWriteKey } from "@eesimple/types";
 
 import { useId } from "react";
 
@@ -31,14 +31,21 @@ type SubField = "current" | "total";
 /** The two associations the server can resolve straight from the tab URL (domain / channelKey). */
 const URL_RESOLVABLE_ASSOCIATIONS: TaxonomyEntityAssociation[] = ["website", "youtubeChannel"];
 
+/** The set of options a fill-rule group has locked (read-only) on the rule being edited. */
+type LockedKeys = Set<OverrideKey>;
+
+const NO_LOCKS: LockedKeys = new Set();
+
 /** The `kind` select plus the variant-specific value control for a rule's {@link FillTarget}. */
 export function FillTargetPicker({
-  target, propertyOptions, propertiesById, onChange,
+  target, propertyOptions, propertiesById, onChange, lockedKeys = NO_LOCKS,
 }: {
   target: FillTarget;
   propertyOptions: ComboboxOption[];
   propertiesById: Map<string, CustomProperty>;
   onChange: (target: FillTarget) => void;
+  /** Options a fill-rule group overrides — rendered read-only here. */
+  lockedKeys?: LockedKeys;
 }) {
   const {
     t,
@@ -47,6 +54,7 @@ export function FillTargetPicker({
     <div className="space-y-2">
       <KindSelect
         label={t("Target")}
+        disabled={lockedKeys.has("target.kind")}
         value={target.kind}
         options={[
           {
@@ -92,6 +100,7 @@ export function FillTargetPicker({
         propertyOptions={propertyOptions}
         propertiesById={propertiesById}
         onChange={onChange}
+        lockedKeys={lockedKeys}
       />
     </div>
   );
@@ -99,12 +108,13 @@ export function FillTargetPicker({
 
 /** The value control for the currently-selected target kind. */
 function FillTargetValue({
-  target, propertyOptions, propertiesById, onChange,
+  target, propertyOptions, propertiesById, onChange, lockedKeys,
 }: {
   target: FillTarget;
   propertyOptions: ComboboxOption[];
   propertiesById: Map<string, CustomProperty>;
   onChange: (target: FillTarget) => void;
+  lockedKeys: LockedKeys;
 }) {
   const {
     t,
@@ -114,6 +124,7 @@ function FillTargetValue({
       return (
         <KindSelect<FieldName>
           label={t("Field")}
+          disabled={lockedKeys.has("field.field")}
           value={target.field}
           options={FIELD_OPTIONS(t)}
           onValueChange={field => onChange({
@@ -127,6 +138,7 @@ function FillTargetValue({
         <div className="space-y-2">
           <Combobox
             aria-label={t("Custom property")}
+            disabled={lockedKeys.has("customProperty.propertyId")}
             options={propertyOptions}
             value={target.propertyId || undefined}
             placeholder={t("Select a property")}
@@ -141,6 +153,7 @@ function FillTargetValue({
             target={target}
             property={propertiesById.get(target.propertyId)}
             onChange={onChange}
+            lockedKeys={lockedKeys}
           />
         </div>
       );
@@ -148,6 +161,7 @@ function FillTargetValue({
       return (
         <KindSelect<TaxonomyName>
           label={t("Taxonomy")}
+          disabled={lockedKeys.has("taxonomy.taxonomy")}
           value={target.taxonomy}
           options={TAXONOMY_OPTIONS(t)}
           onValueChange={taxonomy => onChange({
@@ -160,6 +174,7 @@ function FillTargetValue({
       return (
         <SetMainImageToggle
           checked={target.setMain ?? false}
+          disabled={lockedKeys.has("image.setMain")}
           onChange={setMain => onChange({
             kind: "image",
             setMain,
@@ -171,6 +186,7 @@ function FillTargetValue({
         <TaxonomyEntityTarget
           target={target}
           onChange={onChange}
+          lockedKeys={lockedKeys}
         />
       );
     case "taxonomyDirect":
@@ -178,6 +194,7 @@ function FillTargetValue({
         <TaxonomyDirectTarget
           target={target}
           onChange={onChange}
+          lockedKeys={lockedKeys}
         />
       );
     case "sections":
@@ -186,6 +203,7 @@ function FillTargetValue({
           target={target}
           propertiesById={propertiesById}
           onChange={onChange}
+          lockedKeys={lockedKeys}
         />
       );
   }
@@ -247,15 +265,17 @@ function applyGroupingMode(target: SectionsTarget, next: SectionGroupingMode): S
  * For `timestamp` the grouping controls are hidden (the selector's text is parsed for `m:ss` lines).
  */
 function SectionsTarget({
-  target, propertiesById, onChange,
+  target, propertiesById, onChange, lockedKeys,
 }: {
   target: SectionsTarget;
   propertiesById: Map<string, CustomProperty>;
   onChange: (target: FillTarget) => void;
+  lockedKeys: LockedKeys;
 }) {
   const {
     t,
   } = useTranslation();
+  const layoutLocked = lockedKeys.has("sections.layout");
   const sectionsOptions: ComboboxOption[] = [...propertiesById.values()]
     .filter(property => property.type === "sections")
     .map(property => ({
@@ -271,6 +291,7 @@ function SectionsTarget({
     <div className="space-y-2">
       <Combobox
         aria-label={t("Sections property")}
+        disabled={lockedKeys.has("sections.propertyId")}
         options={sectionsOptions}
         value={target.propertyId || undefined}
         placeholder={t("Select a property")}
@@ -282,6 +303,7 @@ function SectionsTarget({
       />
       <KindSelect<SectionEntryTypeName>
         label={t("Entry type")}
+        disabled={lockedKeys.has("sections.entryType")}
         value={target.entryType}
         options={[
           {
@@ -320,6 +342,7 @@ function SectionsTarget({
             </p>
             <KindSelect<SectionGroupingMode>
               label={t("Grouping")}
+              disabled={layoutLocked}
               value={mode}
               options={[
                 {
@@ -350,6 +373,7 @@ function SectionsTarget({
               <>
                 <LabeledInput
                   label={t("Section container selector")}
+                  disabled={layoutLocked}
                   placeholder={"[data-purpose=\"course-section\"]"}
                   value={target.container ?? ""}
                   onChange={container => onChange({
@@ -360,6 +384,7 @@ function SectionsTarget({
                 />
                 <LabeledInput
                   label={t("Section name selector (within the container)")}
+                  disabled={layoutLocked}
                   placeholder={"[class*=\"section-title\"]"}
                   value={target.header ?? ""}
                   onChange={header => onChange({
@@ -374,6 +399,7 @@ function SectionsTarget({
             {mode === "headerSelector" && (
               <LabeledInput
                 label={t("Section header selector")}
+                disabled={layoutLocked}
                 placeholder={"[class*=\"section-title\"]"}
                 value={target.sectionHeaderSelector ?? ""}
                 onChange={sectionHeaderSelector => onChange({
@@ -405,6 +431,7 @@ function SectionsTarget({
 
             <LabeledInput
               label={t("Item name selector (within each item)")}
+              disabled={layoutLocked}
               placeholder={"[class*=\"course-lecture-title\"]"}
               value={target.itemName ?? ""}
               onChange={itemName => onChange({
@@ -415,6 +442,7 @@ function SectionsTarget({
             />
             <LabeledInput
               label={t("Item link selector (within each item)")}
+              disabled={layoutLocked}
               placeholder="a"
               value={target.itemUrl ?? ""}
               onChange={itemUrl => onChange({
@@ -473,10 +501,11 @@ function SectionsUdemyExample() {
  * previous one doesn't apply to the new entity.
  */
 function TaxonomyEntityTarget({
-  target, onChange,
+  target, onChange, lockedKeys,
 }: {
   target: TaxonomyEntityTarget;
   onChange: (target: FillTarget) => void;
+  lockedKeys: LockedKeys;
 }) {
   const {
     t,
@@ -487,6 +516,7 @@ function TaxonomyEntityTarget({
     <div className="space-y-2">
       <KindSelect<TaxonomyEntityAssociation>
         label={t("Taxonomy")}
+        disabled={lockedKeys.has("taxonomyEntity.association")}
         value={target.association}
         options={TAXONOMY_ENTITY_ASSOCIATIONS.map(association => ({
           value: association,
@@ -505,6 +535,7 @@ function TaxonomyEntityTarget({
       />
       <KindSelect<TaxonomyEntityWriteKey>
         label={t("Field")}
+        disabled={lockedKeys.has("taxonomyEntity.field")}
         value={target.field}
         options={writeKeys.map(field => ({
           value: field,
@@ -520,6 +551,7 @@ function TaxonomyEntityTarget({
         ? (
           <Combobox
             aria-label={t("Platform")}
+            disabled={lockedKeys.has("taxonomyEntity.socialPlatform")}
             options={SOCIAL_MEDIA_PLATFORMS.map(platform => ({
               value: platform,
               label: SOCIAL_MEDIA_PLATFORM_LABELS[platform],
@@ -580,14 +612,16 @@ function directFieldKeys(association: TaxonomyEntityAssociation): TaxonomyDirect
  * channel); switching the association re-clamps the field.
  */
 function TaxonomyDirectTarget({
-  target, onChange,
+  target, onChange, lockedKeys,
 }: {
   target: TaxonomyDirectTargetT;
   onChange: (target: FillTarget) => void;
+  lockedKeys: LockedKeys;
 }) {
   const {
     t,
   } = useTranslation();
+  const resolveLocked = lockedKeys.has("taxonomyDirect.resolve");
   const associations = target.resolve.mode === "url"
     ? URL_RESOLVABLE_ASSOCIATIONS
     : TAXONOMY_ENTITY_ASSOCIATIONS;
@@ -596,6 +630,7 @@ function TaxonomyDirectTarget({
     <div className="space-y-2">
       <KindSelect<ResolveMode>
         label={t("Resolve entity by")}
+        disabled={resolveLocked}
         value={target.resolve.mode}
         options={[
           {
@@ -631,6 +666,7 @@ function TaxonomyDirectTarget({
         ? (
           <LabeledInput
             label={t("Entity name selector")}
+            disabled={resolveLocked}
             placeholder="h1.entry-title"
             value={target.resolve.select.selector ?? ""}
             onChange={selector => onChange(buildDirectTarget(
@@ -650,6 +686,7 @@ function TaxonomyDirectTarget({
         : null}
       <KindSelect<TaxonomyEntityAssociation>
         label={t("Taxonomy")}
+        disabled={lockedKeys.has("taxonomyDirect.association")}
         value={target.association}
         options={associations.map(association => ({
           value: association,
@@ -660,6 +697,7 @@ function TaxonomyDirectTarget({
       />
       <KindSelect<TaxonomyDirectFieldKey>
         label={t("Field")}
+        disabled={lockedKeys.has("taxonomyDirect.field")}
         value={target.field}
         options={fields.map(field => ({
           value: field,
@@ -672,6 +710,7 @@ function TaxonomyDirectTarget({
         ? (
           <Combobox
             aria-label={t("Platform")}
+            disabled={lockedKeys.has("taxonomyDirect.socialPlatform")}
             options={SOCIAL_MEDIA_PLATFORMS.map(platform => ({
               value: platform,
               label: SOCIAL_MEDIA_PLATFORM_LABELS[platform],
@@ -694,10 +733,11 @@ function TaxonomyDirectTarget({
 
 /** "Set as main image" toggle for an image target — grabs the image and makes it the primary one. */
 function SetMainImageToggle({
-  checked, onChange,
+  checked, onChange, disabled,
 }: {
   checked: boolean;
   onChange: (checked: boolean) => void;
+  disabled?: boolean;
 }) {
   const {
     t,
@@ -708,6 +748,7 @@ function SetMainImageToggle({
       <Checkbox
         id={id}
         checked={checked}
+        disabled={disabled}
         onCheckedChange={value => onChange(value === true)}
       />
       <Label htmlFor={id}>{t("Set as main image")}</Label>
@@ -720,11 +761,12 @@ function SetMainImageToggle({
  * Choices → which option. Other property types (and while none is selected) render nothing.
  */
 function CustomPropertySubValue({
-  target, property, onChange,
+  target, property, onChange, lockedKeys,
 }: {
   target: Extract<FillTarget, { kind: "customProperty" }>;
   property: CustomProperty | undefined;
   onChange: (target: FillTarget) => void;
+  lockedKeys: LockedKeys;
 }) {
   const {
     t,
@@ -733,6 +775,7 @@ function CustomPropertySubValue({
     return (
       <KindSelect<SubField>
         label={t("Value")}
+        disabled={lockedKeys.has("customProperty.subField")}
         value={target.subField ?? "current"}
         options={[
           {
@@ -756,6 +799,7 @@ function CustomPropertySubValue({
     return (
       <Combobox
         aria-label={t("Option")}
+        disabled={lockedKeys.has("customProperty.choiceValue")}
         options={property.choicesItems.map(item => ({
           value: item.value,
           label: item.label,

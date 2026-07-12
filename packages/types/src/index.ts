@@ -10,6 +10,7 @@ import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from 
 import type { BookmarkSectionsValue, BookmarkTextValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, ItemInItemsMediaTypeTexts, NumberFormat, SectionEntryType } from "./customProperties.js";
 import type { EntityName, UpdateEntityNameEntry } from "./entityNames.js";
 import type { WebsiteExtensionFillRule } from "./extensionFill.js";
+import type { ExtensionFillRuleGroup } from "./extensionFillGroups.js";
 import type { BookmarkGenreMood } from "./genreMoods.js";
 import type { HomepageWidget } from "./homepageWidgets.js";
 import type { ImportBlacklistKind } from "./importBlacklist.js";
@@ -30,6 +31,7 @@ export * from "./entityNames.js";
 export * from "./entityLayouts.js";
 export * from "./conditions.js";
 export * from "./extensionFill.js";
+export * from "./extensionFillGroups.js";
 export * from "./extensionFillTaxonomy.js";
 export * from "./websiteScanObservations.js";
 export * from "./genreMoods.js";
@@ -197,6 +199,11 @@ export interface Website {
    */
   extensionFillRules: WebsiteExtensionFillRule[];
   /**
+   * Groups over this site's fill rules (`extensionFillGroups.ts`). A `null` stored value surfaces
+   * here as `[]` (normalized at the API boundary, matching `extensionFillRules`).
+   */
+  extensionFillRuleGroups: ExtensionFillRuleGroup[];
+  /**
    * Structural facts the server scanner has learned about this site (blocks crawlers, needs headless
    * rendering, …), plus any the operator added by hand. A `null` stored value surfaces here as `[]`
    * (normalized at the API boundary, matching `extensionFillRules`).
@@ -255,6 +262,8 @@ export interface UpdateWebsiteInput {
   alternateNames?: string[];
   /** Full replacement list of extension fill rules. Omit to leave unchanged. */
   extensionFillRules?: WebsiteExtensionFillRule[];
+  /** Full replacement list of extension fill rule groups. Omit to leave unchanged. */
+  extensionFillRuleGroups?: ExtensionFillRuleGroup[];
   /** Full replacement list of scanner observations (edited by hand). Omit to leave unchanged. */
   scanObservations?: WebsiteScanObservation[];
   /** When true, flags this site's redirect chains as unreliable. Omit to leave unchanged. */

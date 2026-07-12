@@ -1,75 +1,106 @@
-import type { UpdateWebsiteInput, Website, WebsiteExtensionFillRule } from "@eesimple/types";
+import type { Website } from "@eesimple/types";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+
+import { useTranslation } from "react-i18next";
 
 import { ExtensionFillRulesEditor } from "./extensionFill/ExtensionFillRulesEditor";
+import { ExtensionFillGroupsBoard } from "./extensionFill/groups/ExtensionFillGroupsBoard";
 import { WebsiteBuiltInFillRules } from "./extensionFill/WebsiteBuiltInFillRules";
-import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
-import { useUpdateWebsite } from "../hooks/useWebsites";
-import i18n from "../i18n";
-import { normalizeExtensionFillRules } from "../lib/extensionFillForm";
+import { navLinkClass } from "./TabbedShell";
+import { useExtensionFillRulesEditor } from "../hooks/useExtensionFillRulesEditor";
 
 import { Separator } from "@/components/ui/separator";
-
-/** Debounce window for the whole-rules auto-save (the codebase convention). */
-const SAVE_DEBOUNCE_MS = 700;
-
-const LABELS: Partial<Record<keyof UpdateWebsiteInput, string>> = {
-  extensionFillRules: i18n.t("Extension Fill Rules"),
-};
+import { cn } from "@/lib/utils";
 
 interface Props {
   website: Website;
 }
 
-/** Edit a website's browser-extension "check & fill" extraction rules. Auto-saves on change. */
+type SubTab = "rules" | "groups";
+
+/**
+ * Edit a website's browser-extension "check & fill" extraction rules — a self-contained vertical
+ * two-tab rail (mirroring `VerticalTabbedLayout` without routing): **Rules** (the grouped rule list +
+ * built-in rules) and **Groups** (manage rule groups + their option overrides). Both share one
+ * debounced auto-save via {@link useExtensionFillRulesEditor}.
+ */
 export function WebsiteExtensionFillRulesForm({
   website,
 }: Props) {
-  const updateWebsite = useUpdateWebsite();
-  const [rules, setRules] = useState<WebsiteExtensionFillRule[]>(() => website.extensionFillRules);
+  const {
+    t,
+  } = useTranslation();
+  const editor = useExtensionFillRulesEditor(website);
+  const [tab, setTab] = useState<SubTab>("rules");
 
-  const autoSave = useFieldAutoSave<UpdateWebsiteInput>({
-    id: website.id,
-    update: updateWebsite,
-    labels: LABELS,
-    initial: {
-      extensionFillRules: normalizeExtensionFillRules(website.extensionFillRules),
+  const tabs: { key: SubTab;
+    label: string; }[] = [
+    {
+      key: "rules",
+      label: t("Rules"),
     },
-  });
-
-  // Debounce the save so per-keystroke edits collapse into one PATCH + toast. The pending value is
-  // held so a quick unmount (navigating away) still flushes; `saveField` itself dedups no-ops.
-  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const pending = useRef<WebsiteExtensionFillRule[] | null>(null);
-  const saveFieldRef = useRef(autoSave.saveField);
-  saveFieldRef.current = autoSave.saveField;
-
-  function flush(): void {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = undefined;
-    if (pending.current === null) return;
-    saveFieldRef.current("extensionFillRules", normalizeExtensionFillRules(pending.current));
-    pending.current = null;
-  }
-
-  useEffect(() => flush, []);
-
-  function handleChange(next: WebsiteExtensionFillRule[]): void {
-    setRules(next);
-    pending.current = next;
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(flush, SAVE_DEBOUNCE_MS);
-  }
+    {
+      key: "groups",
+      label: t("Groups"),
+    },
+  ];
 
   return (
-    <div className="space-y-6">
-      <ExtensionFillRulesEditor
-        rules={rules}
-        onChange={handleChange}
-      />
-      <Separator />
-      <WebsiteBuiltInFillRules website={website} />
+    <div
+      className="
+        flex flex-col gap-6
+        md:flex-row
+      "
+    >
+      <nav
+        aria-label={t("Extension fill sections")}
+        className="
+          flex flex-row gap-1 overflow-x-auto border-b pb-1
+          md:w-48 md:shrink-0 md:flex-col md:border-b-0 md:pb-0
+        "
+      >
+        {tabs.map(item => (
+          <button
+            key={item.key}
+            type="button"
+            onClick={() => setTab(item.key)}
+            className={cn(
+              navLinkClass,
+              `
+                text-left
+                md:w-full
+              `,
+              tab === item.key ? "bg-accent text-accent-foreground" : "",
+            )}
+          >
+            {item.label}
+          </button>
+        ))}
+      </nav>
+      <div className="min-w-0 flex-1">
+        {tab === "rules"
+          ? (
+            <div className="space-y-6">
+              <ExtensionFillRulesEditor
+                rules={editor.rules}
+                groups={editor.groups}
+                onChange={editor.changeRules}
+              />
+              <Separator />
+              <WebsiteBuiltInFillRules website={website} />
+            </div>
+          )
+          : (
+            <ExtensionFillGroupsBoard
+              rules={editor.rules}
+              groups={editor.groups}
+              onRulesChange={editor.changeRules}
+              onGroupsChange={editor.changeGroups}
+              onReplace={editor.replace}
+            />
+          )}
+      </div>
     </div>
   );
 }

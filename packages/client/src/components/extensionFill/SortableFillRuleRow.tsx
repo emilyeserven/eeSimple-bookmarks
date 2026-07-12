@@ -1,12 +1,12 @@
 import type { ComboboxOption } from "../Combobox";
-import type { CustomProperty, WebsiteExtensionFillRule } from "@eesimple/types";
+import type { CustomProperty, OverrideKey, WebsiteExtensionFillRule } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { useState } from "react";
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Copy, GripVertical, Pencil, Trash2, X } from "lucide-react";
+import { Copy, GripVertical, Lock, Pencil, Trash2, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { LabeledInput } from "./controls";
@@ -21,23 +21,27 @@ import {
   describePathMatch,
 } from "@/lib/extensionFillForm";
 
-/**
- * One draggable rule row: a header (drag + label + duplicate + a per-row Edit/Done toggle, plus
- * Delete while read-only) over either the full read-only detail (`label : value` rows, so a fiddly rule
- * can't change by accident) or the live {@link FillRuleFields} editor for just this rule — editing one
- * rule never affects any other row's state. While editing, Delete moves to a destructive button below
- * the fields instead of sitting in the header.
- */
-export function SortableFillRuleRow({
-  rule, propertyOptions, propertiesById, onChange, onRemove, onDuplicate,
-}: {
+/** Shared props for a rule card (draggable or grouped). */
+interface FillRuleCardProps {
   rule: WebsiteExtensionFillRule;
   propertyOptions: ComboboxOption[];
   propertiesById: Map<string, CustomProperty>;
   onChange: (rule: WebsiteExtensionFillRule) => void;
   onRemove: () => void;
   onDuplicate: () => void;
-}) {
+  /** Options a fill-rule group overrides — rendered read-only in the editor. */
+  lockedKeys?: Set<OverrideKey>;
+}
+
+/**
+ * One rule card: a header (optional drag handle + label + duplicate + a per-row Edit/Done toggle,
+ * plus Delete while read-only) over either the full read-only detail or the live {@link FillRuleFields}
+ * editor for just this rule. When the rule belongs to a group, `lockedKeys` renders its overridden
+ * options read-only. This is the drag-agnostic body; {@link SortableFillRuleRow} wraps it with dnd-kit.
+ */
+export function FillRuleCard({
+  rule, propertyOptions, propertiesById, onChange, onRemove, onDuplicate, lockedKeys, dragHandle,
+}: FillRuleCardProps & { dragHandle?: ReactNode }) {
   const {
     t,
   } = useTranslation();
@@ -48,50 +52,39 @@ export function SortableFillRuleRow({
       ? (rule.extract.metaKey ?? "").trim() === ""
       : (rule.extract.selector ?? "").trim() === ""
   ));
-  const {
-    attributes, listeners, setNodeRef, transform, transition,
-  } = useSortable({
-    id: rule.id,
-  });
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
   const property = rule.target.kind === "customProperty"
     ? propertiesById.get(rule.target.propertyId)
     : undefined;
+  const lockedCount = lockedKeys?.size ?? 0;
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="space-y-3 rounded-lg border bg-card p-3"
-    >
+    <div className="space-y-3 rounded-lg border bg-card p-3">
       <div className="flex items-end gap-2">
-        <button
-          type="button"
-          className="mb-2 cursor-grab touch-none text-muted-foreground"
-          aria-label={t("Drag to reorder")}
-          {...attributes}
-          {...listeners}
-        >
-          <GripVertical className="size-4" />
-        </button>
+        {dragHandle}
         {isEditing
           ? (
-            <LabeledInput
-              className="flex-1"
-              label={t("Label")}
-              placeholder={t("e.g. Print length")}
-              value={rule.label}
-              onChange={label => onChange({
-                ...rule,
-                label,
-              })}
+            <FillRuleFieldsLabel
+              rule={rule}
+              onChange={onChange}
             />
           )
           : (
             <div className="flex-1 pb-2 text-sm font-medium">
               {rule.label.trim() || describeFillTarget(rule.target, property)}
+              {lockedCount > 0
+                ? (
+                  <span
+                    className="
+                      ml-2 inline-flex items-center gap-1 align-middle text-xs
+                      font-normal text-muted-foreground
+                    "
+                  >
+                    <Lock className="size-3" />
+                    {t("{{count}} set by group", {
+                      count: lockedCount,
+                    })}
+                  </span>
+                )
+                : null}
             </div>
           )}
         <Button
@@ -141,6 +134,7 @@ export function SortableFillRuleRow({
               propertyOptions={propertyOptions}
               propertiesById={propertiesById}
               onChange={onChange}
+              lockedKeys={lockedKeys}
             />
             <div className="flex justify-end">
               <Button
@@ -161,6 +155,67 @@ export function SortableFillRuleRow({
             property={property}
           />
         )}
+    </div>
+  );
+}
+
+/** The editable label field shown in a rule card's header while editing. */
+function FillRuleFieldsLabel({
+  rule, onChange,
+}: {
+  rule: WebsiteExtensionFillRule;
+  onChange: (rule: WebsiteExtensionFillRule) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <LabeledInput
+      className="flex-1"
+      label={t("Label")}
+      placeholder={t("e.g. Print length")}
+      value={rule.label}
+      onChange={label => onChange({
+        ...rule,
+        label,
+      })}
+    />
+  );
+}
+
+/** One draggable rule row for the ungrouped list — wraps {@link FillRuleCard} with dnd-kit. */
+export function SortableFillRuleRow(props: FillRuleCardProps) {
+  const {
+    t,
+  } = useTranslation();
+  const {
+    attributes, listeners, setNodeRef, transform, transition,
+  } = useSortable({
+    id: props.rule.id,
+  });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+    >
+      <FillRuleCard
+        {...props}
+        dragHandle={(
+          <button
+            type="button"
+            className="mb-2 cursor-grab touch-none text-muted-foreground"
+            aria-label={t("Drag to reorder")}
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="size-4" />
+          </button>
+        )}
+      />
     </div>
   );
 }
