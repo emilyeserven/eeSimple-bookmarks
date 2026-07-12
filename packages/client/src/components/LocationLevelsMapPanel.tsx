@@ -1,16 +1,18 @@
 import type { AncestorChildrenScopeControls, LevelsControls, MapFilterControls } from "../lib/locationLevels";
 
-import { MapPin, Settings, Shapes } from "lucide-react";
+import { ChevronDown, MapPin, Settings, Shapes } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { LevelGroupGlyph, LevelsFooter } from "./locationLevelsShared";
 import { useLocationLevels } from "../hooks/useLocationLevels";
+import { useUiStore } from "../stores/uiStore";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { cn } from "@/lib/utils";
 
 /**
  * Pin-vs-area selector for each level group, shown in a small popover
@@ -99,10 +101,13 @@ export function LocationLevelsMapPanel({
   controls,
   filter,
   ancestorChildrenScope,
+  collapseKey,
 }: {
   controls: LevelsControls;
   filter?: MapFilterControls;
   ancestorChildrenScope?: AncestorChildrenScopeControls;
+  /** Stable per-map key (the map's `mapKey`) for the per-device collapsed-overlay state. */
+  collapseKey: string;
 }) {
   const {
     t,
@@ -113,6 +118,9 @@ export function LocationLevelsMapPanel({
   } = useLocationLevels({
     notify: false,
   });
+  const collapsedKeys = useUiStore(state => state.collapsedLocationMapOverlayKeys);
+  const toggleCollapsed = useUiStore(state => state.toggleLocationMapOverlayCollapsed);
+  const isCollapsed = collapsedKeys.includes(collapseKey);
 
   return (
     <div
@@ -121,51 +129,82 @@ export function LocationLevelsMapPanel({
         backdrop-blur-sm
       "
     >
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="text-xs font-semibold">{t("Levels")}</span>
-        <ViewOptionsPopover
-          groups={groups}
-          setGroupDisplayMode={setGroupDisplayMode}
-        />
+      <div
+        className={cn("flex items-center justify-between gap-2", !isCollapsed && `
+          mb-2
+        `)}
+      >
+        <button
+          type="button"
+          aria-expanded={!isCollapsed}
+          aria-label={isCollapsed ? t("Expand Levels") : t("Collapse Levels")}
+          onClick={() => toggleCollapsed(collapseKey)}
+          className="
+            flex flex-1 items-center gap-1 text-xs font-semibold
+            hover:text-accent-foreground
+          "
+        >
+          <ChevronDown
+            className={cn(
+              "size-3.5 shrink-0 text-muted-foreground transition-transform",
+              isCollapsed && "-rotate-90",
+            )}
+          />
+          <span>{t("Levels")}</span>
+        </button>
+        {!isCollapsed
+          ? (
+            <ViewOptionsPopover
+              groups={groups}
+              setGroupDisplayMode={setGroupDisplayMode}
+            />
+          )
+          : null}
       </div>
 
-      {groups.length === 0
-        ? (
-          <p className="text-xs text-muted-foreground">
-            {t("No levels yet.")}
-          </p>
-        )
+      {isCollapsed
+        ? null
         : (
-          <ul className="space-y-1.5">
-            {groups.map(group => (
-              <li
-                key={group.id}
-                className="flex items-center gap-2"
-              >
-                <Checkbox
-                  id={`map-level-${group.id}`}
-                  checked={controls.visibleIds.has(group.id)}
-                  disabled={controls.disabledIds.has(group.id)}
-                  onCheckedChange={checked => controls.onToggleVisible(group.id, checked === true)}
-                />
-                <LevelGroupGlyph group={group} />
-                <Label
-                  htmlFor={`map-level-${group.id}`}
-                  className="cursor-pointer text-xs"
-                >
-                  {group.name || t("Level")}
-                </Label>
-              </li>
-            ))}
-          </ul>
-        )}
+          <>
+            {groups.length === 0
+              ? (
+                <p className="text-xs text-muted-foreground">
+                  {t("No levels yet.")}
+                </p>
+              )
+              : (
+                <ul className="space-y-1.5">
+                  {groups.map(group => (
+                    <li
+                      key={group.id}
+                      className="flex items-center gap-2"
+                    >
+                      <Checkbox
+                        id={`map-level-${group.id}`}
+                        checked={controls.visibleIds.has(group.id)}
+                        disabled={controls.disabledIds.has(group.id)}
+                        onCheckedChange={checked => controls.onToggleVisible(group.id, checked === true)}
+                      />
+                      <LevelGroupGlyph group={group} />
+                      <Label
+                        htmlFor={`map-level-${group.id}`}
+                        className="cursor-pointer text-xs"
+                      >
+                        {group.name || t("Level")}
+                      </Label>
+                    </li>
+                  ))}
+                </ul>
+              )}
 
-      <LevelsFooter
-        controls={controls}
-        ancestorChildrenScope={ancestorChildrenScope}
-        filter={filter}
-        compact
-      />
+            <LevelsFooter
+              controls={controls}
+              ancestorChildrenScope={ancestorChildrenScope}
+              filter={filter}
+              compact
+            />
+          </>
+        )}
     </div>
   );
 }

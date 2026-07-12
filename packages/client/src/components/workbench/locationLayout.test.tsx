@@ -77,6 +77,7 @@ describe("location default layout", () => {
             "coordinates",
             "mapUrl",
             "usesWikidataCoordinates",
+            "hiddenOnMainMap",
             "plusCode",
             "placeType",
             "countryCode",

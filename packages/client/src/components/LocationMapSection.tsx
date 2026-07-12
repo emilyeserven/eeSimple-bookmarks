@@ -57,10 +57,17 @@ interface LocationMapSectionProps {
   /**
    * When set, the map shows a "Filter" combobox in the Levels overlay and prunes the plotted tree to
    * the chosen location(s) and their descendants. Omit to disable filtering (e.g. single-location maps).
+   *
+   * `tree` is an optional override for the **combobox's** option tree: pass the full location tree when
+   * the caller has already computed the plotted `tree` prop itself (e.g. the main listing, which unions
+   * per-row item/chain focuses in `buildFocusedMapTree`). When `tree` is present the section plots the
+   * `tree` prop **as given** — the internal `selectedSubtrees` prune is skipped, since the caller owns
+   * the plotted set. When absent, the section prunes `tree` by `filterIds` (the legacy PlaceType path).
    */
   filter?: {
     filterIds: string[];
     onFilterChange: (ids: string[]) => void;
+    tree?: LocationNode[];
   };
   /**
    * When set, the Levels overlay shows an "Only show direct ancestors/children of current location"
@@ -102,10 +109,15 @@ export function LocationMapSection({
   // overlay combobox still sees the full tree (built into `mapFilter`) so any place stays selectable.
   // `filterIds` is the prop array reference (stable from the parent's state), or undefined when
   // filtering is disabled — keeping it out of a `?? []` fallback avoids a fresh dep every render.
+  // When the caller supplies `filter.tree` it has already computed the plotted `tree` itself, so the
+  // internal prune is skipped (`callerOwnsPlot`) and `tree` is plotted as given.
   const filterIds = filter?.filterIds;
+  const callerOwnsPlot = filter?.tree !== undefined;
   const plottedTree = useMemo(
-    () => (filterIds && filterIds.length > 0 ? selectedSubtrees(tree, new Set(filterIds)) : tree),
-    [tree, filterIds],
+    () => (!callerOwnsPlot && filterIds && filterIds.length > 0
+      ? selectedSubtrees(tree, new Set(filterIds))
+      : tree),
+    [tree, filterIds, callerOwnsPlot],
   );
 
   const {
@@ -121,7 +133,9 @@ export function LocationMapSection({
 
   const mapFilter: MapFilterControls | undefined = filter
     ? {
-      tree,
+      // Combobox options come from `filter.tree` (the full, un-pruned tree) when the caller owns the
+      // plot; otherwise from the section's `tree` prop (which the section prunes for the plot).
+      tree: filter.tree ?? tree,
       filterIds: filter.filterIds,
       onFilterChange: filter.onFilterChange,
     }
@@ -190,6 +204,7 @@ export function LocationMapSection({
                   controls={controls}
                   filter={mapFilter}
                   ancestorChildrenScope={ancestorChildrenScope}
+                  collapseKey={mapKey}
                 />
               )
               : undefined}

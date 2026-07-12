@@ -26,16 +26,22 @@ interface LocationTreeListProps {
   filterIds?: string[];
   /** Toggle a location into/out of the map filter from a per-row button. Opt-in. */
   onToggleFilter?: (id: string) => void;
+  /** Location ids currently chain-focusing the map. Only meaningful with {@link onToggleChainFilter}. */
+  chainFilterIds?: string[];
+  /** Toggle a location + its chain into/out of the map filter from a per-row button. Opt-in. */
+  onToggleChainFilter?: (id: string) => void;
 }
 
 /** Read-only, collapsible location tree. Each root node is its own card; cards flow in a responsive grid. */
 export function LocationTreeList({
   tree, expanded, onToggle, columns, onExpandMany, filterIds = [], onToggleFilter,
+  chainFilterIds = [], onToggleChainFilter,
 }: LocationTreeListProps) {
   const {
     t,
   } = useTranslation();
   const filterSet = new Set(filterIds);
+  const chainFilterSet = new Set(chainFilterIds);
 
   return (
     <TaxonomyTreeList
@@ -46,6 +52,8 @@ export function LocationTreeList({
       onExpandSubtree={onExpandMany ? node => onExpandMany(expandableIds([node])) : undefined}
       onToggleFilter={onToggleFilter ? node => onToggleFilter(node.id) : undefined}
       isFiltered={onToggleFilter ? node => filterSet.has(node.id) : undefined}
+      onToggleChainFilter={onToggleChainFilter ? node => onToggleChainFilter(node.id) : undefined}
+      isChainFiltered={onToggleChainFilter ? node => chainFilterSet.has(node.id) : undefined}
       // The location taxonomy already conveys "this is a place" via its breadcrumb/context, so the
       // generic tag glyph is redundant here — render no icon.
       renderIcon={() => null}

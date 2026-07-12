@@ -6,6 +6,7 @@ import { ListingScaffold } from "./ListingScaffold";
 import { LocationMapSection } from "./LocationMapSection";
 import { useLocationTree } from "../hooks/useLocations";
 import { filterTreeByPlaceType } from "../lib/locationLevels";
+import { pruneHiddenSubtrees } from "../lib/locationMainMap";
 
 import { buildPlaceTypeListingConfig } from "@/entities/placeType";
 import { useSetListingPage } from "@/hooks/useListingPage";
@@ -45,7 +46,10 @@ export function PlaceTypesListing() {
   const filterKeys = new Set(
     state.items.filter(pt => filterIds.has(pt.id)).map(pt => placeTypeKey(pt.slug)),
   );
-  const plottedTree = locationTree ? filterTreeByPlaceType(locationTree, filterKeys) : locationTree;
+  // Hidden-on-main-map locations (and their subtrees) never plot on this main-scope map.
+  const plottedTree = locationTree
+    ? pruneHiddenSubtrees(filterTreeByPlaceType(locationTree, filterKeys))
+    : locationTree;
 
   // Levels overlay "Filter" combobox: focuses the map on chosen location(s) + descendants, same as
   // the main Locations listing (`LocationsListing`) — a separate concern from the per-row place-type

@@ -262,6 +262,36 @@ export function LocationUsesWikidataEditField() {
   );
 }
 
+/** "Hide on main map" toggle — keeps this location (and its subtree) off the all-locations map plot. */
+export function LocationHiddenOnMainMapEditField() {
+  const {
+    t,
+  } = useTranslation();
+  const {
+    ctrl,
+  } = useLocationGeneralFormContext();
+  const {
+    hiddenOnMainMap, saveHiddenOnMainMap,
+  } = ctrl;
+  return (
+    <div className="flex items-start gap-3">
+      <Checkbox
+        id="location-hidden-on-main-map"
+        checked={hiddenOnMainMap}
+        onCheckedChange={value => saveHiddenOnMainMap(value === true)}
+      />
+      <div className="space-y-1">
+        <Label htmlFor="location-hidden-on-main-map">{t("Hide on main map")}</Label>
+        <p className="text-xs text-muted-foreground">
+          {t(
+            "When checked, this location and everything under it are hidden from the main all-locations map (so it can zoom to the regions you care about). It still appears in the list and on its own map.",
+          )}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 /** Plus code (auto-saves on blur). */
 export function LocationPlusCodeEditField() {
   const {

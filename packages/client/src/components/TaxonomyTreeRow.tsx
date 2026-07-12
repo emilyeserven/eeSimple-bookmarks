@@ -47,6 +47,14 @@ interface TaxonomyTreeListProps {
   onToggleFilter?: (node: TaxonomyTreeNode) => void;
   /** Whether a node is currently in the active filter (highlights its filter button). */
   isFiltered?: (node: TaxonomyTreeNode) => boolean;
+  /**
+   * When set, every row shows a second "Focus map on this and its chain" toggle calling this with the
+   * node — focuses the map on the node plus its ancestor spine (and descendants). Pair with
+   * {@link isChainFiltered}. Opt-in, independent of {@link onToggleFilter}.
+   */
+  onToggleChainFilter?: (node: TaxonomyTreeNode) => void;
+  /** Whether a node is currently in the active chain filter (highlights its chain-filter button). */
+  isChainFiltered?: (node: TaxonomyTreeNode) => boolean;
 }
 
 /** Grid wrapper for a collapsible taxonomy tree. Each root node gets its own RowCard. */
@@ -88,6 +96,8 @@ interface TaxonomyTreeRowProps {
   onExpandSubtree?: (node: TaxonomyTreeNode) => void;
   onToggleFilter?: (node: TaxonomyTreeNode) => void;
   isFiltered?: (node: TaxonomyTreeNode) => boolean;
+  onToggleChainFilter?: (node: TaxonomyTreeNode) => void;
+  isChainFiltered?: (node: TaxonomyTreeNode) => boolean;
 }
 
 /**
@@ -125,7 +135,7 @@ function NoChildRow({
 
 function TaxonomyTreeRow(props: TaxonomyTreeRowProps) {
   const {
-    node, depth, expanded, onToggle, isFiltered,
+    node, depth, expanded, onToggle, isFiltered, isChainFiltered,
   } = props;
   const hasChildren = node.children.length > 0;
   const isOpen = expanded.has(node.id);
@@ -139,6 +149,7 @@ function TaxonomyTreeRow(props: TaxonomyTreeRowProps) {
       isOpen={isOpen}
       onToggle={onToggle}
       filtered={isFiltered?.(node) ?? false}
+      chainFiltered={isChainFiltered?.(node) ?? false}
     />
   );
 

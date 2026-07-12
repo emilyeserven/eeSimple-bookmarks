@@ -62,6 +62,10 @@ export function buildLocationTreeListingConfig(opts: {
   filterIds: string[];
   /** Toggle a location into/out of the map filter from a per-row button. */
   onToggleFilter: (id: string) => void;
+  /** Location ids currently chain-focusing the map (node + its ancestor chain). */
+  chainFilterIds: string[];
+  /** Toggle a location + its chain into/out of the map filter from a per-row button. */
+  onToggleChainFilter: (id: string) => void;
 }): EntityTreeListingConfig<LocationNode> {
   return {
     pageKey: "locations-listing",
@@ -94,6 +98,8 @@ export function buildLocationTreeListingConfig(opts: {
         columns={columns}
         filterIds={opts.filterIds}
         onToggleFilter={opts.onToggleFilter}
+        chainFilterIds={opts.chainFilterIds}
+        onToggleChainFilter={opts.onToggleChainFilter}
       />
     ),
     renderTable: ({
@@ -116,5 +122,7 @@ export const locationDescriptor: EntityDescriptor<LocationNode, LocationNode> = 
   treeListing: buildLocationTreeListingConfig({
     filterIds: [],
     onToggleFilter: () => undefined,
+    chainFilterIds: [],
+    onToggleChainFilter: () => undefined,
   }),
 };

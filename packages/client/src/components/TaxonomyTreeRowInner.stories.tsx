@@ -55,6 +55,7 @@ const meta = {
       </a>
     ),
     filtered: false,
+    chainFiltered: false,
   },
 } satisfies Meta<typeof TaxonomyTreeRowInner>;
 
@@ -64,13 +65,15 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-/** Expanded node with the opt-in expand-subtree and map-filter buttons (filter active). */
+/** Expanded node with the opt-in expand-subtree and map-filter buttons (both filters active). */
 export const OpenWithActions: Story = {
   args: {
     isOpen: true,
     onExpandSubtree: () => {},
     onToggleFilter: () => {},
     filtered: true,
+    onToggleChainFilter: () => {},
+    chainFiltered: true,
   },
 };
 

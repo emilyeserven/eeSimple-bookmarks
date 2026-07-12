@@ -45,8 +45,9 @@
  *   `visible`, `showOnMainMap`). The overlay's pin/area toggle, color glyph, and "Show" (level-mode)
  *   button write straight through to these, mutating the same rows as Settings → Locations and firing a
  *   toast — a change here is global, on every map.
- * - **uiStore / per-device** — map collapse state and `hideLocationMapAdminBorders` (the "Hide map
- *   borders" checkbox).
+ * - **uiStore / per-device** — map collapse state (`collapsedLocationMapKeys`), the desktop Levels-panel
+ *   collapse state (`collapsedLocationMapOverlayKeys`, keyed by the same `mapKey`), and
+ *   `hideLocationMapAdminBorders` (the "Hide map borders" checkbox).
  * - **Session / local** — `overrideIds` (the per-map visibility checkboxes) and the anchor-less
  *   `fallbackMode`. These reset on scope/mode change and never persist.
  *

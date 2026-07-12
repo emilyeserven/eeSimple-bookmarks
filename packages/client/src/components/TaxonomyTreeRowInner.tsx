@@ -1,7 +1,7 @@
 import type { TaxonomyTreeNode } from "./TaxonomyTreeRow";
 import type { ReactNode } from "react";
 
-import { ChevronDown, ChevronRight, ChevronsUpDown, MapPin } from "lucide-react";
+import { ChevronDown, ChevronRight, ChevronsUpDown, MapPin, Waypoints } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Badge } from "@/components/ui/badge";
@@ -154,6 +154,53 @@ function TaxonomyTreeRowFilterButton({
   );
 }
 
+/** Chain-focus toggle button (node + its ancestor chain on the map), shown only when a handler is provided. */
+function TaxonomyTreeRowChainFilterButton({
+  node, chainFiltered, onToggleChainFilter,
+}: {
+  node: TaxonomyTreeNode;
+  chainFiltered: boolean;
+  onToggleChainFilter?: (node: TaxonomyTreeNode) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  if (!onToggleChainFilter) return null;
+  const label = chainFiltered
+    ? t("Remove {{name}} and its chain from map filter", {
+      name: node.name,
+    })
+    : t("Focus map on {{name}} and its chain", {
+      name: node.name,
+    });
+  const title = chainFiltered
+    ? t("Showing chain on map (click to clear)")
+    : t("Show on map with chain");
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      aria-label={label}
+      aria-pressed={chainFiltered}
+      title={title}
+      onClick={() => onToggleChainFilter(node)}
+      className={cn(
+        "transition-opacity",
+        chainFiltered
+          ? "text-primary opacity-100"
+          : `
+            opacity-0
+            group-hover:opacity-100
+            focus-visible:opacity-100
+          `,
+      )}
+    >
+      <Waypoints className="size-4" />
+    </Button>
+  );
+}
+
 interface TaxonomyTreeRowInnerProps {
   node: TaxonomyTreeNode;
   hasChildren: boolean;
@@ -167,12 +214,15 @@ interface TaxonomyTreeRowInnerProps {
   onToggleFilter?: (node: TaxonomyTreeNode) => void;
   /** Whether this node is currently in the active map filter (highlights its filter button). */
   filtered: boolean;
+  onToggleChainFilter?: (node: TaxonomyTreeNode) => void;
+  /** Whether this node is currently in the active chain filter (highlights its chain-filter button). */
+  chainFiltered: boolean;
 }
 
 /** The single-row content of a taxonomy tree row: icon, expander, name link, badges, hover actions. */
 export function TaxonomyTreeRowInner({
   node, hasChildren, isOpen, onToggle, renderNameLink, renderEditLink, renderInfoLink, renderIcon,
-  onExpandSubtree, onToggleFilter, filtered,
+  onExpandSubtree, onToggleFilter, filtered, onToggleChainFilter, chainFiltered,
 }: TaxonomyTreeRowInnerProps) {
   const {
     t,
@@ -211,6 +261,12 @@ export function TaxonomyTreeRowInner({
         node={node}
         filtered={filtered}
         onToggleFilter={onToggleFilter}
+      />
+
+      <TaxonomyTreeRowChainFilterButton
+        node={node}
+        chainFiltered={chainFiltered}
+        onToggleChainFilter={onToggleChainFilter}
       />
 
       {node.bookmarkCount != null

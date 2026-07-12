@@ -142,6 +142,9 @@ interface UiState {
   /** Keys whose Locations map section is collapsed ("listing" for the listing page, a location id on detail pages). */
   collapsedLocationMapKeys: string[];
   toggleLocationMapCollapsed: (key: string) => void;
+  /** Keys whose desktop Levels overlay panel is collapsed (keyed by the same `mapKey`; per-device). */
+  collapsedLocationMapOverlayKeys: string[];
+  toggleLocationMapOverlayCollapsed: (key: string) => void;
   /** How the Locations list/tree is ordered: server order ("default") or grouped by place type. */
   locationSortMode: LocationSortMode;
   setLocationSortMode: (mode: LocationSortMode) => void;
@@ -357,6 +360,12 @@ export const useUiStore = create<UiState>()(
           ? state.collapsedLocationMapKeys.filter(x => x !== key)
           : [...state.collapsedLocationMapKeys, key],
       })),
+      collapsedLocationMapOverlayKeys: [],
+      toggleLocationMapOverlayCollapsed: key => set(state => ({
+        collapsedLocationMapOverlayKeys: state.collapsedLocationMapOverlayKeys.includes(key)
+          ? state.collapsedLocationMapOverlayKeys.filter(x => x !== key)
+          : [...state.collapsedLocationMapOverlayKeys, key],
+      })),
       locationSortMode: "default",
       setLocationSortMode: mode => set({
         locationSortMode: mode,
@@ -507,6 +516,7 @@ export const useUiStore = create<UiState>()(
         addBookmarkFormOpen: state.addBookmarkFormOpen,
         collapsedHomepageSectionIds: state.collapsedHomepageSectionIds,
         collapsedLocationMapKeys: state.collapsedLocationMapKeys,
+        collapsedLocationMapOverlayKeys: state.collapsedLocationMapOverlayKeys,
         locationSortMode: state.locationSortMode,
         categorySortMode: state.categorySortMode,
         websiteSortMode: state.websiteSortMode,

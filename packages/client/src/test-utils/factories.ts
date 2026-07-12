@@ -191,6 +191,7 @@ export function makeLocation(overrides: Partial<Location> = {}): Location {
     countryCode: null,
     wikidataId: null,
     usesWikidataCoordinates: false,
+    hiddenOnMainMap: false,
     officialLink: null,
     wikipediaLinkEn: null,
     wikipediaLinkLocal: null,

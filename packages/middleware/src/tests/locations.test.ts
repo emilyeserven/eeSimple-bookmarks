@@ -41,6 +41,7 @@ function makeLocation(partial: Partial<Location> & Pick<Location, "id" | "name" 
     countryCode: null,
     wikidataId: null,
     usesWikidataCoordinates: false,
+    hiddenOnMainMap: false,
     officialLink: null,
     wikipediaLinkEn: null,
     wikipediaLinkLocal: null,

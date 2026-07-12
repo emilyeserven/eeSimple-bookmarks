@@ -26,6 +26,7 @@ function node(
     countryCode: null,
     wikidataId: null,
     usesWikidataCoordinates: false,
+    hiddenOnMainMap: false,
     officialLink: null,
     wikipediaLinkEn: null,
     wikipediaLinkLocal: null,
