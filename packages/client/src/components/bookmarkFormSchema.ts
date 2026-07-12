@@ -66,14 +66,12 @@ export const bookmarkSchema = z.object({
  * unchanged.
  */
 export {
-  CHAPTERS_SLUG,
   CONTENT_STATUS_SLUG,
   DATE_POSTED_SLUG,
-  PAGE_PROGRESS_SLUG,
   PAGE_RANGE_SLUG,
-  PAGE_SECTIONS_SLUG,
+  PROGRESS_SLUG,
   RUNTIME_SLUG,
-  URL_SECTIONS_SLUG,
+  SECTIONS_SLUG,
 } from "@eesimple/types";
 
 /** Slug of the built-in "ISBN / ASIN" property — shown in the Add Bookmark form. */

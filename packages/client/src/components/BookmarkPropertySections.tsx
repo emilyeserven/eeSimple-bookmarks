@@ -17,6 +17,8 @@ interface BookmarkPropertySectionsProps {
   properties: CustomProperty[];
   /** When provided, boolean properties with `clickableInView` enabled render as toggles. */
   onSaveBoolean?: (propertyId: string, value: boolean) => void;
+  /** When provided, sections entries render clickable done-checkboxes. */
+  onToggleSectionCompleted?: (propertyId: string, entryId: string, completed: boolean) => void;
 }
 
 /**
@@ -24,7 +26,7 @@ interface BookmarkPropertySectionsProps {
  * nothing when the bookmark has no resolvable property values.
  */
 export function BookmarkPropertySections({
-  bookmark, properties, onSaveBoolean,
+  bookmark, properties, onSaveBoolean, onToggleSectionCompleted,
 }: BookmarkPropertySectionsProps) {
   // The per-card boolean display knobs (show-if-false / colon / value-order / clickable) come from the
   // Default card display rule on non-listing surfaces like this one.
@@ -263,7 +265,12 @@ export function BookmarkPropertySections({
                   :
                 </dt>
                 <dd>
-                  <SectionEntryList sections={row.sections} />
+                  <SectionEntryList
+                    sections={row.sections}
+                    onToggleCompleted={onToggleSectionCompleted
+                      ? (entryId, completed) => onToggleSectionCompleted(row.id, entryId, completed)
+                      : undefined}
+                  />
                 </dd>
                 <PropertyQuickFilterLink
                   search={row.search}

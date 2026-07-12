@@ -6,8 +6,8 @@ import { makeCustomProperty } from "../test-utils/factories";
 
 const property = makeCustomProperty({
   type: "sections",
-  name: "Page Sections",
-  slug: "page-sections",
+  name: "Sections",
+  slug: "sections",
   sectionsDefaultType: "page",
 });
 
@@ -120,5 +120,47 @@ describe("SectionsPropertyField second tier", () => {
     const next = onChange.mock.calls[0][0];
     expect(next.sections[0].children).toHaveLength(2);
     expect(next.sections[0].children[0].id).toBe("child-1");
+  });
+});
+
+describe("SectionsPropertyField completed checkboxes", () => {
+  it("checking a section cascades completed to its children", () => {
+    const onChange = vi.fn();
+    render(
+      <SectionsPropertyField
+        property={property}
+        value={tieredValue}
+        onChange={onChange}
+      />,
+    );
+
+    // First "Completed" checkbox is the tier-1 section's; the second is the child's.
+    fireEvent.click(screen.getAllByRole("checkbox", {
+      name: /Completed/,
+    })[0]);
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    const next = onChange.mock.calls[0][0];
+    expect(next.sections[0].completed).toBe(true);
+    expect(next.sections[0].children[0].completed).toBe(true);
+  });
+
+  it("checking a child touches only that child", () => {
+    const onChange = vi.fn();
+    render(
+      <SectionsPropertyField
+        property={property}
+        value={tieredValue}
+        onChange={onChange}
+      />,
+    );
+
+    fireEvent.click(screen.getAllByRole("checkbox", {
+      name: /Completed/,
+    })[1]);
+
+    const next = onChange.mock.calls[0][0];
+    expect(next.sections[0].completed).toBeUndefined();
+    expect(next.sections[0].children[0].completed).toBe(true);
   });
 });

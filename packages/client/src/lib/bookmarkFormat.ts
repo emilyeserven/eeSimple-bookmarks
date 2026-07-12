@@ -1,4 +1,6 @@
-import type { BookmarkBooleanValue, CustomProperty } from "@eesimple/types";
+import type { BookmarkBooleanValue, BookmarkSectionsValue, CustomProperty } from "@eesimple/types";
+
+import { setSectionCompleted } from "@eesimple/types";
 
 import { formatDateTimeValue } from "./datetime";
 
@@ -125,6 +127,27 @@ export function formatChoices(values: string[], property: CustomProperty): strin
   if (values.length === 0) return "";
   const labelMap = new Map(property.choicesItems.map(item => [item.value, item.label]));
   return values.map(v => labelMap.get(v) ?? v).join(", ");
+}
+
+/**
+ * Return `sectionsValues` with one entry's `completed` flag set inside the value for `propertyId`
+ * (via the shared `setSectionCompleted` — ticking a section ticks its sub-items). The whole-array
+ * shape feeds straight into a bookmark PATCH, mirroring {@link mergeBooleanValue} for the in-view
+ * sections done-checkboxes. A missing value for `propertyId` returns the input unchanged (the view
+ * only renders checkboxes for entries that exist).
+ */
+export function mergeSectionsCompleted(
+  values: BookmarkSectionsValue[],
+  propertyId: string,
+  entryId: string,
+  completed: boolean,
+): BookmarkSectionsValue[] {
+  return values.map(entry => (entry.propertyId === propertyId
+    ? {
+      ...entry,
+      sections: setSectionCompleted(entry.sections, entryId, completed),
+    }
+    : entry));
 }
 
 /** Replace the entry for `propertyId` with `value`, or append it when the property has no value yet. */

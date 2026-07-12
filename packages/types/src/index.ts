@@ -7,7 +7,7 @@
 
 import type { BookmarkContentKind } from "./bookmarkContentKind.js";
 import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from "./conditions.js";
-import type { BookmarkSectionsValue, BookmarkTextValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, NumberFormat, SectionEntryType } from "./customProperties.js";
+import type { BookmarkSectionsValue, BookmarkTextValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, ItemInItemsMediaTypeTexts, NumberFormat, SectionEntryType } from "./customProperties.js";
 import type { EntityName, UpdateEntityNameEntry } from "./entityNames.js";
 import type { WebsiteExtensionFillRule } from "./extensionFill.js";
 import type { BookmarkGenreMood } from "./genreMoods.js";
@@ -2532,6 +2532,18 @@ export interface CustomProperty {
   itemInItemsBetweenText: string | null;
   /** Text shown after the `total` number for an `itemInItems` property (e.g. `" pages"`). */
   itemInItemsAfterText: string | null;
+  /**
+   * Per-media-type overrides of the before/between/after text for an `itemInItems` property, keyed
+   * by media-type id (see {@link ItemInItemsMediaTypeTexts}); `null` = no overrides.
+   */
+  itemInItemsMediaTypeTexts: ItemInItemsMediaTypeTexts | null;
+  /**
+   * For an `itemInItems` property: the id of a `sections` property whose completion drives this
+   * value. When set, a bookmark's `current`/`total` are recomputed server-side from the source
+   * sections (leaf counting — see `countSectionLeaves`) whenever that bookmark's sections are
+   * non-empty, overriding manual entry. `null` = manual.
+   */
+  itemInItemsSourcePropertyId: string | null;
   /** Default section entry type for a `sections` property; `null` means no preference (any type). */
   sectionsDefaultType: SectionEntryType | null;
   /** Allowed section entry types for a `sections` property; `null` means all types are allowed. */
@@ -2623,6 +2635,10 @@ export interface CreateCustomPropertyInput {
   itemInItemsBetweenText?: string | null;
   /** Text shown after the `total` number for an `itemInItems` property. */
   itemInItemsAfterText?: string | null;
+  /** Per-media-type overrides of an `itemInItems` property's text segments, keyed by media-type id. */
+  itemInItemsMediaTypeTexts?: ItemInItemsMediaTypeTexts | null;
+  /** Id of a `sections` property whose completion drives this `itemInItems` value; `null` = manual. */
+  itemInItemsSourcePropertyId?: string | null;
   /** Default section entry type for a `sections` property. */
   sectionsDefaultType?: SectionEntryType | null;
   /** Allowed section entry types for a `sections` property; `null` means all types. */

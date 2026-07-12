@@ -50,6 +50,21 @@ describe("formatProgressValue", () => {
     });
     expect(formatProgressValue(progress(1, 2), property)).toBe("12");
   });
+
+  it("applies a per-media-type override for the bookmark's media type, inheriting unset segments", () => {
+    const property = makeCustomProperty({
+      itemInItemsAfterText: " pages",
+      itemInItemsMediaTypeTexts: {
+        "mt-course": {
+          afterText: " modules",
+        },
+      },
+    });
+    expect(formatProgressValue(progress(24, 230), property, "mt-course")).toBe("24 of 230 modules");
+    // Another media type (or none) falls back to the base texts.
+    expect(formatProgressValue(progress(3, 10), property, "mt-book")).toBe("3 of 10 pages");
+    expect(formatProgressValue(progress(3, 10), property)).toBe("3 of 10 pages");
+  });
 });
 
 describe("formatSectionEntry", () => {

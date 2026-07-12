@@ -310,6 +310,15 @@ const createBookmarkBody = {
                 endValue: {
                   type: "string",
                 },
+                // These schemas are `additionalProperties: false` and Fastify's AJV strips unknown
+                // props, so EVERY optional SectionEntry field must be listed here (and in the child
+                // schema below) or whole-set PATCHes silently drop it.
+                url: {
+                  type: "string",
+                },
+                completed: {
+                  type: "boolean",
+                },
                 // Optional second tier — leaf children only (the leaf schema has no `children` key,
                 // so nesting is capped at depth 2).
                 children: {
@@ -334,6 +343,12 @@ const createBookmarkBody = {
                       },
                       endValue: {
                         type: "string",
+                      },
+                      url: {
+                        type: "string",
+                      },
+                      completed: {
+                        type: "boolean",
                       },
                     },
                   },
@@ -466,7 +481,10 @@ const createBookmarkBody = {
   },
 } as const;
 
-const updateBookmarkBody = {
+// Exported for the sections round-trip schema test: these bodies are `additionalProperties: false`
+// and Fastify's AJV strips unknown props, so a SectionEntry field missing from the schema silently
+// vanishes on every whole-set PATCH (the `completed`/`url` failure mode).
+export const updateBookmarkBody = {
   type: "object",
   additionalProperties: false,
   properties: createBookmarkBody.properties,

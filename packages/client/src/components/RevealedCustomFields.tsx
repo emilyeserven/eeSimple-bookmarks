@@ -4,14 +4,12 @@ import type { BookmarkAddFormPlacement, CustomProperty } from "@eesimple/types";
 
 import { CategoryCustomFields } from "./BookmarkCustomFields";
 import {
-  CHAPTERS_SLUG,
   CONTENT_STATUS_SLUG,
   DATE_POSTED_SLUG,
-  PAGE_PROGRESS_SLUG,
   PAGE_RANGE_SLUG,
-  PAGE_SECTIONS_SLUG,
+  PROGRESS_SLUG,
   RUNTIME_SLUG,
-  URL_SECTIONS_SLUG,
+  SECTIONS_SLUG,
 } from "./bookmarkFormSchema";
 
 /**
@@ -23,11 +21,9 @@ const DEFAULT_MAIN_HIDDEN_SLUGS = [
   RUNTIME_SLUG,
   DATE_POSTED_SLUG,
   CONTENT_STATUS_SLUG,
-  PAGE_PROGRESS_SLUG,
+  PROGRESS_SLUG,
   PAGE_RANGE_SLUG,
-  PAGE_SECTIONS_SLUG,
-  CHAPTERS_SLUG,
-  URL_SECTIONS_SLUG,
+  SECTIONS_SLUG,
 ];
 
 export interface RevealedCustomFieldsProps extends CustomFieldControls {

@@ -1443,6 +1443,18 @@ export const customProperties = pgTable("custom_properties", {
   itemInItemsBeforeText: text("item_in_items_before_text"),
   itemInItemsBetweenText: text("item_in_items_between_text"),
   itemInItemsAfterText: text("item_in_items_after_text"),
+  // Per-media-type overrides of the text segments, keyed by media-type id
+  // (ItemInItemsMediaTypeTexts in @eesimple/types). Nullable jsonb → push-safe additive.
+  itemInItemsMediaTypeTexts: jsonb("item_in_items_media_type_texts"),
+  // For an itemInItems property: the `sections` property whose completion drives this value
+  // (leaf-counted, recomputed on every bookmark value write). NULL = manual entry. Nullable
+  // self-FK → push-safe additive.
+  itemInItemsSourcePropertyId: uuid("item_in_items_source_property_id").references(
+    (): AnyPgColumn => customProperties.id,
+    {
+      onDelete: "set null",
+    },
+  ),
   // sections-type config (all nullable → push-safe additive columns).
   sectionsDefaultType: text("sections_default_type"),
   sectionsAllowedTypes: jsonb("sections_allowed_types"),

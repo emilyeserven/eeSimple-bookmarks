@@ -131,14 +131,30 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
     required the six FK fields on `bookmarkSchema`/`buildBookmarkDefaultValues` and forwarding them in
     the create payload (`useBookmarkFormHandlers`); the other five relations were already accepted by the
     create endpoint.
-  - **Built-in detail properties** (Runtime, Date Posted, Page Progress, …) — the
+  - **Built-in detail properties** (Runtime, Date Posted, Progress, …) — the
     `BOOKMARK_FORM_DETAIL_SLUGS` tuple, seeded **hidden** via
     `DEFAULT_BOOKMARK_ADD_FORM_SETTINGS.builtInPropertyPlacements` (resolved `{...defaults, ...stored}`
     so a future hidden-by-default slug stays hidden even for existing saved rows). **To hide a new
     built-in detail slug from the create form: add it to `BOOKMARK_FORM_DETAIL_SLUGS` in
     `packages/types/src/bookmarkAddForm.ts` — that's the whole change** (seeds it hidden + adds a
-    configurable row). The old two-step `*_SLUG` + `hiddenSlugs`-array edit is gone; the 8 slug
-    constants now live in that types file (re-exported by `bookmarkFormSchema.ts`).
+    configurable row). The old two-step `*_SLUG` + `hiddenSlugs`-array edit is gone; the 6 slug
+    constants now live in that types file (re-exported by `bookmarkFormSchema.ts`). The former
+    **Page Progress** built-in is now **Progress** (slug `progress`) — a generic `itemInItems`
+    property whose before/between/after text is overridable **per media type**
+    (`CustomProperty.itemInItemsMediaTypeTexts`, resolved by the shared `resolveItemInItemsTexts`)
+    and which can **derive its value from a `sections` property's completion**
+    (`itemInItemsSourcePropertyId` + the shared `countSectionLeaves`; recomputed server-side by
+    `recomputeDerivedProgress` in `services/bookmarkWrites.ts` on every bookmark value write). The
+    former **Chapters / Page Sections / URL Sections** built-ins were **merged into one "Sections"
+    property** (slug `sections`, all categories + media types, tiered, all entry types; the entry
+    type for new rows is hinted from the bookmark's media type via `lib/sectionEntryTypeHint.ts`);
+    `SectionEntry` carries a per-entry `completed` flag (checkbox in the editor, clickable on the
+    detail view via `mergeSectionsCompleted`; checking a parent checks its children). The one-time
+    rename/merge (value-row jsonb concat + UUID rewrites across stored conditions/fill rules/
+    layouts/settings keys) lives in `migrate.ts`. **The bookmark PATCH sections schema in
+    `routes/bookmarks.ts` must list every optional `SectionEntry` field** (entry AND child level) —
+    the bodies are `additionalProperties: false` and Fastify's AJV `removeAdditional` silently
+    strips unknown props from every whole-set save (guarded by `bookmarkSectionsSchema.test.ts`).
   - **User custom properties** — write the property's existing `showInForm`/`hiddenFromForm` flags via
     the normal `useUpdateCustomProperty` mutation. Card 3 lists **every** enabled custom property
     regardless of category/media-type lock, but the **category-lock stays the ultimate runtime gate**:

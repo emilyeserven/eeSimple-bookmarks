@@ -89,22 +89,21 @@ export function SectionPasteParser({
 
   if (!open) {
     return (
-      <button
+      <Button
         type="button"
-        className="
-          flex items-center gap-1 text-sm text-primary
-          hover:underline
-        "
+        variant="outline"
+        size="sm"
+        title={t("Paste a list (chapters, a table of contents, tracks…) and split it into section rows")}
         onClick={() => setOpen(true)}
       >
-        <ClipboardPaste className="size-3.5" />
+        <ClipboardPaste className="size-4" />
         {t("Paste to parse")}
-      </button>
+      </Button>
     );
   }
 
   return (
-    <div className="space-y-3 rounded-md border bg-muted/30 p-3">
+    <div className="w-full space-y-3 rounded-md border bg-muted/30 p-3">
       <div className="flex flex-wrap items-end gap-2">
         <div className="space-y-1">
           <Label className="text-xs">{t("Delineator")}</Label>

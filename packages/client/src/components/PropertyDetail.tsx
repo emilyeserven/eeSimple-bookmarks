@@ -1,10 +1,12 @@
 import type { Category, CustomProperty, CustomPropertyType, MediaType } from "@eesimple/types";
 import type { FC } from "react";
 
-import { CHOICES_DISPLAY_LABELS } from "@eesimple/types";
+import { CHOICES_DISPLAY_LABELS, resolveItemInItemsTexts } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
+import { useCustomProperties } from "../hooks/useCustomProperties";
+import { useMediaTypes } from "../hooks/useMediaTypes";
 import { hasPropertyOptions } from "../lib/propertyForm";
 import { DATE_TIME_FORMAT_LABELS, NUMBER_FORMAT_LABELS } from "../lib/propertyFormat";
 
@@ -197,6 +199,37 @@ function BasicOptionsFields({
   return <AllowDefaultField property={property} />;
 }
 
+/** The per-media-type text overrides of an itemInItems property, as sample-formatted rows. */
+function ItemInItemsMediaTypeTextsField({
+  property,
+}: PropertyOptionsFieldsProps) {
+  const {
+    t,
+  } = useTranslation();
+  const {
+    data: mediaTypes,
+  } = useMediaTypes();
+  const overrides = Object.entries(property.itemInItemsMediaTypeTexts ?? {});
+  if (overrides.length === 0) return null;
+  const nameById = new Map((mediaTypes ?? []).map(mt => [mt.id, mt.name]));
+  return (
+    <DetailField label={t("Per-media-type text")}>
+      <ul className="space-y-1 text-sm">
+        {overrides.map(([mediaTypeId]) => {
+          const texts = resolveItemInItemsTexts(property, mediaTypeId);
+          return (
+            <li key={mediaTypeId}>
+              {nameById.get(mediaTypeId) ?? mediaTypeId}
+              {": "}
+              {`${texts.before ?? ""}10${texts.between ?? t(" of ")}100${texts.after ?? ""}`}
+            </li>
+          );
+        })}
+      </ul>
+    </DetailField>
+  );
+}
+
 /** Item-in-items option fields: the configured text segments shown around the two numbers. */
 function ItemInItemsOptionsFields({
   property,
@@ -204,15 +237,31 @@ function ItemInItemsOptionsFields({
   const {
     t,
   } = useTranslation();
+  const {
+    data: customProperties,
+  } = useCustomProperties();
   const before = property.itemInItemsBeforeText ?? "";
   const between = property.itemInItemsBetweenText ?? t(" of ");
   const after = property.itemInItemsAfterText ?? "";
+  const sourceProperty = property.itemInItemsSourcePropertyId
+    ? (customProperties ?? []).find(p => p.id === property.itemInItemsSourcePropertyId)
+    : undefined;
   return (
     <>
       <DetailField label={t("Format preview")}>{`${before}10${between}100${after}`}</DetailField>
       {before ? <DetailField label={t("Text before")}>{before}</DetailField> : null}
       <DetailField label={t("Text between")}>{between}</DetailField>
       {after ? <DetailField label={t("Text after")}>{after}</DetailField> : null}
+      <ItemInItemsMediaTypeTextsField property={property} />
+      {property.itemInItemsSourcePropertyId
+        ? (
+          <DetailField label={t("Derived from")}>
+            {t("{{name}} completion (completed items of total items)", {
+              name: sourceProperty?.name ?? t("a Sections property"),
+            })}
+          </DetailField>
+        )
+        : null}
       <AllowDefaultField property={property} />
     </>
   );

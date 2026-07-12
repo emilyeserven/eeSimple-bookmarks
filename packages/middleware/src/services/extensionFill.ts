@@ -10,7 +10,7 @@ import type { Bookmark, ExtensionFillContext, TaxonomyEntityAssociation, Taxonom
 import { isYouTubeVideoUrl, TAXONOMY_ENTITY_SPECS } from "@eesimple/types";
 import { checkBookmarkUrlDuplicate, getBookmark } from "@/services/bookmarks";
 import { listCategories } from "@/services/categories";
-import { getChaptersPropertyId, listCustomProperties } from "@/services/customProperties";
+import { getSectionsPropertyId, listCustomProperties } from "@/services/customProperties";
 import { getGroupById, listGroups, listGroupsCompact } from "@/services/groups";
 import { findPendingImportItemByUrl } from "@/services/imports";
 import { listLanguages } from "@/services/languages";
@@ -369,12 +369,12 @@ const YOUTUBE_DESCRIPTION_SELECTOR = "#description-inline-expander";
 
 /**
  * The zero-config built-in: for a saved YouTube video, a single synthetic `sections` rule that parses
- * the description's timestamps into the built-in "Chapters" property. Returns `[]` for non-YouTube
- * URLs or before the Chapters property is seeded. Never stored — assembled fresh per request.
+ * the description's timestamps into the built-in "Sections" property. Returns `[]` for non-YouTube
+ * URLs or before the Sections property is seeded. Never stored — assembled fresh per request.
  */
 async function buildYouTubeChaptersRules(url: string): Promise<WebsiteExtensionFillRule[]> {
   if (!isYouTubeVideoUrl(url)) return [];
-  const propertyId = await getChaptersPropertyId();
+  const propertyId = await getSectionsPropertyId();
   if (!propertyId) return [];
   return [
     {

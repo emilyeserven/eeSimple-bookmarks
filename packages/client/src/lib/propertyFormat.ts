@@ -1,6 +1,6 @@
 import type { BookmarkProgressValue, BookmarkSectionsValue, CustomProperty, CustomPropertyType, DateTimeFormat, NumberFormat, SectionEntry } from "@eesimple/types";
 
-import { SECTION_ENTRY_TYPE_LABELS } from "@eesimple/types";
+import { resolveItemInItemsTexts, SECTION_ENTRY_TYPE_LABELS } from "@eesimple/types";
 
 import i18n from "../i18n";
 
@@ -19,11 +19,20 @@ export const TYPE_LABELS: Record<CustomPropertyType, string> = {
   text: i18n.t("Text"),
 };
 
-/** Format an itemInItems value using the property's configured text segments. */
-export function formatProgressValue(value: BookmarkProgressValue, property: CustomProperty): string {
-  const before = property.itemInItemsBeforeText ?? "";
-  const between = property.itemInItemsBetweenText ?? i18n.t(" of ");
-  const after = property.itemInItemsAfterText ?? "";
+/**
+ * Format an itemInItems value using the property's configured text segments, honoring the
+ * per-media-type overrides when the bookmark's media type is passed (e.g. "3 of 10 pages" on a
+ * book vs "24 of 230 modules" on a course).
+ */
+export function formatProgressValue(
+  value: BookmarkProgressValue,
+  property: CustomProperty,
+  mediaTypeId?: string | null,
+): string {
+  const texts = resolveItemInItemsTexts(property, mediaTypeId);
+  const before = texts.before ?? "";
+  const between = texts.between ?? i18n.t(" of ");
+  const after = texts.after ?? "";
   return `${before}${value.current}${between}${value.total}${after}`;
 }
 

@@ -165,11 +165,18 @@ export function summarizeItemInItemsOptions(values: {
   itemInItemsBeforeText: string;
   itemInItemsBetweenText: string;
   itemInItemsAfterText: string;
+  /** Number of per-media-type text overrides, appended to the preview when > 0. */
+  overrideCount?: number;
 }): string {
   const before = values.itemInItemsBeforeText || "";
   const between = values.itemInItemsBetweenText || ` ${i18n.t("of")} `;
   const after = values.itemInItemsAfterText || "";
-  return `${before}10${between}100${after}`;
+  const sample = `${before}10${between}100${after}`;
+  return values.overrideCount
+    ? `${sample} · ${i18n.t("{{count}} media type override", {
+      count: values.overrideCount,
+    })}`
+    : sample;
 }
 
 /** One-line summary of the category selection for a collapsed "Categories" preview. */

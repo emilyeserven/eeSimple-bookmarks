@@ -5,7 +5,7 @@ import { ensureAppSettings, ensureDefaultPlaceTypeLevelGroups } from "@/services
 import { ensureDefaultGroupTypes } from "@/services/groupTypes";
 import { backfillCardDisplaySections, deleteNonDefaultCardDisplayRules, ensureCardDisplayConfig } from "@/services/cardDisplayRules";
 import { ensureDefaultCategory } from "@/services/categories";
-import { ensureChaptersProperty, ensureContentStatusProperty, ensureDatePostedProperty, ensureIsbnProperty, ensurePageProgressProperty, ensurePageRangeProperty, ensurePageSectionsProperty, ensureRuntimeProperty, ensureUrlSectionsProperty } from "@/services/customProperties";
+import { ensureContentStatusProperty, ensureDatePostedProperty, ensureIsbnProperty, ensurePageRangeProperty, ensureProgressProperty, ensureRuntimeProperty, ensureSectionsProperty } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
 import { resetStalledImports } from "@/services/imports";
 import { resetStalledReelArchiveJobs } from "@/services/reelArchive";
@@ -61,11 +61,11 @@ try {
   await ensureBuiltInTranslationSources();
   await ensureDefaultGroupTypes();
   await ensureRuntimeProperty();
-  await ensurePageProgressProperty();
+  // Sections must be seeded before Progress: a fresh install's Progress derives from Sections
+  // completion, so the seed links itemInItemsSourcePropertyId to the Sections property id.
+  const sectionsPropertyId = await ensureSectionsProperty();
+  await ensureProgressProperty(sectionsPropertyId);
   await ensurePageRangeProperty();
-  await ensureChaptersProperty();
-  await ensurePageSectionsProperty();
-  await ensureUrlSectionsProperty();
   await ensureIsbnProperty();
   await ensureBuiltInRelationshipTypes();
   await ensureDefaultLocationRelations();

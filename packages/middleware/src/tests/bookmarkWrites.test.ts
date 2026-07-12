@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   bookmarkNumberValues,
+  bookmarkProgressValues,
+  bookmarkSectionsValues,
   bookmarkTags,
   calculatePropertyOperands,
   customProperties,
@@ -11,6 +13,7 @@ import {
   linkLocations,
   linkTags,
   recomputeCalculatedValues,
+  recomputeDerivedProgress,
   setNumberValues,
   type Tx,
 } from "@/services/bookmarkWrites";
@@ -42,10 +45,17 @@ function makeFakeTx(): { tx: Tx;
       values: (rows: unknown[]) => {
         state.inserted.push({
           table,
-          rows,
+          rows: Array.isArray(rows) ? rows : [rows],
         });
         state.calls.push("insert");
-        return Promise.resolve(undefined);
+        // Awaiting this object resolves to itself (harmless for the plain-insert writers), while
+        // the upsert writers can chain `.onConflictDoUpdate(...)` off it.
+        return {
+          onConflictDoUpdate: () => {
+            state.calls.push("upsert");
+            return Promise.resolve(undefined);
+          },
+        };
       },
     }),
     delete: (table: unknown) => ({
@@ -223,6 +233,92 @@ test("recomputeCalculatedValues sums the operand property values", async () => {
     propertyId: "calc-1",
     value: 11,
   }]);
+});
+
+test("recomputeDerivedProgress is a no-op when no itemInItems property has a sections source", async () => {
+  const {
+    tx, state,
+  } = makeFakeTx();
+  state.tableRows.set(customProperties, []);
+  await recomputeDerivedProgress(tx, "bm-1");
+  assert.deepEqual(state.calls, ["select"]);
+  assert.deepEqual(state.inserted, []);
+});
+
+test("recomputeDerivedProgress upserts leaf counts — children count individually, a childless section counts once", async () => {
+  const {
+    tx, state,
+  } = makeFakeTx();
+  state.tableRows.set(customProperties, [{
+    id: "progress-1",
+    sourcePropertyId: "sections-1",
+  }]);
+  state.tableRows.set(bookmarkSectionsValues, [{
+    propertyId: "sections-1",
+    sections: [
+      {
+        id: "a",
+        name: "Unit 1",
+        type: "url",
+        startValue: "",
+        completed: true, // parent flag ignored: this entry is measured by its children
+        children: [
+          {
+            id: "a1",
+            name: "1.1",
+            type: "url",
+            startValue: "",
+            completed: true,
+          },
+          {
+            id: "a2",
+            name: "1.2",
+            type: "url",
+            startValue: "",
+          },
+        ],
+      },
+      {
+        id: "b",
+        name: "Unit 2",
+        type: "url",
+        startValue: "",
+        completed: true,
+      },
+    ],
+  }]);
+  await recomputeDerivedProgress(tx, "bm-1");
+  assert.equal(state.inserted.length, 1);
+  assert.equal(state.inserted[0].table, bookmarkProgressValues);
+  assert.deepEqual(state.inserted[0].rows, [{
+    bookmarkId: "bm-1",
+    propertyId: "progress-1",
+    current: 2, // completed leaves: 1.1 + Unit 2
+    total: 3, // leaves: 1.1, 1.2, Unit 2
+  }]);
+  assert.ok(state.calls.includes("upsert"), "the write must be an upsert on the composite PK");
+});
+
+test("recomputeDerivedProgress leaves the progress row alone when the source sections are empty or absent", async () => {
+  const {
+    tx, state,
+  } = makeFakeTx();
+  state.tableRows.set(customProperties, [
+    {
+      id: "progress-1",
+      sourcePropertyId: "sections-empty",
+    },
+    {
+      id: "progress-2",
+      sourcePropertyId: "sections-missing",
+    },
+  ]);
+  state.tableRows.set(bookmarkSectionsValues, [{
+    propertyId: "sections-empty",
+    sections: [],
+  }]);
+  await recomputeDerivedProgress(tx, "bm-1");
+  assert.deepEqual(state.inserted, []);
 });
 
 test("recomputeCalculatedValues clears stale calculate results before re-reading operand values", async () => {

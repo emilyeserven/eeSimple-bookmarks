@@ -62,6 +62,7 @@ import {
   linkLocations,
   linkTags,
   recomputeCalculatedValues,
+  recomputeDerivedProgress,
   setBooleanValues,
   setBookmarkLocationBlacklist,
   setBookmarkTagBlacklist,
@@ -665,6 +666,8 @@ export async function createBookmark(input: CreateBookmarkInput): Promise<Bookma
     await setSectionsValues(tx, row.id, input.sectionsValues);
     await setTextValues(tx, row.id, input.textValues);
     await recomputeCalculatedValues(tx, row.id);
+    // After progress + sections are written, so a sections-derived Progress wins over a manual value.
+    await recomputeDerivedProgress(tx, row.id);
     return {
       id: row.id,
       websiteId,
@@ -939,8 +942,10 @@ export async function updateBookmark(
       numberValues,
       dateTimeValues,
     });
-    // Always recompute last: number-value edits ripple into calculate results.
+    // Always recompute last: number-value edits ripple into calculate results, and sections edits
+    // ripple into a linked derived Progress value.
     await recomputeCalculatedValues(tx, id);
+    await recomputeDerivedProgress(tx, id);
     return true;
   });
 

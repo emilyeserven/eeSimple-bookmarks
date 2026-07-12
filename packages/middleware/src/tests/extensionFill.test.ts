@@ -21,7 +21,7 @@ let pendingImportItem: { id: string } | null = null;
 let bookmarkById: Record<string, Bookmark> = {};
 let websiteForUrl: Website | null = null;
 let allCustomProperties: CustomProperty[] = [];
-let chaptersPropertyId: string | null = null;
+let sectionsPropertyId: string | null = null;
 const allTaxonomyOptions = {
   people: [{
     id: "person-1",
@@ -87,7 +87,7 @@ mock.module("@/services/bookmarks", {
 mock.module("@/services/customProperties", {
   namedExports: {
     listCustomProperties: async () => allCustomProperties,
-    getChaptersPropertyId: async () => chaptersPropertyId,
+    getSectionsPropertyId: async () => sectionsPropertyId,
   },
 });
 mock.module("@/services/imports", {
@@ -208,7 +208,7 @@ function resetFixtures(): void {
   bookmarkById = {};
   websiteForUrl = null;
   allCustomProperties = [];
-  chaptersPropertyId = null;
+  sectionsPropertyId = null;
   peopleList = [];
   groupsList = [];
   tagsList = [];
@@ -320,7 +320,7 @@ test("mode is 'bookmark' with no rules/properties/taxonomies when the matched we
   assert.equal(result.taxonomies, undefined);
 });
 
-test("injects the built-in YouTube chapters rule for a saved YouTube video once the Chapters property is seeded", async () => {
+test("injects the built-in YouTube chapters rule for a saved YouTube video once the Sections property is seeded", async () => {
   resetFixtures();
   duplicateResult = {
     exactMatch: {
@@ -337,14 +337,14 @@ test("injects the built-in YouTube chapters rule for a saved YouTube video once 
       title: "A video",
     } as unknown as Bookmark,
   };
-  // No stored youtube.com rules, but the Chapters property is seeded → the synthetic rule appears.
+  // No stored youtube.com rules, but the Sections property is seeded → the synthetic rule appears.
   websiteForUrl = null;
-  chaptersPropertyId = "chapters-prop";
+  sectionsPropertyId = "sections-prop";
   allCustomProperties = [
     {
-      id: "chapters-prop",
-      name: "Chapters",
-      slug: "chapters",
+      id: "sections-prop",
+      name: "Sections",
+      slug: "sections",
       type: "sections",
     } as unknown as CustomProperty,
   ];
@@ -355,12 +355,12 @@ test("injects the built-in YouTube chapters rule for a saved YouTube video once 
   assert.equal(rules[0].id, "builtin-youtube-chapters");
   assert.equal(rules[0].target.kind, "sections");
   assert.equal(rules[0].target.kind === "sections" && rules[0].target.entryType, "timestamp");
-  // The referenced Chapters property is shipped to the popup.
+  // The referenced Sections property is shipped to the popup.
   assert.equal(result.properties?.length, 1);
-  assert.equal(result.properties?.[0].id, "chapters-prop");
+  assert.equal(result.properties?.[0].id, "sections-prop");
 });
 
-test("does not inject the YouTube chapters rule before the Chapters property is seeded", async () => {
+test("does not inject the YouTube chapters rule before the Sections property is seeded", async () => {
   resetFixtures();
   duplicateResult = {
     exactMatch: {
@@ -378,7 +378,7 @@ test("does not inject the YouTube chapters rule before the Chapters property is 
     } as unknown as Bookmark,
   };
   websiteForUrl = null;
-  chaptersPropertyId = null;
+  sectionsPropertyId = null;
   const result = await getExtensionFillContext("https://www.youtube.com/watch?v=D5L_wKT3OSQ");
   assert.equal(result.mode, "bookmark");
   assert.equal(result.website, undefined);

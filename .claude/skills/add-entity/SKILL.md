@@ -79,8 +79,8 @@ If the boot step seeds a **built-in custom property** that is a post-creation de
 (progress/range/sections/rating), also hide it from the Add Bookmark form: add its slug to
 `BOOKMARK_FORM_DETAIL_SLUGS` in `packages/types/src/bookmarkAddForm.ts` — that single edit seeds it
 **hidden** by default and adds a configurable row under Settings → Display → Bookmark Add Form (see
-CLAUDE.md → "Add Bookmark form field placement" and the `bookmark-add-form` skill; `chapters`/
-`url-sections` were once seeded without this and leaked into the create form).
+CLAUDE.md → "Add Bookmark form field placement" and the `bookmark-add-form` skill; the pre-merge
+`chapters`/`url-sections` built-ins were once seeded without this and leaked into the create form).
 
 ### 5. Shared types (`packages/types/src/index.ts`)
 Add the row + `Create*Input` / `Update*Input` types. **Intra-package imports/re-exports need

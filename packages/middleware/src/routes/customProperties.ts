@@ -189,6 +189,28 @@ const createPropertyBody = {
     itemInItemsAfterText: {
       type: ["string", "null"],
     },
+    itemInItemsMediaTypeTexts: {
+      type: ["object", "null"],
+      additionalProperties: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          beforeText: {
+            type: ["string", "null"],
+          },
+          betweenText: {
+            type: ["string", "null"],
+          },
+          afterText: {
+            type: ["string", "null"],
+          },
+        },
+      },
+    },
+    itemInItemsSourcePropertyId: {
+      type: ["string", "null"],
+      format: "uuid",
+    },
     sectionsDefaultType: {
       type: ["string", "null"],
       enum: ["url", "page", "timestamp", null],
@@ -251,6 +273,8 @@ const updatePropertyBody = {
     itemInItemsBeforeText: createPropertyBody.properties.itemInItemsBeforeText,
     itemInItemsBetweenText: createPropertyBody.properties.itemInItemsBetweenText,
     itemInItemsAfterText: createPropertyBody.properties.itemInItemsAfterText,
+    itemInItemsMediaTypeTexts: createPropertyBody.properties.itemInItemsMediaTypeTexts,
+    itemInItemsSourcePropertyId: createPropertyBody.properties.itemInItemsSourcePropertyId,
     sectionsDefaultType: createPropertyBody.properties.sectionsDefaultType,
     sectionsAllowedTypes: createPropertyBody.properties.sectionsAllowedTypes,
     sectionsTiered: createPropertyBody.properties.sectionsTiered,

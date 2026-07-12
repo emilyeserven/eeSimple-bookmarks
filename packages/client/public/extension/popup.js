@@ -744,8 +744,13 @@ function buildSectionsRow(rule, result, ctx) {
   if (!property || property.type !== "sections") {
     return baseRow(rule, "", "", false, "unsupported");
   }
-  const entries = assignSectionIds(result?.entries ?? []);
   const existing = (bookmark.sectionsValues ?? []).find(v => v.propertyId === property.id);
+  // Re-fills must not wipe read progress: carry the stored entries' `completed` flags onto the
+  // freshly-extracted list (paired by name, the same key diffSections uses).
+  const entries = carrySectionCompletion(
+    assignSectionIds(result?.entries ?? []),
+    existing ? existing.sections : [],
+  );
   const currentText = existing ? summarizeSections(existing.sections) : "—";
   if (entries.length === 0) {
     return baseRow(rule, currentText, "", false, "not found");
@@ -768,7 +773,7 @@ function buildSectionsRow(rule, result, ctx) {
 }
 
 // Build one persisted entry from an extracted one: a fresh id plus the content fields, carrying the
-// optional endValue/url only when present (so blanks stay out of the stored jsonb).
+// optional endValue/url/completed only when present (so blanks stay out of the stored jsonb).
 function sectionEntryWithId(entry) {
   const out = {
     id: randomId(),
@@ -778,6 +783,7 @@ function sectionEntryWithId(entry) {
   };
   if (entry.endValue != null && entry.endValue !== "") out.endValue = entry.endValue;
   if (entry.url != null && entry.url !== "") out.url = entry.url;
+  if (entry.completed === true) out.completed = true;
   return out;
 }
 
@@ -791,6 +797,33 @@ function assignSectionIds(entries) {
     }
     return out;
   });
+}
+
+// Carry the stored list's `completed` flags onto a freshly-extracted list so a re-fill doesn't wipe
+// read progress. Entries pair by normalized name (a per-name queue, like diffSections, so a name
+// matches at most once); a matched section's children pair the same way within it. Mutates and
+// returns `entries`. `completed` never affects sectionsContentEqual, so carrying it over can't flip
+// a row to "changed".
+function carrySectionCompletion(entries, storedSections) {
+  const stored = Array.isArray(storedSections) ? storedSections : [];
+  if (stored.length === 0) return entries;
+  const norm = s => (s.name || "").trim().toLowerCase();
+  const pool = new Map();
+  stored.forEach((s) => {
+    const key = norm(s);
+    if (!pool.has(key)) pool.set(key, []);
+    pool.get(key).push(s);
+  });
+  for (const entry of entries) {
+    const queue = pool.get(norm(entry));
+    const match = queue && queue.length ? queue.shift() : null;
+    if (!match) continue;
+    if (match.completed === true) entry.completed = true;
+    if (Array.isArray(entry.children) && Array.isArray(match.children)) {
+      carrySectionCompletion(entry.children, match.children);
+    }
+  }
+  return entries;
 }
 
 // "N sections, M items" (M = total children across the list; omitted when there are none).

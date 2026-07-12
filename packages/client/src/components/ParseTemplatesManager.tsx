@@ -347,7 +347,7 @@ export function ParseTemplatesManager() {
       <div>
         <h2 className="text-xl font-semibold">{t("Parse Templates")}</h2>
         <p className="text-sm text-muted-foreground">
-          {t("Reusable rules for the Sections editor's \"Paste to parse\" feature: a delineator splits the pasted text into items, and a pattern of tags marks what each part is.")}
+          {t("Reusable rules for the \"Paste to parse\" button on the Sections property editor — found on a bookmark's edit Properties tab and in the Add Bookmark form. A delineator splits the pasted text into items, and a pattern of tags marks what each part is.")}
         </p>
       </div>
       <div

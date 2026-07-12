@@ -136,12 +136,120 @@ export interface SectionEntry {
    * populated when the owning property opts in via `CustomProperty.sectionsTiered`.
    */
   children?: SectionEntry[];
+  /**
+   * Whether the user has marked this section/sub-item as read/watched. Checking a tier-1 entry also
+   * checks all its children — that cascade is a **write-time** behavior (see
+   * {@link setSectionCompleted}), never derived at read time, so a parent and its children can
+   * legitimately disagree after later edits.
+   */
+  completed?: boolean;
 }
 
 export interface BookmarkSectionsValue {
   propertyId: string;
   exhaustive: boolean;
   sections: SectionEntry[];
+}
+
+/**
+ * Count the completion "leaves" of a sections list: a tier-1 entry with children is measured by its
+ * children (each child is one leaf); one without children counts as one leaf itself. Powers the
+ * derived-Progress feature ("24 of 230 modules"), so middleware and client must share this exact rule.
+ */
+export function countSectionLeaves(sections: SectionEntry[]): { total: number;
+  completed: number; } {
+  let total = 0;
+  let completed = 0;
+  for (const entry of sections) {
+    const leaves = entry.children && entry.children.length > 0 ? entry.children : [entry];
+    for (const leaf of leaves) {
+      total += 1;
+      if (leaf.completed === true) completed += 1;
+    }
+  }
+  return {
+    total,
+    completed,
+  };
+}
+
+/**
+ * Return a copy of `sections` with the entry `entryId`'s `completed` flag set. Setting a tier-1
+ * entry cascades the same flag to all its children (the "checking a parent checks everything under
+ * it" rule); setting a child touches only that child — the parent's own flag changes only via its
+ * own checkbox.
+ */
+export function setSectionCompleted(
+  sections: SectionEntry[],
+  entryId: string,
+  completed: boolean,
+): SectionEntry[] {
+  return sections.map((entry) => {
+    if (entry.id === entryId) {
+      return {
+        ...entry,
+        completed,
+        ...(entry.children && {
+          children: entry.children.map(child => ({
+            ...child,
+            completed,
+          })),
+        }),
+      };
+    }
+    if (entry.children?.some(child => child.id === entryId)) {
+      return {
+        ...entry,
+        children: entry.children.map(child => (child.id === entryId
+          ? {
+            ...child,
+            completed,
+          }
+          : child)),
+      };
+    }
+    return entry;
+  });
+}
+
+/**
+ * Per-media-type overrides for an `itemInItems` property's text segments, keyed by media-type id.
+ * A field left `null`/absent inherits the property's base `itemInItemsBeforeText`/`BetweenText`/
+ * `AfterText` — so "Progress" can render "1 of 10 pages" on a book and "24 of 230 modules" on a
+ * course from one property. Stored as nullable jsonb on `custom_properties`.
+ */
+export type ItemInItemsMediaTypeTexts = Record<string, {
+  beforeText?: string | null;
+  betweenText?: string | null;
+  afterText?: string | null;
+}>;
+
+/** The itemInItems text fields {@link resolveItemInItemsTexts} reads (structurally satisfied by `CustomProperty`). */
+export interface ItemInItemsTextSource {
+  itemInItemsBeforeText: string | null;
+  itemInItemsBetweenText: string | null;
+  itemInItemsAfterText: string | null;
+  itemInItemsMediaTypeTexts: ItemInItemsMediaTypeTexts | null;
+}
+
+/**
+ * Resolve an `itemInItems` property's before/between/after text for a bookmark's media type: the
+ * media-type override wins per field when it is a non-null string, else the property's base field.
+ * Returns raw `string | null` segments — display defaults (`between` → `" of "`, others → `""`)
+ * stay the caller's job so the client can localize them.
+ */
+export function resolveItemInItemsTexts(
+  property: ItemInItemsTextSource,
+  mediaTypeId: string | null | undefined,
+): { before: string | null;
+  between: string | null;
+  after: string | null; } {
+  const override = mediaTypeId ? property.itemInItemsMediaTypeTexts?.[mediaTypeId] : undefined;
+  return {
+    before: override?.beforeText ?? property.itemInItemsBeforeText,
+    between: override?.betweenText ?? property.itemInItemsBetweenText,
+    after: override?.afterText ?? property.itemInItemsAfterText,
+  };
 }
 
 /** A plain text custom property value carried on a bookmark. */

@@ -338,7 +338,7 @@ test("resolveBookmarkAddFormSettings: builtInPropertyPlacements merges stored va
   // The overridden slug takes the stored value...
   assert.equal(out.builtInPropertyPlacements[RUNTIME_SLUG], "default");
   // ...while a slug missing from the stored map still resolves to its default ("hidden").
-  assert.equal(out.builtInPropertyPlacements["page-progress"], "hidden");
+  assert.equal(out.builtInPropertyPlacements.progress, "hidden");
 });
 
 test("resolveBookmarkAddFormSettings: junk entries in the stored placements map are dropped before merging", () => {

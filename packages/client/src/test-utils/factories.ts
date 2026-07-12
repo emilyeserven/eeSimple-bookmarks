@@ -84,6 +84,8 @@ export function makeCustomProperty(overrides: Partial<CustomProperty> = {}): Cus
     itemInItemsBeforeText: null,
     itemInItemsBetweenText: null,
     itemInItemsAfterText: null,
+    itemInItemsMediaTypeTexts: null,
+    itemInItemsSourcePropertyId: null,
     sectionsDefaultType: null,
     sectionsAllowedTypes: null,
     sectionsTiered: null,

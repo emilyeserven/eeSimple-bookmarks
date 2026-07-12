@@ -65,13 +65,13 @@ test("a matching rule overlays standard-field and property-slug placements", () 
         image: "default",
       },
       propertyPlacements: {
-        "page-progress": "default",
+        progress: "default",
       },
     })],
   };
   const result = applyAdvancedRules(base, inputWithMediaType("book"));
   assert.equal(result.standardFieldPlacements.image, "default");
-  assert.equal(result.builtInPropertyPlacements["page-progress"], "default");
+  assert.equal(result.builtInPropertyPlacements.progress, "default");
   // Untouched fields keep their base placement.
   assert.equal(result.standardFieldPlacements.title, base.standardFieldPlacements.title);
 });
