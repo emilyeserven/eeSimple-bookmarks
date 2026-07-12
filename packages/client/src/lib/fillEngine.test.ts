@@ -1574,7 +1574,7 @@ describe("eesimpleFillEngine.runRules — ratingScale detect range (per-level de
     </ul>
   `;
 
-  /** A detect-range rule: each level maps to a shared `.lvl` selector narrowed by exact match text. */
+  /** A detect-range rule: ONE shared `.lvl` selector; levels are distinguished by exact match text. */
   function rangeRule(): unknown {
     return {
       id: "r1",
@@ -1582,42 +1582,23 @@ describe("eesimpleFillEngine.runRules — ratingScale detect range (per-level de
         kind: "customProperty",
         propertyId: "complexity",
         ratingBound: "range",
+        ratingSelector: ".lvl",
         ratingLevels: [
           {
             level: 0,
-            selector: ".lvl",
-            match: {
-              mode: "equals",
-              value: "Absolute beginner",
-              caseSensitive: false,
-            },
+            matchText: "Absolute beginner",
           },
           {
             level: 1,
-            selector: ".lvl",
-            match: {
-              mode: "equals",
-              value: "Beginner",
-              caseSensitive: false,
-            },
+            matchText: "Beginner",
           },
           {
             level: 2,
-            selector: ".lvl",
-            match: {
-              mode: "equals",
-              value: "Intermediate",
-              caseSensitive: false,
-            },
+            matchText: "Intermediate",
           },
           {
             level: 3,
-            selector: ".lvl",
-            match: {
-              mode: "equals",
-              value: "Expert",
-              caseSensitive: false,
-            },
+            matchText: "Expert",
           },
         ],
       },
@@ -1625,11 +1606,11 @@ describe("eesimpleFillEngine.runRules — ratingScale detect range (per-level de
     };
   }
 
-  it("returns the present levels (min→max span) as the values list", () => {
+  it("returns the present levels (min→max span) from one shared selector", () => {
     expect(runOne(rangeRule(), SKILLS_HTML).values).toEqual(["1", "2"]);
   });
 
-  it("returns a single level when only one detector matches", () => {
+  it("returns a single level when only one level's text is present", () => {
     const html = "<ul><li class=\"lvl\">Beginner</li></ul>";
     expect(runOne(rangeRule(), html).values).toEqual(["1"]);
   });
@@ -1639,28 +1620,85 @@ describe("eesimpleFillEngine.runRules — ratingScale detect range (per-level de
     expect(runOne(rangeRule(), html).values).toEqual([]);
   });
 
-  it("matches by selector alone when a level has no match text", () => {
+  it("exact (default) does not match a substring label", () => {
+    // "Beginner-friendly" is not exactly "Beginner", so level 1 stays absent under exact matching.
+    const html = "<ul><li class=\"lvl\">Beginner-friendly</li></ul>";
+    expect(runOne(rangeRule(), html).values).toEqual([]);
+  });
+
+  it("ratingMatchExact:false switches all levels to contains matching", () => {
     const rule = {
-      id: "r2",
+      id: "r-contains",
+      target: {
+        kind: "customProperty",
+        propertyId: "complexity",
+        ratingBound: "range",
+        ratingSelector: ".lvl",
+        ratingMatchExact: false,
+        ratingLevels: [
+          {
+            level: 1,
+            matchText: "Beginner",
+          },
+          {
+            level: 2,
+            matchText: "Intermediate",
+          },
+        ],
+      },
+      extract: {},
+    };
+    const html = "<ul><li class=\"lvl\">Suitable for beginners and intermediate learners</li></ul>";
+    expect(runOne(rule, html).values).toEqual(["1", "2"]);
+  });
+
+  it("honors a per-level selector override for a level with different markup", () => {
+    const rule = {
+      id: "r-override",
+      target: {
+        kind: "customProperty",
+        propertyId: "complexity",
+        ratingBound: "range",
+        ratingSelector: ".lvl",
+        ratingLevels: [
+          {
+            level: 1,
+            matchText: "Beginner",
+          },
+          {
+            level: 3,
+            selector: ".expert-flag",
+          },
+        ],
+      },
+      extract: {},
+    };
+    const html = "<ul><li class=\"lvl\">Beginner</li></ul><div class=\"expert-flag\"></div>";
+    expect(runOne(rule, html).values).toEqual(["1", "3"]);
+  });
+
+  it("still honors a legacy per-detector match object (pre-shared-selector rules)", () => {
+    const rule = {
+      id: "r-legacy",
       target: {
         kind: "customProperty",
         propertyId: "complexity",
         ratingBound: "range",
         ratingLevels: [
           {
-            level: 1,
-            selector: ".beginner-badge",
-          },
-          {
             level: 2,
-            selector: ".intermediate-badge",
+            selector: ".lvl",
+            match: {
+              mode: "equals",
+              value: "Intermediate",
+              caseSensitive: false,
+            },
           },
         ],
       },
       extract: {},
     };
-    const html = "<div class=\"beginner-badge\"></div>";
-    expect(runOne(rule, html).values).toEqual(["1"]);
+    expect(runOne(rule, SKILLS_HTML).values).toEqual(["2"]);
   });
 
   it("skips a detector with an invalid selector without poisoning the rule", () => {
@@ -1678,11 +1716,7 @@ describe("eesimpleFillEngine.runRules — ratingScale detect range (per-level de
           {
             level: 2,
             selector: ".lvl",
-            match: {
-              mode: "equals",
-              value: "Intermediate",
-              caseSensitive: false,
-            },
+            matchText: "Intermediate",
           },
         ],
       },

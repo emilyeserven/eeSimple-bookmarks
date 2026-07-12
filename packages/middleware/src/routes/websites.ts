@@ -430,12 +430,18 @@ const fillTargetSchema = {
       type: "string",
       enum: ["from", "to", "range"],
     },
+    ratingSelector: {
+      type: "string",
+    },
+    ratingMatchExact: {
+      type: "boolean",
+    },
     ratingLevels: {
       type: "array",
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["level", "selector"],
+        required: ["level"],
         properties: {
           level: {
             type: "number",
@@ -443,7 +449,9 @@ const fillTargetSchema = {
           selector: {
             type: "string",
           },
-          match: textMatchSchema,
+          matchText: {
+            type: "string",
+          },
         },
       },
     },

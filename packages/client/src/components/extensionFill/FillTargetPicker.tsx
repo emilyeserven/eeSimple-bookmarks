@@ -758,12 +758,12 @@ function SetMainImageToggle({
 }
 
 /**
-/**
- * Per-level detector editor for a rating target in `ratingBound: "range"` mode. One row per scale
- * level: a CSS selector (required for the level to be detectable) and an optional exact-match text
- * (defaulted to the level's label). The engine marks a level present when its selector matches an
- * element and — if match text is set — that element's text equals it (case-insensitive). Empty-selector
- * rows are dropped on save (`cleanCustomPropertyTarget`).
+ * Detector editor for a rating target in `ratingBound: "range"` mode. A shared CSS selector + a global
+ * "Exact match" toggle (equals vs contains, case-insensitive) sit above one row per scale level; each
+ * row has the level's match text (default: its label) and an optional per-level selector override. The
+ * engine marks a level present when its effective selector matches an element and, if match text is set,
+ * that element's text matches under the global mode. Empty levels are dropped on save
+ * (`cleanCustomPropertyTarget`).
  */
 function RatingLevelDetectorsEditor({
   property, target, onChange,
@@ -775,50 +775,80 @@ function RatingLevelDetectorsEditor({
   const {
     t,
   } = useTranslation();
+  const exactId = useId();
   const levels = ratingLevelValues(property);
   const existing = target.ratingLevels ?? [];
   const detectorFor = (level: number) => existing.find(detector => detector.level === level);
-  // The display value for a level's match input: the stored value, else a first-time prefill of the
-  // level's label (so a shared selector matches the right level out of the box).
+  const sharedSelector = target.ratingSelector ?? "";
+  const exact = target.ratingMatchExact ?? true;
+  // A level's own selector override (blank = use the shared selector).
+  const selectorDisplay = (level: number) => detectorFor(level)?.selector ?? "";
+  // A level's match text: the stored value, else a first-time prefill of the level's label (so the
+  // shared selector matches the right level out of the box).
   const matchDisplay = (level: number) => {
     const stored = detectorFor(level);
-    return stored ? (stored.match?.value ?? "") : ratingLevelLabel(property, level);
+    return stored ? (stored.matchText ?? "") : ratingLevelLabel(property, level);
   };
-  const selectorDisplay = (level: number) => detectorFor(level)?.selector ?? "";
 
-  // Rebuild the whole per-level array from the current displayed values, applying one edit.
-  const emit = (editLevel: number, patch: { selector?: string;
-    matchValue?: string; }) => {
-    const ratingLevels: RatingLevelDetector[] = levels.map((level) => {
+  // Rebuild the per-level array from the current displayed values, applying at most one level edit.
+  const buildLevels = (editLevel: number | null, patch: { selector?: string;
+    matchText?: string; }): RatingLevelDetector[] =>
+    levels.map((level) => {
       const selector = level === editLevel && patch.selector !== undefined ? patch.selector : selectorDisplay(level);
-      const matchValue = level === editLevel && patch.matchValue !== undefined ? patch.matchValue : matchDisplay(level);
+      const matchText = level === editLevel && patch.matchText !== undefined ? patch.matchText : matchDisplay(level);
       return {
         level,
-        selector,
-        ...(matchValue.trim() !== ""
+        ...(selector.trim() !== ""
           ? {
-            match: {
-              mode: "equals" as const,
-              value: matchValue,
-              caseSensitive: false,
-            },
+            selector,
+          }
+          : {}),
+        ...(matchText.trim() !== ""
+          ? {
+            matchText,
           }
           : {}),
       };
     });
+
+  // Rebuild the whole range target; unspecified fields keep their current displayed value.
+  const commit = (fields: { ratingSelector?: string;
+    ratingMatchExact?: boolean;
+    ratingLevels?: RatingLevelDetector[]; }) => {
     onChange({
       kind: "customProperty",
       propertyId: target.propertyId,
       ratingBound: "range",
-      ratingLevels,
+      ratingSelector: fields.ratingSelector ?? sharedSelector,
+      ratingMatchExact: fields.ratingMatchExact ?? exact,
+      ratingLevels: fields.ratingLevels ?? buildLevels(null, {}),
     });
   };
 
   return (
     <div className="space-y-3 rounded-md border p-2">
       <p className="text-xs text-muted-foreground">
-        {t("For each level, a CSS selector marks it present when it matches. Optional match text (default: the label) narrows a shared selector.")}
+        {t("A shared CSS selector marks each level present when it matches; per-level match text (default: the label) picks which level. A level can override the shared selector.")}
       </p>
+      <LabeledInput
+        label={t("Selector (shared)")}
+        value={sharedSelector}
+        placeholder={t("e.g. .difficulty-badge")}
+        onChange={ratingSelector => commit({
+          ratingSelector,
+        })}
+      />
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id={exactId}
+          checked={exact}
+          onCheckedChange={checked => commit({
+            ratingMatchExact: checked === true,
+          })}
+        />
+        <Label htmlFor={exactId}>{t("Exact match text")}</Label>
+        <span className="text-xs text-muted-foreground">{t("Off = \"contains\"")}</span>
+      </div>
       {levels.map(level => (
         <div
           key={level}
@@ -826,18 +856,22 @@ function RatingLevelDetectorsEditor({
         >
           <Label className="text-xs font-medium">{ratingLevelLabel(property, level)}</Label>
           <LabeledInput
-            label={t("Selector")}
-            value={selectorDisplay(level)}
-            placeholder={t("e.g. .difficulty--intermediate")}
-            onChange={selector => emit(level, {
-              selector,
+            label={t("Match text")}
+            value={matchDisplay(level)}
+            onChange={matchText => commit({
+              ratingLevels: buildLevels(level, {
+                matchText,
+              }),
             })}
           />
           <LabeledInput
-            label={t("Match text (optional)")}
-            value={matchDisplay(level)}
-            onChange={matchValue => emit(level, {
-              matchValue,
+            label={t("Selector override (optional)")}
+            value={selectorDisplay(level)}
+            placeholder={t("Override shared selector")}
+            onChange={selector => commit({
+              ratingLevels: buildLevels(level, {
+                selector,
+              }),
             })}
           />
         </div>

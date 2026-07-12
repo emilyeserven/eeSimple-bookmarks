@@ -319,6 +319,16 @@ function coerceCustomPropertyTarget(prev: FillTarget): Extract<FillTarget, { kin
         ratingBound: same.ratingBound,
       }
       : {}),
+    ...(same?.ratingSelector !== undefined
+      ? {
+        ratingSelector: same.ratingSelector,
+      }
+      : {}),
+    ...(same?.ratingMatchExact !== undefined
+      ? {
+        ratingMatchExact: same.ratingMatchExact,
+      }
+      : {}),
     ...(same?.ratingLevels !== undefined
       ? {
         ratingLevels: same.ratingLevels,
@@ -560,20 +570,52 @@ function cleanCustomPropertyTarget(
         ratingBound: target.ratingBound,
       }
       : {}),
-    // Per-level detectors ride only in "range" mode; drop detectors with no selector to fill.
-    ...(target.ratingBound === "range" && target.ratingLevels && target.ratingLevels.length > 0
+    // The shared selector, global match mode, and per-level detectors ride only in "range" mode.
+    ...(target.ratingBound === "range" ? cleanRatingRangeFields(target) : {}),
+  };
+}
+
+/** Range-mode rating fields (shared selector, global exact toggle, per-level detectors), cleaned. */
+function cleanRatingRangeFields(
+  target: Extract<FillTarget, { kind: "customProperty" }>,
+): Partial<Extract<FillTarget, { kind: "customProperty" }>> {
+  const sharedSelector = (target.ratingSelector ?? "").trim();
+  // Keep a level only if it can be detected — an own selector or match text. A bare level (no
+  // selector, no text) would match wherever the shared selector matches, i.e. for every level.
+  const ratingLevels = (target.ratingLevels ?? [])
+    .map(detector => ({
+      level: detector.level,
+      selector: (detector.selector ?? "").trim(),
+      matchText: (detector.matchText ?? "").trim(),
+    }))
+    .filter(detector => detector.selector !== "" || detector.matchText !== "")
+    .map(detector => ({
+      level: detector.level,
+      ...(detector.selector !== ""
+        ? {
+          selector: detector.selector,
+        }
+        : {}),
+      ...(detector.matchText !== ""
+        ? {
+          matchText: detector.matchText,
+        }
+        : {}),
+    }));
+  return {
+    ...(sharedSelector !== ""
       ? {
-        ratingLevels: target.ratingLevels
-          .filter(detector => detector.selector.trim() !== "")
-          .map(detector => ({
-            level: detector.level,
-            selector: detector.selector.trim(),
-            ...(detector.match && detector.match.value.trim() !== ""
-              ? {
-                match: detector.match,
-              }
-              : {}),
-          })),
+        ratingSelector: sharedSelector,
+      }
+      : {}),
+    ...(typeof target.ratingMatchExact === "boolean"
+      ? {
+        ratingMatchExact: target.ratingMatchExact,
+      }
+      : {}),
+    ...(ratingLevels.length > 0
+      ? {
+        ratingLevels,
       }
       : {}),
   };

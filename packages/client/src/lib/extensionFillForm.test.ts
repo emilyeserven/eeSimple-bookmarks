@@ -128,28 +128,25 @@ describe("coerceFillTarget", () => {
     });
   });
 
-  it("preserves range detectors across a same-kind rebuild", () => {
-    expect(coerceFillTarget("customProperty", {
-      kind: "customProperty",
+  it("preserves the shared selector, exact toggle, and range detectors across a same-kind rebuild", () => {
+    const cp = {
+      kind: "customProperty" as const,
       propertyId: "p1",
-      ratingBound: "range",
+      ratingBound: "range" as const,
+      ratingSelector: ".lvl",
+      ratingMatchExact: false,
       ratingLevels: [
         {
           level: 1,
-          selector: ".beginner",
+          matchText: "Beginner",
         },
-      ],
-    })).toEqual({
-      kind: "customProperty",
-      propertyId: "p1",
-      ratingBound: "range",
-      ratingLevels: [
         {
-          level: 1,
-          selector: ".beginner",
+          level: 2,
+          selector: ".intermediate",
         },
       ],
-    });
+    };
+    expect(coerceFillTarget("customProperty", cp)).toEqual(cp);
   });
 });
 
@@ -465,34 +462,27 @@ describe("taxonomyDirect target", () => {
     })])).toEqual([]);
   });
 
-  it("keeps range detectors with a selector and drops empty-selector ones", () => {
+  it("keeps the shared selector + exact toggle, trims levels, and drops fully-empty ones", () => {
     const [out] = normalizeExtensionFillRules([rule({
       target: {
         kind: "customProperty",
         propertyId: "p1",
         ratingBound: "range",
+        ratingSelector: " .lvl ",
+        ratingMatchExact: false,
         ratingLevels: [
           {
             level: 0,
             selector: "  ",
-            match: {
-              mode: "equals",
-              value: "Absolute beginner",
-              caseSensitive: false,
-            },
+            matchText: "  ",
           },
           {
             level: 1,
-            selector: " .lvl ",
-            match: {
-              mode: "equals",
-              value: "Beginner",
-              caseSensitive: false,
-            },
+            matchText: " Beginner ",
           },
           {
             level: 2,
-            selector: ".intermediate",
+            selector: " .intermediate ",
           },
         ],
       },
@@ -501,15 +491,12 @@ describe("taxonomyDirect target", () => {
       kind: "customProperty",
       propertyId: "p1",
       ratingBound: "range",
+      ratingSelector: ".lvl",
+      ratingMatchExact: false,
       ratingLevels: [
         {
           level: 1,
-          selector: ".lvl",
-          match: {
-            mode: "equals",
-            value: "Beginner",
-            caseSensitive: false,
-          },
+          matchText: "Beginner",
         },
         {
           level: 2,
@@ -519,12 +506,14 @@ describe("taxonomyDirect target", () => {
     });
   });
 
-  it("drops range detectors entirely when the bound is a single end", () => {
+  it("drops all range fields when the bound is a single end", () => {
     const [out] = normalizeExtensionFillRules([rule({
       target: {
         kind: "customProperty",
         propertyId: "p1",
         ratingBound: "from",
+        ratingSelector: ".lvl",
+        ratingMatchExact: false,
         ratingLevels: [
           {
             level: 1,

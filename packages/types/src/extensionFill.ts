@@ -68,13 +68,18 @@ export type FillTarget
    * `extract`, the popup evaluates the per-level {@link ratingLevels} detectors against the page and
    * sets the range to `[min, max]` of the **present** levels — so one rule covers a whole scale
    * (e.g. "beginner" + "intermediate" present → From 1, To 2). Only meaningful for a range-enabled
-   * `ratingScale`; `ratingLevels` is read only in this mode.
+   * `ratingScale`; `ratingSelector`/`ratingMatchExact`/`ratingLevels` are read only in this mode.
+   * `ratingSelector` is the shared CSS selector applied to every level (a level may override it with
+   * its own `selector`); `ratingMatchExact` globally controls how each level's `matchText` is compared
+   * — absent/`true` = exact (`equals`), `false` = `contains` — always case-insensitive.
    */
     | { kind: "customProperty";
       propertyId: string;
       subField?: "current" | "total";
       choiceValue?: string;
       ratingBound?: "from" | "to" | "range";
+      ratingSelector?: string;
+      ratingMatchExact?: boolean;
       ratingLevels?: RatingLevelDetector[]; }
   /** Multi-value; unmatched names create a name-only stub. */
       | { kind: "taxonomy";
@@ -228,14 +233,18 @@ export interface TextMatch {
 
 /**
  * One rating level's page detector for a `customProperty` target in `ratingBound: "range"` mode. The
- * level counts as **present** when `selector` matches at least one element and — if {@link match} is
- * set — that element's trimmed text matches (the editor defaults it to an exact, case-insensitive
- * match against the level's label). The detected range spans `[min, max]` of the present levels.
+ * level counts as **present** when its effective selector matches at least one element and — if
+ * {@link matchText} is set — that element's trimmed text matches it. The effective selector is this
+ * detector's own {@link selector} when set, otherwise the target's shared `ratingSelector`; the match
+ * mode (equals vs contains) and case-insensitivity come from the target's global `ratingMatchExact`,
+ * not per level. The detected range spans `[min, max]` of the present levels.
  */
 export interface RatingLevelDetector {
   level: number;
-  selector: string;
-  match?: TextMatch;
+  /** Optional per-level selector; falls back to the target's shared `ratingSelector` when absent. */
+  selector?: string;
+  /** Text the matched element must satisfy (the editor defaults it to the level's label); absent = selector-only. */
+  matchText?: string;
 }
 
 /** String transform applied to an extracted value, in the order listed on `FillExtract.transform`. */
