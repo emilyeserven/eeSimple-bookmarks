@@ -1,3 +1,4 @@
+import type { ClassifiedPersonName } from "../lib/peopleMatchOrCreate";
 import type { ParseTag, SectionEntry, SectionEntryType } from "@eesimple/types";
 
 import { useMemo, useState } from "react";
@@ -11,8 +12,11 @@ import {
   LoadParseTemplateDropdown,
   SaveParseTemplatePopover,
 } from "./SectionParseTemplateControls";
+import { usePeople } from "../hooks/usePeople";
+import { classifyPeopleNames } from "../lib/peopleMatchOrCreate";
 import { parseWithTemplate } from "../lib/sectionParseTemplate";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -59,6 +63,9 @@ export function SectionPasteParser({
   const [pattern, setPattern] = useState("{{person}} - {{name}}");
   const [fallbackTag, setFallbackTag] = useState<ParseTag>("name");
   const [text, setText] = useState("");
+  const {
+    data: people,
+  } = usePeople();
 
   const preview = useMemo(() => {
     if (!text.trim() || !pattern.trim()) return null;
@@ -79,6 +86,11 @@ export function SectionPasteParser({
       },
     );
   }, [text, delineator, pattern, fallbackTag, allowedTypes, defaultType]);
+
+  const classifiedPeople = useMemo(
+    () => (preview ? classifyPeopleNames(preview.personNames, people ?? []) : []),
+    [preview, people],
+  );
 
   function handleParse() {
     if (!preview) return;
@@ -158,19 +170,12 @@ export function SectionPasteParser({
         className="text-xs"
       />
       {preview && (
-        <p className="text-xs text-muted-foreground">
-          {t("Will add {{count}} section(s)", {
-            count: preview.sections.length,
-          })}
-          {preview.personNames.length > 0
-            && ` · ${t("{{count}} author(s)", {
-              count: preview.personNames.length,
-            })}`}
-          {preview.fallbackCount > 0
-            && ` · ${t("{{count}} unmatched", {
-              count: preview.fallbackCount,
-            })}`}
-        </p>
+        <SectionParsePreview
+          sections={preview.sections}
+          classifiedPeople={classifiedPeople}
+          fallbackCount={preview.fallbackCount}
+          showPeople={onAddPeople !== undefined}
+        />
       )}
       <div className="flex flex-wrap items-center gap-2">
         <Button
@@ -213,6 +218,105 @@ export function SectionPasteParser({
           {t("Close")}
         </button>
       </div>
+    </div>
+  );
+}
+
+const SECTION_TYPE_LABELS: Record<SectionEntryType, string> = {
+  url: "URL",
+  page: "Page",
+  timestamp: "Timestamp",
+};
+
+/** The muted value shown beside a previewed section name (its URL, or its page/timestamp value). */
+function sectionDetailValue(section: SectionEntry): string {
+  return section.type === "url" ? (section.url ?? "") : section.startValue;
+}
+
+interface SectionParsePreviewProps {
+  sections: SectionEntry[];
+  classifiedPeople: ClassifiedPersonName[];
+  fallbackCount: number;
+  /** Whether captured authors will actually be routed to People (i.e. `onAddPeople` is wired). */
+  showPeople: boolean;
+}
+
+/**
+ * The verbose preview under the paste textarea: a count summary, the full (scrollable) list of the
+ * section rows that will be added — each with its name and a muted type/value detail — and, when
+ * authors will be routed to People, each captured name badged New (created) vs Reused (existing).
+ */
+function SectionParsePreview({
+  sections, classifiedPeople, fallbackCount, showPeople,
+}: SectionParsePreviewProps) {
+  const {
+    t,
+  } = useTranslation();
+  const showAuthors = showPeople && classifiedPeople.length > 0;
+  return (
+    <div className="space-y-2 rounded-md border bg-background/50 p-2">
+      <p className="text-xs text-muted-foreground">
+        {t("Will add {{count}} section(s)", {
+          count: sections.length,
+        })}
+        {classifiedPeople.length > 0
+          && ` · ${t("{{count}} author(s)", {
+            count: classifiedPeople.length,
+          })}`}
+        {fallbackCount > 0
+          && ` · ${t("{{count}} unmatched", {
+            count: fallbackCount,
+          })}`}
+      </p>
+      {sections.length > 0 && (
+        <ul className="max-h-48 space-y-1 overflow-y-auto text-xs">
+          {sections.map((section) => {
+            const detail = sectionDetailValue(section);
+            return (
+              <li
+                key={section.id}
+                className="flex items-baseline justify-between gap-2"
+              >
+                <span className="min-w-0 flex-1 truncate">
+                  {section.name || (
+                    <span className="text-muted-foreground italic">{t("(no name)")}</span>
+                  )}
+                </span>
+                {detail && (
+                  <span
+                    className="
+                      max-w-[45%] shrink-0 truncate text-right
+                      text-muted-foreground
+                    "
+                  >
+                    {t(SECTION_TYPE_LABELS[section.type])}
+                    {" "}
+                    {detail}
+                  </span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {showAuthors && (
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-muted-foreground">{t("Authors")}</p>
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
+            {classifiedPeople.map(person => (
+              <span
+                key={person.name}
+                className="inline-flex items-center gap-1"
+              >
+                <span>{person.name}</span>
+                <Badge variant={person.existing ? "secondary" : "default"}>
+                  {person.existing ? t("Reused") : t("New")}
+                </Badge>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
