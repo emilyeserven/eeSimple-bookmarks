@@ -64,7 +64,6 @@ const BASE_RESULT: FetchIsbnMetadataResult = {
   description: null,
   coverUrl: null,
   authors: [],
-  group: null,
   year: null,
   openLibraryUrl: null,
   language: null,
@@ -89,12 +88,8 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
       textInputs: {},
       mediaTypes: [],
       people: [],
-      groups: [],
       languages: [],
       createPerson: {
-        mutateAsync: vi.fn(),
-      } as never,
-      createGroup: {
         mutateAsync: vi.fn(),
       } as never,
       createLanguage: {
@@ -135,12 +130,8 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
       textInputs: {},
       mediaTypes: [],
       people: [],
-      groups: [],
       languages: [],
       createPerson: {
-        mutateAsync: vi.fn(),
-      } as never,
-      createGroup: {
         mutateAsync: vi.fn(),
       } as never,
       createLanguage: {
@@ -170,12 +161,8 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
       textInputs: {},
       mediaTypes: [],
       people: [],
-      groups: [],
       languages: [],
       createPerson: {
-        mutateAsync: vi.fn(),
-      } as never,
-      createGroup: {
         mutateAsync: vi.fn(),
       } as never,
       createLanguage: {
@@ -210,12 +197,8 @@ describe("useBookmarkIsbn handleIsbnFetch", () => {
       textInputs: {},
       mediaTypes: [],
       people: [],
-      groups: [],
       languages: [],
       createPerson: {
-        mutateAsync: vi.fn(),
-      } as never,
-      createGroup: {
         mutateAsync: vi.fn(),
       } as never,
       createLanguage: {
@@ -261,12 +244,8 @@ describe("useBookmarkIsbn handleAmazonIsbnDetected", () => {
       textInputs: {},
       mediaTypes: [bookMediaType],
       people: [],
-      groups: [],
       languages: [],
       createPerson: {
-        mutateAsync: vi.fn(),
-      } as never,
-      createGroup: {
         mutateAsync: vi.fn(),
       } as never,
       createLanguage: {
@@ -301,12 +280,8 @@ describe("useBookmarkIsbn handleAmazonIsbnDetected", () => {
       },
       mediaTypes: [bookMediaType],
       people: [],
-      groups: [],
       languages: [],
       createPerson: {
-        mutateAsync: vi.fn(),
-      } as never,
-      createGroup: {
         mutateAsync: vi.fn(),
       } as never,
       createLanguage: {
@@ -347,12 +322,8 @@ describe("useBookmarkIsbn handleIsbnFieldFetch", () => {
       textInputs: {},
       mediaTypes: [],
       people: [],
-      groups: [],
       languages: [],
       createPerson: {
-        mutateAsync: vi.fn(),
-      } as never,
-      createGroup: {
         mutateAsync: vi.fn(),
       } as never,
       createLanguage: {
@@ -384,12 +355,8 @@ describe("useBookmarkIsbn handleIsbnFieldFetch", () => {
       textInputs: {},
       mediaTypes: [],
       people: [],
-      groups: [],
       languages: [],
       createPerson: {
-        mutateAsync: vi.fn(),
-      } as never,
-      createGroup: {
         mutateAsync: vi.fn(),
       } as never,
       createLanguage: {

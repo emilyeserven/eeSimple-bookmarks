@@ -20,14 +20,12 @@ interface ImportItemAdvancedEditFieldsProps {
   tagIds: string[];
   locationIds: string[];
   personIds: string[];
-  groupId: string | undefined;
   onCategoryChange: (id: string | undefined) => void;
   onMediaTypeChange: (id: string | undefined) => void;
   onPeopleChange: (ids: string[]) => void;
-  onGroupChange: (id: string | undefined) => void;
 }
 
-/** The taxonomy field rows (category, media type, tags, locations, people, group) + the
+/** The taxonomy field rows (category, media type, tags, locations, people) + the
  * matched-website / YouTube info line shown inside {@link ImportItemAdvancedEdit}'s collapsible. */
 export function ImportItemAdvancedEditFields({
   state,
@@ -36,11 +34,9 @@ export function ImportItemAdvancedEditFields({
   tagIds,
   locationIds,
   personIds,
-  groupId,
   onCategoryChange,
   onMediaTypeChange,
   onPeopleChange,
-  onGroupChange,
 }: ImportItemAdvancedEditFieldsProps) {
   const {
     t,
@@ -51,7 +47,6 @@ export function ImportItemAdvancedEditFields({
     tagTree,
     locationTree,
     people,
-    groups,
     matchedWebsite,
     isYouTube,
     handleTagToggle,
@@ -59,7 +54,6 @@ export function ImportItemAdvancedEditFields({
     addModalState,
     categoryCreate,
     mediaTypeCreate,
-    groupCreate,
     locationCreate,
   } = state;
   const builtInName = useBuiltInName();
@@ -129,23 +123,6 @@ export function ImportItemAdvancedEditFields({
             label: t("Create person"),
             onSelect: () => addModalState.setAddPersonOpen(true),
           }}
-        />
-      </div>
-
-      <div className="space-y-1">
-        <Label className="text-xs">{t("Group")}</Label>
-        <Combobox
-          options={groups.map(p => ({
-            value: p.id,
-            label: p.name,
-            searchAlias: buildSearchAlias(p.names),
-          }))}
-          value={groupId}
-          onValueChange={onGroupChange}
-          placeholder={t("No group")}
-          searchPlaceholder={t("Search groups…")}
-          emptyText={t("No groups found.")}
-          createOption={groupCreate.createOption}
         />
       </div>
 

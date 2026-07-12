@@ -157,7 +157,9 @@ export function Combobox({
           aria-expanded={open}
           aria-label={ariaLabel}
           data-slot="combobox"
-          className={cn("w-full justify-between font-normal", className)}
+          className={cn(`
+            h-auto min-h-9 w-full justify-between font-normal whitespace-normal
+          `, className)}
         >
           <span
             className={cn("flex min-w-0 items-center gap-2", !selected && `
@@ -165,7 +167,7 @@ export function Combobox({
             `)}
           >
             {selected?.icon}
-            <span className="truncate">
+            <span className="wrap-break-word">
               {selected
                 ? (
                   <LocalizedNameLabel

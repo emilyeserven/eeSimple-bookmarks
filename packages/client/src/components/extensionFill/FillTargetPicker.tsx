@@ -65,11 +65,6 @@ export function FillTargetPicker({
             description: t("This bookmark's own people, groups, locations, or tags."),
           },
           {
-            value: "publisher",
-            label: t("This bookmark's publisher"),
-            description: t("This bookmark's single publisher Group (e.g. the publishing house)."),
-          },
-          {
             value: "image",
             label: t("Image"),
             description: t("Grab an image off the page and upload it to this bookmark."),
@@ -161,9 +156,6 @@ function FillTargetValue({
           })}
         />
       );
-    case "publisher":
-      // No value control — a publisher target resolves the extracted name to the bookmark's Group.
-      return null;
     case "image":
       return (
         <SetMainImageToggle

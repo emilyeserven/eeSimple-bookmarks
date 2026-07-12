@@ -14,8 +14,7 @@ interface GroupsBoxProps {
 /**
  * A bookmark's group-credit badges — each renders standalone so it flows alongside the card's other
  * pills (category, media type, website, …) in the `card-labels` zone's flex row. Mirrors
- * {@link BookmarkLocationBadges}. This is the multi-valued `bookmark.groups` creator-credit relation,
- * not the singular `bookmark.group` publisher FK.
+ * {@link BookmarkLocationBadges}. This is the multi-valued `bookmark.groups` creator-credit relation.
  */
 export function BookmarkGroupBadges({
   groups,

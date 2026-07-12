@@ -4,7 +4,6 @@ import { useState } from "react";
 
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
-import { useGroups } from "../hooks/useGroups";
 import { useMediaTypeTree } from "../hooks/useMediaTypes";
 import { usePeople } from "../hooks/usePeople";
 import { useTagTree } from "../hooks/useTags";
@@ -17,7 +16,7 @@ import { flattenTree } from "../lib/tagTree";
 /**
  * Loads the taxonomies the inbox pre-fill box offers as defaults, derives their combobox option
  * lists and the inbox-enabled custom properties, and owns the still-manual "Add person" modal
- * open-state (Category/Media Type/Group own their inline-create via `useEntityCreateOption` in
+ * open-state (Category/Media Type own their inline-create via `useEntityCreateOption` in
  * `InboxPreFillBox` itself). Splitting the hook-dense data layer out of `InboxPreFillBox` keeps the
  * component thin.
  */
@@ -37,9 +36,6 @@ export function useInboxPreFillBox(preFill: InboxPreFillDefaults) {
     data: people = [],
   } = usePeople();
   const {
-    data: groups = [],
-  } = useGroups();
-  const {
     data: allProperties = [],
   } = useCustomProperties();
 
@@ -56,13 +52,6 @@ export function useInboxPreFillBox(preFill: InboxPreFillDefaults) {
     searchAlias: buildSearchAlias(a.names),
     names: a.names,
   }));
-  const groupOptions = groups.map(p => ({
-    value: p.id,
-    label: p.name,
-    searchAlias: buildSearchAlias(p.names),
-    names: p.names,
-  }));
-
   const selectedTagIds = preFill.tagIds ?? [];
 
   // Flat tag list for displaying selected tag names as badges.
@@ -77,12 +66,10 @@ export function useInboxPreFillBox(preFill: InboxPreFillDefaults) {
     tagTree: tagTree as TagNode[],
     mediaTypeTree,
     people,
-    groups,
     inboxProperties,
     categoryOptions,
     mediaTypeOptions,
     personOptions,
-    groupOptions,
     selectedTagNames,
   };
 }

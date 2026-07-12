@@ -84,8 +84,9 @@ export function MultiCombobox({
       dataSlot="multi-combobox"
       triggerClassName={cn(`
         h-auto min-h-9 w-full justify-between py-1.5 font-normal
+        whitespace-normal
       `, className)}
-      labelWrapperClassName="min-w-0 text-left"
+      labelWrapperClassName="min-w-0 text-left wrap-break-word"
       chevronClassName="ml-2 shrink-0 opacity-50"
       id={id}
       aria-label={ariaLabel}

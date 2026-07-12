@@ -7,6 +7,9 @@ import { BookmarkLocationRelationsField } from "./BookmarkLocationRelationsField
 import { LocationPicker } from "./LocationPicker";
 import { MultiCombobox } from "./MultiCombobox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
+import { describeError } from "../lib/apiError";
+import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
+import { computePersonGroupGaps } from "../lib/personGroupGaps";
 
 import { Label } from "@/components/ui/label";
 
@@ -127,6 +130,87 @@ export function BookmarkLocationsSelectField({
 }
 
 /**
+ * A compact hint under the People field: when a credited person isn't a member of one of the
+ * bookmark's (creator) Groups, offer to add that group to the person's Groups in one click. Reads
+ * `personIds`/`groupIds` reactively so it appears/clears as the selections change, and each person's
+ * own group membership from the loaded `people` list. Renders nothing when there are no gaps.
+ */
+function BookmarkPersonGroupMembershipHint({
+  ctrl,
+}: { ctrl: Ctrl }) {
+  const {
+    t,
+  } = useTranslation();
+  const {
+    form,
+    people,
+    updatePerson,
+  } = ctrl;
+
+  function addAll(gaps: ReturnType<typeof computePersonGroupGaps>): void {
+    let remaining = gaps.length;
+    let failed = false;
+    for (const {
+      person, missingGroupIds,
+    } of gaps) {
+      updatePerson.mutate(
+        {
+          id: person.id,
+          input: {
+            groupIds: [...person.groupIds, ...missingGroupIds],
+          },
+        },
+        {
+          onSuccess: () => {
+            remaining -= 1;
+            if (remaining === 0 && !failed) notifyFieldSaved("Groups");
+          },
+          onError: (e) => {
+            failed = true;
+            notifyFieldSaveError("Groups", describeError(e));
+          },
+        },
+      );
+    }
+  }
+
+  return (
+    <form.Subscribe
+      selector={state => ({
+        personIds: state.values.personIds,
+        groupIds: state.values.groupIds,
+      })}
+    >
+      {({
+        personIds, groupIds,
+      }) => {
+        const gaps = computePersonGroupGaps(people ?? [], personIds, groupIds);
+        if (gaps.length === 0) return null;
+        const names = gaps.map(gap => gap.person.name).join(", ");
+        return (
+          <p className="text-sm text-muted-foreground">
+            {t("Not in every selected group: {{names}}.", {
+              names,
+            })}
+            {" "}
+            <button
+              type="button"
+              className="
+                text-primary underline-offset-4
+                hover:underline
+              "
+              onClick={() => addAll(gaps)}
+            >
+              {t("Add to groups")}
+            </button>
+          </p>
+        );
+      }}
+    </form.Subscribe>
+  );
+}
+
+/**
  * The People field (individual creators, with the inline "Create person" modal) — now a standalone
  * placeable field (#1163 field extraction).
  */
@@ -168,6 +252,7 @@ export function BookmarkPeopleSelectField({
                 onSelect: () => setAddPersonOpen(true),
               }}
             />
+            <BookmarkPersonGroupMembershipHint ctrl={ctrl} />
           </div>
         )}
       </form.Field>
@@ -189,7 +274,7 @@ export function BookmarkPeopleSelectField({
 
 /**
  * The Groups field (group creators, with inline-create) — now a standalone placeable field
- * (#1163 field extraction). Distinct from the singular `bookmark.group` publisher FK.
+ * (#1163 field extraction).
  */
 export function BookmarkGroupsSelectField({
   ctrl,

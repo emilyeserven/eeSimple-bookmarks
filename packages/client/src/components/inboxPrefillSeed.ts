@@ -72,6 +72,5 @@ export function computeInboxPrefillSeed(
     tagIds,
     locationIds,
     personIds: [],
-    groupId: undefined,
   };
 }

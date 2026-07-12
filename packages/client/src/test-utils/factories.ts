@@ -131,7 +131,6 @@ export function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     textValues: [],
     people: [],
     groups: [],
-    group: null,
     kavitaSeriesId: null,
     kavitaLibraryId: null,
     kavitaSeriesName: null,

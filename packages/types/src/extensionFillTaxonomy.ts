@@ -18,7 +18,6 @@ export const TAXONOMY_ENTITY_ASSOCIATIONS = [
   "mediaType",
   "youtubeChannel",
   "newsletter",
-  "group",
   "people",
   "groups",
   "tags",
@@ -130,7 +129,7 @@ export interface TaxonomyEntityAssociationSpec {
   languageOwnerType?: TaxonomyEntityLanguageOwnerType;
 }
 
-/** The Groups relation — creatable by name (reuses the publisher stub-create path). */
+/** The Groups relation — creatable by name (name-only stub-create path). */
 const GROUPS_RELATION: TaxonomyEntityRelationSpec = {
   key: "groups",
   label: TAXONOMY_ENTITY_RELATION_LABELS.groups,
@@ -209,14 +208,6 @@ export const TAXONOMY_ENTITY_SPECS = {
     single: true,
     nameKey: "name",
     fields: ["name", "description"],
-  },
-  group: {
-    label: "Publisher (Group)",
-    apiPath: "/api/groups",
-    single: true,
-    nameKey: "name",
-    fields: ["name", "description", "year", "socialLink"],
-    image: true,
   },
   people: {
     label: "People",

@@ -102,7 +102,7 @@ export function renderTreeComboboxRows(
             )
             : <span className="size-4 shrink-0" />}
           {node.icon != null && <span className="shrink-0">{node.icon}</span>}
-          <span className="flex-1 truncate">
+          <span className="flex-1 wrap-break-word">
             {node.names && node.names.length > 0
               ? (
                 <LocalizedNameLabel

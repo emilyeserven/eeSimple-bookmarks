@@ -11,7 +11,7 @@ import { isYouTubeVideoUrl, TAXONOMY_ENTITY_SPECS } from "@eesimple/types";
 import { checkBookmarkUrlDuplicate, getBookmark } from "@/services/bookmarks";
 import { listCategories } from "@/services/categories";
 import { getSectionsPropertyId, listCustomProperties } from "@/services/customProperties";
-import { getGroupById, listGroups, listGroupsCompact } from "@/services/groups";
+import { listGroups, listGroupsCompact } from "@/services/groups";
 import { findPendingImportItemByUrl } from "@/services/imports";
 import { listLanguages } from "@/services/languages";
 import { listLanguageUsageLevels } from "@/services/languageUsageLevels";
@@ -90,21 +90,17 @@ async function resolveNoBookmarkContext(
     };
 }
 
-/** Load the compact taxonomy option lists the popup needs for the `taxonomy` / `publisher` targets. */
+/** Load the compact taxonomy option lists the popup needs for the `taxonomy` targets. */
 async function loadTaxonomyOptions(
   rules: WebsiteExtensionFillRule[],
 ): Promise<NonNullable<ExtensionFillContext["taxonomies"]>> {
   const taxonomyKinds = new Set(
     rules.flatMap(rule => (rule.target.kind === "taxonomy" ? [rule.target.taxonomy] : [])),
   );
-  // A `publisher` target resolves a name to a Group and sets the bookmark's singular `groupId`, so it
-  // also needs the Groups option list for match-or-create in the popup.
-  const needsGroups = taxonomyKinds.has("groups")
-    || rules.some(rule => rule.target.kind === "publisher");
 
   const taxonomies: NonNullable<ExtensionFillContext["taxonomies"]> = {};
   if (taxonomyKinds.has("people")) taxonomies.people = await listPeopleCompact();
-  if (needsGroups) taxonomies.groups = await listGroupsCompact();
+  if (taxonomyKinds.has("groups")) taxonomies.groups = await listGroupsCompact();
   if (taxonomyKinds.has("locations")) taxonomies.locations = await listLocationsCompact();
   if (taxonomyKinds.has("tags")) taxonomies.tags = await listTagsCompact();
   return taxonomies;
@@ -450,8 +446,7 @@ type SingleLinkedAssociation
     | "category"
     | "mediaType"
     | "youtubeChannel"
-    | "newsletter"
-    | "group";
+    | "newsletter";
 /** Associations linked to the bookmark by an id list (zero or more terms). */
 type MultiLinkedAssociation = "people" | "groups" | "tags" | "locations";
 
@@ -518,20 +513,6 @@ async function loadSingleLinkedTerm(
           id: n.id,
           name: n.name,
           description: n.description,
-        }]
-        : [];
-    }
-    case "group": {
-      const id = bookmark.group?.id;
-      if (!id) return [];
-      const g = await getGroupById(id);
-      return g
-        ? [{
-          id: g.id,
-          name: g.name,
-          description: g.description,
-          socialLinks: g.socialLinks,
-          year: g.year,
         }]
         : [];
     }
@@ -624,7 +605,6 @@ async function loadBaseTermsFor(
     case "mediaType":
     case "youtubeChannel":
     case "newsletter":
-    case "group":
       return loadSingleLinkedTerm(association, bookmark);
     case "people":
     case "groups":

@@ -133,12 +133,6 @@ describe("describeFillTarget", () => {
     })).toBe("Image");
   });
 
-  it("summarizes a publisher target", () => {
-    expect(describeFillTarget({
-      kind: "publisher",
-    })).toBe("Publisher");
-  });
-
   it("summarizes taxonomyEntity relation + language write-keys", () => {
     expect(describeFillTarget({
       kind: "taxonomyEntity",
@@ -242,36 +236,6 @@ describe("taxonomyEntity relation / language targets", () => {
       kind: "taxonomyEntity",
       association: "website",
       field: "name",
-    });
-  });
-});
-
-describe("publisher target", () => {
-  it("coerces to the field-less publisher variant", () => {
-    expect(coerceFillTarget("publisher", {
-      kind: "field",
-      field: "title",
-    })).toEqual({
-      kind: "publisher",
-    });
-  });
-
-  it("normalizes to a clean field-less publisher target", () => {
-    const [out] = normalizeExtensionFillRules([rule({
-      target: {
-        kind: "publisher",
-      },
-      extract: {
-        source: "meta",
-        metaKey: "publisher",
-      },
-    })]);
-    expect(out.target).toEqual({
-      kind: "publisher",
-    });
-    expect(out.extract).toEqual({
-      source: "meta",
-      metaKey: "publisher",
     });
   });
 });
@@ -417,7 +381,7 @@ describe("taxonomyDirect target", () => {
     expect(normalizeExtensionFillRules([rule({
       target: {
         kind: "taxonomyDirect",
-        association: "group",
+        association: "people",
         resolve: {
           mode: "url",
         },
@@ -1107,12 +1071,12 @@ describe("taxonomyEntity target", () => {
     });
     expect(coerceFillTarget("taxonomyEntity", {
       kind: "taxonomyEntity",
-      association: "group",
+      association: "groups",
       field: "socialLink",
       socialPlatform: "x",
     })).toEqual({
       kind: "taxonomyEntity",
-      association: "group",
+      association: "groups",
       field: "socialLink",
       socialPlatform: "x",
     });
@@ -1122,7 +1086,7 @@ describe("taxonomyEntity target", () => {
     const [out] = normalizeExtensionFillRules([rule({
       target: {
         kind: "taxonomyEntity",
-        association: "group",
+        association: "groups",
         field: "socialLink",
         socialPlatform: "x",
       },
@@ -1133,7 +1097,7 @@ describe("taxonomyEntity target", () => {
     })]);
     expect(out.target).toEqual({
       kind: "taxonomyEntity",
-      association: "group",
+      association: "groups",
       field: "socialLink",
       socialPlatform: "x",
     });
@@ -1141,7 +1105,7 @@ describe("taxonomyEntity target", () => {
     expect(normalizeExtensionFillRules([rule({
       target: {
         kind: "taxonomyEntity",
-        association: "group",
+        association: "groups",
         field: "socialLink",
       },
       extract: {
@@ -1172,10 +1136,10 @@ describe("taxonomyEntity target", () => {
   it("summarizes a taxonomyEntity target with the field or social platform", () => {
     expect(describeFillTarget({
       kind: "taxonomyEntity",
-      association: "group",
+      association: "groups",
       field: "socialLink",
       socialPlatform: "x",
-    })).toBe("Publisher (Group) · X");
+    })).toBe("Groups (creators) · X");
     expect(describeFillTarget({
       kind: "taxonomyEntity",
       association: "people",

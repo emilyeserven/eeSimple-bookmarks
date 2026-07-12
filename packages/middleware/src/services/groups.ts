@@ -11,7 +11,7 @@ import type {
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import {
-  bookmarks,
+  bookmarkGroups,
   groupImages,
   groups,
   groupTypes,
@@ -182,12 +182,12 @@ export async function listGroups(): Promise<Group[]> {
       group: groups,
       groupType: groupTypeSelect,
       imageCreatedAt: groupImages.createdAt,
-      bookmarkCount: count(bookmarks.id),
+      bookmarkCount: count(bookmarkGroups.bookmarkId),
     })
     .from(groups)
     .leftJoin(groupTypes, eq(groups.groupTypeId, groupTypes.id))
     .leftJoin(groupImages, eq(groupImages.groupId, groups.id))
-    .leftJoin(bookmarks, eq(bookmarks.groupId, groups.id))
+    .leftJoin(bookmarkGroups, eq(bookmarkGroups.groupId, groups.id))
     .groupBy(
       groups.id,
       groupTypes.id,

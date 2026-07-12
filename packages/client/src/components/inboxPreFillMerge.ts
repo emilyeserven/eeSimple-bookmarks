@@ -16,7 +16,6 @@ export function mergeInboxPreFill(
     tagIds: [...(itemPreFill.tagIds ?? []), ...(batchPreFill?.tagIds ?? [])],
     locationIds: [...(itemPreFill.locationIds ?? []), ...(batchPreFill?.locationIds ?? [])],
     personIds: itemPreFill.personIds?.length ? itemPreFill.personIds : batchPreFill?.personIds,
-    groupId: itemPreFill.groupId ?? batchPreFill?.groupId,
     numberValues: batchPreFill?.numberValues,
     booleanValues: batchPreFill?.booleanValues,
     dateTimeValues: batchPreFill?.dateTimeValues,

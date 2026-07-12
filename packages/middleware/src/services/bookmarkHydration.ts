@@ -86,7 +86,6 @@ interface BookmarkExtras {
   names: BookmarkEntityName[];
   youtubeChannel: BookmarkYouTubeChannel | null;
   newsletter: BookmarkNewsletter | null;
-  group: BookmarkGroup | null;
   import: BookmarkImport | null;
   tags: BookmarkTag[];
   genreMoods: BookmarkGenreMood[];
@@ -118,7 +117,6 @@ const EMPTY_EXTRAS: BookmarkExtras = {
   names: [],
   youtubeChannel: null,
   newsletter: null,
-  group: null,
   import: null,
   tags: [],
   genreMoods: [],
@@ -158,7 +156,6 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     names: extras.names,
     youtubeChannel: extras.youtubeChannel,
     newsletter: extras.newsletter,
-    group: extras.group,
     kavitaSeriesId: row.kavitaSeriesId,
     kavitaLibraryId: row.kavitaLibraryId,
     kavitaSeriesName: row.kavitaSeriesName,
@@ -312,30 +309,6 @@ async function newslettersById(newsletterIds: string[]): Promise<Map<string, Boo
     })
     .from(newsletters)
     .where(inArray(newsletters.id, newsletterIds));
-
-  for (const row of rows) {
-    byId.set(row.id, {
-      id: row.id,
-      name: row.name,
-      slug: row.slug ?? row.id,
-    });
-  }
-  return byId;
-}
-
-/** Load groups for a set of group ids in a single query, keyed by group id. */
-async function groupsById(groupIds: string[]): Promise<Map<string, BookmarkGroup>> {
-  const byId = new Map<string, BookmarkGroup>();
-  if (groupIds.length === 0) return byId;
-
-  const rows = await db
-    .select({
-      id: groups.id,
-      name: groups.name,
-      slug: groups.slug,
-    })
-    .from(groups)
-    .where(inArray(groups.id, groupIds));
 
   for (const row of rows) {
     byId.set(row.id, {
@@ -985,7 +958,6 @@ async function extrasByBookmarkId(bookmarkIds: string[]): Promise<Map<string, Bo
       names: entityNamesMap.get(id) ?? [],
       youtubeChannel: null,
       newsletter: null,
-      group: null,
       import: null,
       tags: tagsMap.get(id) ?? [],
       genreMoods: genreMoodsMap.get(id) ?? [],
@@ -1021,15 +993,13 @@ export async function hydrateBookmarkRows(rows: BookmarkRow[]): Promise<Bookmark
   const mediaTypeIds = [...new Set(rows.map(row => row.mediaTypeId).filter((id): id is string => id !== null))];
   const channelIds = [...new Set(rows.map(row => row.youtubeChannelId).filter((id): id is string => id !== null))];
   const newsletterIds = [...new Set(rows.map(row => row.newsletterId).filter((id): id is string => id !== null))];
-  const groupIds = [...new Set(rows.map(row => row.groupId).filter((id): id is string => id !== null))];
   const issueIds = [...new Set(rows.map(row => row.importId).filter((id): id is string => id !== null))];
-  const [grouped, websiteMap, mediaTypeMap, channelMap, newsletterMap, groupMap, importMap] = await Promise.all([
+  const [grouped, websiteMap, mediaTypeMap, channelMap, newsletterMap, importMap] = await Promise.all([
     extrasByBookmarkId(rows.map(row => row.id)),
     websitesById(websiteIds),
     mediaTypesById(mediaTypeIds),
     channelsById(channelIds),
     newslettersById(newsletterIds),
-    groupsById(groupIds),
     importsById(issueIds),
   ]);
   return rows.map((row) => {
@@ -1040,7 +1010,6 @@ export async function hydrateBookmarkRows(rows: BookmarkRow[]): Promise<Bookmark
       mediaType: row.mediaTypeId ? mediaTypeMap.get(row.mediaTypeId) ?? null : null,
       youtubeChannel: row.youtubeChannelId ? channelMap.get(row.youtubeChannelId) ?? null : null,
       newsletter: row.newsletterId ? newsletterMap.get(row.newsletterId) ?? null : null,
-      group: row.groupId ? groupMap.get(row.groupId) ?? null : null,
       import: row.importId ? importMap.get(row.importId) ?? null : null,
     }, defaultCategoryId);
   });

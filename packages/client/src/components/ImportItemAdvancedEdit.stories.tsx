@@ -39,7 +39,6 @@ function Host({
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [locationIds, setLocationIds] = useState<string[]>([]);
   const [personIds, setPersonIds] = useState<string[]>([]);
-  const [groupId, setGroupId] = useState<string | undefined>(undefined);
 
   return (
     <ImportItemAdvancedEdit
@@ -51,13 +50,11 @@ function Host({
       tagIds={tagIds}
       locationIds={locationIds}
       personIds={personIds}
-      groupId={groupId}
       onCategoryChange={setCategoryId}
       onMediaTypeChange={setMediaTypeId}
       onTagsChange={setTagIds}
       onLocationsChange={setLocationIds}
       onPeopleChange={setPersonIds}
-      onGroupChange={setGroupId}
     />
   );
 }

@@ -416,10 +416,6 @@ const createBookmarkBody = {
     originalUrl: {
       type: ["string", "null"],
     },
-    groupId: {
-      type: ["string", "null"],
-      format: "uuid",
-    },
     kavitaSeriesId: {
       type: ["integer", "null"],
     },

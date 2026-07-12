@@ -709,7 +709,6 @@ function buildRow(rule, result, ctx) {
   if (kind === "field") return buildFieldRow(rule, values, ctx.bookmark);
   if (kind === "customProperty") return buildPropertyRow(rule, values, ctx);
   if (kind === "taxonomy") return buildTaxonomyRow(rule, values, ctx);
-  if (kind === "publisher") return buildPublisherRow(rule, values, ctx);
   if (kind === "image") return buildImageRow(rule, values, ctx.bookmark);
   if (kind === "taxonomyEntity") return buildTaxonomyEntityRow(rule, values, ctx);
   if (kind === "taxonomyDirect") return buildTaxonomyDirectRow(rule, result, ctx);
@@ -1196,48 +1195,6 @@ function buildTaxonomyRow(rule, values, ctx) {
           name,
         });
       }
-    }
-  };
-  return row;
-}
-
-// publisher: resolve the extracted value (a publisher name) to a Group and set the bookmark's
-// *singular* publisher (`groupId`) — the single-valued sibling of buildTaxonomyRow. Existing groups
-// match case-insensitively; an unknown name is created as a name-only stub.
-function buildPublisherRow(rule, values, ctx) {
-  const bookmark = ctx.bookmark;
-  const current = bookmark.group ? bookmark.group.name : "";
-  const extracted = values[0] ?? "";
-  if (!extracted) {
-    return baseRow(rule, formatScalar(current), "", false, "not found");
-  }
-  const changed = (current || "").toLowerCase() !== extracted.toLowerCase();
-  if (!changed) {
-    return baseRow(rule, formatScalar(current), extracted, false, "no change");
-  }
-  const optionList = (ctx.taxonomies && ctx.taxonomies.groups) ? ctx.taxonomies.groups : [];
-  const isNew = !optionList.some(o => o.name.toLowerCase() === extracted.toLowerCase());
-  const row = baseRow(rule, formatScalar(current), extracted, true, null);
-  // Reuse the taxonomy names rendering so a to-be-created group shows the "new" badge.
-  row.extractedNames = [extracted];
-  row.newNames = isNew ? [extracted] : [];
-  row.apply = async (patch, state) => {
-    const {
-      id, created,
-    } = await resolveTaxonomyId(serverUrl, "groups", extracted, optionList);
-    if (id) {
-      patch.groupId = id;
-      if (created) state.created.push({
-        kind: "groups",
-        name: extracted,
-      });
-    }
-    else {
-      // Couldn't match or create — surface it in the summary instead of silently dropping.
-      state.failed.push({
-        kind: "groups",
-        name: extracted,
-      });
     }
   };
   return row;

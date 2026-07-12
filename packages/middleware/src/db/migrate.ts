@@ -495,6 +495,15 @@ const migrations: RuntimeMigration[] = [
       END $$
     `),
   },
+  {
+    // The singular bookmark "publisher" FK (`bookmarks.group_id` → `Bookmark.group`) was removed — it
+    // had no UI picker anywhere and was only ever set programmatically. Dropping a column is
+    // destructive, so `drizzle-kit push` would prompt (and crash in this non-TTY deploy); drop it here
+    // first so push's diff stays additive. Idempotent (`IF EXISTS`). The plural creator groups
+    // (`bookmark_groups`) are untouched.
+    name: "drop legacy bookmarks.group_id publisher fk",
+    run: db => db.execute(sql`ALTER TABLE "bookmarks" DROP COLUMN IF EXISTS "group_id"`),
+  },
 ];
 
 async function main(): Promise<void> {
