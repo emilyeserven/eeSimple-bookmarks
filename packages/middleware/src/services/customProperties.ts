@@ -858,15 +858,20 @@ export async function ensureContentStatusProperty(): Promise<string> {
  * links Progress to derive from Sections completion) and after ensureBuiltInMediaTypes (the seed's
  * per-media-type text override references the "book" media type).
  *
- * The update branch deliberately re-asserts only the identity flags: the text segments, the
- * per-media-type overrides, and the derive-from link are all user-configurable, so re-asserting
- * them here would clobber the user's edits on every boot (as the old ensurePageProgressProperty
- * did). A fresh install renders `{current} of {total}` with a book-scoped " pages" suffix.
+ * The update branch deliberately re-asserts only the identity flags: the text segments and the
+ * per-media-type overrides are user-configurable, so re-asserting them here would clobber the
+ * user's edits on every boot (as the old ensurePageProgressProperty did). A fresh install renders
+ * `{current} of {total}` with a book-scoped " pages" suffix.
+ *
+ * The derive-from-Sections link IS backfilled — but only when currently unset (`null`), so an
+ * existing deploy whose Progress row predates the fresh-install seed still auto-derives from the
+ * built-in Sections property, while a user's deliberate custom/None choice is preserved.
  */
 export async function ensureProgressProperty(sectionsPropertyId: string | null): Promise<string> {
   const [existing] = await db
     .select({
       id: customProperties.id,
+      itemInItemsSourcePropertyId: customProperties.itemInItemsSourcePropertyId,
     })
     .from(customProperties)
     .where(eq(customProperties.slug, PROGRESS_SLUG));
@@ -877,6 +882,12 @@ export async function ensureProgressProperty(sectionsPropertyId: string | null):
         builtIn: true,
         enabled: true,
         allCategories: true,
+        // Backfill the derive-from link once (only when unset) so existing deploys pick it up.
+        ...(existing.itemInItemsSourcePropertyId === null && sectionsPropertyId !== null
+          ? {
+            itemInItemsSourcePropertyId: sectionsPropertyId,
+          }
+          : {}),
       })
       .where(eq(customProperties.id, existing.id));
     return existing.id;

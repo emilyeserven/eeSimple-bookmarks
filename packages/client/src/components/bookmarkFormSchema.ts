@@ -15,7 +15,7 @@ import type {
   SectionEntry,
 } from "@eesimple/types";
 
-import { propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple/types";
+import { countSectionLeaves, propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple/types";
 import { z } from "zod";
 
 import { EMPTY_IMAGE_INTENT } from "./bookmarkImageIntent";
@@ -330,6 +330,42 @@ export function initialImageIntent(autoFetchImage: boolean): ImageIntent {
       auto: true,
     }
     : EMPTY_IMAGE_INTENT;
+}
+
+/**
+ * Resolve how an itemInItems (Progress) property's counts display on the edit form. When the
+ * property is linked to a Sections source (`itemInItemsSourcePropertyId`) whose value currently has
+ * entries AND is marked **exhaustive**, the counts are DERIVED — read-only and computed live from the
+ * section completion via the shared `countSectionLeaves` rule (so they are correct on first load and
+ * track the checkboxes in real time), while the per-bookmark counter-word overrides stay editable.
+ * A non-exhaustive (still-in-progress) or unlinked property keeps the user's own manual counts.
+ */
+export function deriveItemInItemsDisplay(
+  property: CustomProperty,
+  sectionsInputs: Record<string, { exhaustive: boolean;
+    sections: SectionEntry[]; }>,
+  manual: ProgressInputEntry | undefined,
+): { derived: boolean;
+  progress: ProgressInputEntry | undefined; } {
+  const source = property.itemInItemsSourcePropertyId
+    ? sectionsInputs[property.itemInItemsSourcePropertyId]
+    : undefined;
+  const derived = (source?.sections.length ?? 0) > 0 && source?.exhaustive === true;
+  if (!derived || !source) {
+    return {
+      derived: false,
+      progress: manual,
+    };
+  }
+  const counts = countSectionLeaves(source.sections);
+  return {
+    derived: true,
+    progress: {
+      ...manual,
+      current: String(counts.completed),
+      total: String(counts.total),
+    },
+  };
 }
 
 /**

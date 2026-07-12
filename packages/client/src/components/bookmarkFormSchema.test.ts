@@ -6,6 +6,7 @@ import {
   buildBookmarkDefaultValues,
   buildProgressTextOverride,
   buildProgressValuesFromInputs,
+  deriveItemInItemsDisplay,
   detectBookmarkInputType,
   normalizeIsbn,
 } from "./bookmarkFormSchema";
@@ -202,5 +203,118 @@ describe("buildProgressValuesFromInputs", () => {
       },
     });
     expect(values).toEqual([]);
+  });
+});
+
+describe("deriveItemInItemsDisplay", () => {
+  const leaf = (id: string, completed?: boolean) => ({
+    id,
+    name: id,
+    type: "page" as const,
+    startValue: "",
+    ...(completed
+      ? {
+        completed,
+      }
+      : {}),
+  });
+  const linked = makeCustomProperty({
+    id: "prog-1",
+    type: "itemInItems",
+    itemInItemsSourcePropertyId: "sec-1",
+  });
+
+  it("derives read-only counts from an exhaustive linked source, preserving the counter-word override", () => {
+    const result = deriveItemInItemsDisplay(
+      linked,
+      {
+        "sec-1": {
+          exhaustive: true,
+          sections: [leaf("a", true), leaf("b"), leaf("c", true)],
+        },
+      },
+      {
+        current: "999", // stale/manual value is ignored while derived
+        total: "0",
+        afterText: " chapters",
+      },
+    );
+    expect(result.derived).toBe(true);
+    expect(result.progress).toEqual({
+      current: "2",
+      total: "3",
+      afterText: " chapters",
+    });
+  });
+
+  it("shows 0 of N when the exhaustive source has nothing completed", () => {
+    const result = deriveItemInItemsDisplay(
+      linked,
+      {
+        "sec-1": {
+          exhaustive: true,
+          sections: [leaf("a"), leaf("b"), leaf("c"), leaf("d")],
+        },
+      },
+      undefined,
+    );
+    expect(result.derived).toBe(true);
+    expect(result.progress).toEqual({
+      current: "0",
+      total: "4",
+    });
+  });
+
+  it("stays manual (not derived) when the linked source is NOT exhaustive", () => {
+    const manual = {
+      current: "5",
+      total: "12",
+    };
+    const result = deriveItemInItemsDisplay(
+      linked,
+      {
+        "sec-1": {
+          exhaustive: false,
+          sections: [leaf("a", true), leaf("b")],
+        },
+      },
+      manual,
+    );
+    expect(result.derived).toBe(false);
+    expect(result.progress).toBe(manual);
+  });
+
+  it("stays manual when the property is not linked to a source", () => {
+    const unlinked = makeCustomProperty({
+      id: "prog-2",
+      type: "itemInItems",
+      itemInItemsSourcePropertyId: null,
+    });
+    const manual = {
+      current: "1",
+      total: "2",
+    };
+    const result = deriveItemInItemsDisplay(unlinked, {}, manual);
+    expect(result.derived).toBe(false);
+    expect(result.progress).toBe(manual);
+  });
+
+  it("stays manual when the exhaustive source has no entries yet", () => {
+    const manual = {
+      current: "1",
+      total: "2",
+    };
+    const result = deriveItemInItemsDisplay(
+      linked,
+      {
+        "sec-1": {
+          exhaustive: true,
+          sections: [],
+        },
+      },
+      manual,
+    );
+    expect(result.derived).toBe(false);
+    expect(result.progress).toBe(manual);
   });
 });
