@@ -53,7 +53,6 @@ export const youtubeChannelListingConfig: EntityListingConfig<YouTubeChannel> = 
   useExtraFilter: useYouTubeChannelFacetFilter,
   renderSearchSort: () => <YouTubeChannelListingControls />,
   renderDisplayRowExtra: () => <YouTubeChannelListingDisplayExtras />,
-  hideBulkSelectFromHeader: true,
   loadingLabel: i18n.t("Loading channels…"),
   entityPlural: i18n.t("channels"),
   emptyMessage: (

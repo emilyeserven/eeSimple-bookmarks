@@ -100,14 +100,13 @@ export function WidgetsListing() {
 
 ## 2. Adjustable column count
 
-### Register the page; the switcher renders in the app header
+### Register the page; the switcher renders in the display-options box
 
-The column-count control no longer sits next to the search bar — it lives in the
-**app-header toolbar** (`ListingDisplayControls` inside
-`components/header/toolbarListingActions.tsx`, collapsing into the
-`DisplayOptionsPopover` on small screens). A listing page gets it by
-**registering itself** with `useListingPage` (`hooks/useListingPage.ts`), which
-sets `uiStore.listingPage`; the page body only *reads* the chosen count:
+The column-count control lives in the **display-options box** — `ListingDisplayControls`
+(View / Columns / Aspect) rendered by `components/ListingSearchBox.tsx` in its own
+`RowCard` directly beneath the search box, alongside the Multiselect toggle. A listing
+page gets it by **registering itself** with `useListingPage` (`hooks/useListingPage.ts`),
+which sets `uiStore.listingPage`; the page body only *reads* the chosen count:
 
 ```tsx
 import { useSetListingPage } from "../hooks/useListingPage";

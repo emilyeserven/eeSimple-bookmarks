@@ -49,7 +49,6 @@ export function useHeaderToolbarActions(
   });
 
   const listingPage = useUiStore(state => state.listingPage);
-  const bulkSelectPageKey = useUiStore(state => state.bulkSelectPageKey);
   const syncProvider = useUiStore(state => state.syncProvider);
 
   // Right-side toolbar controls in canonical left→right order. The builder owns ordering and
@@ -58,7 +57,6 @@ export function useHeaderToolbarActions(
   return buildToolbarActions({
     pathParts,
     listingPage,
-    bulkSelectPageKey,
     isBookmarkDetail,
     bookmarkId,
     addChild,

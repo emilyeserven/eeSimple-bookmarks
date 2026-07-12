@@ -89,16 +89,11 @@ export interface EntityListingConfig<E extends { id: string }> {
    */
   renderSearchSort?: () => ReactNode;
   /**
-   * Extra content rendered in the same row as `ListingDisplayControls` (the view-mode/columns/aspect
-   * controls), opposite it — e.g. Website/YouTube Channel's Prune-empty + Multiselect-toggle controls.
-   * Pair with `hideBulkSelectFromHeader` when this renders its own inline bulk-select toggle.
+   * Extra content rendered in the display-options box, opposite `ListingDisplayControls` (the
+   * view-mode/columns/aspect controls) and beside the shared Multiselect toggle — e.g. Website/YouTube
+   * Channel's Prune-empty control.
    */
   renderDisplayRowExtra?: () => ReactNode;
-  /**
-   * Hides the header/CMD+K bulk-select toggle for this listing page — set when `renderDisplayRowExtra`
-   * renders its own inline `HeaderBulkSelectButton` instead, so the toggle isn't offered twice.
-   */
-  hideBulkSelectFromHeader?: boolean;
   /**
    * Optional partition of the rendered list (both card/list and table views) into labeled sections,
    * e.g. Languages' used vs. "Unused" split. Each filtered item is assigned to the FIRST section
