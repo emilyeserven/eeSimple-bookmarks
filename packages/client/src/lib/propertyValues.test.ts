@@ -43,6 +43,7 @@ describe("buildNumberValuesFromInputs", () => {
     expect(result).toEqual([{
       propertyId: "n",
       value: 42,
+      valueEnd: null,
     }]);
   });
 
@@ -93,11 +94,63 @@ describe("buildNumberValuesFromInputs", () => {
       {
         propertyId: "z",
         value: 0,
+        valueEnd: null,
       },
       {
         propertyId: "neg",
         value: -5,
+        valueEnd: null,
       },
     ]);
+  });
+
+  it("parses a ratingScale range (from~to) only when the property allows a range", () => {
+    const rangeProp = property({
+      id: "r",
+      type: "ratingScale",
+      ratingAllowRange: true,
+    });
+    const single = buildNumberValuesFromInputs([property({
+      id: "r",
+      type: "ratingScale",
+    })], {
+      r: "2~4",
+    });
+    // Without ratingAllowRange the high end is dropped (keeps the low end as a single value).
+    expect(single).toEqual([{
+      propertyId: "r",
+      value: 2,
+      valueEnd: null,
+    }]);
+    const range = buildNumberValuesFromInputs([rangeProp], {
+      r: "2~4",
+    });
+    expect(range).toEqual([{
+      propertyId: "r",
+      value: 2,
+      valueEnd: 4,
+    }]);
+  });
+
+  it("normalizes a reversed range and collapses equal ends", () => {
+    const rangeProp = property({
+      id: "r",
+      type: "ratingScale",
+      ratingAllowRange: true,
+    });
+    expect(buildNumberValuesFromInputs([rangeProp], {
+      r: "5~1",
+    })).toEqual([{
+      propertyId: "r",
+      value: 1,
+      valueEnd: 5,
+    }]);
+    expect(buildNumberValuesFromInputs([rangeProp], {
+      r: "3~3",
+    })).toEqual([{
+      propertyId: "r",
+      value: 3,
+      valueEnd: null,
+    }]);
   });
 });

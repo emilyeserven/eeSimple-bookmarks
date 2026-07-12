@@ -148,6 +148,8 @@ export function summarizeRatingOptions(values: {
   ratingAllowHalf: boolean;
   ratingShowLabel: boolean;
   ratingLabel: string;
+  ratingAllowRange?: boolean;
+  ratingLabelCount?: number;
 }): string {
   const min = values.ratingAllowZero ? 0 : 1;
   const parts: string[] = [i18n.t("{{min}}–{{max}} stars", {
@@ -155,9 +157,15 @@ export function summarizeRatingOptions(values: {
     max: values.ratingMax.trim() || "5",
   })];
   if (values.ratingAllowHalf) parts.push(i18n.t("half steps"));
+  if (values.ratingAllowRange) parts.push(i18n.t("range"));
   if (values.ratingShowLabel && values.ratingLabel.trim()) parts.push(i18n.t("label \"{{label}}\"", {
     label: values.ratingLabel.trim(),
   }));
+  if (values.ratingLabelCount && values.ratingLabelCount > 0) {
+    parts.push(i18n.t("{{count}} level labels", {
+      count: values.ratingLabelCount,
+    }));
+  }
   return parts.join(" · ");
 }
 

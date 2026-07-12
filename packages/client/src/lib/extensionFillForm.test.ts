@@ -21,6 +21,8 @@ import {
   taxonomyEntityWriteKeys,
 } from "./extensionFillForm";
 
+import { makeCustomProperty } from "@/test-utils/factories";
+
 /** Wrap a target + extract in a minimal rule for round-trip assertions. */
 function rule(overrides: Partial<WebsiteExtensionFillRule>): WebsiteExtensionFillRule {
   return {
@@ -115,6 +117,15 @@ describe("coerceFillTarget", () => {
       propertyId: "p1",
       choiceValue: "read",
     });
+    expect(coerceFillTarget("customProperty", {
+      kind: "customProperty",
+      propertyId: "p1",
+      ratingBound: "to",
+    })).toEqual({
+      kind: "customProperty",
+      propertyId: "p1",
+      ratingBound: "to",
+    });
   });
 });
 
@@ -131,6 +142,25 @@ describe("describeFillTarget", () => {
     expect(describeFillTarget({
       kind: "image",
     })).toBe("Image");
+  });
+
+  it("summarizes a ratingScale range bound", () => {
+    const property = makeCustomProperty({
+      id: "p1",
+      name: "Complexity",
+      type: "ratingScale",
+      ratingAllowRange: true,
+    });
+    expect(describeFillTarget({
+      kind: "customProperty",
+      propertyId: "p1",
+      ratingBound: "from",
+    }, property)).toBe("Complexity · From");
+    expect(describeFillTarget({
+      kind: "customProperty",
+      propertyId: "p1",
+      ratingBound: "to",
+    }, property)).toBe("Complexity · To");
   });
 
   it("summarizes taxonomyEntity relation + language write-keys", () => {

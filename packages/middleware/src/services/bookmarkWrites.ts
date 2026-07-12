@@ -141,6 +141,7 @@ export async function setNumberValues(
     bookmarkId,
     propertyId: entry.propertyId,
     value: entry.value,
+    valueEnd: entry.valueEnd ?? null,
   })));
 }
 

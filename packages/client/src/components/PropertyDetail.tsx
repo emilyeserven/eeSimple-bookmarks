@@ -149,8 +149,17 @@ function RatingOptionsFields({
       })}
       </DetailField>
       <DetailField label={t("Half ratings")}>{property.ratingAllowHalf ? t("Allowed") : t("Whole stars only")}</DetailField>
+      <DetailField label={t("Range")}>{property.ratingAllowRange ? t("Allowed") : t("Single value")}</DetailField>
       <DetailField label={t("Label")}>
         {property.ratingShowLabel && property.ratingLabel ? property.ratingLabel : null}
+      </DetailField>
+      <DetailField label={t("Level labels")}>
+        {property.ratingLabels && Object.keys(property.ratingLabels).length > 0
+          ? Object.entries(property.ratingLabels)
+            .sort(([a], [b]) => Number(a) - Number(b))
+            .map(([level, label]) => `${level}: ${label}`)
+            .join(", ")
+          : null}
       </DetailField>
       <AllowDefaultField property={property} />
     </>

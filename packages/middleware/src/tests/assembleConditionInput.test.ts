@@ -11,6 +11,7 @@ function emptyGroups(): ConditionInputGroups {
     taxonomyTermsByBid: new Map(),
     locationsByBid: new Map(),
     numsByBid: new Map(),
+    numEndsByBid: new Map(),
     boolsByBid: new Map(),
     datesByBid: new Map(),
     choicesByBid: new Map(),

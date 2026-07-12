@@ -153,6 +153,7 @@ async function numberValuesByRuleId(
       ruleId: autofillRuleNumberValues.ruleId,
       propertyId: autofillRuleNumberValues.propertyId,
       value: autofillRuleNumberValues.value,
+      valueEnd: autofillRuleNumberValues.valueEnd,
     })
     .from(autofillRuleNumberValues)
     .where(inArray(autofillRuleNumberValues.ruleId, ruleIds));
@@ -162,6 +163,7 @@ async function numberValuesByRuleId(
     list.push({
       propertyId: row.propertyId,
       value: row.value,
+      valueEnd: row.valueEnd ?? null,
     });
     grouped.set(row.ruleId, list);
   }
@@ -349,6 +351,7 @@ async function setRuleNumberValues(
     ruleId,
     propertyId: entry.propertyId,
     value: entry.value,
+    valueEnd: entry.valueEnd ?? null,
   })));
 }
 

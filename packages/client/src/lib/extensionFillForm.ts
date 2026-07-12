@@ -151,6 +151,7 @@ export function describeFillTarget(target: FillTarget, property?: CustomProperty
     case "customProperty": {
       const name = property?.name ?? "Custom property";
       if (target.subField) return `${name} · ${target.subField === "current" ? "Current" : "Total"}`;
+      if (target.ratingBound) return `${name} · ${target.ratingBound === "from" ? "From" : "To"}`;
       if (target.choiceValue) {
         const option = property?.choicesItems.find(item => item.value === target.choiceValue);
         return `${name} · ${option?.label ?? target.choiceValue}`;
@@ -310,6 +311,11 @@ function coerceCustomPropertyTarget(prev: FillTarget): Extract<FillTarget, { kin
     ...(same?.choiceValue !== undefined
       ? {
         choiceValue: same.choiceValue,
+      }
+      : {}),
+    ...(same?.ratingBound !== undefined
+      ? {
+        ratingBound: same.ratingBound,
       }
       : {}),
   };
@@ -541,6 +547,11 @@ function cleanCustomPropertyTarget(
     ...(target.choiceValue
       ? {
         choiceValue: target.choiceValue,
+      }
+      : {}),
+    ...(target.ratingBound !== undefined
+      ? {
+        ratingBound: target.ratingBound,
       }
       : {}),
   };

@@ -80,6 +80,9 @@ export const propertySchema = z
     ratingAllowHalf: z.boolean(),
     ratingShowLabel: z.boolean(),
     ratingLabel: z.string(),
+    ratingAllowRange: z.boolean(),
+    // Per-level labels keyed by the level as a string ("0".."ratingMax"); empty/absent = the number.
+    ratingLabels: z.record(z.string(), z.string()),
     choicesItems: z.array(z.object({
       label: z.string(),
       value: z.string(),
@@ -158,6 +161,8 @@ export const CREATE_DEFAULTS: PropertyFormValues = {
   ratingAllowHalf: false,
   ratingShowLabel: false,
   ratingLabel: "",
+  ratingAllowRange: false,
+  ratingLabels: {},
   choicesItems: [],
   choicesDisplay: "radio",
   choicesMultiple: false,
@@ -318,6 +323,8 @@ export function valuesFromProperty(property: CustomProperty): PropertyFormValues
     ratingAllowHalf: property.ratingAllowHalf,
     ratingShowLabel: property.ratingShowLabel,
     ratingLabel: property.ratingLabel ?? "",
+    ratingAllowRange: property.ratingAllowRange,
+    ratingLabels: property.ratingLabels ?? {},
     choicesItems: property.choicesItems,
     choicesDisplay: property.choicesDisplay ?? "radio",
     choicesMultiple: property.choicesMultiple,
@@ -373,10 +380,18 @@ function booleanPayloadFields(values: PropertyFormValues): Pick<
   };
 }
 
+/** Keep only non-empty label entries, so the stored `ratingLabels` map has no blank values. */
+function pruneRatingLabels(labels: Record<string, string>): Record<string, string> | null {
+  const entries = Object.entries(labels).filter(([, label]) => label.trim() !== "");
+  if (entries.length === 0) return null;
+  return Object.fromEntries(entries.map(([level, label]) => [level, label.trim()]));
+}
+
 /** Rating-scale-only fields, nulled out / left `undefined` for every other property type. */
 function ratingPayloadFields(values: PropertyFormValues): Pick<
   CreateCustomPropertyInput,
   "ratingMax" | "ratingAllowZero" | "ratingAllowHalf" | "ratingShowLabel" | "ratingLabel"
+  | "ratingAllowRange" | "ratingLabels"
 > {
   const isRating = values.type === "ratingScale";
   return {
@@ -385,6 +400,8 @@ function ratingPayloadFields(values: PropertyFormValues): Pick<
     ratingAllowHalf: isRating ? values.ratingAllowHalf : undefined,
     ratingShowLabel: isRating ? values.ratingShowLabel : undefined,
     ratingLabel: isRating ? trimOrNull(values.ratingLabel) : null,
+    ratingAllowRange: isRating ? values.ratingAllowRange : undefined,
+    ratingLabels: isRating ? pruneRatingLabels(values.ratingLabels) : null,
   };
 }
 

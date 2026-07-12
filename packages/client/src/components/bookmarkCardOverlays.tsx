@@ -98,12 +98,21 @@ function valueItemOverlayNode(item: BookmarkValueItem): ReactNode {
       >
         <StarRating
           value={item.value}
+          rangeEnd={item.valueEnd}
           max={item.property.ratingMax ?? 5}
           allowHalf={item.property.ratingAllowHalf}
           allowZero={item.property.ratingAllowZero}
           readOnly
           size={16}
         />
+        {item.caption
+          ? (
+            <span
+              className="mt-0.5 block text-[10px] text-muted-foreground"
+            >{item.caption}
+            </span>
+          )
+          : null}
       </div>
     );
   }

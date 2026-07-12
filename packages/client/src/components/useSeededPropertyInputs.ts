@@ -4,6 +4,8 @@ import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 
 import { useRef, useState } from "react";
 
+import { encodeRatingRange } from "@/lib/propertyValues";
+
 /** The number/boolean/datetime/choices/progress/sections/text input maps plus a ref mirror, seeded from a bookmark's stored values. */
 export interface SeededPropertyInputs extends CustomPropertyInputs {
   setNumberInputs: Dispatch<SetStateAction<Record<string, string>>>;
@@ -27,7 +29,9 @@ export interface SeededPropertyInputs extends CustomPropertyInputs {
  */
 export function useSeededPropertyInputs(bookmark?: Bookmark): SeededPropertyInputs {
   const [numberInputs, setNumberInputs] = useState<Record<string, string>>(() =>
-    Object.fromEntries((bookmark?.numberValues ?? []).map(entry => [entry.propertyId, String(entry.value)])));
+    Object.fromEntries((bookmark?.numberValues ?? []).map(entry =>
+      // A ratingScale range seeds as the encoded "from~to"; a single value stays a plain number string.
+      [entry.propertyId, encodeRatingRange(entry.value, entry.valueEnd)])));
   const [booleanInputs, setBooleanInputs] = useState<Record<string, boolean>>(() =>
     Object.fromEntries((bookmark?.booleanValues ?? []).map(entry => [entry.propertyId, entry.value])));
   const [dateTimeInputs, setDateTimeInputs] = useState<Record<string, string>>(() =>

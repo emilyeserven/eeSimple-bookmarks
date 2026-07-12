@@ -6,10 +6,16 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
 interface StarRatingProps {
-  /** Current rating (0…max, may be a half like 3.5). */
+  /** Current rating (0…max, may be a half like 3.5). For a range, the low end (From). */
   value: number;
   /** Top of the scale (e.g. 3 or 5). */
   max: number;
+  /**
+   * The high end (To) of a read-only **range** rating. When set (and distinct from {@link value}),
+   * the stars from `value` to `rangeEnd` render as a highlighted band (e.g. levels 2–4), instead of
+   * filling from the first star. Read-only only — ignored in interactive mode.
+   */
+  rangeEnd?: number | null;
   /** Allow half-star (0.5) steps when interactive. */
   allowHalf?: boolean;
   /**
@@ -35,7 +41,7 @@ interface StarRatingProps {
  * set, half-step clicks (`allowHalf`), and clearing to 0 (`allowZero`).
  */
 export function StarRating({
-  value, max, allowHalf = false, allowZero = false, readOnly = false,
+  value, max, rangeEnd = null, allowHalf = false, allowZero = false, readOnly = false,
   onChange, label, size = 18, className,
 }: StarRatingProps) {
   const {
@@ -43,6 +49,9 @@ export function StarRating({
   } = useTranslation();
   const [hover, setHover] = useState<number | null>(null);
   const display = hover ?? value;
+  // A read-only range highlights the band [value, rangeEnd]; otherwise stars fill from the start.
+  const bandStart = readOnly && rangeEnd !== null && rangeEnd > value ? value : 0;
+  const bandEnd = readOnly && rangeEnd !== null && rangeEnd > value ? rangeEnd : display;
 
   function commit(target: number) {
     if (readOnly || !onChange) return;
@@ -60,8 +69,9 @@ export function StarRating({
         length: max,
       }, (_, index) => {
         const position = index + 1;
-        // Fraction of this star that is filled (0, 0.5, or 1).
-        const fill = Math.max(0, Math.min(1, display - index));
+        // Fraction of this star filled: the overlap of its cell (index, index+1] with the band
+        // [bandStart, bandEnd]. For a single value (bandStart 0) this reduces to `display - index`.
+        const fill = Math.max(0, Math.min(index + 1, bandEnd) - Math.max(index, bandStart));
         return (
           <span
             key={position}

@@ -45,10 +45,12 @@ export function ratingStars(
   withLabel: boolean,
   onSaveRating: ((propertyId: string, value: number) => void) | undefined,
 ): ReactNode {
-  const editable = item.property.editableOnCard && onSaveRating !== undefined;
-  return (
+  // A range rating can't be set by a single star click, so it renders read-only (band + caption).
+  const editable = item.property.editableOnCard && !item.property.ratingAllowRange && onSaveRating !== undefined;
+  const stars = (
     <StarRating
       value={item.value}
+      rangeEnd={item.valueEnd}
       max={item.property.ratingMax ?? 5}
       allowHalf={item.property.ratingAllowHalf}
       allowZero={item.property.ratingAllowZero}
@@ -57,5 +59,12 @@ export function ratingStars(
       label={withLabel && item.property.ratingShowLabel ? (item.property.ratingLabel ?? undefined) : undefined}
       size={16}
     />
+  );
+  if (!item.caption) return stars;
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      {stars}
+      <span className="text-xs text-muted-foreground">{item.caption}</span>
+    </span>
   );
 }

@@ -176,6 +176,8 @@ export interface ConditionInputGroups {
   taxonomyTermsByBid: Map<string, Set<string>>;
   locationsByBid: Map<string, Set<string>>;
   numsByBid: Map<string, Map<string, number>>;
+  /** High end of a ratingScale range value, paralleling {@link numsByBid} (the low end). */
+  numEndsByBid: Map<string, Map<string, number>>;
   boolsByBid: Map<string, Map<string, boolean>>;
   datesByBid: Map<string, Map<string, string>>;
   choicesByBid: Map<string, Map<string, string[]>>;
@@ -209,6 +211,7 @@ export function assembleConditionInput(
     youtubeChannelId: row.youtubeChannelId ?? null,
     mediaTypeId: row.mediaTypeId ?? null,
     numberValues: groups.numsByBid.get(row.id) ?? new Map(),
+    numberValueEnds: groups.numEndsByBid.get(row.id) ?? new Map(),
     booleanValues: groups.boolsByBid.get(row.id) ?? new Map(),
     dateTimeValues: groups.datesByBid.get(row.id) ?? new Map(),
     choicesValues: groups.choicesByBid.get(row.id) ?? new Map(),
@@ -258,6 +261,7 @@ async function buildConditionInputs(
         bookmarkId: bookmarkNumberValues.bookmarkId,
         propertyId: bookmarkNumberValues.propertyId,
         value: bookmarkNumberValues.value,
+        valueEnd: bookmarkNumberValues.valueEnd,
       })
       .from(bookmarkNumberValues)
       .where(inArray(bookmarkNumberValues.bookmarkId, ids)),
@@ -344,6 +348,13 @@ async function buildConditionInputs(
   const taxonomyTermsByBid = groupToSets(taxonomyTermRows, r => r.bookmarkId, r => r.termId);
   const locationsByBid = groupToSets(locationRows, r => r.bookmarkId, r => r.locationId);
   const numsByBid = groupToMaps(numberRows, r => r.bookmarkId, r => r.propertyId, r => r.value);
+  // High end of a ratingScale range, only for rows that carry one. Parallel to numsByBid.
+  const numEndsByBid = groupToMaps(
+    numberRows.filter(r => r.valueEnd !== null && r.valueEnd !== undefined),
+    r => r.bookmarkId,
+    r => r.propertyId,
+    r => r.valueEnd as number,
+  );
   const boolsByBid = groupToMaps(booleanRows, r => r.bookmarkId, r => r.propertyId, r => r.value);
   const datesByBid = groupToMaps(dateTimeRows, r => r.bookmarkId, r => r.propertyId, r => r.value);
   const choicesByBid = groupToMaps(choicesRows, r => r.bookmarkId, r => r.propertyId, r => r.values as string[]);
@@ -406,6 +417,7 @@ async function buildConditionInputs(
     taxonomyTermsByBid,
     locationsByBid,
     numsByBid,
+    numEndsByBid,
     boolsByBid,
     datesByBid,
     choicesByBid,

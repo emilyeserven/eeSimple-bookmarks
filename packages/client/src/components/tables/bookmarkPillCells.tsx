@@ -7,6 +7,8 @@ import { MediaTypePill } from "../MediaTypePill";
 import { SourcePill } from "../SourcePill";
 import { StarRating } from "../StarRating";
 
+import { formatRatingCaption } from "@/lib/propertyFormat";
+
 /** The category pill cell, resolving the bookmark's non-built-in category from the cached list. */
 export function BookmarkCategoryColumnCell({
   bookmark, allCategories,
@@ -69,18 +71,22 @@ export function BookmarkPropertyColumnCell({
   showIfFalse: boolean; }) {
   if (property.type === "ratingScale") {
     const entry = bookmark.numberValues.find(value => value.propertyId === property.id);
-    return entry
-      ? (
+    if (!entry) return null;
+    const caption = formatRatingCaption(property, entry.value, entry.valueEnd);
+    return (
+      <span className="inline-flex items-center gap-1.5">
         <StarRating
           value={entry.value}
+          rangeEnd={entry.valueEnd}
           max={property.ratingMax ?? 5}
           allowHalf={property.ratingAllowHalf}
           readOnly
           label={property.ratingShowLabel ? (property.ratingLabel ?? undefined) : undefined}
           size={14}
         />
-      )
-      : null;
+        {caption ? <span className="text-xs text-muted-foreground">{caption}</span> : null}
+      </span>
+    );
   }
   const formatted = formatPropertyValue(bookmark, property, showIfFalse);
   return formatted ? <span className="text-sm">{formatted}</span> : null;

@@ -1438,6 +1438,10 @@ export const customProperties = pgTable("custom_properties", {
   ratingAllowHalf: boolean("rating_allow_half"),
   ratingShowLabel: boolean("rating_show_label"),
   ratingLabel: text("rating_label"),
+  // When true, a ratingScale value may be a range (From/To). Lone nullable column → push-safe additive.
+  ratingAllowRange: boolean("rating_allow_range"),
+  // Per-number labels for a ratingScale, keyed by level ("0".."ratingMax"). Nullable jsonb → push-safe.
+  ratingLabels: jsonb("rating_labels"),
   // choices-type config (all nullable → push-safe additive columns for non-choices properties).
   // choicesItems: the property's defined selectable options, stored as a ChoicesItem[] JSON array.
   // choicesDisplay: "checkbox" | "radio" | "combobox" | "dropdown" — how the field renders.
@@ -1490,6 +1494,9 @@ export const bookmarkNumberValues = pgTable("bookmark_number_values", {
     onDelete: "cascade",
   }),
   value: real("value").notNull(),
+  // High end of a ratingScale range value (`value` = low end / From, this = To). NULL = single
+  // value (the only shape for number/calculate/itemInItems). Lone nullable column → push-safe additive.
+  valueEnd: real("value_end"),
 }, table => [
   primaryKey({
     columns: [table.bookmarkId, table.propertyId],
@@ -2321,6 +2328,8 @@ export const autofillRuleNumberValues = pgTable("autofill_rule_number_values", {
     onDelete: "cascade",
   }),
   value: real("value").notNull(),
+  // High end of a ratingScale range default (`value` = low end). Lone nullable column → push-safe.
+  valueEnd: real("value_end"),
 }, table => [
   primaryKey({
     columns: [table.ruleId, table.propertyId],
@@ -2401,6 +2410,8 @@ export const categoryNumberDefaults = pgTable("category_number_defaults", {
     onDelete: "cascade",
   }),
   value: real("value").notNull(),
+  // High end of a ratingScale range default (`value` = low end). Lone nullable column → push-safe.
+  valueEnd: real("value_end"),
 }, table => [
   primaryKey({
     columns: [table.categoryId, table.propertyId],

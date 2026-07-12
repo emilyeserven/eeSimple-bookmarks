@@ -80,14 +80,16 @@ const {
 } = globalThis.eesimpleTaxonomyFill;
 // Custom-property types the popup can fill, mapped to the bookmark's typed value array / PATCH key.
 // itemInItems (Two Numbers) and choices fill a single rule-selected sub-value (target.subField /
-// target.choiceValue). Other value kinds (sections/ratingScale/…) degrade to a disabled
-// "unsupported" row.
+// target.choiceValue). ratingScale fills a numeric value in numberValues; a range-enabled rating
+// fills the rule-selected end (target.ratingBound: "from"|"to"). Other value kinds (sections/…)
+// degrade to a disabled "unsupported" row.
 const VALUE_PATCH_KEY = {
   number: "numberValues",
   boolean: "booleanValues",
   text: "textValues",
   datetime: "dateTimeValues",
   itemInItems: "progressValues",
+  ratingScale: "numberValues",
   choices: "choicesValues",
 };
 
@@ -1015,6 +1017,9 @@ function buildPropertyRow(rule, values, ctx) {
   if (property.type === "itemInItems") {
     return buildProgressRow(rule, property, extracted, bookmark);
   }
+  if (property.type === "ratingScale") {
+    return buildRatingRow(rule, property, extracted, bookmark);
+  }
   if (property.type === "choices") {
     return buildChoicesRow(rule, property, extracted, bookmark);
   }
@@ -1112,6 +1117,74 @@ function buildProgressRow(rule, property, extracted, bookmark) {
     };
     entry[subField] = num;
     map.set(property.id, entry);
+  };
+  return row;
+}
+
+// The per-number label for a rating level, or the number itself when unlabeled.
+function ratingLabelFor(property, level) {
+  const labels = property.ratingLabels;
+  const label = labels ? labels[String(level)] : undefined;
+  return label && String(label).trim() !== "" ? label : String(level);
+}
+
+// ratingScale: fill a numeric value in numberValues. A range-enabled rating fills only the
+// rule-selected end (target.ratingBound: "from"|"to"), seeding the sibling from the existing value
+// and keeping value <= valueEnd; a single-value rating replaces the whole value.
+function buildRatingRow(rule, property, extracted, bookmark) {
+  const num = Number(extracted);
+  const existing = (bookmark.numberValues ?? []).find(v => v.propertyId === property.id);
+  if (!Number.isFinite(num)) {
+    return baseRow(rule, existing ? formatScalar(existing.value) : "", extracted, false, "not found");
+  }
+  if (property.ratingAllowRange) {
+    const bound = rule.target.ratingBound === "to" ? "to" : "from";
+    const currentVal = existing
+      ? (bound === "to" ? (existing.valueEnd ?? existing.value) : existing.value)
+      : undefined;
+    const changed = currentVal !== num;
+    const row = baseRow(
+      rule,
+      `${bound}: ${currentVal === undefined ? "" : ratingLabelFor(property, currentVal)}`,
+      `${bound}: ${ratingLabelFor(property, num)}`,
+      changed,
+      changed ? null : "no change",
+    );
+    row.apply = (patch, state) => {
+      const map = seedValueMap(state, "numberValues", bookmark);
+      const entry = map.get(property.id) ?? {
+        propertyId: property.id,
+        value: num,
+        valueEnd: null,
+      };
+      if (bound === "from") {
+        entry.value = num;
+        if (entry.valueEnd != null && entry.valueEnd < num) entry.valueEnd = num;
+      }
+      else {
+        entry.valueEnd = num;
+        if (entry.value > num) entry.value = num;
+      }
+      map.set(property.id, entry);
+    };
+    return row;
+  }
+  const currentVal = existing ? existing.value : undefined;
+  const changed = currentVal !== num;
+  const row = baseRow(
+    rule,
+    currentVal === undefined ? "" : ratingLabelFor(property, currentVal),
+    ratingLabelFor(property, num),
+    changed,
+    changed ? null : "no change",
+  );
+  row.apply = (patch, state) => {
+    const map = seedValueMap(state, "numberValues", bookmark);
+    map.set(property.id, {
+      propertyId: property.id,
+      value: num,
+      valueEnd: null,
+    });
   };
   return row;
 }

@@ -49,6 +49,11 @@ export function formStateToConditionInput(
       ...propertyValues.numberValues.map(v => [v.propertyId, v.value] as const),
       ...propertyValues.progressValues.map(v => [v.propertyId, v.current] as const),
     ]),
+    numberValueEnds: new Map(
+      propertyValues.numberValues
+        .filter((v): v is typeof v & { valueEnd: number } => v.valueEnd != null)
+        .map(v => [v.propertyId, v.valueEnd] as const),
+    ),
     booleanValues: new Map(propertyValues.booleanValues.map(v => [v.propertyId, v.value])),
     dateTimeValues: new Map(propertyValues.dateTimeValues.map(v => [v.propertyId, v.value])),
     choicesValues: new Map(propertyValues.choicesValues.map(v => [v.propertyId, v.values])),

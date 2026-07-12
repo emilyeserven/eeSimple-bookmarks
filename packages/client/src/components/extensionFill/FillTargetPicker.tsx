@@ -795,6 +795,29 @@ function CustomPropertySubValue({
       />
     );
   }
+  if (property?.type === "ratingScale" && property.ratingAllowRange) {
+    return (
+      <KindSelect<"from" | "to">
+        label={t("Range end")}
+        value={target.ratingBound ?? "from"}
+        options={[
+          {
+            value: "from",
+            label: t("From"),
+          },
+          {
+            value: "to",
+            label: t("To"),
+          },
+        ]}
+        onValueChange={ratingBound => onChange({
+          kind: "customProperty",
+          propertyId: target.propertyId,
+          ratingBound,
+        })}
+      />
+    );
+  }
   if (property?.type === "choices") {
     return (
       <Combobox

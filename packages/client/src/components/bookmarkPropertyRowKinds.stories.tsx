@@ -106,9 +106,11 @@ export const Rating: Story = {
           id: "r1",
           name: "Rating",
           value: 4,
+          valueEnd: null,
           max: 5,
           allowHalf: true,
           label: "4 of 5",
+          caption: null,
           search,
         }}
       />

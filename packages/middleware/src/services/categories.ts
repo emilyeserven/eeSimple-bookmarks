@@ -258,6 +258,7 @@ export async function getCategoryDefaults(categoryId: string): Promise<CategoryP
       .select({
         propertyId: categoryNumberDefaults.propertyId,
         value: categoryNumberDefaults.value,
+        valueEnd: categoryNumberDefaults.valueEnd,
       })
       .from(categoryNumberDefaults)
       .where(eq(categoryNumberDefaults.categoryId, categoryId)),
@@ -280,6 +281,7 @@ export async function getCategoryDefaults(categoryId: string): Promise<CategoryP
     numberValues: numberRows.map(row => ({
       propertyId: row.propertyId,
       value: row.value,
+      valueEnd: row.valueEnd ?? null,
     })),
     booleanValues: booleanRows.map(row => ({
       propertyId: row.propertyId,
@@ -311,6 +313,7 @@ export async function setCategoryDefaults(
         categoryId,
         propertyId: entry.propertyId,
         value: entry.value,
+        valueEnd: entry.valueEnd ?? null,
       })));
     }
     if (input.booleanValues.length > 0) {

@@ -132,15 +132,17 @@ export function RatingRowCell({
         {row.name}
         :
       </dt>
-      <dd>
+      <dd className="flex items-center gap-1.5">
         <StarRating
           value={row.value}
+          rangeEnd={row.valueEnd}
           max={row.max}
           allowHalf={row.allowHalf}
           readOnly
           label={row.label}
           size={16}
         />
+        {row.caption ? <span className="text-xs text-muted-foreground">{row.caption}</span> : null}
       </dd>
       <PropertyQuickFilterLink
         search={row.search}

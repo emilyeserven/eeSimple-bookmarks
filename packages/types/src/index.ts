@@ -2575,6 +2575,18 @@ export interface CustomProperty {
   ratingShowLabel: boolean;
   /** Label shown after a `ratingScale`'s stars (e.g. "out of 5"), or `null`. */
   ratingLabel: string | null;
+  /**
+   * When true, a `ratingScale` value may be a **range** (a From and a To level, e.g. "Beginner to
+   * Advanced") rather than a single level. Defaults to false — existing single-value ratings are
+   * unchanged. Stored as the value's `valueEnd` (see {@link BookmarkNumberValue}).
+   */
+  ratingAllowRange: boolean;
+  /**
+   * Per-number labels for a `ratingScale`, keyed by the level as a string (`"0".."ratingMax"`). The
+   * `"0"` entry is only meaningful when {@link ratingAllowZero}. `null` = no labels (levels display
+   * as their number). A level absent from the map falls back to its number.
+   */
+  ratingLabels: Record<string, string> | null;
   /** For a `calculate` property: ids of the `number` properties summed to produce its value. */
   operandPropertyIds: string[];
   /** Ids of the categories this property is assigned to (zero, one, or many). */
@@ -2708,6 +2720,10 @@ export interface CreateCustomPropertyInput {
   ratingShowLabel?: boolean;
   /** Label shown after a `ratingScale`'s stars (e.g. "out of 5"). */
   ratingLabel?: string | null;
+  /** When true, a `ratingScale` value may be a range (From/To). Defaults to false. */
+  ratingAllowRange?: boolean;
+  /** Per-number labels for a `ratingScale`, keyed by the level as a string (`"0".."ratingMax"`). */
+  ratingLabels?: Record<string, string> | null;
   /** Selectable options for a `choices` property. Required when `type` is `"choices"`. */
   choicesItems?: ChoicesItem[];
   /** How a `choices` property is rendered in the bookmark form. Defaults to `"radio"`. */
@@ -2764,6 +2780,12 @@ export function propertyAppliesToMediaType(
 export interface BookmarkNumberValue {
   propertyId: string;
   value: number;
+  /**
+   * The high end of a `ratingScale` **range** value; the interface's `value` is the low end (From).
+   * `null`/absent = a single value (the default, and the only shape for `number`/`calculate`/
+   * `itemInItems`). Only set when the property has `ratingAllowRange`.
+   */
+  valueEnd?: number | null;
 }
 
 /** A boolean custom property value carried on a bookmark. */

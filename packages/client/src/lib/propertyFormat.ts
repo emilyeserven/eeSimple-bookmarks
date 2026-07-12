@@ -99,6 +99,42 @@ export function joinProgressDisplay(
   return out;
 }
 
+/** The selectable levels of a `ratingScale`, low → high (0 when zero allowed; half-steps when allowed). */
+export function ratingLevelValues(property: CustomProperty): number[] {
+  const max = property.ratingMax ?? 5;
+  const min = property.ratingAllowZero ? 0 : 1;
+  const step = property.ratingAllowHalf ? 0.5 : 1;
+  const levels: number[] = [];
+  for (let level = min; level <= max + 1e-9; level += step) {
+    levels.push(Math.round(level * 2) / 2);
+  }
+  return levels;
+}
+
+/** The display label for a single rating level: the property's per-number label, else the number. */
+export function ratingLevelLabel(property: CustomProperty, level: number): string {
+  const label = property.ratingLabels?.[String(level)];
+  return label && label.trim() !== "" ? label : String(level);
+}
+
+/**
+ * A caption for a rating value using the per-number labels: a single label, or `from → to` for a
+ * range. Returns `null` when the property has no labels and no range (nothing to add beside the stars).
+ */
+export function formatRatingCaption(
+  property: CustomProperty,
+  value: number,
+  valueEnd?: number | null,
+): string | null {
+  // A range always gets a caption (labels, or the numbers when unlabelled) since the stars alone
+  // can't convey "from X to Y".
+  const isRange = valueEnd != null && valueEnd !== value;
+  if (isRange) return `${ratingLevelLabel(property, value)} → ${ratingLevelLabel(property, valueEnd)}`;
+  // A single value shows a caption only when *that* level is labelled (else the stars suffice).
+  const label = property.ratingLabels?.[String(value)];
+  return label && label.trim() !== "" ? label : null;
+}
+
 /** Human labels for what a `datetime` property captures. */
 export const DATE_TIME_FORMAT_LABELS: Record<DateTimeFormat, string> = {
   date: i18n.t("Date only"),

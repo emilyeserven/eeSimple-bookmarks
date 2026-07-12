@@ -78,6 +78,11 @@ export function bookmarkToConditionInput(bookmark: Bookmark): ConditionInput {
       ...bookmark.numberValues.map(v => [v.propertyId, v.value] as const),
       ...bookmark.progressValues.map(v => [v.propertyId, v.current] as const),
     ]),
+    numberValueEnds: new Map(
+      bookmark.numberValues
+        .filter((v): v is typeof v & { valueEnd: number } => v.valueEnd != null)
+        .map(v => [v.propertyId, v.valueEnd] as const),
+    ),
     booleanValues: new Map(bookmark.booleanValues.map(v => [v.propertyId, v.value])),
     dateTimeValues: new Map(bookmark.dateTimeValues.map(v => [v.propertyId, v.value])),
     fileValues: new Set(bookmark.fileValues.map(v => v.propertyId)),

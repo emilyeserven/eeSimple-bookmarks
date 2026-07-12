@@ -47,6 +47,9 @@ const numberValues = {
       value: {
         type: "number",
       },
+      valueEnd: {
+        type: ["number", "null"],
+      },
     },
   },
 } as const;

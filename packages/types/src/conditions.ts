@@ -315,6 +315,12 @@ export interface ConditionInput {
     usageLevelId: string; }[];
   /** Number/calculate custom-property values, keyed by property id. */
   numberValues: Map<string, number>;
+  /**
+   * The **high end** of a `ratingScale` range value, keyed by property id, paralleling
+   * {@link numberValues} (which holds the low end). Absent for a single value / non-range property —
+   * the evaluator then treats the value as a point. Enables range-overlap matching.
+   */
+  numberValueEnds?: Map<string, number>;
   /** Boolean custom-property values, keyed by property id. */
   booleanValues: Map<string, boolean>;
   /** Date/time custom-property values (canonical string encoding), keyed by property id. */
@@ -488,13 +494,19 @@ function evaluateNumberPredicate(
   predicate: NumberPredicate,
   hasValue: boolean,
   value: number | undefined,
+  valueEnd?: number | undefined,
 ): boolean {
   if (predicate.kind === "presence") {
     return predicate.mode === "has" ? hasValue : !hasValue;
   }
   if (!hasValue || value === undefined) return false;
-  if (predicate.min !== null && value < predicate.min) return false;
-  if (predicate.max !== null && value > predicate.max) return false;
+  // A ratingScale range stores its low end in `value` and high end in `valueEnd`; a single value
+  // (or any non-range number) is the point `[value, value]`. Match when the value interval overlaps
+  // the predicate window `[min, max]`.
+  const lo = value;
+  const hi = valueEnd ?? value;
+  if (predicate.max !== null && lo > predicate.max) return false;
+  if (predicate.min !== null && hi < predicate.min) return false;
   return true;
 }
 
@@ -646,6 +658,7 @@ function evaluateProperty(condition: PropertyCondition, input: ConditionInput): 
       condition.predicate.predicate,
       input.numberValues.has(condition.propertyId),
       input.numberValues.get(condition.propertyId),
+      input.numberValueEnds?.get(condition.propertyId),
     );
   }
   if (condition.predicate.valueKind === "datetime") {
