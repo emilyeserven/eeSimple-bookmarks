@@ -258,7 +258,7 @@ const fillTransformSchema = {
   properties: {
     kind: {
       type: "string",
-      enum: ["regex", "number", "duration", "date", "replace", "trim"],
+      enum: ["regex", "number", "duration", "date", "replace", "trim", "affix", "absoluteUrl"],
     },
     pattern: {
       type: "string",
@@ -270,6 +270,12 @@ const fillTransformSchema = {
       type: "number",
     },
     replacement: {
+      type: "string",
+    },
+    prefix: {
+      type: "string",
+    },
+    suffix: {
       type: "string",
     },
   },

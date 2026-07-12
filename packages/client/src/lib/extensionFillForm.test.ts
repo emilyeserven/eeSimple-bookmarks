@@ -542,6 +542,17 @@ describe("describeFillTransform", () => {
     expect(describeFillTransform({
       kind: "trim",
     })).toBe("Trim");
+    expect(describeFillTransform({
+      kind: "affix",
+      prefix: "https://x.com",
+      suffix: "/",
+    })).toBe("Prefix \"https://x.com\" + Suffix \"/\"");
+    expect(describeFillTransform({
+      kind: "affix",
+    })).toBe("Affix");
+    expect(describeFillTransform({
+      kind: "absoluteUrl",
+    })).toBe("Resolve relative URL");
   });
 });
 
@@ -630,6 +641,20 @@ describe("coerceFillTransform", () => {
       pattern: "(\\d+)",
     })).toEqual({
       kind: "date",
+    });
+  });
+
+  it("coerces to the parameter-less affix / absoluteUrl variants", () => {
+    expect(coerceFillTransform("affix", {
+      kind: "regex" as const,
+      pattern: "(\\d+)",
+    })).toEqual({
+      kind: "affix",
+    });
+    expect(coerceFillTransform("absoluteUrl", {
+      kind: "trim" as const,
+    })).toEqual({
+      kind: "absoluteUrl",
     });
   });
 });
@@ -800,6 +825,35 @@ describe("normalizeExtensionFillRules", () => {
       },
       {
         kind: "trim",
+      },
+    ]);
+  });
+
+  it("drops an empty affix, keeps a set one, and passes through absoluteUrl", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      extract: {
+        selector: ".x",
+        transform: [
+          {
+            kind: "affix",
+          },
+          {
+            kind: "affix",
+            prefix: "https://x.com",
+          },
+          {
+            kind: "absoluteUrl",
+          },
+        ],
+      },
+    })]);
+    expect(out.extract.transform).toEqual([
+      {
+        kind: "affix",
+        prefix: "https://x.com",
+      },
+      {
+        kind: "absoluteUrl",
       },
     ]);
   });
