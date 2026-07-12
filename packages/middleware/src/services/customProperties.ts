@@ -112,6 +112,8 @@ function toCustomProperty(
     ratingLabel: row.ratingLabel ?? null,
     ratingAllowRange: row.ratingAllowRange ?? false,
     ratingLabels: (row.ratingLabels as CustomProperty["ratingLabels"]) ?? null,
+    ratingDisplay: (row.ratingDisplay as CustomProperty["ratingDisplay"]) ?? null,
+    ratingRangeIncludeStart: row.ratingRangeIncludeStart ?? false,
     choicesItems: (row.choicesItems as ChoicesItem[] | null) ?? [],
     choicesDisplay: (row.choicesDisplay as CustomProperty["choicesDisplay"]) ?? null,
     choicesMultiple: row.choicesMultiple ?? false,
@@ -333,6 +335,8 @@ export function buildInsertValues(
     ratingLabel: isRating ? (input.ratingLabel ?? null) : null,
     ratingAllowRange: isRating ? (input.ratingAllowRange ?? null) : null,
     ratingLabels: isRating ? (input.ratingLabels ?? null) : null,
+    ratingDisplay: isRating ? (input.ratingDisplay ?? null) : null,
+    ratingRangeIncludeStart: isRating ? (input.ratingRangeIncludeStart ?? null) : null,
   };
 }
 
@@ -402,6 +406,8 @@ export type UpdatePatch = Partial<
     | "ratingLabel"
     | "ratingAllowRange"
     | "ratingLabels"
+    | "ratingDisplay"
+    | "ratingRangeIncludeStart"
     | "choicesItems"
     | "choicesDisplay"
     | "choicesMultiple"
@@ -465,6 +471,8 @@ const COPYABLE_FIELDS = [
   "ratingLabel",
   "ratingAllowRange",
   "ratingLabels",
+  "ratingDisplay",
+  "ratingRangeIncludeStart",
   "choicesItems",
   "choicesDisplay",
   "choicesMultiple",

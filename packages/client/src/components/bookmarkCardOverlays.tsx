@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { Globe, MonitorPlay } from "lucide-react";
 
-import { StarRating } from "./StarRating";
+import { RatingValue } from "./RatingValue";
 import { STANDARD_CARD_FIELDS } from "../lib/bookmarkCardFieldDefs";
 import { standardFieldOverlayLabel } from "../lib/bookmarkCardValues";
 
@@ -96,9 +96,11 @@ function valueItemOverlayNode(item: BookmarkValueItem): ReactNode {
       <div
         className="rounded-md bg-background/85 px-2 py-1 backdrop-blur-sm"
       >
-        <StarRating
+        <RatingValue
+          display={item.property.ratingDisplay ?? "stars"}
           value={item.value}
           rangeEnd={item.valueEnd}
+          rangeIncludeStart={item.property.ratingRangeIncludeStart}
           max={item.property.ratingMax ?? 5}
           allowHalf={item.property.ratingAllowHalf}
           allowZero={item.property.ratingAllowZero}

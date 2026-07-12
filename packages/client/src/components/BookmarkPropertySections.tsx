@@ -1,10 +1,9 @@
 import type { Bookmark, CustomProperty } from "@eesimple/types";
 import type { ReactNode } from "react";
 
-import { SectionEntryList } from "./bookmarkPropertyRowKinds";
+import { RatingRowCell, SectionEntryList } from "./bookmarkPropertyRowKinds";
 import { IsbnLinksPanel } from "./IsbnLinksPanel";
 import { PropertyQuickFilterLink } from "./PropertyQuickFilterLink";
-import { StarRating } from "./StarRating";
 import i18n from "../i18n";
 import { useDefaultFieldZones } from "../lib/bookmarkCardFields";
 import { buildBookmarkPropertyRows } from "../lib/bookmarkPropertyRows";
@@ -139,29 +138,10 @@ export function BookmarkPropertySections({
               </div>
             ))}
             {ratingRows.map(row => (
-              <div
+              <RatingRowCell
                 key={row.id}
-                className="group flex items-center gap-2"
-              >
-                <dt className="text-muted-foreground">
-                  {row.name}
-                  :
-                </dt>
-                <dd>
-                  <StarRating
-                    value={row.value}
-                    max={row.max}
-                    allowHalf={row.allowHalf}
-                    readOnly
-                    label={row.label}
-                    size={16}
-                  />
-                </dd>
-                <PropertyQuickFilterLink
-                  search={row.search}
-                  name={row.name}
-                />
-              </div>
+                row={row}
+              />
             ))}
             {fileRows.map(row => (
               <div

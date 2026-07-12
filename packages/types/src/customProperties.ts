@@ -96,6 +96,23 @@ export const NUMBER_FORMAT_LABELS: Record<NumberFormat, string> = {
 };
 
 /**
+ * How a `ratingScale` value is rendered:
+ * - `stars` — star glyphs (the default; `null` also resolves to this).
+ * - `ticks` — a compact horizontal scale of tick marks, used for both read-only display and (for
+ *   single-value ratings) the editing input.
+ */
+export const RATING_DISPLAYS = ["stars", "ticks"] as const;
+
+/** How a `ratingScale` value is rendered. Derived from {@link RATING_DISPLAYS}. */
+export type RatingDisplay = typeof RATING_DISPLAYS[number];
+
+/** Human-friendly label for each rating display style (used by the Display select). */
+export const RATING_DISPLAY_LABELS: Record<RatingDisplay, string> = {
+  stars: "Stars",
+  ticks: "Range with tick marks",
+};
+
+/**
  * What a `datetime` property captures (and therefore how its value is entered/encoded):
  * - `date` — a calendar date only, stored as `"YYYY-MM-DD"`.
  * - `time` — a clock time only, stored as 24h `"HH:MM"`.

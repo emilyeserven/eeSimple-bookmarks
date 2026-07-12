@@ -16,9 +16,9 @@ import { useState } from "react";
 
 import { IsbnLinksPanel } from "./IsbnLinksPanel";
 import { PropertyQuickFilterLink } from "./PropertyQuickFilterLink";
+import { RatingValue } from "./RatingValue";
 import { SectionCollapseToggle } from "./SectionCollapseToggle";
 import { SectionsSummary } from "./SectionsSummary";
-import { StarRating } from "./StarRating";
 import i18n from "../i18n";
 import { sectionEntryLink, sectionEntryPositional } from "../lib/propertyFormat";
 
@@ -133,9 +133,11 @@ export function RatingRowCell({
         :
       </dt>
       <dd className="flex items-center gap-1.5">
-        <StarRating
+        <RatingValue
+          display={row.display}
           value={row.value}
           rangeEnd={row.valueEnd}
+          rangeIncludeStart={row.rangeIncludeStart}
           max={row.max}
           allowHalf={row.allowHalf}
           readOnly

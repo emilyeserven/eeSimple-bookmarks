@@ -1442,6 +1442,10 @@ export const customProperties = pgTable("custom_properties", {
   ratingAllowRange: boolean("rating_allow_range"),
   // Per-number labels for a ratingScale, keyed by level ("0".."ratingMax"). Nullable jsonb → push-safe.
   ratingLabels: jsonb("rating_labels"),
+  // How a ratingScale renders: "stars" | "ticks" (null → "stars"). Lone nullable column → push-safe.
+  ratingDisplay: text("rating_display"),
+  // When true, a ratingScale range fills its start level (inclusive band). Lone nullable → push-safe.
+  ratingRangeIncludeStart: boolean("rating_range_include_start"),
   // choices-type config (all nullable → push-safe additive columns for non-choices properties).
   // choicesItems: the property's defined selectable options, stored as a ChoicesItem[] JSON array.
   // choicesDisplay: "checkbox" | "radio" | "combobox" | "dropdown" — how the field renders.

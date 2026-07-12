@@ -2,7 +2,7 @@ import type { BookmarkValueItem } from "../lib/bookmarkCardValues";
 import type { ReactNode } from "react";
 
 import i18n from "../i18n";
-import { StarRating } from "./StarRating";
+import { RatingValue } from "./RatingValue";
 
 import { Badge } from "@/components/ui/badge";
 
@@ -45,12 +45,14 @@ export function ratingStars(
   withLabel: boolean,
   onSaveRating: ((propertyId: string, value: number) => void) | undefined,
 ): ReactNode {
-  // A range rating can't be set by a single star click, so it renders read-only (band + caption).
+  // A range rating can't be set by a single click, so it renders read-only (band + caption).
   const editable = item.property.editableOnCard && !item.property.ratingAllowRange && onSaveRating !== undefined;
   const stars = (
-    <StarRating
+    <RatingValue
+      display={item.property.ratingDisplay ?? "stars"}
       value={item.value}
       rangeEnd={item.valueEnd}
+      rangeIncludeStart={item.property.ratingRangeIncludeStart}
       max={item.property.ratingMax ?? 5}
       allowHalf={item.property.ratingAllowHalf}
       allowZero={item.property.ratingAllowZero}

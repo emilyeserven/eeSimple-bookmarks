@@ -1,6 +1,6 @@
 import type { CreateCustomPropertyInput, CustomProperty } from "@eesimple/types";
 
-import { CHOICES_DISPLAY_TYPES, CUSTOM_PROPERTY_TYPES, DATE_TIME_FORMATS, NUMBER_FORMATS, SECTION_ENTRY_TYPES } from "@eesimple/types";
+import { CHOICES_DISPLAY_TYPES, CUSTOM_PROPERTY_TYPES, DATE_TIME_FORMATS, NUMBER_FORMATS, RATING_DISPLAYS, SECTION_ENTRY_TYPES } from "@eesimple/types";
 import { z } from "zod";
 
 import { useAppForm } from "../lib/form";
@@ -83,6 +83,8 @@ export const propertySchema = z
     ratingAllowRange: z.boolean(),
     // Per-level labels keyed by the level as a string ("0".."ratingMax"); empty/absent = the number.
     ratingLabels: z.record(z.string(), z.string()),
+    ratingDisplay: z.enum(RATING_DISPLAYS),
+    ratingRangeIncludeStart: z.boolean(),
     choicesItems: z.array(z.object({
       label: z.string(),
       value: z.string(),
@@ -163,6 +165,8 @@ export const CREATE_DEFAULTS: PropertyFormValues = {
   ratingLabel: "",
   ratingAllowRange: false,
   ratingLabels: {},
+  ratingDisplay: "stars",
+  ratingRangeIncludeStart: false,
   choicesItems: [],
   choicesDisplay: "radio",
   choicesMultiple: false,
@@ -325,6 +329,8 @@ export function valuesFromProperty(property: CustomProperty): PropertyFormValues
     ratingLabel: property.ratingLabel ?? "",
     ratingAllowRange: property.ratingAllowRange,
     ratingLabels: property.ratingLabels ?? {},
+    ratingDisplay: property.ratingDisplay ?? "stars",
+    ratingRangeIncludeStart: property.ratingRangeIncludeStart,
     choicesItems: property.choicesItems,
     choicesDisplay: property.choicesDisplay ?? "radio",
     choicesMultiple: property.choicesMultiple,
@@ -391,7 +397,7 @@ function pruneRatingLabels(labels: Record<string, string>): Record<string, strin
 function ratingPayloadFields(values: PropertyFormValues): Pick<
   CreateCustomPropertyInput,
   "ratingMax" | "ratingAllowZero" | "ratingAllowHalf" | "ratingShowLabel" | "ratingLabel"
-  | "ratingAllowRange" | "ratingLabels"
+  | "ratingAllowRange" | "ratingLabels" | "ratingDisplay" | "ratingRangeIncludeStart"
 > {
   const isRating = values.type === "ratingScale";
   return {
@@ -402,6 +408,8 @@ function ratingPayloadFields(values: PropertyFormValues): Pick<
     ratingLabel: isRating ? trimOrNull(values.ratingLabel) : null,
     ratingAllowRange: isRating ? values.ratingAllowRange : undefined,
     ratingLabels: isRating ? pruneRatingLabels(values.ratingLabels) : null,
+    ratingDisplay: isRating ? values.ratingDisplay : null,
+    ratingRangeIncludeStart: isRating ? values.ratingRangeIncludeStart : undefined,
   };
 }
 

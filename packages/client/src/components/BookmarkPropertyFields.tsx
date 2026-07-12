@@ -17,10 +17,10 @@ import { BookmarkPropertyFileField } from "./BookmarkPropertyFileField";
 import { ChoicesCheckboxList } from "./ChoicesCheckboxList";
 import { DateTimePicker } from "./DateTimePicker";
 import { RatingRangeInput } from "./RatingRangeInput";
+import { RatingValue } from "./RatingValue";
 import { SectionCollapseToggle } from "./SectionCollapseToggle";
 import { SectionPasteParser } from "./SectionPasteParser";
 import { SectionsSummary } from "./SectionsSummary";
-import { StarRating } from "./StarRating";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -136,7 +136,8 @@ export function RatingScalePropertyField({
             />
           )
           : (
-            <StarRating
+            <RatingValue
+              display={property.ratingDisplay ?? "stars"}
               value={raw ? Number(raw) : 0}
               max={property.ratingMax ?? 5}
               allowHalf={property.ratingAllowHalf}

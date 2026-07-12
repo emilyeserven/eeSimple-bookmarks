@@ -3,7 +3,7 @@ import type { ReactElement } from "react";
 
 import { DateTimePicker } from "./DateTimePicker";
 import { RatingRangeInput } from "./RatingRangeInput";
-import { StarRating } from "./StarRating";
+import { RatingValue } from "./RatingValue";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -75,7 +75,8 @@ export function renderPropertyScalarInput({
       <div className="space-y-1">
         <Label>{property.name}</Label>
         <div>
-          <StarRating
+          <RatingValue
+            display={property.ratingDisplay ?? "stars"}
             value={raw ? Number(raw) : 0}
             max={property.ratingMax ?? 5}
             allowHalf={property.ratingAllowHalf}

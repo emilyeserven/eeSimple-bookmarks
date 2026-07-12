@@ -148,8 +148,12 @@ function RatingOptionsFields({
         max: property.ratingMax ?? 5,
       })}
       </DetailField>
+      <DetailField label={t("Display")}>{property.ratingDisplay === "ticks" ? t("Range with tick marks") : t("Stars")}</DetailField>
       <DetailField label={t("Half ratings")}>{property.ratingAllowHalf ? t("Allowed") : t("Whole stars only")}</DetailField>
       <DetailField label={t("Range")}>{property.ratingAllowRange ? t("Allowed") : t("Single value")}</DetailField>
+      <DetailField label={t("Include start in range")}>
+        {property.ratingAllowRange ? (property.ratingRangeIncludeStart ? t("Yes") : t("No")) : null}
+      </DetailField>
       <DetailField label={t("Label")}>
         {property.ratingShowLabel && property.ratingLabel ? property.ratingLabel : null}
       </DetailField>

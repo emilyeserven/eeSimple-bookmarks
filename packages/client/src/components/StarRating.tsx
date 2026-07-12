@@ -3,9 +3,10 @@ import { useState } from "react";
 import { Star, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { ratingFillBounds } from "@/lib/ratingDisplay";
 import { cn } from "@/lib/utils";
 
-interface StarRatingProps {
+export interface StarRatingProps {
   /** Current rating (0…max, may be a half like 3.5). For a range, the low end (From). */
   value: number;
   /** Top of the scale (e.g. 3 or 5). */
@@ -16,6 +17,8 @@ interface StarRatingProps {
    * filling from the first star. Read-only only — ignored in interactive mode.
    */
   rangeEnd?: number | null;
+  /** When true, a range band fills its start level's star too (inclusive band). */
+  rangeIncludeStart?: boolean;
   /** Allow half-star (0.5) steps when interactive. */
   allowHalf?: boolean;
   /**
@@ -41,7 +44,7 @@ interface StarRatingProps {
  * set, half-step clicks (`allowHalf`), and clearing to 0 (`allowZero`).
  */
 export function StarRating({
-  value, max, rangeEnd = null, allowHalf = false, allowZero = false, readOnly = false,
+  value, max, rangeEnd = null, rangeIncludeStart = false, allowHalf = false, allowZero = false, readOnly = false,
   onChange, label, size = 18, className,
 }: StarRatingProps) {
   const {
@@ -50,8 +53,15 @@ export function StarRating({
   const [hover, setHover] = useState<number | null>(null);
   const display = hover ?? value;
   // A read-only range highlights the band [value, rangeEnd]; otherwise stars fill from the start.
-  const bandStart = readOnly && rangeEnd !== null && rangeEnd > value ? value : 0;
-  const bandEnd = readOnly && rangeEnd !== null && rangeEnd > value ? rangeEnd : display;
+  const {
+    bandStart, bandEnd,
+  } = ratingFillBounds({
+    display,
+    value,
+    rangeEnd,
+    readOnly,
+    rangeIncludeStart,
+  });
 
   function commit(target: number) {
     if (readOnly || !onChange) return;

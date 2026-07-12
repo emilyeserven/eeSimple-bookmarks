@@ -4,8 +4,8 @@ import { formatPropertyValue } from "./bookmarkColumnFormat";
 import { BookmarkTagsBox } from "../BookmarkTagsBox";
 import { CategoryPill } from "../CategoryPill";
 import { MediaTypePill } from "../MediaTypePill";
+import { RatingValue } from "../RatingValue";
 import { SourcePill } from "../SourcePill";
-import { StarRating } from "../StarRating";
 
 import { formatRatingCaption } from "@/lib/propertyFormat";
 
@@ -75,9 +75,11 @@ export function BookmarkPropertyColumnCell({
     const caption = formatRatingCaption(property, entry.value, entry.valueEnd);
     return (
       <span className="inline-flex items-center gap-1.5">
-        <StarRating
+        <RatingValue
+          display={property.ratingDisplay ?? "stars"}
           value={entry.value}
           rangeEnd={entry.valueEnd}
+          rangeIncludeStart={property.ratingRangeIncludeStart}
           max={property.ratingMax ?? 5}
           allowHalf={property.ratingAllowHalf}
           readOnly
