@@ -347,6 +347,9 @@ const createBookmarkBody = {
                 completed: {
                   type: "boolean",
                 },
+                excludeFromProgress: {
+                  type: "boolean",
+                },
                 // Optional second tier — leaf children only (the leaf schema has no `children` key,
                 // so nesting is capped at depth 2).
                 children: {
@@ -376,6 +379,9 @@ const createBookmarkBody = {
                         type: "string",
                       },
                       completed: {
+                        type: "boolean",
+                      },
+                      excludeFromProgress: {
                         type: "boolean",
                       },
                     },

@@ -288,22 +288,29 @@ function SectionEntryItem({
   return (
     <li>
       <span className={done ? "line-through opacity-60" : undefined}>
-        {hasChildren
-          ? (
-            <SectionCollapseToggle
-              collapsed={collapsed}
-              onToggle={() => setCollapsed(prev => !prev)}
-              label={collapsed
-                ? i18n.t("Expand {{name}}", {
-                  name,
-                })
-                : i18n.t("Collapse {{name}}", {
-                  name,
-                })}
-            />
-          )
-          : null}
-        {hasChildren ? " " : null}
+        <span
+          className="
+            inline-flex size-4 items-center justify-center align-middle
+          "
+          aria-hidden={hasChildren ? undefined : true}
+        >
+          {hasChildren
+            ? (
+              <SectionCollapseToggle
+                collapsed={collapsed}
+                onToggle={() => setCollapsed(prev => !prev)}
+                label={collapsed
+                  ? i18n.t("Expand {{name}}", {
+                    name,
+                  })
+                  : i18n.t("Collapse {{name}}", {
+                    name,
+                  })}
+              />
+            )
+            : null}
+        </span>
+        {" "}
         {onToggleCompleted
           ? (
             <SectionCompletedToggle

@@ -165,3 +165,127 @@ describe("SectionsPropertyField completed checkboxes", () => {
     expect(next.sections[0].children[0].completed).toBe(true);
   });
 });
+
+describe("SectionsPropertyField exclude-from-progress checkboxes", () => {
+  it("excluding a childless entry hides its completed checkbox", async () => {
+    const onChange = vi.fn();
+    await renderWithRouter(
+      <SectionsPropertyField
+        property={property}
+        value={{
+          exhaustive: false,
+          sections: [{
+            id: "section-1",
+            name: "Credits",
+            type: "page" as const,
+            startValue: "1",
+          }],
+        }}
+        onChange={onChange}
+      />,
+    );
+
+    expect(screen.getByRole("checkbox", {
+      name: /Completed/,
+    })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("checkbox", {
+      name: /Exclude from progress count/,
+    }));
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    const next = onChange.mock.calls[0][0];
+    expect(next.sections[0].excludeFromProgress).toBe(true);
+  });
+
+  it("excluding a tier-1 parent cascades to its children", async () => {
+    const onChange = vi.fn();
+    await renderWithRouter(
+      <SectionsPropertyField
+        property={property}
+        value={tieredValue}
+        onChange={onChange}
+      />,
+    );
+
+    // Both the parent's and the child's "Completed" checkboxes are visible before exclusion.
+    expect(screen.getAllByRole("checkbox", {
+      name: /Completed/,
+    })).toHaveLength(2);
+
+    fireEvent.click(screen.getAllByRole("checkbox", {
+      name: /Exclude from progress count/,
+    })[0]);
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    const next = onChange.mock.calls[0][0];
+    expect(next.sections[0].excludeFromProgress).toBe(true);
+    expect(next.sections[0].children[0].excludeFromProgress).toBe(true);
+  });
+
+  it("once excluded, both the parent's and its cascaded children's completed checkboxes are hidden", async () => {
+    await renderWithRouter(
+      <SectionsPropertyField
+        property={property}
+        value={{
+          exhaustive: false,
+          sections: [{
+            id: "section-1",
+            name: "Chapter 1",
+            type: "page" as const,
+            startValue: "1",
+            excludeFromProgress: true,
+            children: [{
+              id: "child-1",
+              name: "Intro subsection",
+              type: "page" as const,
+              startValue: "2",
+              excludeFromProgress: true,
+            }],
+          }],
+        }}
+        onChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryAllByRole("checkbox", {
+      name: /Completed/,
+    })).toHaveLength(0);
+    // The exclude checkboxes themselves stay visible (and checked) for every entry.
+    expect(screen.getAllByRole("checkbox", {
+      name: /Exclude from progress count/,
+    })).toHaveLength(2);
+  });
+
+  it("un-excluding restores the completed checkbox", async () => {
+    const onChange = vi.fn();
+    const excludedValue = {
+      exhaustive: false,
+      sections: [{
+        id: "section-1",
+        name: "Credits",
+        type: "page" as const,
+        startValue: "1",
+        excludeFromProgress: true,
+      }],
+    };
+    await renderWithRouter(
+      <SectionsPropertyField
+        property={property}
+        value={excludedValue}
+        onChange={onChange}
+      />,
+    );
+
+    expect(screen.queryByRole("checkbox", {
+      name: /Completed/,
+    })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("checkbox", {
+      name: /Exclude from progress count/,
+    }));
+
+    const next = onChange.mock.calls[0][0];
+    expect(next.sections[0].excludeFromProgress).toBe(false);
+  });
+});

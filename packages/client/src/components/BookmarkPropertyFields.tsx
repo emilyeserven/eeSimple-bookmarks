@@ -506,6 +506,41 @@ function CompletedCheckbox({
   );
 }
 
+/**
+ * The per-entry "exclude from progress count" checkbox. Excluding an entry hides its
+ * {@link CompletedCheckbox} (a spacer of the same size takes its place, see {@link SectionRow}) since
+ * an excluded entry no longer contributes to the progress tally.
+ */
+function ExcludeFromProgressCheckbox({
+  entry, onToggle,
+}: {
+  entry: SectionEntry;
+  onToggle: (excludeFromProgress: boolean) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <Checkbox
+      className="mt-2.5"
+      checked={entry.excludeFromProgress === true}
+      aria-label={t("Exclude from progress count")}
+      title={t("Exclude from progress count")}
+      onCheckedChange={checked => onToggle(checked === true)}
+    />
+  );
+}
+
+/** A same-size stand-in for {@link CompletedCheckbox}, shown when an entry is excluded from progress. */
+function CompletedCheckboxSpacer() {
+  return (
+    <div
+      className="mt-2.5 size-4"
+      aria-hidden="true"
+    />
+  );
+}
+
 /** One tier-1 section entry, with an indented child editor for its second-tier items. */
 function SectionRow({
   entry, allowedTypes, defaultType, onChange, onRemove,
@@ -528,7 +563,7 @@ function SectionRow({
       <div
         className="grid items-start gap-2"
         style={{
-          gridTemplateColumns: "auto auto 1fr auto",
+          gridTemplateColumns: "auto auto auto 1fr auto",
         }}
       >
         <div className="mt-2.5 flex size-4 items-center justify-center">
@@ -548,16 +583,34 @@ function SectionRow({
             )
             : null}
         </div>
-        <CompletedCheckbox
+        {entry.excludeFromProgress === true
+          ? <CompletedCheckboxSpacer />
+          : (
+            <CompletedCheckbox
+              entry={entry}
+              // Checking a section also checks all its sub-items (write-time cascade; unchecking too).
+              onToggle={completed => onChange({
+                ...entry,
+                completed,
+                ...(entry.children && {
+                  children: entry.children.map(c => ({
+                    ...c,
+                    completed,
+                  })),
+                }),
+              })}
+            />
+          )}
+        <ExcludeFromProgressCheckbox
           entry={entry}
-          // Checking a section also checks all its sub-items (write-time cascade; unchecking too).
-          onToggle={completed => onChange({
+          // Excluding a section also excludes all its sub-items — only leaves are counted.
+          onToggle={excludeFromProgress => onChange({
             ...entry,
-            completed,
+            excludeFromProgress,
             ...(entry.children && {
               children: entry.children.map(c => ({
                 ...c,
-                completed,
+                excludeFromProgress,
               })),
             }),
           })}
@@ -592,17 +645,33 @@ function SectionRow({
             key={child.id}
             className="grid items-start gap-2"
             style={{
-              gridTemplateColumns: "auto 1fr auto",
+              gridTemplateColumns: "auto auto 1fr auto",
             }}
           >
-            <CompletedCheckbox
+            {child.excludeFromProgress === true
+              ? <CompletedCheckboxSpacer />
+              : (
+                <CompletedCheckbox
+                  entry={child}
+                  onToggle={completed => onChange({
+                    ...entry,
+                    children: children.map(c => c.id === child.id
+                      ? {
+                        ...c,
+                        completed,
+                      }
+                      : c),
+                  })}
+                />
+              )}
+            <ExcludeFromProgressCheckbox
               entry={child}
-              onToggle={completed => onChange({
+              onToggle={excludeFromProgress => onChange({
                 ...entry,
                 children: children.map(c => c.id === child.id
                   ? {
                     ...c,
-                    completed,
+                    excludeFromProgress,
                   }
                   : c),
               })}
