@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import type {
   AdvancedSettings,
+  AiAutotagSettings,
   AiSummarizationSettings,
   AutomationSettings,
   BookmarkAddFormAdvancedRule,
@@ -29,6 +30,7 @@ import type {
   SidebarCustomizationSettings,
   SidebarOpenModifier,
   UpdateAdvancedSettingsInput,
+  UpdateAiAutotagInput,
   UpdateAiSummarizationInput,
   UpdateAutomationInput,
   UpdateBookmarkAddFormInput,
@@ -179,6 +181,12 @@ export function resolvePersonSourceLabels(raw: unknown): PersonSourceLabelSettin
 const DEFAULT_AI_SUMMARIZATION: AiSummarizationSettings = {
   aiSummarizationPrompt: "",
   aiSummarizationSuggestTags: false,
+};
+
+/** Default AI autotag settings (empty prompt), used when seeding / when row absent. */
+const DEFAULT_AI_AUTOTAG: AiAutotagSettings = {
+  aiAutotagPrompt: "",
+  aiAutotagIncludeExistingTags: false,
 };
 
 /** Default display/detail preferences, used when seeding / when row absent. */
@@ -403,6 +411,43 @@ export async function updateAiSummarizationSettings(
   const next: AiSummarizationSettings = {
     aiSummarizationPrompt: input.aiSummarizationPrompt,
     aiSummarizationSuggestTags: input.aiSummarizationSuggestTags,
+  };
+  await db
+    .insert(appSettings)
+    .values({
+      id: ROW_ID,
+      ...next,
+    })
+    .onConflictDoUpdate({
+      target: appSettings.id,
+      set: next,
+    });
+  return next;
+}
+
+/** Read the AI autotag settings. */
+export async function getAiAutotagSettings(): Promise<AiAutotagSettings> {
+  const [row] = await db
+    .select({
+      aiAutotagPrompt: appSettings.aiAutotagPrompt,
+      aiAutotagIncludeExistingTags: appSettings.aiAutotagIncludeExistingTags,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  if (!row) return DEFAULT_AI_AUTOTAG;
+  return {
+    aiAutotagPrompt: row.aiAutotagPrompt ?? "",
+    aiAutotagIncludeExistingTags: row.aiAutotagIncludeExistingTags ?? false,
+  };
+}
+
+/** Replace the AI autotag settings, upserting the singleton. Returns the stored values. */
+export async function updateAiAutotagSettings(
+  input: UpdateAiAutotagInput,
+): Promise<AiAutotagSettings> {
+  const next: AiAutotagSettings = {
+    aiAutotagPrompt: input.aiAutotagPrompt,
+    aiAutotagIncludeExistingTags: input.aiAutotagIncludeExistingTags,
   };
   await db
     .insert(appSettings)

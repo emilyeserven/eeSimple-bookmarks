@@ -5,6 +5,7 @@ import type {
   PlaceTypeIconConfig,
   PlaceTypeLevelGroupConfig,
   UpdateAdvancedSettingsInput,
+  UpdateAiAutotagInput,
   UpdateAiSummarizationInput,
   UpdateAutomationInput,
   UpdateBookmarkAddFormInput,
@@ -21,6 +22,7 @@ import { getDatabaseTableDetail, getDatabaseUsageReport } from "@/services/datab
 import { NotFoundError } from "@/utils/errors";
 import {
   getAdvancedSettings,
+  getAiAutotagSettings,
   getAiSummarizationSettings,
   getAutomationSettings,
   getBookmarkAddFormSettings,
@@ -39,6 +41,7 @@ import {
   getShortenerIgnoreList,
   getSidebarCustomizationSettings,
   updateAdvancedSettings,
+  updateAiAutotagSettings,
   updateAiSummarizationSettings,
   updateAutomationSettings,
   updateBookmarkAddFormSettings,
@@ -995,6 +998,31 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       },
     },
   }, async req => updateAiSummarizationSettings(req.body as UpdateAiSummarizationInput));
+
+  app.get("/api/app-settings/ai-autotag", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async () => getAiAutotagSettings());
+
+  app.put("/api/app-settings/ai-autotag", {
+    schema: {
+      tags: ["app-settings"],
+      body: {
+        type: "object",
+        required: ["aiAutotagPrompt", "aiAutotagIncludeExistingTags"],
+        additionalProperties: false,
+        properties: {
+          aiAutotagPrompt: {
+            type: "string",
+          },
+          aiAutotagIncludeExistingTags: {
+            type: "boolean",
+          },
+        },
+      },
+    },
+  }, async req => updateAiAutotagSettings(req.body as UpdateAiAutotagInput));
 
   app.get("/api/app-settings/connectors", {
     schema: {

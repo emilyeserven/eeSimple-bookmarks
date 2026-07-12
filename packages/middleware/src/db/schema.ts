@@ -1852,6 +1852,12 @@ export const appSettings = pgTable("app_settings", {
   // When on, the generated summarization prompt also asks the AI to suggest tags per bookmark.
   // Lone nullable column = push-safe additive (null coalesced to false in the service).
   aiSummarizationSuggestTags: boolean("ai_summarization_suggest_tags"),
+  // Prompt text used to instruct an AI to suggest tags for untagged bookmarks (AI Autotag).
+  // Nullable = push-safe additive (null coalesced to "" in the service).
+  aiAutotagPrompt: text("ai_autotag_prompt"),
+  // When on, the generated autotag prompt lists the user's existing tags so the AI reuses them.
+  // Lone nullable column = push-safe additive (null coalesced to false in the service).
+  aiAutotagIncludeExistingTags: boolean("ai_autotag_include_existing_tags"),
   // Hosted metadata provider (Microlink-compatible) configured from Settings → Connectors.
   // Nullable = push-safe additive; env vars are used as fallback when these are null.
   hostedMetadataEndpoint: text("hosted_metadata_endpoint"),

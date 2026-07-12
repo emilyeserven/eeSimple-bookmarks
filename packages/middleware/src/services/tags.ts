@@ -201,6 +201,43 @@ export async function createTag(input: CreateTagInput): Promise<Tag> {
   return toTag(row);
 }
 
+/**
+ * Resolve tag names to tag ids, creating any that don't yet exist (case-insensitive match). The
+ * `created` counter is incremented per newly-created tag. Shared by the AI Summarization and AI
+ * Autotag apply flows, which both union AI-suggested tag names onto bookmarks.
+ */
+export async function resolveTagIdsByName(
+  names: string[],
+  created: { count: number },
+): Promise<string[]> {
+  const cleaned = [...new Set(names.map(name => name.trim()).filter(Boolean))];
+  if (cleaned.length === 0) return [];
+
+  const existing = await db
+    .select({
+      id: tags.id,
+      name: tags.name,
+    })
+    .from(tags);
+  const idByLowerName = new Map(existing.map(tag => [tag.name.toLowerCase(), tag.id]));
+
+  const ids: string[] = [];
+  for (const name of cleaned) {
+    const hit = idByLowerName.get(name.toLowerCase());
+    if (hit) {
+      ids.push(hit);
+      continue;
+    }
+    const tag = await createTag({
+      name,
+    });
+    idByLowerName.set(name.toLowerCase(), tag.id);
+    created.count += 1;
+    ids.push(tag.id);
+  }
+  return ids;
+}
+
 export async function updateTag(id: string, input: UpdateTagInput): Promise<Tag | null> {
   if (input.parentId !== undefined && input.parentId !== null) {
     if (input.parentId === id) throw new TagCycleError();
