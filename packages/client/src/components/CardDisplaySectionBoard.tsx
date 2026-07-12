@@ -15,7 +15,7 @@ import {
 } from "@dnd-kit/core";
 import { rectSortingStrategy, SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ChevronDown, ChevronUp, GripVertical, Move, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, GripVertical, Move, Plus, SlidersHorizontal, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { SectionVisibilityEditor } from "./SectionVisibilityEditor";
@@ -46,6 +46,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -594,47 +597,91 @@ function FieldChip({
               {t("Hide label")}
             </label>
           </DropdownMenuItem>
-          {showTermControls
-            ? (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={e => e.preventDefault()}>
-                  <label className="flex items-center gap-2">
-                    <span>{t("Max terms")}</span>
-                    <Input
-                      type="number"
-                      min={0}
-                      value={maxTerms ?? ""}
-                      placeholder={t("All")}
-                      className="h-7 w-16 text-xs"
-                      onPointerDown={e => e.stopPropagation()}
-                      onChange={(e) => {
-                        const raw = e.target.value;
-                        if (raw === "") {
-                          onSetMaxTerms?.(null);
-                          return;
-                        }
-                        const parsed = Number.parseInt(raw, 10);
-                        onSetMaxTerms?.(Number.isNaN(parsed) ? null : Math.max(0, parsed));
-                      }}
-                    />
-                  </label>
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={e => e.preventDefault()}>
-                  <label className="flex items-center gap-2">
-                    <Checkbox
-                      checked={collapseToCount}
-                      onCheckedChange={checked => onToggleCollapseToCount?.(checked === true)}
-                    />
-                    {t("Count only")}
-                  </label>
-                </DropdownMenuItem>
-              </>
-            )
-            : null}
         </DropdownMenuContent>
       </DropdownMenu>
+      {showTermControls
+        ? (
+          <TermDisplayControls
+            label={label}
+            maxTerms={maxTerms}
+            collapseToCount={collapseToCount}
+            onSetMaxTerms={max => onSetMaxTerms?.(max)}
+            onToggleCollapseToCount={on => onToggleCollapseToCount?.(on)}
+          />
+        )
+        : null}
     </span>
+  );
+}
+
+/**
+ * The multi-value taxonomy term-display controls (Max terms + Count only) for a field chip. Rendered
+ * in a {@link Popover} — **not** a DropdownMenu — because a focusable number input inside a Radix
+ * menu item fights the menu's roving-focus/typeahead (which blanked the page in the DropdownMenu
+ * version). The trigger stops pointer propagation so opening the popover doesn't start a chip drag.
+ */
+function TermDisplayControls({
+  label, maxTerms, collapseToCount, onSetMaxTerms, onToggleCollapseToCount,
+}: {
+  label: string;
+  maxTerms: number | null;
+  collapseToCount: boolean;
+  onSetMaxTerms: (max: number | null) => void;
+  onToggleCollapseToCount: (on: boolean) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <Popover>
+      <PopoverTrigger
+        aria-label={t("Term display options for {{label}}", {
+          label,
+        })}
+        className="
+          text-muted-foreground
+          hover:text-foreground
+        "
+        onPointerDown={e => e.stopPropagation()}
+      >
+        <SlidersHorizontal className="size-3.5" />
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        className="w-56 space-y-3 text-xs"
+        onPointerDown={e => e.stopPropagation()}
+      >
+        <label className="flex items-center justify-between gap-2">
+          <span>{t("Max terms")}</span>
+          <Input
+            type="number"
+            min={0}
+            value={maxTerms ?? ""}
+            placeholder={t("All")}
+            className="h-7 w-16 text-xs"
+            onChange={(e) => {
+              const raw = e.target.value;
+              if (raw === "") {
+                onSetMaxTerms(null);
+                return;
+              }
+              const parsed = Number.parseInt(raw, 10);
+              onSetMaxTerms(Number.isNaN(parsed) ? null : Math.max(0, parsed));
+            }}
+          />
+        </label>
+        <label className="flex items-center gap-2">
+          <Checkbox
+            checked={collapseToCount}
+            onCheckedChange={checked => onToggleCollapseToCount(checked === true)}
+          />
+          {t("Count only")}
+        </label>
+        <p className="text-muted-foreground">
+          {t("Cap how many terms show. \"Count only\" shows the icon + total instead of names once over the cap.")}
+        </p>
+      </PopoverContent>
+    </Popover>
   );
 }
 

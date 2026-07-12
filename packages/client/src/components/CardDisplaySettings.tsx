@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { CardDisplayImageControls } from "./CardDisplayImageControls";
 import { CardDisplayPreview } from "./CardDisplayPreview";
 import { CardDisplaySectionBoard } from "./CardDisplaySectionBoard";
+import { ErrorBoundaryBox } from "./ErrorBoundaryBox";
 import { useCardDisplaySettingsPage } from "../hooks/useCardDisplaySettingsPage";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 
@@ -81,22 +82,40 @@ export function CardDisplaySettings() {
           <p className="text-xs text-muted-foreground">
             {t("Arrange the fields shown on each card into sections. Give each section its own layout and, optionally, a condition so it only shows on matching bookmarks.")}
           </p>
-          <CardDisplaySectionBoard
-            value={boardValue}
-            properties={properties}
-            idPrefix="card-display"
-            onChange={next => persist({
-              sections: next.sections,
-              imageCorners: next.imageCorners,
-            }, t("Card fields"))}
-          />
+          <ErrorBoundaryBox
+            resetKey="card-display-board"
+            fallback={(
+              <p className="text-sm text-muted-foreground">
+                {t("These controls hit an error. Reload the page to try again.")}
+              </p>
+            )}
+          >
+            <CardDisplaySectionBoard
+              value={boardValue}
+              properties={properties}
+              idPrefix="card-display"
+              onChange={next => persist({
+                sections: next.sections,
+                imageCorners: next.imageCorners,
+              }, t("Card fields"))}
+            />
+          </ErrorBoundaryBox>
         </div>
       </div>
 
       <div className="min-w-0">
         <div className="sticky top-4 space-y-2">
           <p className="text-sm font-medium">{t("Preview")}</p>
-          <CardDisplayPreview config={draft} />
+          <ErrorBoundaryBox
+            resetKey="card-display-preview"
+            fallback={(
+              <p className="text-sm text-muted-foreground">
+                {t("Couldn't render this preview.")}
+              </p>
+            )}
+          >
+            <CardDisplayPreview config={draft} />
+          </ErrorBoundaryBox>
         </div>
       </div>
     </div>

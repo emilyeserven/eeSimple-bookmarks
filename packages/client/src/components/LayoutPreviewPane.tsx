@@ -3,7 +3,7 @@ import type { RenderTab, SectionMatches } from "@/lib/workbenchLayout";
 import type { Bookmark, EntityLayout, LayoutableEntityKind } from "@eesimple/types";
 import type { ReactNode } from "react";
 
-import { Component, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { resolveLayout } from "@eesimple/types";
 import { useTranslation } from "react-i18next";
@@ -12,6 +12,7 @@ import { BookmarkGeneralFormProvider } from "./BookmarkGeneralFormContext";
 import { BookmarkImageEditFormProvider } from "./BookmarkImageEditFormContext";
 import { BookmarkPropertiesFormProvider } from "./BookmarkPropertiesFormContext";
 import { Combobox } from "./Combobox";
+import { ErrorBoundaryBox } from "./ErrorBoundaryBox";
 import { navLinkClass } from "./TabbedShell";
 import { bookmarkWorkbench } from "./workbench/bookmark";
 import { LayoutDrivenTabBody } from "./workbench/LayoutDrivenTabBody";
@@ -31,45 +32,6 @@ function baseWorkbenchForKind(kind: LayoutableEntityKind): EntityWorkbench<{ id:
   if (kind === "bookmark") return bookmarkWorkbench as unknown as EntityWorkbench<{ id: string }>;
   const descriptors = ENTITY_DESCRIPTORS as unknown as Record<string, { workbench: EntityWorkbench<{ id: string }> }>;
   return descriptors[kind].workbench;
-}
-
-/**
- * A minimal error boundary local to the preview: an edit field that reads a context this read-only
- * preview intentionally doesn't wire will throw during render; catching it keeps the settings page
- * alive and shows a friendly note instead. Reset by remounting via the `resetKey` prop.
- */
-class PreviewErrorBoundary extends Component<
-  { resetKey: string;
-    fallback: ReactNode;
-    children: ReactNode; },
-  { failed: boolean }
-> {
-  constructor(props: { resetKey: string;
-    fallback: ReactNode;
-    children: ReactNode; }) {
-    super(props);
-    this.state = {
-      failed: false,
-    };
-  }
-
-  static getDerivedStateFromError() {
-    return {
-      failed: true,
-    };
-  }
-
-  componentDidUpdate(prev: { resetKey: string }) {
-    if (prev.resetKey !== this.props.resetKey && this.state.failed) {
-      this.setState({
-        failed: false,
-      });
-    }
-  }
-
-  render() {
-    return this.state.failed ? this.props.fallback : this.props.children;
-  }
 }
 
 /**
@@ -280,7 +242,7 @@ function PreviewBody({
   }
   if (mode === "view") {
     return (
-      <PreviewErrorBoundary
+      <ErrorBoundaryBox
         resetKey={`${kind}:view:${resolvedSelectedId}`}
         fallback={<p className="text-sm text-muted-foreground">{t("Couldn't render this preview.")}</p>}
       >
@@ -296,11 +258,11 @@ function PreviewBody({
             onTabEmptyChange={onTabEmptyChange}
           />
         ))}
-      </PreviewErrorBoundary>
+      </ErrorBoundaryBox>
     );
   }
   return (
-    <PreviewErrorBoundary
+    <ErrorBoundaryBox
       resetKey={`${kind}:edit:${resolvedSelectedId}:${active}`}
       fallback={(
         <p className="text-sm text-muted-foreground">
@@ -323,7 +285,7 @@ function PreviewBody({
           sectionMatches={sectionMatches}
         />
       </EditModeProviders>
-    </PreviewErrorBoundary>
+    </ErrorBoundaryBox>
   );
 }
 
