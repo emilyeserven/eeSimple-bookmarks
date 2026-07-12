@@ -570,6 +570,7 @@ async function numberValuesByBookmarkId(
       bookmarkId: bookmarkNumberValues.bookmarkId,
       propertyId: bookmarkNumberValues.propertyId,
       value: bookmarkNumberValues.value,
+      valueEnd: bookmarkNumberValues.valueEnd,
     })
     .from(bookmarkNumberValues)
     .where(inArray(bookmarkNumberValues.bookmarkId, bookmarkIds));
@@ -579,6 +580,7 @@ async function numberValuesByBookmarkId(
     list.push({
       propertyId: row.propertyId,
       value: row.value,
+      valueEnd: row.valueEnd ?? null,
     });
     grouped.set(row.bookmarkId, list);
   }

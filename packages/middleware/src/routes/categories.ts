@@ -73,6 +73,9 @@ const defaultsBody = {
           value: {
             type: "number",
           },
+          valueEnd: {
+            type: ["number", "null"],
+          },
         },
       },
     },

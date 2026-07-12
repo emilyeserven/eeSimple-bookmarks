@@ -57,6 +57,37 @@ describe("bookmarkMatchesFilters", () => {
     }], [])).toBe(false);
   });
 
+  it("matches a ratingScale range by interval overlap", () => {
+    // Stored range [2, 4].
+    const ranged: Values = {
+      numberValues: [{
+        propertyId: "level",
+        value: 2,
+        valueEnd: 4,
+      }],
+      booleanValues: [],
+      dateTimeValues: [],
+    };
+    // Window touching the top of the stored range overlaps.
+    expect(bookmarkMatchesFilters(ranged, [{
+      propertyId: "level",
+      lo: 4,
+      hi: 5,
+    }], [])).toBe(true);
+    // A window above the whole range does not.
+    expect(bookmarkMatchesFilters(ranged, [{
+      propertyId: "level",
+      lo: 5,
+      hi: 6,
+    }], [])).toBe(false);
+    // A window below the whole range does not.
+    expect(bookmarkMatchesFilters(ranged, [{
+      propertyId: "level",
+      lo: 0,
+      hi: 1,
+    }], [])).toBe(false);
+  });
+
   it("matches a boolean filter when the bookmark's value equals the filter", () => {
     expect(
       bookmarkMatchesFilters(bookmark, [], [{

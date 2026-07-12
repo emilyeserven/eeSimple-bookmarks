@@ -2,6 +2,7 @@ import type { CustomProperty } from "@eesimple/types";
 import type { ReactElement } from "react";
 
 import { DateTimePicker } from "./DateTimePicker";
+import { RatingRangeInput } from "./RatingRangeInput";
 import { StarRating } from "./StarRating";
 
 import { Input } from "@/components/ui/input";
@@ -58,6 +59,18 @@ export function renderPropertyScalarInput({
   }
   if (property.type === "ratingScale") {
     const raw = numberInputs[property.id];
+    if (property.ratingAllowRange) {
+      return (
+        <div className="space-y-1">
+          <Label>{property.name}</Label>
+          <RatingRangeInput
+            property={property}
+            raw={raw ?? ""}
+            onChange={value => onNumberChange(property.id, value)}
+          />
+        </div>
+      );
+    }
     return (
       <div className="space-y-1">
         <Label>{property.name}</Label>

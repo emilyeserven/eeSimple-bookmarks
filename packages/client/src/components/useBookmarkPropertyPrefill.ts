@@ -14,6 +14,7 @@ import { useEffect, useRef } from "react";
 import { computeAutofill } from "./bookmarkFormSchema";
 import { useSeededPropertyInputs } from "./useSeededPropertyInputs";
 import { mergeAutofillIds } from "../lib/autofillPrefill";
+import { encodeRatingRange } from "../lib/propertyValues";
 
 interface UseBookmarkPropertyPrefillArgs {
   /** When editing, the bookmark whose stored values seed the inputs. */
@@ -181,7 +182,7 @@ export function useBookmarkPropertyPrefill({
         };
         for (const entry of result.numberValues) {
           if (!touchedRef.current.has(`number:${entry.propertyId}`)) {
-            next[entry.propertyId] = String(entry.value);
+            next[entry.propertyId] = encodeRatingRange(entry.value, entry.valueEnd);
           }
         }
         return next;
@@ -233,7 +234,7 @@ export function useBookmarkPropertyPrefill({
           && !ruleSetRef.current.numbers.has(entry.propertyId)
           && (existing === undefined || existing === "")
         ) {
-          next[entry.propertyId] = String(entry.value);
+          next[entry.propertyId] = encodeRatingRange(entry.value, entry.valueEnd);
         }
       }
       return next;

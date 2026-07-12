@@ -11,7 +11,7 @@ import {
   useSetCategoryDefaults,
 } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
-import { buildNumberValuesFromInputs } from "../lib/propertyValues";
+import { buildNumberValuesFromInputs, encodeRatingRange } from "../lib/propertyValues";
 
 import { Label } from "@/components/ui/label";
 
@@ -48,7 +48,7 @@ export function CategoryDefaultsSection({
   useEffect(() => {
     if (!defaults) return;
     setNumberInputs(Object.fromEntries(
-      defaults.numberValues.map(entry => [entry.propertyId, String(entry.value)]),
+      defaults.numberValues.map(entry => [entry.propertyId, encodeRatingRange(entry.value, entry.valueEnd)]),
     ));
     setBooleanInputs(Object.fromEntries(
       defaults.booleanValues.map(entry => [entry.propertyId, entry.value]),

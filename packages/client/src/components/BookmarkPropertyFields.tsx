@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import { BookmarkPropertyFileField } from "./BookmarkPropertyFileField";
 import { ChoicesCheckboxList } from "./ChoicesCheckboxList";
 import { DateTimePicker } from "./DateTimePicker";
+import { RatingRangeInput } from "./RatingRangeInput";
 import { SectionCollapseToggle } from "./SectionCollapseToggle";
 import { SectionPasteParser } from "./SectionPasteParser";
 import { SectionsSummary } from "./SectionsSummary";
@@ -126,13 +127,23 @@ export function RatingScalePropertyField({
     <div className="space-y-1">
       <Label>{property.name}</Label>
       <div>
-        <StarRating
-          value={raw ? Number(raw) : 0}
-          max={property.ratingMax ?? 5}
-          allowHalf={property.ratingAllowHalf}
-          allowZero={property.ratingAllowZero}
-          onChange={value => onChange(String(value))}
-        />
+        {property.ratingAllowRange
+          ? (
+            <RatingRangeInput
+              property={property}
+              raw={raw ?? ""}
+              onChange={onChange}
+            />
+          )
+          : (
+            <StarRating
+              value={raw ? Number(raw) : 0}
+              max={property.ratingMax ?? 5}
+              allowHalf={property.ratingAllowHalf}
+              allowZero={property.ratingAllowZero}
+              onChange={value => onChange(String(value))}
+            />
+          )}
       </div>
       <FieldDescription text={property.description} />
     </div>

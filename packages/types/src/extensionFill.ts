@@ -60,12 +60,14 @@ export type FillTarget
    * Value kind is derived from the property's type; file/image-typed custom *properties* are
    * excluded (grab an image via the dedicated `image` target below). For a multi-value property the
    * rule fills one specific sub-value: `subField` picks the number of a Two-Numbers (`itemInItems`)
-   * property; `choiceValue` picks the option of a `choices` property.
+   * property; `choiceValue` picks the option of a `choices` property; `ratingBound` picks the From
+   * or To end of a range-enabled `ratingScale` property (absent for a single-value rating).
    */
     | { kind: "customProperty";
       propertyId: string;
       subField?: "current" | "total";
-      choiceValue?: string; }
+      choiceValue?: string;
+      ratingBound?: "from" | "to"; }
   /** Multi-value; unmatched names create a name-only stub. */
       | { kind: "taxonomy";
         taxonomy: "people" | "groups" | "locations" | "tags"; }

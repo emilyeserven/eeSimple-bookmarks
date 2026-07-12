@@ -426,6 +426,10 @@ const fillTargetSchema = {
     choiceValue: {
       type: "string",
     },
+    ratingBound: {
+      type: "string",
+      enum: ["from", "to"],
+    },
     taxonomy: {
       type: "string",
       enum: ["people", "groups", "locations", "tags"],

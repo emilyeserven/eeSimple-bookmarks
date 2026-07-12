@@ -8,9 +8,11 @@ import {
   composeProgressText,
   DATE_TIME_FORMAT_LABELS,
   formatProgressValue,
+  formatRatingCaption,
   formatSectionEntry,
   formatSectionsValue,
   NUMBER_FORMAT_LABELS,
+  ratingLevelValues,
   sectionEntryLink,
   sectionEntryPositional,
   TYPE_LABELS,
@@ -28,6 +30,66 @@ const entry = (overrides: Partial<SectionEntry> = {}): SectionEntry => ({
   type: "page",
   startValue: "1",
   ...overrides,
+});
+
+describe("formatRatingCaption", () => {
+  const rating = (overrides = {}) => makeCustomProperty({
+    type: "ratingScale",
+    ratingMax: 5,
+    ...overrides,
+  });
+
+  it("returns null when there are no labels and no range", () => {
+    expect(formatRatingCaption(rating(), 3, null)).toBeNull();
+  });
+
+  it("returns the single label for a labelled single value", () => {
+    const property = rating({
+      ratingLabels: {
+        3: "Intermediate",
+      },
+    });
+    expect(formatRatingCaption(property, 3, null)).toBe("Intermediate");
+    // An unlabelled level with labels present still returns null (nothing to add beside the stars).
+    expect(formatRatingCaption(property, 2, null)).toBeNull();
+  });
+
+  it("returns 'from → to' using labels for a range, falling back to the number", () => {
+    const property = rating({
+      ratingAllowRange: true,
+      ratingLabels: {
+        1: "Beginner",
+        3: "Advanced",
+      },
+    });
+    expect(formatRatingCaption(property, 1, 3)).toBe("Beginner → Advanced");
+    // With no labels the range still renders as numbers.
+    expect(formatRatingCaption(rating({
+      ratingAllowRange: true,
+    }), 2, 4)).toBe("2 → 4");
+  });
+});
+
+describe("ratingLevelValues", () => {
+  it("lists 1..max by default and includes 0 when zero is allowed", () => {
+    expect(ratingLevelValues(makeCustomProperty({
+      type: "ratingScale",
+      ratingMax: 3,
+    }))).toEqual([1, 2, 3]);
+    expect(ratingLevelValues(makeCustomProperty({
+      type: "ratingScale",
+      ratingMax: 5,
+      ratingAllowZero: true,
+    }))).toEqual([0, 1, 2, 3, 4, 5]);
+  });
+
+  it("steps by half when half ratings are allowed", () => {
+    expect(ratingLevelValues(makeCustomProperty({
+      type: "ratingScale",
+      ratingMax: 3,
+      ratingAllowHalf: true,
+    }))).toEqual([1, 1.5, 2, 2.5, 3]);
+  });
 });
 
 describe("formatProgressValue", () => {

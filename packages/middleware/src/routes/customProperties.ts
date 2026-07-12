@@ -155,6 +155,15 @@ const createPropertyBody = {
     ratingLabel: {
       type: ["string", "null"],
     },
+    ratingAllowRange: {
+      type: "boolean",
+    },
+    ratingLabels: {
+      type: ["object", "null"],
+      additionalProperties: {
+        type: "string",
+      },
+    },
     choicesItems: {
       type: "array",
       items: {
@@ -268,6 +277,8 @@ const updatePropertyBody = {
     ratingAllowHalf: createPropertyBody.properties.ratingAllowHalf,
     ratingShowLabel: createPropertyBody.properties.ratingShowLabel,
     ratingLabel: createPropertyBody.properties.ratingLabel,
+    ratingAllowRange: createPropertyBody.properties.ratingAllowRange,
+    ratingLabels: createPropertyBody.properties.ratingLabels,
     choicesItems: createPropertyBody.properties.choicesItems,
     choicesDisplay: createPropertyBody.properties.choicesDisplay,
     choicesMultiple: createPropertyBody.properties.choicesMultiple,

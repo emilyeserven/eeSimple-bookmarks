@@ -27,6 +27,8 @@ export const OPTIONS_KEYS = [
   "ratingAllowHalf",
   "ratingShowLabel",
   "ratingLabel",
+  "ratingAllowRange",
+  "ratingLabels",
   "choicesItems",
   "choicesDisplay",
   "choicesMultiple",

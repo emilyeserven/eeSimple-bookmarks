@@ -17,7 +17,7 @@ import { seedConditions } from "../lib/autofillPrefill";
 import { NO_CATEGORY } from "../lib/autofillScope";
 import { autofillConditionsValidator } from "../lib/conditionsSchema";
 import { useAppForm } from "../lib/form";
-import { buildNumberValuesFromInputs } from "../lib/propertyValues";
+import { buildNumberValuesFromInputs, encodeRatingRange } from "../lib/propertyValues";
 
 const ruleSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
@@ -72,7 +72,8 @@ export function useAutofillRuleForm({
   );
   const [conditionsError, setConditionsError] = useState<string | null>(null);
   const [numberInputs, setNumberInputs] = useState<Record<string, string>>(() =>
-    Object.fromEntries((rule?.numberValues ?? []).map(entry => [entry.propertyId, String(entry.value)])));
+    Object.fromEntries((rule?.numberValues ?? []).map(entry =>
+      [entry.propertyId, encodeRatingRange(entry.value, entry.valueEnd)])));
   const [booleanInputs, setBooleanInputs] = useState<Record<string, boolean>>(() =>
     Object.fromEntries((rule?.booleanValues ?? []).map(entry => [entry.propertyId, entry.value])));
   const [dateTimeInputs, setDateTimeInputs] = useState<Record<string, string>>(() =>

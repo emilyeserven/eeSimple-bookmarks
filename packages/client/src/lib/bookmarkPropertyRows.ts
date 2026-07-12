@@ -8,7 +8,7 @@ import { resolveBooleanDisplay } from "./bookmarkCardValues";
 import { formatBoolean, formatDateTime, formatNumber } from "./bookmarkFormat";
 import { buildPropertyQuickSearch } from "./bookmarkPropertyQuickFilter";
 import { buildIsbnLinks } from "./isbnLinks";
-import { formatProgressValue, formatSectionsValue } from "./propertyFormat";
+import { formatProgressValue, formatRatingCaption, formatSectionsValue } from "./propertyFormat";
 
 export interface NumberPropertyRow {
   id: string;
@@ -22,9 +22,13 @@ export interface RatingPropertyRow {
   id: string;
   name: string;
   value: number;
+  /** High end of a range rating; `null` for a single value. */
+  valueEnd: number | null;
   max: number;
   allowHalf: boolean;
   label: string | undefined;
+  /** Per-number label caption (single label, or `from → to`); `null` when there's nothing to add. */
+  caption: string | null;
   search: BookmarkSearch;
 }
 
@@ -146,9 +150,11 @@ export function buildBookmarkPropertyRows(
           id: entry.propertyId,
           name: property.name,
           value: entry.value,
+          valueEnd: entry.valueEnd ?? null,
           max: (property.ratingMax ?? 5) as number,
           allowHalf: property.ratingAllowHalf,
           label: property.ratingShowLabel ? (property.ratingLabel ?? undefined) : undefined,
+          caption: formatRatingCaption(property, entry.value, entry.valueEnd),
           search: buildPropertyQuickSearch(property, entry.value),
         }
         : null;

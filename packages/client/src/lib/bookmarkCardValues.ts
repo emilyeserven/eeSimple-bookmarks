@@ -14,7 +14,7 @@ import { CARD_BODY_ZONES, CARD_FIELD_ZONES, emptyCardFieldZones, zoneToCorner } 
 import { eligibleCustomCardFields, HEADER_CARD_FIELD_KEYS, STANDARD_CARD_FIELDS } from "./bookmarkCardFieldDefs";
 import { formatBoolean, formatBooleanBadge, formatChoices, formatDateTime, formatNumber } from "./bookmarkFormat";
 import { formatDateTimeValue } from "./datetime";
-import { composeProgressText } from "./propertyFormat";
+import { composeProgressText, formatRatingCaption } from "./propertyFormat";
 import i18n from "../i18n";
 
 /**
@@ -331,6 +331,10 @@ export type BookmarkValueItem
   | (BookmarkValueItemBase & {
     kind: "rating";
     value: number;
+    /** High end of a range rating; `null`/absent for a single value. */
+    valueEnd?: number | null;
+    /** Per-number label caption (single label, or `from → to`); `null` when nothing to add. */
+    caption?: string | null;
   })
   | (BookmarkValueItemBase & {
     kind: "progress";
@@ -380,6 +384,8 @@ function numberValueItem(
       ...placementBase(property, placement),
       kind: "rating",
       value: entry.value,
+      valueEnd: entry.valueEnd ?? null,
+      caption: formatRatingCaption(property, entry.value, entry.valueEnd),
     };
   }
   const value = formatNumber(entry.value, property);

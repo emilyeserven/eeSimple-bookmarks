@@ -200,6 +200,9 @@ const createBookmarkBody = {
           value: {
             type: "number",
           },
+          valueEnd: {
+            type: ["number", "null"],
+          },
         },
       },
     },

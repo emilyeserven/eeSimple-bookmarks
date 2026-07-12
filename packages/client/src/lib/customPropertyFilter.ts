@@ -39,7 +39,10 @@ export function bookmarkMatchesFilters(
     const entry = bookmark.numberValues.find(value => value.propertyId === filter.propertyId);
     // Fall back to progress `current` for itemInItems properties.
     const value = entry?.value ?? progressValues.find(v => v.propertyId === filter.propertyId)?.current;
-    if (value === undefined || value < filter.lo || value > filter.hi) return false;
+    if (value === undefined) return false;
+    // A ratingScale range spans [value, valueEnd]; match when it overlaps the filter window [lo, hi].
+    const high = entry?.valueEnd ?? value;
+    if (value > filter.hi || high < filter.lo) return false;
   }
 
   for (const filter of booleanFilters) {

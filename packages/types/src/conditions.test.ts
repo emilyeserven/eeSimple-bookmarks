@@ -570,6 +570,40 @@ test("property number predicate: range bounds and presence", () => {
   assert.equal(evaluateConditions(missing, input), true);
 });
 
+test("property number predicate: a ratingScale range matches by interval overlap", () => {
+  // A stored range [2, 4] (low end in numberValues, high end in numberValueEnds).
+  const input = makeInput({
+    numberValues: new Map([["p", 2]]),
+    numberValueEnds: new Map([["p", 4]]),
+  });
+  const rangeCondition = (min: number | null, max: number | null): ConditionNode => ({
+    type: "property",
+    propertyId: "p",
+    predicate: {
+      valueKind: "number",
+      predicate: {
+        kind: "range",
+        min,
+        max,
+      },
+    },
+  });
+  // Overlaps the stored [2,4]: window touching the top (4..5), the middle (3..3), or the bottom (0..2).
+  assert.equal(evaluateConditions(rangeCondition(4, 5), input), true);
+  assert.equal(evaluateConditions(rangeCondition(3, 3), input), true);
+  assert.equal(evaluateConditions(rangeCondition(0, 2), input), true);
+  assert.equal(evaluateConditions(rangeCondition(null, 4), input), true);
+  // Disjoint windows: entirely above or entirely below the stored range.
+  assert.equal(evaluateConditions(rangeCondition(5, 6), input), false);
+  assert.equal(evaluateConditions(rangeCondition(0, 1), input), false);
+
+  // With no high end recorded the value is a point; "at least 4" no longer matches a stored 2.
+  const point = makeInput({
+    numberValues: new Map([["p", 2]]),
+  });
+  assert.equal(evaluateConditions(rangeCondition(4, null), point), false);
+});
+
 test("property boolean predicate: value match and presence", () => {
   const input = makeInput({
     booleanValues: new Map([["b", true]]),
