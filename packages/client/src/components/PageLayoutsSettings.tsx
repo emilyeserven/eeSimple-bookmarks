@@ -3,7 +3,6 @@ import type { CSSProperties } from "react";
 
 import { useEffect, useMemo, useState } from "react";
 
-import { resolveLayout } from "@eesimple/types";
 import { useTranslation } from "react-i18next";
 
 import { setSectionVisibility } from "./entityLayoutMutations";
@@ -11,14 +10,13 @@ import { LayoutBoard } from "./LayoutBoard";
 import { LayoutPreviewPane } from "./LayoutPreviewPane";
 import { SectionVisibilityEditor } from "./SectionVisibilityEditor";
 import { navLinkClass } from "./TabbedShell";
-import { useEntityLayout } from "../hooks/useEntityLayout";
+import { useEntityLayout, useLayoutDrivenWorkbench, useResolvedWorkbenchLayout } from "../hooks/useEntityLayout";
 import { useEntityLayouts, useResetEntityLayout, useSaveEntityLayout } from "../hooks/useEntityLayouts";
 import { useHorizontalSplit } from "../hooks/useHorizontalSplit";
 import { describeError } from "../lib/apiError";
 import { notifyFieldSaveError, notifyFieldSaved } from "../lib/autoSave";
-import { LAYOUT_DRIVEN_ENTITIES, useDynamicLayoutFieldsByKind } from "../lib/layoutDrivenEntities";
+import { baseWorkbenchForKind, fieldsFromRegistry, LAYOUT_DRIVEN_ENTITIES } from "../lib/layoutDrivenEntities";
 import { notifyError, notifySuccess } from "../lib/notifications";
-import { augmentDefaultLayout } from "../lib/workbenchLayout";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -66,29 +64,19 @@ export function PageLayoutsSettings({
   } = useHorizontalSplit();
 
   const selectedEntity = LAYOUT_DRIVEN_ENTITIES.find(entity => entity.kind === selectedKind) ?? LAYOUT_DRIVEN_ENTITIES[0];
-  // Dynamic (user-defined) placeable fields for the selected kind — e.g. one per custom property on
-  // bookmarks. Merged into the tray + the resolve inputs so they list and place like static fields.
-  const dynamicByKind = useDynamicLayoutFieldsByKind();
-  const dynamic = dynamicByKind[selectedEntity.kind];
-  const fields = useMemo(
-    () => (dynamic ? [...selectedEntity.fields, ...dynamic.metas] : selectedEntity.fields),
-    [selectedEntity, dynamic],
-  );
-  const defaultLayout = useMemo(
-    () => (dynamic
-      ? augmentDefaultLayout(selectedEntity.defaultLayout, dynamic.metas.map(meta => meta.key), dynamic.defaultHome)
-      : selectedEntity.defaultLayout),
-    [selectedEntity, dynamic],
-  );
-  const knownFieldKeys = useMemo(
-    () => new Set(fields.map(field => field.key)),
-    [fields],
-  );
+  // Resolve the same merged workbench (registry fields + runtime dynamic fields — bookmark custom
+  // properties, per-taxonomy fields, …) that `LayoutPreviewPane` and the real View/Edit pages use, so
+  // the editor's tray/board can never drift out of sync with what actually renders.
+  const baseWorkbench = useMemo(() => baseWorkbenchForKind(selectedEntity.kind), [selectedEntity]);
+  const workbench = useLayoutDrivenWorkbench(baseWorkbench);
+  const fields = useMemo(() => fieldsFromRegistry(workbench.fields), [workbench]);
+  const defaultLayout = useMemo(() => workbench.defaultLayout ?? {
+    tabs: [],
+  }, [workbench]);
   const stored = useEntityLayout(selectedKind);
-  const resolved = useMemo(
-    () => resolveLayout(stored, defaultLayout, knownFieldKeys),
-    [stored, defaultLayout, knownFieldKeys],
-  );
+  const resolved = useResolvedWorkbenchLayout(workbench) ?? {
+    tabs: [],
+  };
   const [value, setValue] = useState<EntityLayout>(resolved);
 
   // Re-stage the board whenever the selected entity kind changes, or the server's stored layout for

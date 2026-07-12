@@ -14,11 +14,10 @@ import { BookmarkPropertiesFormProvider } from "./BookmarkPropertiesFormContext"
 import { Combobox } from "./Combobox";
 import { ErrorBoundaryBox } from "./ErrorBoundaryBox";
 import { navLinkClass } from "./TabbedShell";
-import { bookmarkWorkbench } from "./workbench/bookmark";
 import { LayoutDrivenTabBody } from "./workbench/LayoutDrivenTabBody";
-import { ENTITY_DESCRIPTORS } from "../entities/registry";
 import { useBookmarkSectionVisibility } from "../hooks/useBookmarkSectionVisibility";
 import { useLayoutDrivenWorkbench } from "../hooks/useEntityLayout";
+import { baseWorkbenchForKind } from "../lib/layoutDrivenEntities";
 import { usePreviewInstancesByKind } from "../lib/layoutPreviewInstances";
 import { buildSampleEntity, SAMPLE_ID } from "../lib/layoutPreviewSamples";
 import { useUiStore } from "../stores/uiStore";
@@ -26,13 +25,6 @@ import { useUiStore } from "../stores/uiStore";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import { knownFieldKeys, modeVisibleTabs } from "@/lib/workbenchLayout";
-
-/** The base (pre-dynamic-merge) workbench for a kind — bookmark is off `ENTITY_DESCRIPTORS`. */
-function baseWorkbenchForKind(kind: LayoutableEntityKind): EntityWorkbench<{ id: string }> {
-  if (kind === "bookmark") return bookmarkWorkbench as unknown as EntityWorkbench<{ id: string }>;
-  const descriptors = ENTITY_DESCRIPTORS as unknown as Record<string, { workbench: EntityWorkbench<{ id: string }> }>;
-  return descriptors[kind].workbench;
-}
 
 /**
  * Wrap the edit body in the entity's edit-form provider(s) so provider-backed edit fields render. For a
