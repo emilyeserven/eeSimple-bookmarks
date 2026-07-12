@@ -17,6 +17,7 @@ import type {
   PlaceTypeIconConfig,
   PlaceTypeLevelGroupConfig,
   PreferredLanguage,
+  ScratchpadSettings,
   SidebarCustomizationSettings,
   SidebarOpenModifier,
   UpdateAdvancedSettingsInput,
@@ -29,6 +30,7 @@ import type {
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
   UpdatePersonSourceLabelInput,
+  UpdateScratchpadInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
 
@@ -67,6 +69,7 @@ const PLACE_TYPE_COLORS_KEY = ["app-settings", "place-type-colors"] as const;
 const EMPTY_PLACE_TYPE_COLORS: PlaceTypeColorConfig = {};
 const DISPLAY_PREFERENCES_KEY = ["app-settings", "display-preferences"] as const;
 const AI_SUMMARIZATION_KEY = ["app-settings", "ai-summarization"] as const;
+const SCRATCHPAD_KEY = ["app-settings", "scratchpad"] as const;
 const AI_AUTOTAG_KEY = ["app-settings", "ai-autotag"] as const;
 
 /**
@@ -788,6 +791,33 @@ export function useUpdateAiSummarizationSettings() {
 }
 
 export { AI_SUMMARIZATION_DEFAULTS };
+
+const SCRATCHPAD_DEFAULTS: ScratchpadSettings = {
+  scratchpadText: "",
+};
+
+/** The stored Scratchpad note (free-form Markdown kept in the sidebar footer). */
+export function useScratchpadSettings() {
+  return useQuery({
+    queryKey: SCRATCHPAD_KEY,
+    queryFn: appSettingsApi.getScratchpad,
+  });
+}
+
+export function useUpdateScratchpadSettings() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateScratchpadInput) =>
+      appSettingsApi.updateScratchpad(input),
+    onSuccess: (saved) => {
+      queryClient.setQueryData(SCRATCHPAD_KEY, saved);
+      notifyFieldSaved("Scratchpad");
+    },
+    onError: error => notifyFieldSaveError("Scratchpad", describeError(error)),
+  });
+}
+
+export { SCRATCHPAD_DEFAULTS };
 
 const AI_AUTOTAG_DEFAULTS: AiAutotagSettings = {
   aiAutotagPrompt: "",

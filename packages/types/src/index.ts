@@ -734,6 +734,14 @@ export interface AiSummarizationSettings {
 /** Payload for replacing the AI summarization settings. */
 export type UpdateAiSummarizationInput = AiSummarizationSettings;
 
+/** The Scratchpad settings: a single free-form Markdown note kept in the sidebar footer. */
+export interface ScratchpadSettings {
+  scratchpadText: string;
+}
+
+/** Payload for replacing the Scratchpad settings. */
+export type UpdateScratchpadInput = ScratchpadSettings;
+
 /** A bookmark in the "AI Summary Queue" — the minimal shape needed to build a summarization prompt. */
 export interface AiSummaryQueueItem {
   id: string;

@@ -27,6 +27,7 @@ import type {
   PlaceTypeLevelGroup,
   PlaceTypeLevelGroupConfig,
   QuickAddDisplay,
+  ScratchpadSettings,
   SidebarCustomizationSettings,
   SidebarOpenModifier,
   UpdateAdvancedSettingsInput,
@@ -39,6 +40,7 @@ import type {
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
   UpdatePersonSourceLabelInput,
+  UpdateScratchpadInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
 import { BOOKMARK_ADD_FORM_PLACEMENTS, CANONICAL_PLACE_TYPE_ORDER, DEFAULT_BOOKMARK_ADD_FORM_SETTINGS, DEFAULT_BOOKMARK_GRAPH_SETTINGS, DEFAULT_BOOKMARKS_PER_PAGE, DEFAULT_HOMEPAGE_WIDGET_ORDER, DEFAULT_PERSON_SOURCE_LABEL_SETTINGS, emptyConditionTree, LOCATION_DISPLAY_MODES, MAP_PIN_SCALE_DEFAULT, MAP_PIN_SCALE_MAX, MAP_PIN_SCALE_MIN, normalizeBlacklist, normalizeHexColor, normalizeIconName, normalizeLevelMode, placeTypeKey, resolveHomepageWidgetOrder } from "@eesimple/types";
@@ -181,6 +183,11 @@ export function resolvePersonSourceLabels(raw: unknown): PersonSourceLabelSettin
 const DEFAULT_AI_SUMMARIZATION: AiSummarizationSettings = {
   aiSummarizationPrompt: "",
   aiSummarizationSuggestTags: false,
+};
+
+/** Default Scratchpad settings (empty note), used when seeding / when row absent. */
+const DEFAULT_SCRATCHPAD: ScratchpadSettings = {
+  scratchpadText: "",
 };
 
 /** Default AI autotag settings (empty prompt), used when seeding / when row absent. */
@@ -411,6 +418,40 @@ export async function updateAiSummarizationSettings(
   const next: AiSummarizationSettings = {
     aiSummarizationPrompt: input.aiSummarizationPrompt,
     aiSummarizationSuggestTags: input.aiSummarizationSuggestTags,
+  };
+  await db
+    .insert(appSettings)
+    .values({
+      id: ROW_ID,
+      ...next,
+    })
+    .onConflictDoUpdate({
+      target: appSettings.id,
+      set: next,
+    });
+  return next;
+}
+
+/** Read the Scratchpad note (coalescing the nullable column to an empty string). */
+export async function getScratchpadSettings(): Promise<ScratchpadSettings> {
+  const [row] = await db
+    .select({
+      scratchpadText: appSettings.scratchpadText,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  if (!row) return DEFAULT_SCRATCHPAD;
+  return {
+    scratchpadText: row.scratchpadText ?? "",
+  };
+}
+
+/** Replace the Scratchpad note, upserting the singleton. Returns the stored value. */
+export async function updateScratchpadSettings(
+  input: UpdateScratchpadInput,
+): Promise<ScratchpadSettings> {
+  const next: ScratchpadSettings = {
+    scratchpadText: input.scratchpadText,
   };
   await db
     .insert(appSettings)

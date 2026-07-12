@@ -41,6 +41,7 @@ import type {
   PlaceTypeIconConfig,
   PlaceTypeLevelGroupConfig,
   SavedFilter,
+  ScratchpadSettings,
   SidebarCustomizationSettings,
   UpdateAdvancedSettingsInput,
   UpdateAiAutotagInput,
@@ -55,6 +56,7 @@ import type {
   UpdateParseTemplateInput,
   UpdatePersonSourceLabelInput,
   UpdateSavedFilterInput,
+  UpdateScratchpadInput,
   UpdateSidebarCustomizationInput,
 } from "@eesimple/types";
 
@@ -175,6 +177,13 @@ export const appSettingsApi = {
     request<AiSummarizationSettings>("/app-settings/ai-summarization"),
   updateAiSummarization: (input: UpdateAiSummarizationInput) =>
     request<AiSummarizationSettings>("/app-settings/ai-summarization", {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  getScratchpad: () =>
+    request<ScratchpadSettings>("/app-settings/scratchpad"),
+  updateScratchpad: (input: UpdateScratchpadInput) =>
+    request<ScratchpadSettings>("/app-settings/scratchpad", {
       method: "PUT",
       body: JSON.stringify(input),
     }),
