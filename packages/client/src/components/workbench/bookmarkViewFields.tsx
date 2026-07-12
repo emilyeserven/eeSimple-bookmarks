@@ -168,6 +168,33 @@ export function BookmarkWebsiteDetailView({
   );
 }
 
+/** Secondary "Download URL" row — a clickable external link, or null when unset. */
+export function BookmarkSecondaryUrlDetailView({
+  bookmark,
+}: {
+  bookmark: Bookmark;
+}) {
+  return (
+    <DetailField label={i18n.t("Download URL")}>
+      {bookmark.secondaryUrl
+        ? (
+          <a
+            href={bookmark.secondaryUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="
+              block max-w-full truncate underline-offset-2
+              hover:underline
+            "
+          >
+            {bookmark.secondaryUrl}
+          </a>
+        )
+        : null}
+    </DetailField>
+  );
+}
+
 /**
  * The residual General-view rows that have no matching General edit field, each split into its own
  * placeable view field (#1163+): Locations, YouTube channel, People, and the Kavita/Plex link rows.

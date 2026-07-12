@@ -539,6 +539,7 @@ export function standardFieldOverlayLabel(
     case "title": return bookmark.title || null;
     case "description": return bookmark.description || null;
     case "url": return bookmark.url || null;
+    case "secondaryUrl": return bookmark.secondaryUrl || null;
     case "createdAt": return formatDateTimeValue(bookmark.createdAt, "date");
     case "updatedAt": return bookmark.updatedAt ? formatDateTimeValue(bookmark.updatedAt, "date") : null;
     case "category": return categoryName;

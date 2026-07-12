@@ -78,6 +78,18 @@ test("sectionsValues accepts the `name`-only entry type on entries and children"
   assert.deepEqual(body.sectionsValues, sectionsValues);
 });
 
+test("secondaryUrl survives the PATCH body (not stripped by removeAdditional)", async () => {
+  const body = await echoThroughSchema({
+    secondaryUrl: "https://example.com/download.pdf",
+  });
+  assert.equal(body.secondaryUrl, "https://example.com/download.pdf");
+  // An explicit null (clear the field) also round-trips.
+  const cleared = await echoThroughSchema({
+    secondaryUrl: null,
+  });
+  assert.equal(cleared.secondaryUrl, null);
+});
+
 test("sectionsValues still strips genuinely unknown entry props", async () => {
   const body = await echoThroughSchema({
     sectionsValues: [{

@@ -1,5 +1,7 @@
 import type { FillTransform } from "@eesimple/types";
 
+import { parseYouTubeVideo } from "@eesimple/types";
+
 /**
  * Pure TS mirror of the browser extension's transform runtime, used by the Transforms editor's
  * live preview so the user can test a rule's transforms against sample text without a live page.
@@ -154,6 +156,12 @@ export function applyFillTransform(value: string, transform: FillTransform, base
       catch {
         return value;
       }
+    }
+    case "youtubeThumbnail": {
+      // Privacy-enhanced embeds use `youtube-nocookie.com`, which the shared parser doesn't treat as a
+      // YouTube host — normalize it so `/embed/<id>` on that host resolves too.
+      const video = parseYouTubeVideo(value.replace(/youtube-nocookie\.com/i, "youtube.com"));
+      return video ? `https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg` : value;
     }
   }
 }

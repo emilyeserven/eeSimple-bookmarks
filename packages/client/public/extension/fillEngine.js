@@ -122,6 +122,40 @@
     return firstBackgroundImageUrl((el.style && el.style.backgroundImage) || "");
   }
 
+  // Turn a YouTube video URL into its thumbnail image URL, or null when it isn't one. Inline mirror of
+  // `parseYouTubeVideo` in @eesimple/types (the engine can't import). Handles `watch?v=`, `youtu.be/<id>`,
+  // and `/shorts|embed|live|v/<id>` on any youtube.com subdomain (the caller normalizes the
+  // `youtube-nocookie.com` host to `youtube.com` first, matching the TS side).
+  function youtubeThumbnailFromUrl(value) {
+    var parsed;
+    try {
+      parsed = new URL(value);
+    }
+    catch {
+      return null;
+    }
+    var host = parsed.hostname.replace(/^www\./i, "").toLowerCase();
+    var isValidId = function (id) {
+      return !!id && /^[\w-]{11}$/.test(id);
+    };
+    var videoId = null;
+    if (host === "youtu.be") {
+      videoId = parsed.pathname.split("/").filter(Boolean)[0];
+    }
+    else if (host === "youtube.com" || host.endsWith(".youtube.com")) {
+      if (parsed.pathname === "/watch") {
+        videoId = parsed.searchParams.get("v");
+      }
+      else {
+        var segments = parsed.pathname.split("/").filter(Boolean);
+        if (segments.length >= 2 && ["shorts", "embed", "live", "v"].indexOf(segments[0]) !== -1) {
+          videoId = segments[1];
+        }
+      }
+    }
+    return isValidId(videoId) ? "https://img.youtube.com/vi/" + videoId + "/hqdefault.jpg" : null;
+  }
+
   // Read a raw string from an element. Returns null for a missing attribute so the caller drops it.
   function readValue(el, read) {
     if (!read || read.kind === "text") return trimmedText(el);
@@ -264,6 +298,11 @@
       catch {
         return value;
       }
+    }
+    if (transform.kind === "youtubeThumbnail") {
+      // Normalize the privacy-enhanced `youtube-nocookie.com` host to `youtube.com` (mirrors the TS side).
+      var thumb = youtubeThumbnailFromUrl(value.replace(/youtube-nocookie\.com/i, "youtube.com"));
+      return thumb == null ? value : thumb;
     }
     throw new Error("Unknown transform kind: " + transform.kind);
   }

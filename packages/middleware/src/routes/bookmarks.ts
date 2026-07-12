@@ -72,6 +72,9 @@ const createBookmarkBody = {
     url: {
       type: ["string", "null"],
     },
+    secondaryUrl: {
+      type: ["string", "null"],
+    },
     title: {
       type: "string",
       minLength: 1,
@@ -818,6 +821,9 @@ function registerBookmarkCrudRoutes(app: FastifyInstance): void {
     if (input.url != null && !isValidUrl(input.url)) {
       throw new ValidationError("url must be a valid http(s) URL");
     }
+    if (input.secondaryUrl != null && input.secondaryUrl !== "" && !isValidUrl(input.secondaryUrl)) {
+      throw new ValidationError("secondaryUrl must be a valid http(s) URL");
+    }
     const bookmark = await createBookmark(input);
     return reply.code(201).send(bookmark);
   });
@@ -838,6 +844,9 @@ function registerBookmarkCrudRoutes(app: FastifyInstance): void {
       const input = req.body as UpdateBookmarkInput;
       if (input.url != null && !isValidUrl(input.url)) {
         throw new ValidationError("url must be a valid http(s) URL");
+      }
+      if (input.secondaryUrl != null && input.secondaryUrl !== "" && !isValidUrl(input.secondaryUrl)) {
+        throw new ValidationError("secondaryUrl must be a valid http(s) URL");
       }
       const bookmark = await updateBookmark(id, input);
       if (!bookmark) throw new NotFoundError("Bookmark");

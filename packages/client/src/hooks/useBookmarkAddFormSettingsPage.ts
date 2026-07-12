@@ -13,6 +13,7 @@ import {
   Ban,
   CaseSensitive,
   Clapperboard,
+  Download,
   Drama,
   Film,
   FolderOpen,
@@ -51,6 +52,7 @@ export const BOOKMARK_ADD_FORM_STANDARD_LABELS: Record<BookmarkAddFormStandardFi
   mediaLink: "Media (Book/Movie/TV…)",
   blacklistedTagIds: "Excluded Tags",
   blacklistedLocationIds: "Excluded Locations",
+  secondaryUrl: "Download URL",
 };
 
 /** A distinct lucide icon per standard field (shared by the settings card and the advanced-rule editor). */
@@ -68,6 +70,7 @@ export const STANDARD_FIELD_ICONS: Record<BookmarkAddFormStandardField, LucideIc
   mediaLink: Film,
   blacklistedTagIds: Ban,
   blacklistedLocationIds: MapPinOff,
+  secondaryUrl: Download,
 };
 
 /** A built-in detail property row: its slug, resolved display label, and current placement. */

@@ -517,6 +517,9 @@ describe("describeFillTransform", () => {
     expect(describeFillTransform({
       kind: "absoluteUrl",
     })).toBe("Resolve relative URL");
+    expect(describeFillTransform({
+      kind: "youtubeThumbnail",
+    })).toBe("YouTube thumbnail");
   });
 });
 
@@ -619,6 +622,11 @@ describe("coerceFillTransform", () => {
       kind: "trim" as const,
     })).toEqual({
       kind: "absoluteUrl",
+    });
+    expect(coerceFillTransform("youtubeThumbnail", {
+      kind: "trim" as const,
+    })).toEqual({
+      kind: "youtubeThumbnail",
     });
   });
 });

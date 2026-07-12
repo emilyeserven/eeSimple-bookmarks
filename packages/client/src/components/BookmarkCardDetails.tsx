@@ -240,6 +240,25 @@ export function BookmarkCardDetails({
           t("URL"),
         );
       }
+      case "secondaryUrl": {
+        if (!bookmark.secondaryUrl) return null;
+        return uniformFieldRender(
+          (
+            <a
+              href={bookmark.secondaryUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="
+                block max-w-full truncate text-sm text-muted-foreground
+                underline-offset-2
+                hover:underline
+              "
+            >{bookmark.secondaryUrl}
+            </a>
+          ),
+          t("Download URL"),
+        );
+      }
       default: {
         return describeValueField(key);
       }

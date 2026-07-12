@@ -9,6 +9,11 @@ export const bookmarks = pgTable("bookmarks", {
   // Original URL before any cleanup was applied; NULL when no cleanup was performed.
   // Nullable so `drizzle-kit push` applies cleanly to existing rows.
   originalUrl: text("original_url"),
+  // Optional second link (e.g. a download / read link vs the primary landing page). A passive
+  // scalar: it does NOT drive website/YouTube-channel derivation, uniqueness, duplicate checking, or
+  // the metadata scan — those stay tied to `url`. Nullable, non-unique = push-safe additive (lone
+  // nullable column, no new table).
+  secondaryUrl: text("secondary_url"),
   title: text("title").notNull(),
   description: text("description"),
   // Owning category. Nullable at the DB level so `drizzle-kit push` applies cleanly to

@@ -26,6 +26,7 @@ import { buildNumberValuesFromInputs } from "../lib/propertyValues";
 
 export const bookmarkSchema = z.object({
   url: z.string(),
+  secondaryUrl: z.string(),
   title: z.string().min(1, i18n.t("Title is required")),
   // Staged multilingual names for the create form (create-only — edit uses its own EntityNamesTabEditor).
   // Primary language is auto-detected server-side at create time (see deriveDetectedPrimaryNames), so
@@ -161,6 +162,7 @@ export interface MediaLinkTarget {
 /** The defaultValues shape for the bookmark form (drives `BookmarkFormApi`'s inferred field types). */
 const SAMPLE_DEFAULT_VALUES: {
   url: string;
+  secondaryUrl: string;
   title: string;
   names: DraftEntityName[];
   categoryId: string;
@@ -178,6 +180,7 @@ const SAMPLE_DEFAULT_VALUES: {
   mediaLinkTarget: MediaLinkTarget | null;
 } = {
   url: "",
+  secondaryUrl: "",
   title: "",
   names: [],
   categoryId: "",
@@ -236,6 +239,7 @@ function scalarBookmarkDefaults(
 ) {
   return {
     url: bookmark?.originalUrl ?? bookmark?.url ?? initial.url ?? "",
+    secondaryUrl: bookmark?.secondaryUrl ?? "",
     title: bookmark?.title ?? initial.title ?? "",
     // Create-only staged names; edit mode manages names via its own EntityNamesTabEditor.
     names: [] as DraftEntityName[],
