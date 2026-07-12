@@ -55,6 +55,29 @@ test("sectionsValues round-trips `completed` and `url` on entries and children (
   assert.deepEqual(body.sectionsValues, sectionsValues);
 });
 
+test("sectionsValues accepts the `name`-only entry type on entries and children", async () => {
+  const sectionsValues = [{
+    propertyId: "11111111-1111-1111-1111-111111111111",
+    exhaustive: false,
+    sections: [{
+      id: "s1",
+      name: "Getting Started",
+      type: "name",
+      startValue: "",
+      children: [{
+        id: "s1a",
+        name: "Welcome",
+        type: "name",
+        startValue: "",
+      }],
+    }],
+  }];
+  const body = await echoThroughSchema({
+    sectionsValues,
+  });
+  assert.deepEqual(body.sectionsValues, sectionsValues);
+});
+
 test("secondaryUrl survives the PATCH body (not stripped by removeAdditional)", async () => {
   const body = await echoThroughSchema({
     secondaryUrl: "https://example.com/download.pdf",

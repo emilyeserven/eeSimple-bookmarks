@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { useId } from "react";
 
 import { Input } from "@/components/ui/input";
@@ -63,15 +65,16 @@ export function KindSelect<T extends string>({
   );
 }
 
-/** A labeled text `Input`. */
+/** A labeled text `Input`, with optional muted `hint` help text shown under the field. */
 export function LabeledInput({
-  label, value, onChange, placeholder, className,
+  label, value, onChange, placeholder, className, hint,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  hint?: ReactNode;
 }) {
   const id = useId();
   return (
@@ -83,6 +86,9 @@ export function LabeledInput({
         placeholder={placeholder}
         onChange={event => onChange(event.target.value)}
       />
+      {hint
+        ? <p className="text-xs text-muted-foreground">{hint}</p>
+        : null}
     </div>
   );
 }

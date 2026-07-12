@@ -861,6 +861,104 @@ describe("eesimpleFillEngine.runRules — sections target", () => {
     ]);
   });
 
+  it("builds a name-only tiered list (Udemy curriculum) via [class*=] partial-class selectors", () => {
+    // Hashed classnames (like Udemy's rotating `…__9JCrHq__…`) matched by a stable substring.
+    const html = `
+      <div data-purpose="course-curriculum">
+        <div class="section--abc">
+          <h3><span class="scss__9JCrHq__section-title">Getting Started</span></h3>
+          <ul>
+            <li><span class="scss__9JCrHq__course-lecture-title">Welcome</span></li>
+            <li><span class="scss__9JCrHq__course-lecture-title">Setup</span></li>
+          </ul>
+        </div>
+        <div class="section--def">
+          <h3><span class="scss__9JCrHq__section-title">Publishing</span></h3>
+          <ul>
+            <li><span class="scss__9JCrHq__course-lecture-title">npm publish</span></li>
+          </ul>
+        </div>
+      </div>
+    `;
+    const rule = {
+      id: "curriculum",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "name",
+        container: "[data-purpose=\"course-curriculum\"] [class*=\"section--\"]",
+        header: "[class*=\"section-title\"]",
+        // itemName blank → the matched item's own text is the name.
+      },
+      extract: {
+        selector: "[class*=\"course-lecture-title\"]",
+      },
+    };
+    expect(runSections(rule, html)).toEqual([
+      {
+        name: "Getting Started",
+        type: "name",
+        startValue: "",
+        children: [
+          {
+            name: "Welcome",
+            type: "name",
+            startValue: "",
+          },
+          {
+            name: "Setup",
+            type: "name",
+            startValue: "",
+          },
+        ],
+      },
+      {
+        name: "Publishing",
+        type: "name",
+        startValue: "",
+        children: [
+          {
+            name: "npm publish",
+            type: "name",
+            startValue: "",
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("builds a flat name-only list (no value read)", () => {
+    const html = `
+      <ul>
+        <li class="lec">Welcome</li>
+        <li class="lec">Setup</li>
+      </ul>
+    `;
+    const rule = {
+      id: "flat-name",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "name",
+      },
+      extract: {
+        selector: ".lec",
+      },
+    };
+    expect(runSections(rule, html)).toEqual([
+      {
+        name: "Welcome",
+        type: "name",
+        startValue: "",
+      },
+      {
+        name: "Setup",
+        type: "name",
+        startValue: "",
+      },
+    ]);
+  });
+
   it("builds a flat list when no container is set", () => {
     const html = `
       <ul>

@@ -108,10 +108,11 @@ export const DATE_TIME_FORMATS = ["date", "time", "datetime"] as const;
 /** What a `datetime` property captures. Derived from {@link DATE_TIME_FORMATS}. */
 export type DateTimeFormat = typeof DATE_TIME_FORMATS[number];
 
-export const SECTION_ENTRY_TYPES = ["url", "page", "timestamp"] as const;
+export const SECTION_ENTRY_TYPES = ["name", "url", "page", "timestamp"] as const;
 export type SectionEntryType = typeof SECTION_ENTRY_TYPES[number];
 
 export const SECTION_ENTRY_TYPE_LABELS: Record<SectionEntryType, string> = {
+  name: "Name only",
   url: "URL",
   page: "Page",
   timestamp: "Timestamp",
@@ -121,6 +122,11 @@ export interface SectionEntry {
   id: string;
   name: string;
   type: SectionEntryType;
+  /**
+   * The entry's positional value, interpreted per {@link type} (`page`/`timestamp` number, `url` link).
+   * A `name`-only entry carries no positional value — `startValue` is `""` (a plain titled row, still
+   * with an optional {@link url} link and {@link children}).
+   */
   startValue: string;
   endValue?: string;
   /**

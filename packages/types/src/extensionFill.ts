@@ -108,6 +108,10 @@ export type FillTarget
    * Build a `sections`-typed custom property's value from the page. Unlike the scalar targets this
    * produces a **structured** result (a list of `SectionEntry`s, optionally two-tier). `extract` is
    * interpreted by `entryType`:
+   * - **`name`** — a plain titled list (e.g. a course curriculum's lecture names). `extract.selector`
+   *   matches the repeated **item** elements and `itemName` (or the item's own text) supplies each
+   *   name; no value pipeline runs and `startValue` stays `""`. `container`/`header`/`sectionMatch`
+   *   still group it, and `itemUrl` still optionally attaches a per-item link.
    * - **`url` / `page`** — `extract.selector` matches the repeated **item** elements; `extract.read`
    *   + `extract.transform` produce each item's `startValue` (e.g. `read:{kind:"attr",name:"href"}`
    *   for `url`, `transform:[{kind:"number"}]` for `page`). `itemName` (a relative `querySelector`)
@@ -137,8 +141,12 @@ export type FillTarget
                 itemUrl?: string;
                 sectionMatch?: TextMatch; };
 
-/** Entry types a `sections` fill target can build. `timestamp` is parsed from a text block. */
-export type SectionFillEntryType = "url" | "page" | "timestamp";
+/**
+ * Entry types a `sections` fill target can build. `timestamp` is parsed from a text block; `name`
+ * captures a plain titled list with no positional value (`startValue` stays `""`) — the item's name
+ * comes from `itemName`/its own text, so no value selector or transform is needed.
+ */
+export type SectionFillEntryType = "name" | "url" | "page" | "timestamp";
 
 /** How to extract a rule's value(s) from the page. */
 export interface FillExtract {

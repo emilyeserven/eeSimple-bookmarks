@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import type { BulkBookmarkTagOp, BulkUrlUpdate, CreateBookmarkInput, UpdateBookmarkInput, UpdateBookmarkRelationshipsInput } from "@eesimple/types";
+import { SECTION_ENTRY_TYPES } from "@eesimple/types";
 import {
   getBookmarkImageRow,
   getBookmarkImageRowById,
@@ -305,7 +306,7 @@ const createBookmarkBody = {
                 },
                 type: {
                   type: "string",
-                  enum: ["url", "page", "timestamp"],
+                  enum: [...SECTION_ENTRY_TYPES],
                 },
                 startValue: {
                   type: "string",
@@ -339,7 +340,7 @@ const createBookmarkBody = {
                       },
                       type: {
                         type: "string",
-                        enum: ["url", "page", "timestamp"],
+                        enum: [...SECTION_ENTRY_TYPES],
                       },
                       startValue: {
                         type: "string",

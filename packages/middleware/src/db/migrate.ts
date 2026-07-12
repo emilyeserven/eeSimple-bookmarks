@@ -496,6 +496,75 @@ const migrations: RuntimeMigration[] = [
     `),
   },
   {
+    // Clean up the merge's visible artifact: two "Sections" properties showing at once. The
+    // "park colliding user slug sections" step above reslugged a pre-existing user property from
+    // `sections` → `sections-user` to free the slug, but left its NAME as "Sections", so it renders
+    // side-by-side with the new built-in. Fold every NON-built-in `sections`-type property named
+    // "Sections" into the built-in survivor (entries concatenated after the survivor's, data
+    // preserved), rewrite its UUID across the same jsonb columns the merge step touches, then delete
+    // it. Guarded on the built-in survivor existing and scoped to `built_in = false` + the exact
+    // name match, so it no-ops on clean installs and never touches an intentionally-separate
+    // sections property (different name). One statement (a single DO block) so an interrupted boot
+    // re-runs it cleanly.
+    name: "remove duplicate user Sections property left by the merge",
+    run: db => db.execute(sql`
+      DO $$
+      DECLARE
+        survivor uuid;
+        dup text;
+      BEGIN
+        -- Safe on a fresh DB: migrate runs before push, so the tables may not exist yet on first boot.
+        IF to_regclass('public.custom_properties') IS NULL THEN RETURN; END IF;
+        SELECT "id" INTO survivor FROM "custom_properties"
+          WHERE "type" = 'sections' AND "built_in" AND "name" = 'Sections';
+        IF survivor IS NULL THEN RETURN; END IF;
+        FOR dup IN
+          SELECT "id"::text FROM "custom_properties"
+            WHERE "type" = 'sections' AND "built_in" = false AND "name" = 'Sections'
+        LOOP
+          -- Fold the duplicate's value rows into the survivor (survivor's entries first, then the
+          -- duplicate's), then drop the duplicate's rows so the delete below doesn't cascade them.
+          INSERT INTO "bookmark_sections_values" ("bookmark_id", "property_id", "exhaustive", "sections")
+          SELECT s."bookmark_id", survivor, bool_and(s."exhaustive"),
+                 COALESCE(jsonb_agg(s.elem ORDER BY s.prop_ord, s.elem_ord) FILTER (WHERE s.elem IS NOT NULL), '[]'::jsonb)
+          FROM (
+            SELECT bsv."bookmark_id", bsv."exhaustive",
+                   CASE bsv."property_id" WHEN survivor THEN 1 ELSE 2 END AS prop_ord,
+                   e.elem, e.elem_ord
+            FROM "bookmark_sections_values" bsv
+            LEFT JOIN LATERAL jsonb_array_elements(bsv."sections") WITH ORDINALITY AS e(elem, elem_ord) ON true
+            WHERE bsv."property_id" IN (survivor, dup::uuid)
+          ) s
+          GROUP BY s."bookmark_id"
+          ON CONFLICT ("bookmark_id", "property_id") DO UPDATE
+            SET "exhaustive" = EXCLUDED."exhaustive", "sections" = EXCLUDED."sections";
+
+          DELETE FROM "bookmark_sections_values" WHERE "property_id" = dup::uuid;
+
+          -- Rewrite the duplicate's UUID to the survivor across every jsonb column that can carry a
+          -- custom-property id (same targets as the merge step's rewrite).
+          UPDATE "websites" SET "extension_fill_rules" = REPLACE("extension_fill_rules"::text, dup, survivor::text)::jsonb WHERE "extension_fill_rules"::text LIKE '%' || dup || '%';
+          UPDATE "autofill_rules" SET "conditions" = REPLACE("conditions"::text, dup, survivor::text)::jsonb WHERE "conditions"::text LIKE '%' || dup || '%';
+          UPDATE "homepage_filter" SET "conditions" = REPLACE("conditions"::text, dup, survivor::text)::jsonb WHERE "conditions"::text LIKE '%' || dup || '%';
+          UPDATE "homepage_sections" SET "conditions" = REPLACE("conditions"::text, dup, survivor::text)::jsonb WHERE "conditions"::text LIKE '%' || dup || '%';
+          UPDATE "homepage_sections" SET "field_zones" = REPLACE("field_zones"::text, dup, survivor::text)::jsonb WHERE "field_zones"::text LIKE '%' || dup || '%';
+          UPDATE "homepage_sections" SET "hidden_card_fields" = REPLACE("hidden_card_fields"::text, dup, survivor::text)::jsonb WHERE "hidden_card_fields"::text LIKE '%' || dup || '%';
+          UPDATE "card_display_rules" SET "conditions" = REPLACE("conditions"::text, dup, survivor::text)::jsonb WHERE "conditions"::text LIKE '%' || dup || '%';
+          UPDATE "card_display_rules" SET "field_zones" = REPLACE("field_zones"::text, dup, survivor::text)::jsonb WHERE "field_zones"::text LIKE '%' || dup || '%';
+          UPDATE "card_display_rules" SET "hidden_card_fields" = REPLACE("hidden_card_fields"::text, dup, survivor::text)::jsonb WHERE "hidden_card_fields"::text LIKE '%' || dup || '%';
+          UPDATE "card_display_rules" SET "sections" = REPLACE("sections"::text, dup, survivor::text)::jsonb WHERE "sections"::text LIKE '%' || dup || '%';
+          UPDATE "import_rules" SET "conditions" = REPLACE("conditions"::text, dup, survivor::text)::jsonb WHERE "conditions"::text LIKE '%' || dup || '%';
+          UPDATE "card_field_templates" SET "field_zones" = REPLACE("field_zones"::text, dup, survivor::text)::jsonb WHERE "field_zones"::text LIKE '%' || dup || '%';
+          UPDATE "entity_layouts" SET "layout" = REPLACE("layout"::text, dup, survivor::text)::jsonb WHERE "layout"::text LIKE '%' || dup || '%';
+          UPDATE "saved_filters" SET "filters" = REPLACE("filters"::text, dup, survivor::text)::jsonb WHERE "filters"::text LIKE '%' || dup || '%';
+          UPDATE "app_settings" SET "bookmark_form_advanced_rules" = REPLACE("bookmark_form_advanced_rules"::text, dup, survivor::text)::jsonb WHERE "bookmark_form_advanced_rules"::text LIKE '%' || dup || '%';
+
+          DELETE FROM "custom_properties" WHERE "id" = dup::uuid;
+        END LOOP;
+      END $$
+    `),
+  },
+  {
     // The singular bookmark "publisher" FK (`bookmarks.group_id` → `Bookmark.group`) was removed — it
     // had no UI picker anywhere and was only ever set programmatically. Dropping a column is
     // destructive, so `drizzle-kit push` would prompt (and crash in this non-TTY deploy); drop it here

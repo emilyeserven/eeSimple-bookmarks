@@ -414,12 +414,14 @@
 
   // Build one leaf entry (a flat entry, or a tier-1 group's child) from an item element.
   function buildSectionLeaf(el, target, extract) {
+    // A `name`-only entry carries no positional value — just the item's name (+ optional link).
+    // With a per-item URL selector on a `url` entry the anchor is the link (carried in `url`), not a
+    // positional value; otherwise read the item's own value (href/page number/etc.) into startValue.
+    var noValue = target.entryType === "name" || (target.itemUrl && target.entryType === "url");
     var leaf = {
       name: readName(el, target.itemName),
       type: target.entryType,
-      // With a per-item URL selector on a `url` entry the anchor is the link (carried in `url`), not a
-      // positional value; otherwise read the item's own value (href/page number/etc.) into startValue.
-      startValue: target.itemUrl && target.entryType === "url" ? "" : readItemValue(el, extract),
+      startValue: noValue ? "" : readItemValue(el, extract),
     };
     var url = readItemUrl(el, target);
     if (url != null) leaf.url = url;

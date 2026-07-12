@@ -93,7 +93,9 @@ export function sectionEntryPositional(entry: SectionEntry): string {
 /** Format a single section entry as a one-line summary (e.g. "Chapter 1: pp. 1–10" or "Intro: 0:00–5:30"). */
 export function formatSectionEntry(entry: SectionEntry): string {
   const typeSuffix = SECTION_ENTRY_TYPE_LABELS[entry.type];
-  const base = `${entry.name}: ${formatSectionValue(entry)} (${typeSuffix})`;
+  const value = formatSectionValue(entry);
+  // A `name`-only entry (or any entry with a blank positional value) shows just its name + type.
+  const base = value ? `${entry.name}: ${value} (${typeSuffix})` : `${entry.name} (${typeSuffix})`;
   const childCount = entry.children?.length ?? 0;
   return childCount > 0 ? `${base} · ${childCount} ${childCount === 1 ? "item" : "items"}` : base;
 }
