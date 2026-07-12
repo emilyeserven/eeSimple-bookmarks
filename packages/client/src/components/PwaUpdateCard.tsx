@@ -27,8 +27,10 @@ export function PwaUpdateCard() {
 
   async function handleCheck(): Promise<void> {
     try {
-      await checkForUpdate();
-      notifySuccess(t("Checked for updates"));
+      const outcome = await checkForUpdate();
+      if (outcome === "updating") notifySuccess(t("Updating to the latest version…"));
+      else if (outcome === "up-to-date") notifySuccess(t("You're already on the latest version."));
+      else notifyError(t("App updates aren't available in this browser."));
     }
     catch (error) {
       notifyError(error instanceof Error ? error.message : t("Update check failed"));
