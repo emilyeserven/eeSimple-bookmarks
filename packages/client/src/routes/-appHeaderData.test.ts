@@ -75,6 +75,7 @@ describe("resolveAddChild", () => {
       pathParts: ["tags", "cooking"],
       tagParentId: "tag-1",
       mediaTypeId: undefined,
+      customTaxonomyTerm: undefined,
     })).toEqual({
       kind: "tag",
       parentId: "tag-1",
@@ -86,9 +87,28 @@ describe("resolveAddChild", () => {
       pathParts: ["taxonomies", "media-types", "video"],
       tagParentId: undefined,
       mediaTypeId: "mt-1",
+      customTaxonomyTerm: undefined,
     })).toEqual({
       kind: "mediaType",
       parentId: "mt-1",
+    });
+  });
+
+  it("offers a taxonomy-term child on a custom taxonomy term page", () => {
+    expect(resolveAddChild({
+      pathParts: ["taxonomies", "japanese", "listening"],
+      tagParentId: undefined,
+      mediaTypeId: undefined,
+      customTaxonomyTerm: {
+        taxonomyId: "tx-1",
+        taxonomySlug: "japanese",
+        termId: "term-1",
+      },
+    })).toEqual({
+      kind: "taxonomyTerm",
+      parentId: "term-1",
+      taxonomyId: "tx-1",
+      taxonomySlug: "japanese",
     });
   });
 
@@ -97,11 +117,13 @@ describe("resolveAddChild", () => {
       pathParts: ["tags"],
       tagParentId: undefined,
       mediaTypeId: undefined,
+      customTaxonomyTerm: undefined,
     })).toBeNull();
     expect(resolveAddChild({
       pathParts: ["bookmarks"],
       tagParentId: undefined,
       mediaTypeId: undefined,
+      customTaxonomyTerm: undefined,
     })).toBeNull();
   });
 });

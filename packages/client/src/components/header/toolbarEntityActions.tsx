@@ -13,27 +13,30 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import i18n from "@/i18n";
 
+function addChildLabel(kind: "tag" | "mediaType" | "taxonomyTerm"): string {
+  if (kind === "tag") return i18n.t("New sub-tag");
+  if (kind === "mediaType") return i18n.t("New sub-type");
+  return i18n.t("New sub-term");
+}
+
 export function addChildAction(ctx: ToolbarContext): ToolbarAction | null {
   if (!ctx.addChild) return null;
   const addChild = ctx.addChild;
-  const label = addChild.kind === "tag" ? i18n.t("New sub-tag") : i18n.t("New sub-type");
+  const label = addChildLabel(addChild.kind);
+  const disabled = addChild.kind === "taxonomyTerm"
+    ? !addChild.parentId || !addChild.taxonomyId
+    : !addChild.parentId;
   return {
     key: "add-child",
-    desktop: (
-      <AddChildButton
-        kind={addChild.kind}
-        parentId={addChild.parentId}
-      />
-    ),
+    desktop: <AddChildButton {...addChild} />,
     mobile: {
       kind: "modal",
       icon: Plus,
       label,
-      disabled: !addChild.parentId,
+      disabled,
       renderModal: (open, onOpenChange) => (
         <AddChildModal
-          kind={addChild.kind}
-          parentId={addChild.parentId}
+          {...addChild}
           open={open}
           onOpenChange={onOpenChange}
         />

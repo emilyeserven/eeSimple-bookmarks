@@ -10,7 +10,7 @@ import { useUiStore } from "@/stores/uiStore";
 /** Subset of the resolved breadcrumb data the toolbar needs to build its contextual actions. */
 type ToolbarBreadcrumbData = Pick<
   HeaderBreadcrumbData,
-  "bookmarkId" | "category" | "website" | "mediaType" | "channel" | "currentTag"
+  "bookmarkId" | "category" | "website" | "mediaType" | "channel" | "currentTag" | "customTaxonomyTerm"
 >;
 
 /**
@@ -24,7 +24,7 @@ export function useHeaderToolbarActions(
   data: ToolbarBreadcrumbData,
 ): ToolbarAction[] {
   const {
-    bookmarkId, category, website, mediaType, channel, currentTag,
+    bookmarkId, category, website, mediaType, channel, currentTag, customTaxonomyTerm,
   } = data;
 
   // Show Edit button in the header only on the bookmark detail page (not edit pages)
@@ -39,6 +39,7 @@ export function useHeaderToolbarActions(
     pathParts,
     tagParentId: currentTag?.id,
     mediaTypeId: mediaType?.id,
+    customTaxonomyTerm,
   });
   const pinContext = resolvePinContext({
     category,

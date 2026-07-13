@@ -511,6 +511,11 @@ export interface HeaderBreadcrumbData {
   channel: { id: string;
     name: string; } | undefined;
   currentTag: TagNode | undefined;
+  /** Set only on a genuine user-created taxonomy term page (not the taxonomy's own listing) — feeds
+   * the header's "New sub-term" add-child button. */
+  customTaxonomyTerm: { taxonomyId: string | undefined;
+    taxonomySlug: string;
+    termId: string | undefined; } | undefined;
 }
 
 /**
@@ -621,5 +626,12 @@ export function useHeaderBreadcrumbs(
     mediaType,
     channel,
     currentTag: tagAncestors?.[tagAncestors.length - 1],
+    customTaxonomyTerm: customTermSlug
+      ? {
+        taxonomyId: customTaxonomyRow?.id,
+        taxonomySlug: customTaxonomySlug,
+        termId: customTermAncestors?.[customTermAncestors.length - 1]?.id,
+      }
+      : undefined,
   };
 }
