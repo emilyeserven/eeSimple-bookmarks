@@ -147,6 +147,7 @@ import { Route as SettingsAdvancedUpdatesRouteImport } from './routes/settings.a
 import { Route as SettingsAdvancedScanPipelineRouteImport } from './routes/settings.advanced.scan-pipeline'
 import { Route as SettingsAdvancedManageMediaRouteImport } from './routes/settings.advanced.manage-media'
 import { Route as SettingsAdvancedManageDataRouteImport } from './routes/settings.advanced.manage-data'
+import { Route as SettingsAdvancedLayoutIssuesRouteImport } from './routes/settings.advanced.layout-issues'
 import { Route as SettingsAdvancedDatabaseUsageRouteImport } from './routes/settings.advanced.database-usage'
 import { Route as SettingsAdvancedConnectorsRouteImport } from './routes/settings.advanced.connectors'
 import { Route as SavedFiltersFilterSlugInfoRouteImport } from './routes/saved-filters.$filterSlug.info'
@@ -1016,6 +1017,12 @@ const SettingsAdvancedManageDataRoute =
     path: '/manage-data',
     getParentRoute: () => SettingsAdvancedRoute,
   } as any)
+const SettingsAdvancedLayoutIssuesRoute =
+  SettingsAdvancedLayoutIssuesRouteImport.update({
+    id: '/layout-issues',
+    path: '/layout-issues',
+    getParentRoute: () => SettingsAdvancedRoute,
+  } as any)
 const SettingsAdvancedDatabaseUsageRoute =
   SettingsAdvancedDatabaseUsageRouteImport.update({
     id: '/database-usage',
@@ -1814,6 +1821,7 @@ export interface FileRoutesByFullPath {
   '/saved-filters/$filterSlug/info': typeof SavedFiltersFilterSlugInfoRoute
   '/settings/advanced/connectors': typeof SettingsAdvancedConnectorsRoute
   '/settings/advanced/database-usage': typeof SettingsAdvancedDatabaseUsageRoute
+  '/settings/advanced/layout-issues': typeof SettingsAdvancedLayoutIssuesRoute
   '/settings/advanced/manage-data': typeof SettingsAdvancedManageDataRoute
   '/settings/advanced/manage-media': typeof SettingsAdvancedManageMediaRoute
   '/settings/advanced/scan-pipeline': typeof SettingsAdvancedScanPipelineRoute
@@ -2024,6 +2032,7 @@ export interface FileRoutesByTo {
   '/saved-filters/$filterSlug/info': typeof SavedFiltersFilterSlugInfoRoute
   '/settings/advanced/connectors': typeof SettingsAdvancedConnectorsRoute
   '/settings/advanced/database-usage': typeof SettingsAdvancedDatabaseUsageRoute
+  '/settings/advanced/layout-issues': typeof SettingsAdvancedLayoutIssuesRoute
   '/settings/advanced/manage-data': typeof SettingsAdvancedManageDataRoute
   '/settings/advanced/manage-media': typeof SettingsAdvancedManageMediaRoute
   '/settings/advanced/scan-pipeline': typeof SettingsAdvancedScanPipelineRoute
@@ -2245,6 +2254,7 @@ export interface FileRoutesById {
   '/saved-filters/$filterSlug/info': typeof SavedFiltersFilterSlugInfoRoute
   '/settings/advanced/connectors': typeof SettingsAdvancedConnectorsRoute
   '/settings/advanced/database-usage': typeof SettingsAdvancedDatabaseUsageRoute
+  '/settings/advanced/layout-issues': typeof SettingsAdvancedLayoutIssuesRoute
   '/settings/advanced/manage-data': typeof SettingsAdvancedManageDataRoute
   '/settings/advanced/manage-media': typeof SettingsAdvancedManageMediaRoute
   '/settings/advanced/scan-pipeline': typeof SettingsAdvancedScanPipelineRoute
@@ -2508,6 +2518,7 @@ export interface FileRouteTypes {
     | '/saved-filters/$filterSlug/info'
     | '/settings/advanced/connectors'
     | '/settings/advanced/database-usage'
+    | '/settings/advanced/layout-issues'
     | '/settings/advanced/manage-data'
     | '/settings/advanced/manage-media'
     | '/settings/advanced/scan-pipeline'
@@ -2718,6 +2729,7 @@ export interface FileRouteTypes {
     | '/saved-filters/$filterSlug/info'
     | '/settings/advanced/connectors'
     | '/settings/advanced/database-usage'
+    | '/settings/advanced/layout-issues'
     | '/settings/advanced/manage-data'
     | '/settings/advanced/manage-media'
     | '/settings/advanced/scan-pipeline'
@@ -2938,6 +2950,7 @@ export interface FileRouteTypes {
     | '/saved-filters/$filterSlug/info'
     | '/settings/advanced/connectors'
     | '/settings/advanced/database-usage'
+    | '/settings/advanced/layout-issues'
     | '/settings/advanced/manage-data'
     | '/settings/advanced/manage-media'
     | '/settings/advanced/scan-pipeline'
@@ -4118,6 +4131,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsAdvancedManageDataRouteImport
       parentRoute: typeof SettingsAdvancedRoute
     }
+    '/settings/advanced/layout-issues': {
+      id: '/settings/advanced/layout-issues'
+      path: '/layout-issues'
+      fullPath: '/settings/advanced/layout-issues'
+      preLoaderRoute: typeof SettingsAdvancedLayoutIssuesRouteImport
+      parentRoute: typeof SettingsAdvancedRoute
+    }
     '/settings/advanced/database-usage': {
       id: '/settings/advanced/database-usage'
       path: '/database-usage'
@@ -5292,6 +5312,7 @@ const SavedFiltersRouteWithChildren = SavedFiltersRoute._addFileChildren(
 interface SettingsAdvancedRouteChildren {
   SettingsAdvancedConnectorsRoute: typeof SettingsAdvancedConnectorsRoute
   SettingsAdvancedDatabaseUsageRoute: typeof SettingsAdvancedDatabaseUsageRoute
+  SettingsAdvancedLayoutIssuesRoute: typeof SettingsAdvancedLayoutIssuesRoute
   SettingsAdvancedManageDataRoute: typeof SettingsAdvancedManageDataRoute
   SettingsAdvancedManageMediaRoute: typeof SettingsAdvancedManageMediaRoute
   SettingsAdvancedScanPipelineRoute: typeof SettingsAdvancedScanPipelineRoute
@@ -5302,6 +5323,7 @@ interface SettingsAdvancedRouteChildren {
 const SettingsAdvancedRouteChildren: SettingsAdvancedRouteChildren = {
   SettingsAdvancedConnectorsRoute: SettingsAdvancedConnectorsRoute,
   SettingsAdvancedDatabaseUsageRoute: SettingsAdvancedDatabaseUsageRoute,
+  SettingsAdvancedLayoutIssuesRoute: SettingsAdvancedLayoutIssuesRoute,
   SettingsAdvancedManageDataRoute: SettingsAdvancedManageDataRoute,
   SettingsAdvancedManageMediaRoute: SettingsAdvancedManageMediaRoute,
   SettingsAdvancedScanPipelineRoute: SettingsAdvancedScanPipelineRoute,

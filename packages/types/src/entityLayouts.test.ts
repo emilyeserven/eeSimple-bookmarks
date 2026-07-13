@@ -3,7 +3,12 @@ import { test } from "node:test";
 
 import type { EntityLayout } from "./entityLayouts.js";
 
-import { isValidEntityLayout, LAYOUTABLE_ENTITY_KINDS, resolveLayout } from "./entityLayouts.js";
+import {
+  explainEntityLayoutIssues,
+  isValidEntityLayout,
+  LAYOUTABLE_ENTITY_KINDS,
+  resolveLayout,
+} from "./entityLayouts.js";
 
 /** A representative 2-tab, 2-section-per-tab default layout used across most test cases. */
 function makeDefaultLayout(): EntityLayout {
@@ -783,6 +788,89 @@ test("isValidEntityLayout rejects a section with non-string fields", () => {
     ],
   };
   assert.equal(isValidEntityLayout(value), false);
+});
+
+// ---- explainEntityLayoutIssues ---------------------------------------------------------------------
+
+test("explainEntityLayoutIssues returns [] for a valid layout", () => {
+  assert.deepEqual(explainEntityLayoutIssues(makeDefaultLayout()), []);
+});
+
+test("explainEntityLayoutIssues reports a non-object value", () => {
+  assert.deepEqual(explainEntityLayoutIssues(null), ["value is not an object"]);
+  assert.deepEqual(explainEntityLayoutIssues("nope"), ["value is not an object"]);
+});
+
+test("explainEntityLayoutIssues reports tabs that is missing or not an array", () => {
+  assert.deepEqual(explainEntityLayoutIssues({}), ["tabs is missing or not an array"]);
+  assert.deepEqual(explainEntityLayoutIssues({
+    tabs: "not-an-array",
+  }), ["tabs is missing or not an array"]);
+});
+
+test("explainEntityLayoutIssues path-anchors a tab missing its key", () => {
+  const issues = explainEntityLayoutIssues({
+    tabs: [{
+      label: "General",
+      sections: [],
+    }],
+  });
+  assert.ok(issues.some(i => i === "tabs[0] is missing a string \"key\""), issues.join("; "));
+});
+
+test("explainEntityLayoutIssues path-anchors a tab whose sections is missing", () => {
+  const issues = explainEntityLayoutIssues({
+    tabs: [{
+      key: "general",
+      label: "General",
+    }],
+  });
+  assert.deepEqual(issues, ["tabs[0].sections is missing or not an array"]);
+});
+
+test("explainEntityLayoutIssues path-anchors a section whose fields holds a non-string", () => {
+  const issues = explainEntityLayoutIssues({
+    tabs: [{
+      key: "general",
+      label: "General",
+      sections: [{
+        key: "main",
+        fields: [1, 2],
+      }],
+    }],
+  });
+  assert.deepEqual(issues, ["tabs[0].sections[0].fields is missing or contains a non-string value"]);
+});
+
+test("isValidEntityLayout agrees with explainEntityLayoutIssues emptiness across samples", () => {
+  const samples: unknown[] = [
+    makeDefaultLayout(),
+    null,
+    "nope",
+    {},
+    {
+      tabs: "not-an-array",
+    },
+    {
+      tabs: [{
+        label: "General",
+        sections: [],
+      }],
+    },
+    {
+      tabs: [{
+        key: "general",
+        label: "General",
+        sections: [{
+          key: "main",
+          fields: [1],
+        }],
+      }],
+    },
+  ];
+  for (const sample of samples) {
+    assert.equal(isValidEntityLayout(sample), explainEntityLayoutIssues(sample).length === 0);
+  }
 });
 
 // ---- LAYOUTABLE_ENTITY_KINDS -----------------------------------------------------------------------
