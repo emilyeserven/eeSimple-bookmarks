@@ -22,13 +22,16 @@ import { cn } from "@/lib/utils";
 
 const UNGROUPED_VALUE = "__ungrouped__";
 
-/** One pin: its resolved label, a section-assignment select, and an unpin button. */
+/** One pin: reorder up/down, its resolved label, a section-assignment select, and an unpin button. */
 function PinRow({
-  pin, label, sections, onAssign, onRemove,
+  pin, label, sections, isFirst, isLast, onMove, onAssign, onRemove,
 }: {
   pin: PinnedSidebarItem;
   label: string | null;
   sections: PinnedSection[];
+  isFirst: boolean;
+  isLast: boolean;
+  onMove: (delta: number) => void;
   onAssign: (sectionId: string | null) => void;
   onRemove: () => void;
 }) {
@@ -37,6 +40,34 @@ function PinRow({
   } = useTranslation();
   return (
     <div className="flex items-center gap-2 py-0.5">
+      <div className="flex shrink-0 flex-col">
+        <button
+          type="button"
+          className="
+            text-muted-foreground
+            hover:text-foreground
+            disabled:opacity-30
+          "
+          disabled={isFirst}
+          aria-label={t("Move up")}
+          onClick={() => onMove(-1)}
+        >
+          <ChevronUp className="size-3.5" />
+        </button>
+        <button
+          type="button"
+          className="
+            text-muted-foreground
+            hover:text-foreground
+            disabled:opacity-30
+          "
+          disabled={isLast}
+          aria-label={t("Move down")}
+          onClick={() => onMove(1)}
+        >
+          <ChevronDown className="size-3.5" />
+        </button>
+      </div>
       <span
         className={cn(
           "flex-1 truncate text-sm",
@@ -162,7 +193,7 @@ export function PinManager() {
     pins, addPin, removePin, groups, resolvePinLabel,
   } = usePinManagerData();
   const {
-    sections, createSection, renameSection, deleteSection, moveSection, assignPin,
+    sections, createSection, renameSection, deleteSection, moveSection, movePin, assignPin,
   } = usePinSectionManager();
   const [comboValue, setComboValue] = useState<string | undefined>();
   const [newSectionName, setNewSectionName] = useState("");
@@ -189,13 +220,16 @@ export function PinManager() {
   const sectionIds = new Set(sections.map(s => s.id));
   const ungroupedPins = pins.filter(p => p.sectionId === null || !sectionIds.has(p.sectionId));
 
-  function renderPin(pin: PinnedSidebarItem) {
+  function renderPin(pin: PinnedSidebarItem, index: number, group: PinnedSidebarItem[]) {
     return (
       <PinRow
         key={pin.id}
         pin={pin}
         label={resolvePinLabel(pin)}
         sections={sections}
+        isFirst={index === 0}
+        isLast={index === group.length - 1}
+        onMove={delta => movePin(pin.id, delta, pins)}
         onAssign={sectionId => assignPin(pin.id, sectionId)}
         onRemove={() => removePin.mutate(pin.id)}
       />
