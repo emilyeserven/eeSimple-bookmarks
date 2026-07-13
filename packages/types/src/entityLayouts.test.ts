@@ -70,6 +70,15 @@ test("stored with zero tabs resolves to defaultLayout", () => {
   assert.deepEqual(result, defaultLayout);
 });
 
+test("a structurally-invalid stored layout resolves to defaultLayout instead of throwing", () => {
+  const defaultLayout = makeDefaultLayout();
+  const malformed = {
+    tabs: "not-an-array",
+  } as unknown as EntityLayout;
+  const result = resolveLayout(malformed, defaultLayout, defaultKnownFieldKeys());
+  assert.deepEqual(result, defaultLayout);
+});
+
 // ---- Rule 2: unknown field keys dropped -------------------------------------------------------
 
 test("a stored field key not in knownFieldKeys is dropped", () => {

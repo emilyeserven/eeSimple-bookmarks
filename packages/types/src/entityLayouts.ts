@@ -213,8 +213,9 @@ export function resolveLayout(
   defaultLayout: EntityLayout,
   knownFieldKeys: Set<string>,
 ): EntityLayout {
-  // Rule 1.
-  if (!stored || stored.tabs.length === 0) return defaultLayout;
+  // Rule 1. Also guards against a structurally-invalid stored value (e.g. malformed/pre-validation
+  // legacy data) reaching the unguarded `.map`/`.filter` calls below.
+  if (!stored || !isValidEntityLayout(stored) || stored.tabs.length === 0) return defaultLayout;
 
   // Rule 2: drop unknown field keys.
   const workingTabs: LayoutTab[] = stored.tabs.map(tab => ({
