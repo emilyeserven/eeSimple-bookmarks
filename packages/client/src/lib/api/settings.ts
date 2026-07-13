@@ -267,6 +267,11 @@ export const entityLayoutsApi = {
     request<undefined>(`/entity-layouts/${kind}`, {
       method: "DELETE",
     }),
+  /** Clear a corrupted stored layout by its raw kind string (may be a non-enum `taxonomy:<id>` key). */
+  clearInvalid: (kind: string) =>
+    request<undefined>(`/entity-layouts/invalid/${encodeURIComponent(kind)}`, {
+      method: "DELETE",
+    }),
 };
 
 export const savedFiltersApi = createCrudApi<SavedFilter, CreateSavedFilterInput, UpdateSavedFilterInput>("saved-filters");

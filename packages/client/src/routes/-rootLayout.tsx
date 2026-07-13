@@ -12,6 +12,7 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar";
+import { useInvalidLayoutsToast } from "@/hooks/useInvalidLayoutsToast";
 import { useOfflineToast } from "@/hooks/useOfflineToast";
 import { useServerUnreachableToast } from "@/hooks/useServerUnreachableToast";
 import { useSyncInterfaceLanguage } from "@/hooks/useSyncInterfaceLanguage";
@@ -26,6 +27,8 @@ export function RootLayout() {
   useServerUnreachableToast();
   // Keep i18next + document.lang in sync with the persisted interface-language setting.
   useSyncInterfaceLanguage();
+  // Alert the user when a stored page layout is corrupt (surfaced in Settings → Advanced → Layout Issues).
+  useInvalidLayoutsToast();
   // The quick-add popup is chrome-less: it renders the bare form (no sidebar/header/right panel) so
   // it fits a small popup window.
   const isQuickAdd = useRouterState({

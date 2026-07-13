@@ -30,6 +30,7 @@ mock.module("@/db", {
 
 const {
   deleteEntityLayout,
+  findInvalidEntityLayouts,
   listEntityLayouts,
   upsertEntityLayout,
 } = await import("@/services/entityLayouts");
@@ -124,4 +125,84 @@ test("deleteEntityLayout: removes the row and returns true", async () => {
 test("deleteEntityLayout: returns false when no row exists for the kind", async () => {
   const deleted = await deleteEntityLayout("category");
   assert.equal(deleted, false);
+});
+
+test("listEntityLayouts: marks a structurally-invalid row invalid, nulls layout, carries raw + issues", async () => {
+  resetRows([{
+    id: "el-1",
+    entityKind: "custom-property",
+    layout: {
+      foo: "bar",
+    },
+    updatedAt: new Date("2026-07-13T12:00:00Z"),
+  }]);
+
+  const [record] = await listEntityLayouts();
+  assert.equal(record.invalid, true);
+  assert.equal(record.layout, null);
+  assert.deepEqual(record.rawLayout, {
+    foo: "bar",
+  });
+  assert.ok(record.issues && record.issues.length > 0);
+  assert.deepEqual(record.issues, ["tabs is missing or not an array"]);
+});
+
+test("listEntityLayouts: leaves a valid row untouched (no invalid/rawLayout/issues)", async () => {
+  resetRows([{
+    id: "el-1",
+    entityKind: "category",
+    layout: {
+      tabs: [{
+        key: "general",
+        label: "General",
+        sections: [{
+          key: "s1",
+          fields: ["name"],
+        }],
+      }],
+    },
+    updatedAt: new Date("2026-01-01T00:00:00Z"),
+  }]);
+
+  const [record] = await listEntityLayouts();
+  assert.equal(record.invalid, undefined);
+  assert.equal(record.rawLayout, undefined);
+  assert.equal(record.issues, undefined);
+  assert.ok(record.layout);
+});
+
+test("findInvalidEntityLayouts: returns exactly the malformed kinds with their reasons", async () => {
+  resetRows([
+    {
+      id: "el-1",
+      entityKind: "custom-property",
+      layout: {
+        foo: "bar",
+      },
+      updatedAt: new Date("2026-07-13T12:00:00Z"),
+    },
+    {
+      id: "el-2",
+      entityKind: "category",
+      layout: {
+        tabs: [{
+          key: "general",
+          label: "General",
+          sections: [],
+        }],
+      },
+      updatedAt: new Date("2026-01-01T00:00:00Z"),
+    },
+    {
+      id: "el-3",
+      entityKind: "tag",
+      layout: null,
+      updatedAt: new Date("2026-01-02T00:00:00Z"),
+    },
+  ]);
+
+  const invalid = await findInvalidEntityLayouts();
+  assert.equal(invalid.length, 1);
+  assert.equal(invalid[0].kind, "custom-property");
+  assert.deepEqual(invalid[0].issues, ["tabs is missing or not an array"]);
 });

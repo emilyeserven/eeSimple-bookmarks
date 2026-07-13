@@ -22,6 +22,21 @@ const saveBody = {
   },
 } as const;
 
+/**
+ * The `:kind` param for the "clear invalid row" route — a PLAIN string, not the
+ * `layoutableEntityKindSchema` enum, so a corrupted row stored under any key (including a non-enum
+ * `taxonomy:<id>` key) can still be reset.
+ */
+const invalidKindParams = {
+  type: "object",
+  required: ["kind"],
+  properties: {
+    kind: {
+      type: "string",
+    },
+  },
+} as const;
+
 /** List/save/reset per-entity-kind stored page layouts. */
 export async function entityLayoutsRoutes(app: FastifyInstance): Promise<void> {
   app.get("/api/entity-layouts", {
@@ -58,6 +73,21 @@ export async function entityLayoutsRoutes(app: FastifyInstance): Promise<void> {
     const {
       kind,
     } = req.params as { kind: LayoutableEntityKind };
+    await deleteEntityLayout(kind);
+    reply.status(204);
+  });
+
+  // Clear a corrupted stored layout, keyed by its raw (possibly non-enum) kind string. The static
+  // `invalid/` prefix is matched ahead of the enum `:kind` route above, so there's no collision.
+  app.delete("/api/entity-layouts/invalid/:kind", {
+    schema: {
+      tags: ["entity-layouts"],
+      params: invalidKindParams,
+    },
+  }, async (req, reply) => {
+    const {
+      kind,
+    } = req.params as { kind: string };
     await deleteEntityLayout(kind);
     reply.status(204);
   });

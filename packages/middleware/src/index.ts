@@ -7,6 +7,7 @@ import { backfillCardDisplaySections, deleteNonDefaultCardDisplayRules, ensureCa
 import { ensureDefaultCategory } from "@/services/categories";
 import { ensureContentStatusProperty, ensureDatePostedProperty, ensureIsbnProperty, ensurePageRangeProperty, ensureProgressProperty, ensureRuntimeProperty, ensureSectionsProperty } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
+import { findInvalidEntityLayouts } from "@/services/entityLayouts";
 import { resetStalledImports } from "@/services/imports";
 import { resetStalledReelArchiveJobs } from "@/services/reelArchive";
 import { ensureHomepageSections } from "@/services/homepageSections";
@@ -76,6 +77,15 @@ try {
   await ensureCardDisplayConfig();
   await backfillCardDisplaySections();
   await deleteNonDefaultCardDisplayRules();
+  // Integrity check (log-only): surface any structurally-invalid stored page layout loudly instead of
+  // silently healing it. The rows are kept (not deleted) so the user can inspect/resolve each in
+  // Settings → Advanced → Layout Issues; logging the reasons puts the debug info in the server logs too.
+  const invalidLayouts = await findInvalidEntityLayouts();
+  if (invalidLayouts.length > 0) {
+    app.log.warn({
+      invalidLayouts,
+    }, "Invalid stored entity layouts detected; they resolve to defaults and are surfaced in Settings → Advanced → Layout Issues");
+  }
   // A restart abandons any in-process import worker, so fail anything left queued/processing.
   await resetStalledImports();
   await resetStalledReelArchiveJobs();

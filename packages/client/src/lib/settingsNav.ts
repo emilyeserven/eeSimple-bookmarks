@@ -23,6 +23,7 @@ import {
   RefreshCw,
   Share2,
   SquarePlus,
+  TriangleAlert,
   Wand2,
   Waypoints,
   Workflow,
@@ -184,6 +185,11 @@ export const advancedNav: readonly SettingsTabNavItem[] = [
     to: "/settings/advanced/database-usage",
     label: i18n.t("Database usage"),
     icon: HardDrive,
+  },
+  {
+    to: "/settings/advanced/layout-issues",
+    label: i18n.t("Layout Issues"),
+    icon: TriangleAlert,
   },
 ] as const;
 

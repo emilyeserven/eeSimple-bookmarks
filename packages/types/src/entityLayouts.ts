@@ -113,6 +113,12 @@ export interface EntityLayoutRecord {
   entityKind: LayoutStorageKind;
   layout: EntityLayout | null;
   updatedAt: string;
+  /** The stored layout failed structural validation and was resolved to the default in-memory. */
+  invalid?: boolean;
+  /** Present only when {@link invalid}: the un-parseable stored value, for operator inspection. */
+  rawLayout?: unknown;
+  /** Present only when {@link invalid}: the specific, path-anchored reasons validation failed. */
+  issues?: string[];
 }
 
 function isStringArray(value: unknown): value is string[] {
@@ -131,37 +137,64 @@ function isConditionTreeLike(value: unknown): value is ConditionTree {
   return tree.type === "group" && Array.isArray(tree.children);
 }
 
-function isValidLayoutSection(value: unknown): value is LayoutSection {
-  if (typeof value !== "object" || value === null) return false;
+/** Collect the reasons a value is not a valid {@link LayoutSection}, path-anchored under `path`. */
+function collectSectionIssues(value: unknown, path: string, issues: string[]): void {
+  if (typeof value !== "object" || value === null) {
+    issues.push(`${path} is not an object`);
+    return;
+  }
   const section = value as Record<string, unknown>;
-  if (typeof section.key !== "string") return false;
-  if (section.title !== undefined && typeof section.title !== "string") return false;
-  if (section.description !== undefined && typeof section.description !== "string") return false;
-  if (section.columns !== undefined && typeof section.columns !== "number") return false;
-  if (section.visibleIf !== undefined && !isConditionTreeLike(section.visibleIf)) return false;
-  return isStringArray(section.fields);
+  if (typeof section.key !== "string") issues.push(`${path} is missing a string "key"`);
+  if (section.title !== undefined && typeof section.title !== "string") issues.push(`${path}.title is not a string`);
+  if (section.description !== undefined && typeof section.description !== "string") issues.push(`${path}.description is not a string`);
+  if (section.columns !== undefined && typeof section.columns !== "number") issues.push(`${path}.columns is not a number`);
+  if (section.visibleIf !== undefined && !isConditionTreeLike(section.visibleIf)) issues.push(`${path}.visibleIf is not a condition group`);
+  if (!isStringArray(section.fields)) issues.push(`${path}.fields is missing or contains a non-string value`);
 }
 
-function isValidLayoutTab(value: unknown): value is LayoutTab {
-  if (typeof value !== "object" || value === null) return false;
+/** Collect the reasons a value is not a valid {@link LayoutTab}, path-anchored under `path`. */
+function collectTabIssues(value: unknown, path: string, issues: string[]): void {
+  if (typeof value !== "object" || value === null) {
+    issues.push(`${path} is not an object`);
+    return;
+  }
   const tab = value as Record<string, unknown>;
-  if (typeof tab.key !== "string") return false;
-  if (typeof tab.label !== "string") return false;
-  if (tab.icon !== undefined && typeof tab.icon !== "string") return false;
-  if (tab.description !== undefined && typeof tab.description !== "string") return false;
-  return Array.isArray(tab.sections) && tab.sections.every(isValidLayoutSection);
+  if (typeof tab.key !== "string") issues.push(`${path} is missing a string "key"`);
+  if (typeof tab.label !== "string") issues.push(`${path} is missing a string "label"`);
+  if (tab.icon !== undefined && typeof tab.icon !== "string") issues.push(`${path}.icon is not a string`);
+  if (tab.description !== undefined && typeof tab.description !== "string") issues.push(`${path}.description is not a string`);
+  if (!Array.isArray(tab.sections)) {
+    issues.push(`${path}.sections is missing or not an array`);
+    return;
+  }
+  tab.sections.forEach((section, i) => collectSectionIssues(section, `${path}.sections[${i}]`, issues));
+}
+
+/**
+ * Human-readable, path-anchored reasons a value is not a valid {@link EntityLayout}. An empty array
+ * means the value IS a valid layout. Walks the same tabs/sections/fields nesting the boolean
+ * {@link isValidEntityLayout} guard checks, but reports each specific failure (e.g.
+ * `"tabs[2].sections is missing or not an array"`) so a corrupted stored layout can be diagnosed
+ * instead of just flagged. Like the boolean guard, this does NOT validate field keys against a
+ * known-field list — that's {@link resolveLayout}'s read-time job.
+ */
+export function explainEntityLayoutIssues(value: unknown): string[] {
+  if (typeof value !== "object" || value === null) return ["value is not an object"];
+  const layout = value as Record<string, unknown>;
+  if (!Array.isArray(layout.tabs)) return ["tabs is missing or not an array"];
+  const issues: string[] = [];
+  layout.tabs.forEach((tab, i) => collectTabIssues(tab, `tabs[${i}]`, issues));
+  return issues;
 }
 
 /**
  * Structural guard for the API/DB boundary: validates the tabs/sections/fields nesting shape only
  * (string keys, arrays where expected). Does NOT validate field keys against a known-field list —
  * that's {@link resolveLayout}'s job at read time, since it requires entity-specific context this
- * guard doesn't have.
+ * guard doesn't have. Derived from {@link explainEntityLayoutIssues} so the two can never disagree.
  */
 export function isValidEntityLayout(value: unknown): value is EntityLayout {
-  if (typeof value !== "object" || value === null) return false;
-  const layout = value as Record<string, unknown>;
-  return Array.isArray(layout.tabs) && layout.tabs.every(isValidLayoutTab);
+  return explainEntityLayoutIssues(value).length === 0;
 }
 
 interface FieldHome {
