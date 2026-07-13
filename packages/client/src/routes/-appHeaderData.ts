@@ -145,21 +145,36 @@ export function resolvePinContext(c: PinCandidates): PinContext | null {
   return null;
 }
 
+/** The current custom (user-created) taxonomy term page's ids, for the header's add-child button. */
+export interface CustomTaxonomyTermAddChildData {
+  taxonomyId: string | undefined;
+  taxonomySlug: string;
+  termId: string | undefined;
+}
+
 /** The header's "quick-create a child of this entity" descriptor for hierarchy taxonomies. */
 export type AddChild = { kind: "tag" | "mediaType";
-  parentId: string | undefined; } | null;
+  parentId: string | undefined; }
+  | { kind: "taxonomyTerm";
+    parentId: string | undefined;
+    taxonomyId: string | undefined;
+    taxonomySlug: string; }
+    | null;
 
 /**
- * On a hierarchy-taxonomy detail page (Tags / Media Types), the header offers a button that
- * quick-creates a child of the current entity. The parent id is the already-resolved entity.
+ * On a hierarchy-taxonomy detail page (Tags / Media Types / a user-created taxonomy's term page),
+ * the header offers a button that quick-creates a child of the current entity. The parent id is the
+ * already-resolved entity. `customTaxonomyTerm` is set only on a genuine term page (not the
+ * taxonomy's own listing) — see `useHeaderBreadcrumbs`.
  */
 export function resolveAddChild(args: {
   pathParts: string[];
   tagParentId: string | undefined;
   mediaTypeId: string | undefined;
+  customTaxonomyTerm: CustomTaxonomyTermAddChildData | undefined;
 }): AddChild {
   const {
-    pathParts, tagParentId, mediaTypeId,
+    pathParts, tagParentId, mediaTypeId, customTaxonomyTerm,
   } = args;
   const isTagDetail = pathParts[0] === "tags" && pathParts.length >= 2;
   if (isTagDetail) return {
@@ -173,6 +188,13 @@ export function resolveAddChild(args: {
   if (isMediaTypeDetail) return {
     kind: "mediaType",
     parentId: mediaTypeId,
+  };
+
+  if (customTaxonomyTerm) return {
+    kind: "taxonomyTerm",
+    parentId: customTaxonomyTerm.termId,
+    taxonomyId: customTaxonomyTerm.taxonomyId,
+    taxonomySlug: customTaxonomyTerm.taxonomySlug,
   };
 
   return null;

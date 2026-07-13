@@ -33,3 +33,13 @@ export const MediaType: Story = {
     parentId: "media-video",
   },
 };
+
+/** Quick-create a sub-term under the current user-created taxonomy term. */
+export const TaxonomyTerm: Story = {
+  args: {
+    kind: "taxonomyTerm",
+    parentId: "term-listening",
+    taxonomyId: "taxonomy-japanese",
+    taxonomySlug: "japanese",
+  },
+};

@@ -42,7 +42,12 @@ export interface ToolbarContext {
   isBookmarkDetail: boolean;
   bookmarkId: string;
   addChild: { kind: "tag" | "mediaType";
-    parentId: string | undefined; } | null;
+    parentId: string | undefined; }
+    | { kind: "taxonomyTerm";
+      parentId: string | undefined;
+      taxonomyId: string | undefined;
+      taxonomySlug: string; }
+      | null;
   settingsPage: SettingsPage | null | undefined;
   pinContext: PinContext | null;
   /** The mounted edit form's outside-source sync provider, or null. Gates the "Sync from source" button. */

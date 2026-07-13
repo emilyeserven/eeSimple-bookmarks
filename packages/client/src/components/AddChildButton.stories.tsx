@@ -31,3 +31,13 @@ export const DisabledWhileLoading: Story = {
     parentId: undefined,
   },
 };
+
+/** A user-created taxonomy's term page: the button quick-creates a sub-term of the current term. */
+export const TaxonomyTerm: Story = {
+  args: {
+    kind: "taxonomyTerm",
+    parentId: "parent-1",
+    taxonomyId: "taxonomy-1",
+    taxonomySlug: "japanese",
+  },
+};
