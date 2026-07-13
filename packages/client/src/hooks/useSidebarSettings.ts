@@ -37,21 +37,6 @@ export function useSidebarSettings() {
     });
   }
 
-  function setCategoryMode(id: string, mode: CategoryDisplayMode): void {
-    updateSidebar.mutate({
-      ...sidebar,
-      hiddenCategoryIds: mode === "hidden"
-        ? [...sidebar.hiddenCategoryIds.filter(x => x !== id), id]
-        : sidebar.hiddenCategoryIds.filter(x => x !== id),
-      seeMoreCategoryIds: mode === "see-more"
-        ? [...sidebar.seeMoreCategoryIds.filter(x => x !== id), id]
-        : sidebar.seeMoreCategoryIds.filter(x => x !== id),
-    }, {
-      onSuccess: () => notifySuccess(t("Sidebar updated")),
-      onError: error => notifyError(error.message),
-    });
-  }
-
   function setTaxonomyItemMode(key: string, mode: CategoryDisplayMode): void {
     updateSidebar.mutate({
       ...sidebar,
@@ -101,7 +86,6 @@ export function useSidebarSettings() {
 
   return {
     sidebar,
-    setCategoryMode,
     setTaxonomyItemMode,
     setCustomizationItemMode,
     setConnectorLinkMode,

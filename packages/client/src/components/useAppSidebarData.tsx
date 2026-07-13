@@ -1,4 +1,5 @@
 import type { ResolvedPin } from "./useSidebarPins";
+import type { Category, PinnedSection, Tag } from "@eesimple/types";
 
 import * as React from "react";
 
@@ -11,8 +12,39 @@ import {
   useSidebarVisibility,
 } from "../hooks/useAppSettings";
 import { useBookmarks } from "../hooks/useBookmarks";
-import { useCategories } from "../hooks/useCategories";
+import { usePinnedSections } from "../hooks/usePinnedSections";
 import { validateBookmarkSearch } from "../lib/bookmarkSearch";
+
+/** A pinned section paired with its resolved pins, ready to render as a labeled group. */
+export interface PinnedSectionGroup {
+  section: PinnedSection;
+  pins: ResolvedPin[];
+}
+
+/**
+ * Partition resolved pins into the ungrouped bucket (rendered first, paginated) and one group per
+ * section that has at least one pin (rendered in section `sortOrder`, in full). A pin whose section
+ * no longer exists falls back to ungrouped.
+ */
+export function groupPinsBySection(
+  resolvedPins: ResolvedPin[],
+  sections: PinnedSection[],
+): { ungrouped: ResolvedPin[];
+  groups: PinnedSectionGroup[]; } {
+  const byId = new Map(sections.map(s => [s.id, s]));
+  const ungrouped = resolvedPins.filter(p => p.sectionId === null || !byId.has(p.sectionId));
+  const groups = [...sections]
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map(section => ({
+      section,
+      pins: resolvedPins.filter(p => p.sectionId === section.id),
+    }))
+    .filter(group => group.pins.length > 0);
+  return {
+    ungrouped,
+    groups,
+  };
+}
 
 export type { ResolvedPin } from "./useSidebarPins";
 
@@ -98,10 +130,10 @@ interface SidebarNavItem {
 
 export interface AppSidebarData<T extends SidebarNavItem, C extends SidebarNavItem> {
   pathname: string;
-  visibleCategories: NonNullable<ReturnType<typeof useCategories>["data"]>;
-  seeMoreCategories: NonNullable<ReturnType<typeof useCategories>["data"]>;
-  categoriesExpanded: boolean;
-  setCategoriesExpanded: (v: boolean) => void;
+  /** Starred categories surfaced in the Categories sidebar flyout. */
+  starredCategories: Category[];
+  /** Starred tags surfaced in the Tags sidebar flyout. */
+  starredTags: Tag[];
   visibleTaxonomyItems: (T & { count: number | undefined })[];
   seeMoreTaxonomyItemsList: (T & { count: number | undefined })[];
   taxonomiesExpanded: boolean;
@@ -111,6 +143,8 @@ export interface AppSidebarData<T extends SidebarNavItem, C extends SidebarNavIt
   customizationExpanded: boolean;
   setCustomizationExpanded: (v: boolean) => void;
   resolvedPins: ResolvedPin[];
+  /** Sections with pins, in `sortOrder`, rendered as labeled groups after the ungrouped bucket. */
+  pinnedSectionGroups: PinnedSectionGroup[];
   viewableFilters: ResolvedPin[];
   pinnedExpanded: boolean;
   setPinnedExpanded: (v: boolean) => void;
@@ -157,10 +191,7 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
   const data = useSidebarEntityData();
   const [pinnedExpanded, setPinnedExpanded] = React.useState(false);
   const [pinnedShowAll, setPinnedShowAll] = React.useState(false);
-  const [categoriesExpanded, setCategoriesExpanded] = React.useState(false);
   const {
-    hiddenCategoryIds,
-    seeMoreCategoryIds,
     hiddenTaxonomyItems,
     seeMoreTaxonomyItems,
     hiddenCustomizationItems,
@@ -171,13 +202,8 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
   const [taxonomiesExpanded, setTaxonomiesExpanded] = React.useState(false);
   const [customizationExpanded, setCustomizationExpanded] = React.useState(false);
 
-  const visibleCategories = (data.categories ?? []).filter(
-    c => !hiddenCategoryIds.includes(c.id) && !seeMoreCategoryIds.includes(c.id),
-  );
-
-  const seeMoreCategories = (data.categories ?? []).filter(
-    c => !hiddenCategoryIds.includes(c.id) && seeMoreCategoryIds.includes(c.id),
-  );
+  const starredCategories = (data.categories ?? []).filter(c => c.isFavorite);
+  const starredTags = (data.allTags ?? []).filter(t => t.isFavorite);
 
   const taxonomyCounts = {
     "categories": data.categories?.length,
@@ -221,18 +247,23 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
   ).filter(item => seeMoreCustomizationItems.includes(item.key));
 
   const resolvedPins = useResolvedPins(data, pathname, currentBookmarkCategories, currentBookmarkSearch);
+  const {
+    data: sections = [],
+  } = usePinnedSections();
   const viewableFilters = useViewableFilters(data, pathname, currentBookmarkSearch);
-  const pagination = paginatePins(resolvedPins, {
+  const {
+    ungrouped: ungroupedPins, groups: pinnedSectionGroups,
+  } = groupPinsBySection(resolvedPins, sections);
+  // Only the ungrouped bucket paginates; user-curated named sections render in full.
+  const pagination = paginatePins(ungroupedPins, {
     pinnedExpanded,
     pinnedShowAll,
   });
 
   return {
     pathname,
-    visibleCategories,
-    seeMoreCategories,
-    categoriesExpanded,
-    setCategoriesExpanded,
+    starredCategories,
+    starredTags,
     visibleTaxonomyItems,
     seeMoreTaxonomyItemsList,
     taxonomiesExpanded,
@@ -242,6 +273,7 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
     customizationExpanded,
     setCustomizationExpanded,
     resolvedPins,
+    pinnedSectionGroups,
     viewableFilters,
     pinnedExpanded,
     setPinnedExpanded,

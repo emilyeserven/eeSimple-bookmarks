@@ -19,6 +19,7 @@ import type {
   CreateFavoriteSettingsPageInput,
   CreateHomepageSectionInput,
   CreateParseTemplateInput,
+  CreatePinnedSectionInput,
   CreatePinnedSidebarItemInput,
   CreateSavedFilterInput,
   CustomAspectRatio,
@@ -35,6 +36,7 @@ import type {
   LayoutableEntityKind,
   ParseTemplate,
   PersonSourceLabelSettings,
+  PinnedSection,
   PinnedSidebarItem,
   PlaceTypeColorConfig,
   PlaceTypeDisplayConfig,
@@ -55,6 +57,8 @@ import type {
   UpdateHomepageSectionInput,
   UpdateParseTemplateInput,
   UpdatePersonSourceLabelInput,
+  UpdatePinnedSectionInput,
+  UpdatePinnedSidebarItemInput,
   UpdateSavedFilterInput,
   UpdateScratchpadInput,
   UpdateSidebarCustomizationInput,
@@ -285,7 +289,43 @@ export const pinnedSidebarItemsApi = {
       method: "POST",
       body: JSON.stringify(input),
     }),
+  update: (id: string, input: UpdatePinnedSidebarItemInput) =>
+    request<PinnedSidebarItem>(`/pinned-sidebar-items/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  reorder: (orderedIds: string[]) =>
+    request<undefined>("/pinned-sidebar-items/reorder", {
+      method: "PUT",
+      body: JSON.stringify({
+        orderedIds,
+      }),
+    }),
   remove: (id: string) => request<undefined>(`/pinned-sidebar-items/${id}`, {
+    method: "DELETE",
+  }),
+};
+
+export const pinnedSectionsApi = {
+  list: () => request<PinnedSection[]>("/pinned-sections"),
+  create: (input: CreatePinnedSectionInput) =>
+    request<PinnedSection>("/pinned-sections", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  update: (id: string, input: UpdatePinnedSectionInput) =>
+    request<PinnedSection>(`/pinned-sections/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  reorder: (orderedIds: string[]) =>
+    request<undefined>("/pinned-sections/reorder", {
+      method: "PUT",
+      body: JSON.stringify({
+        orderedIds,
+      }),
+    }),
+  remove: (id: string) => request<undefined>(`/pinned-sections/${id}`, {
     method: "DELETE",
   }),
 };

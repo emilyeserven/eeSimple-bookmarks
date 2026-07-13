@@ -25,6 +25,7 @@ const LABELS: Record<keyof UpdateTagInput, string> = {
   description: "Description",
   editableOnCard: "Editable on card",
   excludeFromBackfill: "Exclude from backfilling",
+  isFavorite: "Starred",
 };
 
 interface TagFieldProps {

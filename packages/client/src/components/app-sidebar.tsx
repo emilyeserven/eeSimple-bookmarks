@@ -1,3 +1,5 @@
+import type { Category, Tag } from "@eesimple/types";
+
 import * as React from "react";
 
 import { GENRES_MOODS_TAXONOMY_SLUG } from "@eesimple/types";
@@ -11,16 +13,17 @@ import {
   SidebarConnectorsSection,
   SidebarResizeHandle,
 } from "./app-sidebar-sections";
+import { CategoriesSidebarItem } from "./CategoriesSidebarItem";
 import { GroupsSidebarItem } from "./GroupsSidebarItem";
 import { LanguagesSidebarItem } from "./LanguagesSidebarItem";
 import { LocationsSidebarItem } from "./LocationsSidebarItem";
 import { SettingsFavoritesFlyout } from "./SettingsFavoritesFlyout";
-import { SidebarCategoriesSection } from "./SidebarCategoriesSection";
 import { SidebarCountBadge } from "./SidebarCountBadge";
 import { SidebarPrimaryNav } from "./SidebarPrimaryNav";
 import { SidebarSavedFiltersSection } from "./SidebarSavedFiltersSection";
 import { SidebarScratchpad } from "./SidebarScratchpad";
 import { SidebarTabBasket } from "./SidebarTabBasket";
+import { TagsSidebarItem } from "./TagsSidebarItem";
 import { useAppSidebarData } from "./useAppSidebarData";
 import { useTaxonomies } from "../hooks/useTaxonomies";
 
@@ -70,6 +73,8 @@ function ExpandableLinkSection({
   placeTypesCount,
   locationRelationsCount,
   groupTypesCount,
+  starredCategories,
+  starredTags,
 }: {
   sectionKey: string;
   label: string;
@@ -83,11 +88,37 @@ function ExpandableLinkSection({
   placeTypesCount?: number;
   locationRelationsCount?: number;
   groupTypesCount?: number;
+  starredCategories?: Category[];
+  starredTags?: Tag[];
 }) {
   const {
     t,
   } = useTranslation();
   const renderItem = (item: LinkSidebarItem) => {
+    // Categories gets a hover flyout surfacing the user's starred categories.
+    if (item.key === "categories") {
+      return (
+        <CategoriesSidebarItem
+          key={item.key}
+          pathname={pathname}
+          categoriesCount={item.count}
+          starredCategories={starredCategories ?? []}
+          sidebarState={sidebarState}
+        />
+      );
+    }
+    // Tags gets a hover flyout surfacing the user's starred tags.
+    if (item.key === "tags") {
+      return (
+        <TagsSidebarItem
+          key={item.key}
+          pathname={pathname}
+          tagsCount={item.count}
+          starredTags={starredTags ?? []}
+          sidebarState={sidebarState}
+        />
+      );
+    }
     // Locations gets a hover flyout surfacing its Place Types taxonomy; every other item is a plain link.
     if (item.key === "locations") {
       return (
@@ -223,10 +254,8 @@ export function AppSidebar({
   );
   const {
     pathname,
-    visibleCategories,
-    seeMoreCategories,
-    categoriesExpanded,
-    setCategoriesExpanded,
+    starredCategories,
+    starredTags,
     visibleTaxonomyItems,
     seeMoreTaxonomyItemsList,
     taxonomiesExpanded,
@@ -236,6 +265,7 @@ export function AppSidebar({
     customizationExpanded,
     setCustomizationExpanded,
     resolvedPins,
+    pinnedSectionGroups,
     viewableFilters,
     setPinnedExpanded,
     setPinnedShowAll,
@@ -294,6 +324,7 @@ export function AppSidebar({
           inboxCount={inboxCount}
           bookmarkCount={allBookmarks?.length}
           resolvedPins={resolvedPins}
+          pinnedSectionGroups={pinnedSectionGroups}
           pagination={pagination}
           setPinnedExpanded={setPinnedExpanded}
           setPinnedShowAll={setPinnedShowAll}
@@ -303,19 +334,6 @@ export function AppSidebar({
           ? (
             <SidebarSavedFiltersSection
               viewableFilters={viewableFilters}
-              sidebarState={state}
-            />
-          )
-          : null}
-
-        {!hiddenSidebarGroups.includes("categories") && (visibleCategories.length > 0 || seeMoreCategories.length > 0)
-          ? (
-            <SidebarCategoriesSection
-              visibleCategories={visibleCategories}
-              seeMoreCategories={seeMoreCategories}
-              expanded={categoriesExpanded}
-              setExpanded={setCategoriesExpanded}
-              pathname={pathname}
               sidebarState={state}
             />
           )
@@ -336,6 +354,8 @@ export function AppSidebar({
               placeTypesCount={placeTypesCount}
               locationRelationsCount={locationRelationsCount}
               groupTypesCount={groupTypesCount}
+              starredCategories={starredCategories}
+              starredTags={starredTags}
             />
           )
           : null}

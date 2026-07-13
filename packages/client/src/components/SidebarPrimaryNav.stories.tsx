@@ -18,6 +18,7 @@ const pins: ResolvedPin[] = [
     },
     bookmarkCount: 9,
     isActive: false,
+    sectionId: null,
   },
   {
     id: "p2",
@@ -29,6 +30,7 @@ const pins: ResolvedPin[] = [
     },
     bookmarkCount: 12,
     isActive: true,
+    sectionId: null,
   },
 ];
 
@@ -48,6 +50,7 @@ const meta = {
     inboxCount: 3,
     bookmarkCount: 128,
     resolvedPins: pins,
+    pinnedSectionGroups: [],
     pagination: {
       visiblePins: pins,
       hasShowMore: false,

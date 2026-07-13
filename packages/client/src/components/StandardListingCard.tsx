@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Badge } from "@/components/ui/badge";
@@ -64,6 +64,46 @@ export function HideToggleButton({
               name,
             })
             : t("Hide {{name}}", {
+              name,
+            })}
+        </span>
+      </button>
+    </HoverIconButton>
+  );
+}
+
+/**
+ * The hover Star control that stars / un-stars a category or tag from its listing. Pass the row's
+ * current `isFavorite` state, its `name` (for the accessible label), and an `onToggle` that flips the
+ * flag via the entity's update mutation. Starred items surface in the sidebar Categories / Tags
+ * flyouts. Rendered in the card's `renderExtra` slot so it sits alongside Edit / Info.
+ */
+export function FavoriteToggleButton({
+  isFavorite, name, onToggle,
+}: {
+  isFavorite: boolean;
+  name: string;
+  onToggle: () => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <HoverIconButton>
+      <button
+        type="button"
+        onClick={onToggle}
+        title={isFavorite ? t("Unstar") : t("Star")}
+      >
+        <Star
+          className={cn("size-4", isFavorite && "fill-current text-yellow-500")}
+        />
+        <span className="sr-only">
+          {isFavorite
+            ? t("Unstar {{name}}", {
+              name,
+            })
+            : t("Star {{name}}", {
               name,
             })}
         </span>

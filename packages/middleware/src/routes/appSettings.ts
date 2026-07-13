@@ -207,8 +207,6 @@ const advancedBody = {
 const sidebarCustomizationBody = {
   type: "object",
   required: [
-    "hiddenCategoryIds",
-    "seeMoreCategoryIds",
     "hiddenTaxonomyItems",
     "seeMoreTaxonomyItems",
     "hiddenCustomizationItems",
@@ -220,8 +218,6 @@ const sidebarCustomizationBody = {
   ],
   additionalProperties: false,
   properties: {
-    hiddenCategoryIds: stringArray,
-    seeMoreCategoryIds: stringArray,
     hiddenTaxonomyItems: stringArray,
     seeMoreTaxonomyItems: stringArray,
     hiddenCustomizationItems: stringArray,

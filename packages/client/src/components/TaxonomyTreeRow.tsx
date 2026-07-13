@@ -55,6 +55,13 @@ interface TaxonomyTreeListProps {
   /** Whether a node is currently hidden from the map (drives the eye icon + row de-emphasis). */
   isHidden?: (node: TaxonomyTreeNode) => boolean;
   /**
+   * When set, every row shows a star toggle calling this with the node — stars/un-stars the node.
+   * Pair with {@link isFavorite}. Opt-in (used by the Tags listing).
+   */
+  onToggleFavorite?: (node: TaxonomyTreeNode) => void;
+  /** Whether a node is currently starred (drives the filled star). */
+  isFavorite?: (node: TaxonomyTreeNode) => boolean;
+  /**
    * When true, the per-row action buttons (edit/info/expand-all/map controls) are always visible
    * instead of hover-revealed — used on touch devices where hover isn't available. Opt-in.
    */
@@ -102,6 +109,8 @@ interface TaxonomyTreeRowProps {
   isFiltered?: (node: TaxonomyTreeNode) => boolean;
   onToggleVisibility?: (node: TaxonomyTreeNode) => void;
   isHidden?: (node: TaxonomyTreeNode) => boolean;
+  onToggleFavorite?: (node: TaxonomyTreeNode) => void;
+  isFavorite?: (node: TaxonomyTreeNode) => boolean;
   alwaysShowActions?: boolean;
 }
 
@@ -140,7 +149,7 @@ function NoChildRow({
 
 function TaxonomyTreeRow(props: TaxonomyTreeRowProps) {
   const {
-    node, depth, expanded, onToggle, isFiltered, isHidden,
+    node, depth, expanded, onToggle, isFiltered, isHidden, isFavorite,
   } = props;
   const hasChildren = node.children.length > 0;
   const isOpen = expanded.has(node.id);
@@ -156,6 +165,7 @@ function TaxonomyTreeRow(props: TaxonomyTreeRowProps) {
       onToggle={onToggle}
       filtered={isFiltered?.(node) ?? false}
       hidden={hidden}
+      favorite={isFavorite?.(node) ?? false}
     />
   );
 

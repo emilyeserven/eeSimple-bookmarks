@@ -11,6 +11,7 @@ const pins: PinnedSidebarItem[] = [
     id: "pin-1",
     entityType: "category",
     entityId: sampleCategories[0].id,
+    sectionId: null,
     sortOrder: 0,
     createdAt: "2026-06-01T00:00:00.000Z",
   },

@@ -1,10 +1,12 @@
 import type { PinContext } from "@/components/HeaderPinButton";
+import type { FavoriteContext } from "@/hooks/useFavoriteToggle";
 import type { SettingsPage } from "@/lib/settingsPages";
 
 import { Pin, PinOff, Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { useFavoriteToggle } from "@/hooks/useFavoriteToggle";
 import { usePinToggle } from "@/hooks/usePinToggle";
 import { useSettingsFavorite } from "@/hooks/useSettingsFavorite";
 import { cn } from "@/lib/utils";
@@ -32,6 +34,34 @@ export function FavoriteMenuItem({
         })
         : t("Favorite {{label}}", {
           label: page.label,
+        })}
+    </DropdownMenuItem>
+  );
+}
+
+/** Star/un-star the current category or tag from the More menu. */
+export function FavoriteTaxonomyMenuItem({
+  context,
+}: {
+  context: FavoriteContext;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const {
+    isFavorite, name, toggle,
+  } = useFavoriteToggle(context);
+  return (
+    <DropdownMenuItem onSelect={toggle}>
+      <Star
+        className={cn("size-4", isFavorite && "fill-current text-yellow-500")}
+      />
+      {isFavorite
+        ? t("Unstar {{name}}", {
+          name,
+        })
+        : t("Star {{name}}", {
+          name,
         })}
     </DropdownMenuItem>
   );

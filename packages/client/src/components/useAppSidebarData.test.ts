@@ -1,9 +1,10 @@
 // @vitest-environment node
 import type { ResolvedPin } from "./useAppSidebarData";
+import type { PinnedSection } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
 
-import { paginatePins } from "./useAppSidebarData";
+import { groupPinsBySection, paginatePins } from "./useAppSidebarData";
 
 function pins(n: number): ResolvedPin[] {
   return Array.from({
@@ -17,6 +18,7 @@ function pins(n: number): ResolvedPin[] {
       path: `/x/${i}`,
     },
     isActive: false,
+    sectionId: null,
   }));
 }
 
@@ -75,5 +77,59 @@ describe("paginatePins", () => {
       pinnedShowAll: false,
     });
     expect(expanded.hasShowLess).toBe(true);
+  });
+});
+
+function pin(id: string, sectionId: string | null): ResolvedPin {
+  return {
+    id,
+    label: id,
+    icon: null,
+    link: {
+      kind: "path",
+      path: `/x/${id}`,
+    },
+    isActive: false,
+    sectionId,
+  };
+}
+
+function section(id: string, sortOrder: number): PinnedSection {
+  return {
+    id,
+    name: id,
+    sortOrder,
+    createdAt: "2026-01-01T00:00:00.000Z",
+  };
+}
+
+describe("groupPinsBySection", () => {
+  it("puts pins with no section into the ungrouped bucket and emits no groups", () => {
+    const result = groupPinsBySection([pin("a", null), pin("b", null)], []);
+    expect(result.ungrouped.map(p => p.id)).toEqual(["a", "b"]);
+    expect(result.groups).toHaveLength(0);
+  });
+
+  it("groups pins under their section, ordered by the section sortOrder", () => {
+    const sections = [section("s2", 1), section("s1", 0)];
+    const result = groupPinsBySection(
+      [pin("a", "s2"), pin("b", "s1"), pin("c", null)],
+      sections,
+    );
+    expect(result.ungrouped.map(p => p.id)).toEqual(["c"]);
+    expect(result.groups.map(g => g.section.id)).toEqual(["s1", "s2"]);
+    expect(result.groups[0].pins.map(p => p.id)).toEqual(["b"]);
+    expect(result.groups[1].pins.map(p => p.id)).toEqual(["a"]);
+  });
+
+  it("omits sections that have no pins", () => {
+    const result = groupPinsBySection([pin("a", "s1")], [section("s1", 0), section("s2", 1)]);
+    expect(result.groups.map(g => g.section.id)).toEqual(["s1"]);
+  });
+
+  it("treats a pin whose section no longer exists as ungrouped", () => {
+    const result = groupPinsBySection([pin("a", "gone")], [section("s1", 0)]);
+    expect(result.ungrouped.map(p => p.id)).toEqual(["a"]);
+    expect(result.groups).toHaveLength(0);
   });
 });

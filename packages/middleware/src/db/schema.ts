@@ -848,6 +848,8 @@ export const tags = pgTable("tags", {
   editableOnCard: boolean("editable_on_card").notNull().default(false),
   /** When `true`, no autofill backfill operation will apply this tag to any bookmark. */
   excludeFromBackfill: boolean("exclude_from_backfill").notNull().default(false),
+  // User-starred favorite; starred tags surface in the sidebar Tags flyout.
+  isFavorite: boolean("is_favorite").notNull().default(false),
 }, table => [
   // Sibling names are unique within a parent. NULL parents are distinct in
   // Postgres, so root-level uniqueness is enforced in the service layer instead.
@@ -1687,6 +1689,8 @@ export const categories = pgTable("categories", {
   builtIn: boolean("built_in").notNull().default(false),
   // Whether bookmarks in this category appear on the homepage.
   isHomepage: boolean("is_homepage").notNull().default(false),
+  // User-starred favorite; starred categories surface in the sidebar Categories flyout.
+  isFavorite: boolean("is_favorite").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -2684,6 +2688,21 @@ export const customAspectRatios = pgTable("custom_aspect_ratios", {
 export type CustomAspectRatioRow = typeof customAspectRatios.$inferSelect;
 
 /**
+ * `pinned_sections` — user-defined, named, reorderable headings that group pinned sidebar items.
+ * A pin with a null `section_id` renders in the ungrouped bucket above the sections.
+ */
+export const pinnedSections = pgTable("pinned_sections", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).notNull().defaultNow(),
+});
+
+export type PinnedSectionRow = typeof pinnedSections.$inferSelect;
+
+/**
  * `pinned_sidebar_items` — entities and saved filters pinned as quick-access links in the sidebar,
  * displayed below the Bookmarks link. Composite unique constraint prevents duplicates.
  */
@@ -2691,6 +2710,11 @@ export const pinnedSidebarItems = pgTable("pinned_sidebar_items", {
   id: uuid("id").primaryKey().defaultRandom(),
   entityType: text("entity_type").notNull(),
   entityId: text("entity_id").notNull(),
+  // Optional grouping heading. `migrate.ts` pre-adds this plain nullable column (new-table-in-release
+  // rule); `push` adds the FK constraint afterward (additive, never prompts).
+  sectionId: uuid("section_id").references(() => pinnedSections.id, {
+    onDelete: "set null",
+  }),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at", {
     withTimezone: true,

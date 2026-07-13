@@ -24,6 +24,7 @@ import { homepageSectionsRoutes } from "@/routes/homepageSections";
 import { importRoutes } from "@/routes/imports";
 import { importRulesRoutes } from "@/routes/importRules";
 import { customAspectRatioRoutes } from "@/routes/customAspectRatios";
+import { pinnedSectionRoutes } from "@/routes/pinnedSections";
 import { pinnedSidebarItemRoutes } from "@/routes/pinnedSidebarItems";
 import { favoriteSettingsPageRoutes } from "@/routes/favoriteSettingsPages";
 import { savedFilterRoutes } from "@/routes/savedFilters";
@@ -275,6 +276,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(entityLayoutsRoutes);
   await app.register(savedFilterRoutes);
   await app.register(pinnedSidebarItemRoutes);
+  await app.register(pinnedSectionRoutes);
   await app.register(favoriteSettingsPageRoutes);
   await app.register(customAspectRatioRoutes);
   await app.register(appSettingsRoutes);

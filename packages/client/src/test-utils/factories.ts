@@ -219,6 +219,7 @@ export function makeCategory(overrides: Partial<Category> = {}): Category {
     icon: null,
     builtIn: false,
     isHomepage: false,
+    isFavorite: false,
     createdAt: NOW,
     ...overrides,
   };
@@ -238,6 +239,7 @@ export function makeTag(overrides: Partial<Tag> = {}): Tag {
     ownBookmarkCount: 0,
     editableOnCard: false,
     excludeFromBackfill: false,
+    isFavorite: false,
     ...overrides,
   };
 }

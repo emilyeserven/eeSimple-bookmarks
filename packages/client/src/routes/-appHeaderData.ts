@@ -1,4 +1,5 @@
 import type { PinContext } from "@/components/HeaderPinButton";
+import type { FavoriteContext } from "@/hooks/useFavoriteToggle";
 import type { EntityName } from "@eesimple/types";
 
 import { useTaxonomyNameMap } from "./-appHeaderNames";
@@ -136,6 +137,27 @@ export function resolvePinContext(c: PinCandidates): PinContext | null {
     entityType: "youtube-channel",
     entityId: c.channel.id,
     label: c.channel.name,
+  };
+  if (c.currentTag) return {
+    entityType: "tag",
+    entityId: c.currentTag.id,
+    label: c.currentTag.name,
+  };
+  return null;
+}
+
+/**
+ * The favoritable (starrable) entity for the current page, if any. Only categories and tags can be
+ * starred (their starred members surface in the sidebar Categories / Tags flyouts), so this returns
+ * for exactly those two branches — a subset of {@link resolvePinContext}.
+ */
+export function resolveFavoriteContext(
+  c: Pick<PinCandidates, "category" | "currentTag">,
+): FavoriteContext | null {
+  if (c.category) return {
+    entityType: "category",
+    entityId: c.category.id,
+    label: c.category.name,
   };
   if (c.currentTag) return {
     entityType: "tag",

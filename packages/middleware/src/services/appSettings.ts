@@ -95,8 +95,6 @@ const DEFAULT_ADVANCED_SETTINGS: AdvancedSettings = {
 
 /** Default sidebar-customization settings (nothing hidden), used when seeding / when row absent. */
 const DEFAULT_SIDEBAR_CUSTOMIZATION: SidebarCustomizationSettings = {
-  hiddenCategoryIds: [],
-  seeMoreCategoryIds: [],
   hiddenTaxonomyItems: [],
   seeMoreTaxonomyItems: [],
   hiddenCustomizationItems: [],
@@ -716,8 +714,6 @@ export async function updateAdvancedSettings(
 export async function getSidebarCustomizationSettings(): Promise<SidebarCustomizationSettings> {
   const [row] = await db
     .select({
-      hiddenCategoryIds: appSettings.hiddenCategoryIds,
-      seeMoreCategoryIds: appSettings.seeMoreCategoryIds,
       hiddenTaxonomyItems: appSettings.hiddenTaxonomyItems,
       seeMoreTaxonomyItems: appSettings.seeMoreTaxonomyItems,
       hiddenCustomizationItems: appSettings.hiddenCustomizationItems,
@@ -731,8 +727,6 @@ export async function getSidebarCustomizationSettings(): Promise<SidebarCustomiz
     .where(eq(appSettings.id, ROW_ID));
   if (!row) return DEFAULT_SIDEBAR_CUSTOMIZATION;
   return {
-    hiddenCategoryIds: row.hiddenCategoryIds ?? [],
-    seeMoreCategoryIds: row.seeMoreCategoryIds ?? [],
     hiddenTaxonomyItems: row.hiddenTaxonomyItems ?? [],
     seeMoreTaxonomyItems: row.seeMoreTaxonomyItems ?? [],
     hiddenCustomizationItems: row.hiddenCustomizationItems ?? [],
@@ -749,8 +743,6 @@ export async function updateSidebarCustomizationSettings(
   input: UpdateSidebarCustomizationInput,
 ): Promise<SidebarCustomizationSettings> {
   const next: SidebarCustomizationSettings = {
-    hiddenCategoryIds: [...input.hiddenCategoryIds],
-    seeMoreCategoryIds: [...input.seeMoreCategoryIds],
     hiddenTaxonomyItems: [...input.hiddenTaxonomyItems],
     seeMoreTaxonomyItems: [...input.seeMoreTaxonomyItems],
     hiddenCustomizationItems: [...input.hiddenCustomizationItems],

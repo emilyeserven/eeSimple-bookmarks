@@ -42,6 +42,12 @@ const CATEGORY_PALETTE: EntityPaletteConfig = {
       label: i18n.t("Homepage Category"),
       getValue: entity => (entity as Category).isHomepage,
     },
+    {
+      type: "boolean",
+      key: "isFavorite",
+      label: i18n.t("Starred"),
+      getValue: entity => (entity as Category).isFavorite,
+    },
   ],
 };
 

@@ -8,6 +8,7 @@ import {
 import {
   addChildAction,
   createListingAction,
+  favoriteTaxonomyAction,
   homepageSettingsAction,
   pinAction,
   settingsFavoriteAction,
@@ -30,6 +31,7 @@ export function buildToolbarActions(ctx: ToolbarContext): ToolbarAction[] {
     addChildAction(ctx),
     createListingAction(ctx),
     settingsFavoriteAction(ctx),
+    favoriteTaxonomyAction(ctx),
     pinAction(ctx),
     homepageSettingsAction(ctx),
   ].filter((action): action is ToolbarAction => action !== null);

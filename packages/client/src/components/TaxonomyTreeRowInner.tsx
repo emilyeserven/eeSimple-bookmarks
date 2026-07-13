@@ -1,7 +1,7 @@
 import type { TaxonomyTreeNode } from "./TaxonomyTreeRow";
 import type { ReactNode } from "react";
 
-import { ChevronDown, ChevronRight, ChevronsUpDown, Eye, EyeOff, MapPin } from "lucide-react";
+import { ChevronDown, ChevronRight, ChevronsUpDown, Eye, EyeOff, MapPin, Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Badge } from "@/components/ui/badge";
@@ -188,6 +188,52 @@ function TaxonomyTreeRowVisibilityButton({
   );
 }
 
+/**
+ * Star (favorite) toggle: stars/un-stars this node. Starred tags surface in the sidebar Tags flyout.
+ * Shown only when a handler is provided. When starred the button is always visible (so it can be
+ * un-starred); when not it follows the row's `revealClass`.
+ */
+function TaxonomyTreeRowFavoriteButton({
+  node, favorite, onToggleFavorite, revealClass,
+}: {
+  node: TaxonomyTreeNode;
+  favorite: boolean;
+  onToggleFavorite?: (node: TaxonomyTreeNode) => void;
+  revealClass: string;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  if (!onToggleFavorite) return null;
+  const label = favorite
+    ? t("Unstar {{name}}", {
+      name: node.name,
+    })
+    : t("Star {{name}}", {
+      name: node.name,
+    });
+  const title = favorite ? t("Starred (click to unstar)") : t("Star");
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      aria-label={label}
+      aria-pressed={favorite}
+      title={title}
+      onClick={() => onToggleFavorite(node)}
+      className={cn(
+        "transition-opacity",
+        favorite ? "text-yellow-500 opacity-100" : revealClass,
+      )}
+    >
+      <Star
+        className={cn("size-4", favorite && "fill-current")}
+      />
+    </Button>
+  );
+}
+
 interface TaxonomyTreeRowInnerProps {
   node: TaxonomyTreeNode;
   hasChildren: boolean;
@@ -204,6 +250,9 @@ interface TaxonomyTreeRowInnerProps {
   onToggleVisibility?: (node: TaxonomyTreeNode) => void;
   /** Whether this node is currently hidden from the map (drives the eye icon + row de-emphasis). */
   hidden: boolean;
+  onToggleFavorite?: (node: TaxonomyTreeNode) => void;
+  /** Whether this node is currently starred (drives the filled star). */
+  favorite?: boolean;
   /**
    * When true, the action buttons are always visible instead of hover-revealed (touch devices where
    * hover isn't available).
@@ -214,7 +263,8 @@ interface TaxonomyTreeRowInnerProps {
 /** The single-row content of a taxonomy tree row: icon, expander, name link, badges, hover actions. */
 export function TaxonomyTreeRowInner({
   node, hasChildren, isOpen, onToggle, renderNameLink, renderEditLink, renderInfoLink, renderIcon,
-  onExpandSubtree, onToggleFilter, filtered, onToggleVisibility, hidden, alwaysShowActions,
+  onExpandSubtree, onToggleFilter, filtered, onToggleVisibility, hidden, onToggleFavorite, favorite,
+  alwaysShowActions,
 }: TaxonomyTreeRowInnerProps) {
   const {
     t,
@@ -268,6 +318,13 @@ export function TaxonomyTreeRowInner({
         node={node}
         hidden={hidden}
         onToggleVisibility={onToggleVisibility}
+        revealClass={revealClass}
+      />
+
+      <TaxonomyTreeRowFavoriteButton
+        node={node}
+        favorite={favorite ?? false}
+        onToggleFavorite={onToggleFavorite}
         revealClass={revealClass}
       />
 
