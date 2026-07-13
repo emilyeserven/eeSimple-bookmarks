@@ -1,4 +1,5 @@
 import type { PinContext } from "@/components/HeaderPinButton";
+import type { FavoriteContext } from "@/hooks/useFavoriteToggle";
 import type { SettingsPage } from "@/lib/settingsPages";
 import type { SyncProvider } from "@/lib/syncSources/syncSourceTypes";
 import type { LucideIcon } from "lucide-react";
@@ -50,6 +51,8 @@ export interface ToolbarContext {
       | null;
   settingsPage: SettingsPage | null | undefined;
   pinContext: PinContext | null;
+  /** The favoritable (starrable) category/tag for the current page, or null. Gates the star button. */
+  favoriteContext: FavoriteContext | null;
   /** The mounted edit form's outside-source sync provider, or null. Gates the "Sync from source" button. */
   syncProvider: SyncProvider | null;
 }

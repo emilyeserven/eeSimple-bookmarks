@@ -9,6 +9,7 @@ function pin(overrides: Partial<PinnedSidebarItem> & Pick<PinnedSidebarItem, "en
   return {
     id: "pin-1",
     entityId: "e1",
+    sectionId: null,
     sortOrder: 0,
     createdAt: "2026-01-01T00:00:00.000Z",
     ...overrides,

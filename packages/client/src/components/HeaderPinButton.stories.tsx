@@ -11,6 +11,7 @@ const pinnedCategory: PinnedSidebarItem = {
   id: "pin-1",
   entityType: "category",
   entityId: "cat-workflow",
+  sectionId: null,
   sortOrder: 0,
   createdAt: NOW,
 };

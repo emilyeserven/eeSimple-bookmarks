@@ -4,9 +4,10 @@ import { Link } from "@tanstack/react-router";
 import { Info, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { FavoriteToggleButton, HoverIconButton, StandardListingCard } from "./StandardListingCard";
 
 import { Badge } from "@/components/ui/badge";
+import { useFavoriteToggle } from "@/hooks/useFavoriteToggle";
 import { CategoryIcon } from "@/lib/icons";
 
 interface CategoryPreviewRowProps {
@@ -27,12 +28,24 @@ export function CategoryPreviewRow({
   const {
     t,
   } = useTranslation();
+  const favorite = useFavoriteToggle({
+    entityType: "category",
+    entityId: category.id,
+    label: category.name,
+  });
   return (
     <StandardListingCard
       selectable={selectable}
       selected={selected}
       onSelectToggle={onSelectToggle}
       inSelectionMode={inSelectionMode}
+      renderExtra={() => (
+        <FavoriteToggleButton
+          isFavorite={favorite.isFavorite}
+          name={category.name}
+          onToggle={favorite.toggle}
+        />
+      )}
       icon={(
         <CategoryIcon
           name={category.icon}

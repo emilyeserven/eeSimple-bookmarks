@@ -5,8 +5,9 @@ import { Plus, Settings } from "lucide-react";
 
 import { AddChildButton } from "@/components/AddChildButton";
 import { AddChildModal } from "@/components/AddChildModal";
-import { FavoriteMenuItem, PinMenuItem } from "@/components/header/headerMenuItems";
+import { FavoriteMenuItem, FavoriteTaxonomyMenuItem, PinMenuItem } from "@/components/header/headerMenuItems";
 import { ListingCreateButton, ListingCreateMenuItems } from "@/components/header/ListingCreateControls";
+import { HeaderFavoriteButton } from "@/components/HeaderFavoriteButton";
 import { HeaderPinButton } from "@/components/HeaderPinButton";
 import { HeaderSettingsFavoriteButton } from "@/components/HeaderSettingsFavoriteButton";
 import { Button } from "@/components/ui/button";
@@ -84,6 +85,19 @@ export function settingsFavoriteAction(ctx: ToolbarContext): ToolbarAction | nul
     mobile: {
       kind: "menuItem",
       node: <FavoriteMenuItem page={settingsPage} />,
+    },
+  };
+}
+
+export function favoriteTaxonomyAction(ctx: ToolbarContext): ToolbarAction | null {
+  if (!ctx.favoriteContext) return null;
+  const favoriteContext = ctx.favoriteContext;
+  return {
+    key: "favorite-taxonomy",
+    desktop: <HeaderFavoriteButton context={favoriteContext} />,
+    mobile: {
+      kind: "menuItem",
+      node: <FavoriteTaxonomyMenuItem context={favoriteContext} />,
     },
   };
 }

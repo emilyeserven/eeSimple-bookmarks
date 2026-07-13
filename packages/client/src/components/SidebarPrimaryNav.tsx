@@ -57,6 +57,35 @@ function SidebarPinItem({
   );
 }
 
+/** A labeled group of pinned items under a user-defined section heading. */
+function SidebarPinSection({
+  group, sidebarState,
+}: {
+  group: SidebarData["pinnedSectionGroups"][number];
+  sidebarState: string;
+}) {
+  return (
+    <>
+      {sidebarState !== "collapsed"
+        ? (
+          <li
+            className="mt-1 px-2 pt-1 text-xs font-medium text-muted-foreground"
+          >
+            {group.section.name}
+          </li>
+        )
+        : null}
+      {group.pins.map(pin => (
+        <SidebarPinItem
+          key={pin.id}
+          pin={pin}
+          sidebarState={sidebarState}
+        />
+      ))}
+    </>
+  );
+}
+
 /** A "Show More" / "See All" / "Show Less" pagination affordance row for the pinned list. */
 function PinPaginationItem({
   show, tooltip, label, direction, onClick,
@@ -95,6 +124,7 @@ export function SidebarPrimaryNav({
   inboxCount,
   bookmarkCount,
   resolvedPins,
+  pinnedSectionGroups,
   pagination,
   setPinnedExpanded,
   setPinnedShowAll,
@@ -104,6 +134,7 @@ export function SidebarPrimaryNav({
   inboxCount: number | null | undefined;
   bookmarkCount: number | null | undefined;
   resolvedPins: SidebarData["resolvedPins"];
+  pinnedSectionGroups: SidebarData["pinnedSectionGroups"];
   pagination: SidebarData["pagination"];
   setPinnedExpanded: (v: boolean) => void;
   setPinnedShowAll: (v: boolean) => void;
@@ -189,6 +220,13 @@ export function SidebarPrimaryNav({
                     setPinnedShowAll(false);
                   }}
                 />
+                {pinnedSectionGroups.map(group => (
+                  <SidebarPinSection
+                    key={group.section.id}
+                    group={group}
+                    sidebarState={sidebarState}
+                  />
+                ))}
               </>
             )
             : null}

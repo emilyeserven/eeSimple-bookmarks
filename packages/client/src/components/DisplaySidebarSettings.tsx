@@ -23,7 +23,6 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { PinnedItemsCard } from "./PinnedItemsCard";
-import { SidebarCategoryVisibilityList } from "./SidebarCategoryVisibilityList";
 import { SidebarConnectorLinksSettings } from "./SidebarConnectorLinksSettings";
 import { SidebarCustomTaxonomyVisibilityList } from "./SidebarCustomTaxonomyVisibilityList";
 import { SidebarExternalLinksSettings } from "./SidebarExternalLinksSettings";
@@ -145,10 +144,6 @@ const CUSTOMIZATION_ITEMS = [
 
 const SIDEBAR_GROUPS = [
   {
-    key: "categories",
-    label: "Categories",
-  },
-  {
     key: "taxonomies",
     label: "Taxonomies",
   },
@@ -169,15 +164,12 @@ export function DisplaySidebarSettings() {
   } = useTranslation();
   const {
     sidebar,
-    setCategoryMode,
     setTaxonomyItemMode,
     setCustomizationItemMode,
     toggleSidebarGroup,
   } = useSidebarSettings();
 
   const {
-    hiddenCategoryIds,
-    seeMoreCategoryIds,
     hiddenTaxonomyItems,
     seeMoreTaxonomyItems,
     hiddenCustomizationItems,
@@ -185,23 +177,9 @@ export function DisplaySidebarSettings() {
     hiddenSidebarGroups,
   } = sidebar;
 
-  // The Categories / Taxonomies / Customization sections share one card, divided by separators.
+  // The Taxonomies / Customization sections share one card, divided by separators.
   // Only the groups that aren't hidden contribute a section.
   const groupedSections: ReactNode[] = [];
-  if (!hiddenSidebarGroups.includes("categories")) {
-    groupedSections.push(
-      <SidebarSettingsSection
-        title={t("Categories")}
-        description={t("Choose how each category appears in the left sidebar.")}
-      >
-        <SidebarCategoryVisibilityList
-          onSetMode={setCategoryMode}
-          hiddenCategoryIds={hiddenCategoryIds}
-          seeMoreCategoryIds={seeMoreCategoryIds}
-        />
-      </SidebarSettingsSection>,
-    );
-  }
   if (!hiddenSidebarGroups.includes("taxonomies")) {
     groupedSections.push(
       <SidebarSettingsSection

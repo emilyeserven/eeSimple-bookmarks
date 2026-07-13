@@ -23,6 +23,8 @@ export interface ResolvedPin {
   };
   bookmarkCount?: number;
   isActive: boolean;
+  /** The pin's grouping section, or `null` for the ungrouped bucket. */
+  sectionId: string | null;
 }
 
 /** The sidebar data slices a pin resolver may read (a subset of {@link SidebarEntityData}). */
@@ -40,7 +42,8 @@ interface PinResolveContext {
   currentBookmarkSearch: Record<string, unknown>;
 }
 
-type PinResolver = (pin: PinnedSidebarItem, ctx: PinResolveContext) => ResolvedPin[];
+// Resolvers don't know about grouping — `useResolvedPins` attaches each pin's `sectionId` afterward.
+type PinResolver = (pin: PinnedSidebarItem, ctx: PinResolveContext) => Omit<ResolvedPin, "sectionId">[];
 
 /**
  * One resolver per pinned entity type — each looks its entity up in the sidebar data and returns the
@@ -218,7 +221,12 @@ export function useResolvedPins(
       currentBookmarkSearch,
     };
     return pinnedItems.flatMap((pin: PinnedSidebarItem): ResolvedPin[] =>
-      PIN_RESOLVERS[pin.entityType as PinnedSidebarEntityType]?.(pin, ctx) ?? []);
+      (PIN_RESOLVERS[pin.entityType as PinnedSidebarEntityType]?.(pin, ctx) ?? []).map(
+        (resolved): ResolvedPin => ({
+          ...resolved,
+          sectionId: pin.sectionId,
+        }),
+      ));
   }, [pinnedItems, categories, allTags, allWebsites, allMediaTypes, allChannels, savedFilters,
     allBookmarks, allLocations, pathname, currentBookmarkCategories, currentBookmarkSearch]);
 }
@@ -252,6 +260,7 @@ export function useViewableFilters(
           },
           bookmarkCount,
           isActive: pathname.startsWith("/bookmarks") && bookmarkSearchEquals(currentBookmarkSearch, filter.filters),
+          sectionId: null,
         };
       });
   }, [savedFilters, allBookmarks, pathname, currentBookmarkSearch]);

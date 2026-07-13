@@ -55,6 +55,9 @@ const updateTagBody = {
     excludeFromBackfill: {
       type: "boolean",
     },
+    isFavorite: {
+      type: "boolean",
+    },
   },
 } as const;
 

@@ -51,7 +51,13 @@ const createCategoryBody = {
 const updateCategoryBody = {
   type: "object",
   additionalProperties: false,
-  properties: createCategoryBody.properties,
+  properties: {
+    ...createCategoryBody.properties,
+    // Update-only: starring is toggled via update, never set at create.
+    isFavorite: {
+      type: "boolean",
+    },
+  },
 } as const;
 
 const defaultsBody = {

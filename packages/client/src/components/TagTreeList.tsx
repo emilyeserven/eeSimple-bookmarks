@@ -6,6 +6,8 @@ import { useTranslation } from "react-i18next";
 
 import { LocalizedNameLabel } from "./LocalizedNameLabel";
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
+import { useUpdateTag } from "../hooks/useTags";
+import { notifyError, notifySuccess } from "../lib/notifications";
 
 interface TagTreeListProps {
   /** The root tags to render. */
@@ -28,6 +30,7 @@ export function TagTreeList({
   const {
     t,
   } = useTranslation();
+  const updateTag = useUpdateTag();
 
   return (
     <TaxonomyTreeList
@@ -35,6 +38,26 @@ export function TagTreeList({
       expanded={expanded}
       onToggle={onToggle}
       columns={columns}
+      isFavorite={node => Boolean((node as unknown as TagNode).isFavorite)}
+      onToggleFavorite={(node) => {
+        const next = !(node as unknown as TagNode).isFavorite;
+        updateTag.mutate({
+          id: node.id,
+          input: {
+            isFavorite: next,
+          },
+        }, {
+          onSuccess: () =>
+            notifySuccess(next
+              ? t("Starred {{name}}", {
+                name: node.name,
+              })
+              : t("Unstarred {{name}}", {
+                name: node.name,
+              })),
+          onError: error => notifyError(error.message),
+        });
+      }}
       renderIcon={() => (
         <Folder
           className="size-4 shrink-0 text-muted-foreground"

@@ -91,6 +91,8 @@ export interface Tag {
    * which rule would otherwise include it.
    */
   excludeFromBackfill?: boolean;
+  /** User-starred favorite; starred tags surface in the sidebar Tags flyout. */
+  isFavorite?: boolean;
 }
 
 /** A tag with its children populated — used to render the taxonomy tree. */
@@ -116,6 +118,7 @@ export interface UpdateTagInput {
   editableOnCard?: boolean;
   excludeFromBackfill?: boolean;
   description?: string | null;
+  isFavorite?: boolean;
 }
 
 /**
@@ -478,9 +481,6 @@ export interface DatabaseTableDetail {
  * server-side so the customized sidebar follows the user across devices.
  */
 export interface SidebarCustomizationSettings {
-  hiddenCategoryIds: string[];
-  /** Category IDs shown under a "See More" expansion in the sidebar (not hidden outright). */
-  seeMoreCategoryIds: string[];
   hiddenTaxonomyItems: string[];
   /** Taxonomy item keys shown under a "See More" expansion in the sidebar (not hidden outright). */
   seeMoreTaxonomyItems: string[];
@@ -2887,6 +2887,8 @@ export interface Category {
   builtIn: boolean;
   /** Whether bookmarks in this category appear on the homepage. */
   isHomepage: boolean;
+  /** User-starred favorite; starred categories surface in the sidebar Categories flyout. */
+  isFavorite: boolean;
   createdAt: string;
   /** Number of bookmarks in this category (populated by list endpoints). */
   bookmarkCount?: number;
@@ -2900,8 +2902,13 @@ export interface CreateCategoryInput {
   isHomepage?: boolean;
 }
 
-/** Payload for partially updating a category. */
-export type UpdateCategoryInput = Partial<CreateCategoryInput>;
+/**
+ * Payload for partially updating a category. `isFavorite` is update-only (not settable at create),
+ * mirroring `UpdateLanguageInput`.
+ */
+export interface UpdateCategoryInput extends Partial<CreateCategoryInput> {
+  isFavorite?: boolean;
+}
 
 /** A category's default custom-property values, applied to new bookmarks added to it. */
 export interface CategoryPropertyDefaults {
@@ -3752,6 +3759,8 @@ export interface PinnedSidebarItem {
   id: string;
   entityType: PinnedSidebarEntityType;
   entityId: string;
+  /** Optional grouping heading; `null` renders the pin in the ungrouped bucket. */
+  sectionId: string | null;
   sortOrder: number;
   createdAt: string;
 }
@@ -3759,6 +3768,31 @@ export interface PinnedSidebarItem {
 export interface CreatePinnedSidebarItemInput {
   entityType: PinnedSidebarEntityType;
   entityId: string;
+  /** Optional section to assign the pin to at creation time. */
+  sectionId?: string | null;
+}
+
+/** Payload for reassigning a pin's section and/or reordering it. */
+export interface UpdatePinnedSidebarItemInput {
+  sectionId?: string | null;
+  sortOrder?: number;
+}
+
+/** A user-defined, named heading that groups pinned sidebar items. */
+export interface PinnedSection {
+  id: string;
+  name: string;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface CreatePinnedSectionInput {
+  name: string;
+}
+
+export interface UpdatePinnedSectionInput {
+  name?: string;
+  sortOrder?: number;
 }
 
 /**

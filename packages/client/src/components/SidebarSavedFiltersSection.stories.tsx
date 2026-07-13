@@ -28,6 +28,7 @@ const meta = {
         },
         bookmarkCount: 7,
         isActive: false,
+        sectionId: null,
       },
       {
         id: "f2",
@@ -39,6 +40,7 @@ const meta = {
         },
         bookmarkCount: 3,
         isActive: true,
+        sectionId: null,
       },
     ],
     sidebarState: "expanded",

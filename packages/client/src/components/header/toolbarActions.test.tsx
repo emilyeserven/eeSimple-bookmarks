@@ -16,6 +16,7 @@ function ctx(overrides: Partial<ToolbarContext> = {}): ToolbarContext {
     addChild: null,
     settingsPage: null,
     pinContext: null,
+    favoriteContext: null,
     syncProvider: null,
     ...overrides,
   };
@@ -128,6 +129,17 @@ describe("buildToolbarActions", () => {
     }))).not.toContain("edit-taxonomy");
   });
 
+  it("adds the favorite (star) action only when a favoriteContext is present", () => {
+    expect(keys(ctx())).not.toContain("favorite-taxonomy");
+    expect(keys(ctx({
+      favoriteContext: {
+        entityType: "category",
+        entityId: "c1",
+        label: "Reading",
+      },
+    }))).toContain("favorite-taxonomy");
+  });
+
   it("preserves a stable left-to-right order across all present actions", () => {
     const all = ctx({
       listingPage: {
@@ -140,6 +152,11 @@ describe("buildToolbarActions", () => {
         path: "/settings/display",
         label: "Display",
       } as unknown as ToolbarContext["settingsPage"],
+      favoriteContext: {
+        entityType: "tag",
+        entityId: "t1",
+        label: "dev",
+      },
       pinContext: {
         entityType: "category",
         entityId: "c1",
@@ -149,6 +166,7 @@ describe("buildToolbarActions", () => {
       "edit-taxonomy",
       "create",
       "settings-favorite",
+      "favorite-taxonomy",
       "pin",
     ]);
   });

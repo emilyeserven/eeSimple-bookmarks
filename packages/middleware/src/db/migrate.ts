@@ -578,6 +578,31 @@ const migrations: RuntimeMigration[] = [
     name: "drop legacy bookmarks.group_id publisher fk",
     run: db => db.execute(sql`ALTER TABLE "bookmarks" DROP COLUMN IF EXISTS "group_id"`),
   },
+  {
+    // `pinned_sections` (named, reorderable headings for pinned sidebar items) is a brand-new table.
+    // Same push new-table trap as `entity_layouts` above — against a populated DB push treats it as a
+    // "truncate?" change and SILENTLY SKIPS it (and every additive statement after it) in this non-TTY
+    // deploy. Pre-create it here so push's diff for it stays empty. Idempotent (`IF NOT EXISTS`).
+    name: "create pinned_sections table",
+    run: db => db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "pinned_sections" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+        "name" text NOT NULL,
+        "sort_order" integer DEFAULT 0 NOT NULL,
+        "created_at" timestamp with time zone DEFAULT now() NOT NULL
+      )
+    `),
+  },
+  {
+    // `pinned_sidebar_items.section_id` ships in the SAME release as the new `pinned_sections` table, so
+    // it is NOT push-safe on its own (the new-table skip above would swallow it too). Pre-add it here as
+    // a plain nullable `uuid` — NO `REFERENCES` (migrate runs before push); push adds the FK constraint
+    // (onDelete set null) afterward additively. Idempotent (`IF NOT EXISTS`).
+    name: "add pinned_sidebar_items.section_id",
+    run: db => db.execute(
+      sql`ALTER TABLE "pinned_sidebar_items" ADD COLUMN IF NOT EXISTS "section_id" uuid`,
+    ),
+  },
 ];
 
 async function main(): Promise<void> {

@@ -42,7 +42,7 @@ function segmentClassName(index: number, count: number): string {
 /**
  * A label (+ optional icon/hint) paired with a joined segmented single-select `ToggleGroup`.
  * Carries, in one place, the joined-segment styling PR #919 copy-pasted into
- * `SidebarItemsCard.tsx` (`SidebarItemsMatrix`) and `SidebarCategoryVisibilityList.tsx`:
+ * `SidebarItemsCard.tsx` (`SidebarItemsMatrix`):
  * `variant="outline"`, `size="sm"`, `className="gap-0"` on the group, and per-item
  * `-me-px rounded-e-none` / `-me-px rounded-none` / `rounded-s-none`, each with
  * `focus-visible:z-10`. Any new segmented settings row should render through this rather than

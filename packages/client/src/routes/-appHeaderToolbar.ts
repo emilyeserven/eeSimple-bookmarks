@@ -1,7 +1,7 @@
 import type { HeaderBreadcrumbData } from "./-appHeaderCrumbs";
 import type { ToolbarAction } from "@/components/header/toolbarActions";
 
-import { resolveAddChild, resolvePinContext } from "./-appHeaderData";
+import { resolveAddChild, resolveFavoriteContext, resolvePinContext } from "./-appHeaderData";
 
 import { buildToolbarActions } from "@/components/header/toolbarActions";
 import { findSettingsPage } from "@/lib/settingsPages";
@@ -48,6 +48,10 @@ export function useHeaderToolbarActions(
     channel,
     currentTag,
   });
+  const favoriteContext = resolveFavoriteContext({
+    category,
+    currentTag,
+  });
 
   const listingPage = useUiStore(state => state.listingPage);
   const syncProvider = useUiStore(state => state.syncProvider);
@@ -63,6 +67,7 @@ export function useHeaderToolbarActions(
     addChild,
     settingsPage,
     pinContext,
+    favoriteContext,
     syncProvider,
   });
 }

@@ -223,8 +223,6 @@ export function useDatabaseTableDetail(tableName: string | null) {
 
 /** Defaults that mirror the former `useUiStore` initial state, used while the query is loading. */
 const SIDEBAR_CUSTOMIZATION_DEFAULTS: SidebarCustomizationSettings = {
-  hiddenCategoryIds: [],
-  seeMoreCategoryIds: [],
   hiddenTaxonomyItems: [],
   seeMoreTaxonomyItems: [],
   hiddenCustomizationItems: [],

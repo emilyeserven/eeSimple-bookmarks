@@ -43,6 +43,12 @@ const TAG_PALETTE: EntityPaletteConfig = {
       label: i18n.t("Exclude from Backfill"),
       getValue: entity => (entity as Tag).excludeFromBackfill ?? false,
     },
+    {
+      type: "boolean",
+      key: "isFavorite",
+      label: i18n.t("Starred"),
+      getValue: entity => (entity as Tag).isFavorite ?? false,
+    },
   ],
 };
 

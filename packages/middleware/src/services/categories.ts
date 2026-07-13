@@ -49,6 +49,7 @@ function toCategory(row: CategoryRow & { bookmarkCount?: number }, names?: Entit
     icon: row.icon,
     builtIn: row.builtIn,
     isHomepage: row.isHomepage,
+    isFavorite: row.isFavorite,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
@@ -77,6 +78,7 @@ export async function listCategories(): Promise<Category[]> {
       icon: categories.icon,
       builtIn: categories.builtIn,
       isHomepage: categories.isHomepage,
+      isFavorite: categories.isFavorite,
       createdAt: categories.createdAt,
       // A correlated subquery built with the query builder so the column
       // references stay table-qualified — a bare `sql` template renders them
@@ -125,8 +127,9 @@ export async function updateCategory(
     throw new BuiltInCategoryError("The built-in category cannot be renamed");
   }
 
-  const patch: Partial<Pick<CategoryRow, "name" | "slug" | "description" | "icon" | "isHomepage">>
-    = {};
+  const patch: Partial<
+    Pick<CategoryRow, "name" | "slug" | "description" | "icon" | "isHomepage" | "isFavorite">
+  > = {};
   if (input.name !== undefined) patch.name = input.name;
   // Keep the slug in sync when the name changes (built-ins can't be renamed, so "default" sticks).
   if (input.name !== undefined && input.name !== existing.name) {
@@ -135,6 +138,7 @@ export async function updateCategory(
   if (input.description !== undefined) patch.description = input.description ?? null;
   if (input.icon !== undefined) patch.icon = input.icon ?? null;
   if (input.isHomepage !== undefined) patch.isHomepage = input.isHomepage;
+  if (input.isFavorite !== undefined) patch.isFavorite = input.isFavorite;
 
   if (Object.keys(patch).length === 0) return toCategory(existing);
 
