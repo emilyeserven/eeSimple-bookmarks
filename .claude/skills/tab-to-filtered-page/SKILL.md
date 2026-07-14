@@ -8,8 +8,8 @@ description: >-
   whole filter state in the URL. Use when asked to "make the X tab go to a Settings/central page
   filtered to the entity", "stop having a per-category/per-taxonomy X page", "consolidate the
   per-entity X tabs into one page", "replace a scoped tab with a link to the global X list
-  pre-filtered", or "make a filtered list a deeplink". The inverse of `scope-autofill` /
-  `display-rules-tab`. Mirrors the Autofill Rules → Settings → Autofill consolidation.
+  pre-filtered", or "make a filtered list a deeplink". The inverse of `scope-autofill`. Mirrors the
+  Autofill Rules → Settings → Autofill consolidation.
 ---
 
 # Consolidate a scoped tab into one filtered page
@@ -21,23 +21,23 @@ near-identical "page" per entity. This skill collapses them into **one** central
 whole list **pre-filtered** to the entity you came from, with a **clearable** chip, and with the
 filter state held in **URL query params** so the view is a shareable, reload-safe deeplink.
 
-This is the inverse of the `scope-autofill` / `display-rules-tab` skills (which *add* per-entity
-scoped tabs). Reach for those to add the underlying scope filtering; reach for *this* one to
-consolidate existing scoped tabs into a single page.
+This is the inverse of the `scope-autofill` skill (which *adds* per-entity scoped tabs). Reach for that
+to add the underlying scope filtering; reach for *this* one to consolidate existing scoped tabs into a
+single page.
 
-> **Status note.** The per-entity **Autofill Rules** and **Display Rules** tabs were moved **back to
-> inline** (they now render `AutofillRulesList` / `CardDisplayRulesList` directly on the entity's
-> view/edit pages via the workbench descriptor — see `scope-autofill` / `display-rules-tab`). The
-> central `/autofill` and `/card-display-rules` pages and their scope deeplinks (`lib/autofillScope.ts`,
-> `lib/cardDisplayScope.ts`) **remain** as the global filtered view. So this skill is no longer what
-> governs those two tabs; keep it as the general technique for consolidating *other* scoped tabs into a
-> deeplinkable page.
+> **Status note.** The per-entity **Autofill Rules** tab was moved **back to inline** (it now renders
+> `AutofillRulesList` directly on the entity's view/edit pages via the workbench descriptor — see
+> `scope-autofill`). The central `/autofill` page and its scope deeplink (`lib/autofillScope.ts`)
+> **remain** as the global filtered view. So this skill is no longer what governs that tab; keep it as
+> the general technique for consolidating *other* scoped tabs into a deeplinkable page. (Card display is
+> **not** a per-entity tab at all — it is a single global config on Settings → Display → Card Display;
+> see `display-rules-tab`.)
 
 ## Prerequisite
 
 The shared list component must already accept **entity-scope filter props** (e.g.
 `AutofillRulesList`'s `categoryId` / `propertyId` / `websiteId` / `tagId` / `mediaTypeId` /
-`channelId`). If it doesn't, add them first — see `scope-autofill` / `display-rules-tab`.
+`channelId`). If it doesn't, add them first — see `scope-autofill`.
 
 ## Steps (reference: the Autofill consolidation)
 
@@ -126,27 +126,6 @@ The shared list component must already accept **entity-scope filter props** (e.g
   `categories.$categorySlug.edit.autofill.tsx`, `tags.$tagSlug.edit.autofill.tsx`,
   `taxonomies.{websites.$websiteSlug,media-types.$mediaTypeSlug,youtube-channels.$channelSlug}.edit.autofill.tsx`,
   `custom-properties.$propertySlug.edit.autofill.tsx`.
-- The 6 workbench descriptors: `components/workbench/{category,tag,website,mediaType,youtubeChannel,property}.tsx`.
-
-## Reference implementation (Card Display Rules → Settings → Card Display Rules)
-
-A second, **simpler** application of this pattern (see the `display-rules-tab` skill). The shared list
-(`components/CardDisplayRulesList.tsx`) **already** accepted the scope props (`categoryId`/`propertyId`/
-`websiteId`/`tagId`/`mediaTypeId`/`channelId`), resolved website→domain & property→valueKind itself,
-and self-seeded scoped creation — so there was **no in-page filter state to lift** and **no category /
-text filter to carry**. The URL search is therefore just `{ scope?, scopeSlug? }` (no `category`/`q`),
-and step 6 (create-prefill hook) is unneeded (the list seeds from its own props).
-
-- `lib/cardDisplayScope.ts` (+ `.test.ts`) — `CardDisplayScopeType`, `CardDisplayListSearch`,
-  `validateCardDisplayListSearch`.
-- `hooks/useCardDisplayScope.ts` (+ `.test.ts`) — `resolveCardDisplayScope` (pure) + hook →
-  `{ active, label, listProps }`, `CARD_DISPLAY_SCOPE_LABELS`.
-- `routes/settings.card-display-rules.tsx` — `validateSearch`; unscoped → the drag-sortable
-  `CardDisplayRulesSettings`; scoped → clearable chip + `CardDisplayRulesList {...listProps}`.
-- The 6 redirect routes (edit-only — the `_view.*` files no longer exist post-routing-refactor):
-  `categories.$categorySlug.edit.display-rules.tsx`, `tags.$tagSlug.edit.display-rules.tsx`,
-  `taxonomies.{websites.$websiteSlug,media-types.$mediaTypeSlug,youtube-channels.$channelSlug}.edit.display-rules.tsx`,
-  `custom-properties.$propertySlug.edit.display-rules.tsx`.
 - The 6 workbench descriptors: `components/workbench/{category,tag,website,mediaType,youtubeChannel,property}.tsx`.
 
 ## Verify

@@ -184,50 +184,52 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   re-implement the Dialog + name field + reset — see the **`inline-create-modal`** skill.
 - **Layout/section patterns** are catalogued under **Content hierarchies** below — consult it
   before choosing how a detail/edit page or panel lays out its content.
-- **Card Display Rules** (`Settings → Card Display Rules`) govern **per-card** display — field
-  visibility + image presentation (aspect/visibility/layout/corner overlays) — for bookmark cards on
-  listing pages. A rule is a `conditions` tree + display overrides + `sortOrder`. Rules are now a
-  full slug-routed entity (tabbed View/Edit pages at `/card-display-rules/$ruleSlug`, workbench
-  descriptor, panel registration) whose listing keeps the inline drag-sortable priority list.
-  **Precedence is a layered merge**: for each attribute the highest-priority (lowest `sortOrder`) matching rule that sets a
-  non-null value wins; lower rules fill the rest; a seeded, **non-deletable Default rule** (`isDefault`,
-  always matches, pinned last, fully concrete — `ensureDefaultCardDisplayRule()` boot step) is the
-  baseline. This differs from autofill's single-target last-writer merge — don't "fix" it to match.
-  Non-default display columns are **nullable = inherit** (push-safe) — this includes
-  `cardZoneLayouts` (`CardZoneLayouts` in `@eesimple/types`), the per-body-zone **Flex vs Grid**
-  arrangement (`Record<CardBodyZone, "flex" | "grid">`, concrete on the Default rule, resolved by the
-  same layered merge and consumed by `BookmarkCardDetails`'s `renderZone`). Grid **column count** and
-  **card/table view** stay page-level (`ListingDisplayControls`, the `DisplayOptionsPopover`, and
-  Settings → Display "Listing Defaults"); everything else about how a card looks is configured **only**
-  via rules — including the **hide-website-pill-for-YouTube** behavior (`useHideWebsiteForYouTube` now
-  reads the Default rule; listing cards resolve it per-card, other surfaces/table use the Default).
-  The old per-page/global field-visibility + image controls, the global "hide website for YouTube"
-  toggle, and **Display Presets** were removed in favor of this. The `hiddenCardFields` key list
-  (`STANDARD_CARD_FIELDS` + custom-property ids in `lib/bookmarkCardFields.ts`) is shared with
-  homepage sections — keep in sync.
-  - **Field zones** (`CardFieldZones`, `CARD_FIELD_ZONES` in `@eesimple/types`) place each field into
-    one of four **card-body sub-zones** — `card-single-top`, `card-labels`, `card-table`,
-    `card-single-bottom` (rendered top-to-bottom; the zone decides the field's *form*: full-width row /
-    pill / `label : value` table row) — or one of the four `image-*` overlay corners. Order **within**
-    a zone matters (the `CardFieldZoneBoard` is sortable; `BookmarkCardDetails` renders in array order).
-    A `CardFieldPlacement` carries `scale`/`mobileScale` (image zones), `hideLabel` (image zones +
-    `card-table` + boolean body fields), `hideIcon` (image zones — overlays show the field's icon/image
-    by default; **also** drops a boolean icon/stars **glyph** in any zone, falling back to the
-    custom/Yes-No text via `formatBoolean`'s `hideIcon` opt), and the **boolean per-field knobs**
-    `showIfFalse`/`clickableInView`/`showLabelColon`
-    (absent = true)/`showValueBeforeLabel` (moved off the `CustomProperty` so each rule/zone controls
-    them; non-listing surfaces resolve them from the **Default** rule via `resolveBooleanDisplay`). The
-    **card header** is no longer fixed: `title`, `externalLink`, and `more` are standard placeable
-    fields (in `STANDARD_CARD_FIELDS` / `STANDARD_CARD_FIELD_KEYS`), rendered by `describeField` and laid
-    out as a justified header row when co-located in a single zone; they're kept out of the image
-    corners. The shared Fastify schema fragments (`routes/cardFieldZonesSchema.ts`, used by the
-    card-display-rules **and** homepage-sections routes) **derive** their zone-name sets from
-    `CARD_FIELD_ZONES`/`CARD_BODY_ZONES` and check the placement-prop map exhaustive against
-    `CardFieldPlacement` via `satisfies` — a new zone flows through automatically; a new placement
-    prop fails `tsc` there until its schema is added. (The legacy single `card` zone → `card-labels`
-    sub-zones and the header-field injection were one-time jsonb boot backfills, since retired with the
-    rest of the spent migrations in issue #862 — a fresh install seeds the concrete Default rule
-    directly.) **To add a field or a per-field knob to this area, see the `card-field-area` skill.**
+- **Card Display Rules** (`Settings → Display → Card Display`, `routes/settings.display.card-display.tsx`
+  → `CardDisplaySettings`) govern **per-card** display — field visibility + image presentation
+  (aspect/visibility/layout/corner overlays) — for bookmark cards on listing pages. It is a **settings
+  page, not a slug-routed entity** (there is no `card-display-rule` route / workbench descriptor / entity;
+  the historical multi-rule `CardDisplayRule` model was **replaced** — that interface lingers only as
+  orphaned type surface). The whole surface is one **single `CardDisplayConfig`** (`@eesimple/types`),
+  seeded/repaired by the `ensureCardDisplayConfig()` boot step: an ordered array of dynamic card-body
+  **`CardDisplaySection`s** plus the four fixed image-corner overlays and the image presentation
+  attributes. There is **no** layered merge, `sortOrder` priority, or non-deletable Default rule — one
+  config governs every card.
+  - **`CardDisplaySection`** (`@eesimple/types`) — a card-body section the user can **add / rename /
+    reorder / remove** (it replaced the old four fixed `CardBodyZone`s). Each carries its render `form`
+    (`stacked` / `inline` / `table`), its per-section `layout` (`CardZoneLayout`, the Flex-vs-Grid
+    dropdown), an optional per-bookmark **`visibleIf`** condition tree (absent/empty = always visible),
+    and its ordered `fields`. Resolution is client-side: `resolveCardDisplay(bookmark, config, options)`
+    (`lib/cardDisplayRules.ts`) filters `config.sections` by each section's `visibleIf` for that bookmark;
+    `BookmarkCardDetails` renders the surviving sections in array order (`renderSection`).
+  - Grid **column count** and **card/table view** stay page-level (`ListingDisplayControls`, the
+    `DisplayOptionsPopover`, and Settings → Display "Listing Defaults"); everything else about how a card
+    looks is configured **only** here — including the **hide-website-pill-for-YouTube** behavior
+    (`useHideWebsiteForYouTube` reads `config.hideWebsiteForYouTube`; listing cards resolve it per-card,
+    other surfaces/table use the config value). The old per-page/global field-visibility + image
+    controls, the global "hide website for YouTube" toggle, and **Display Presets** were removed in favor
+    of this. The `hiddenCardFields` key list (`STANDARD_CARD_FIELDS` + custom-property ids in
+    `lib/bookmarkCardFields.ts`) is shared with homepage sections — keep in sync.
+  - **Field placements** — a `CardFieldPlacement` places one field into a section's `fields` (or one of
+    the four `image-*` overlay corners). Order within a section/corner matters (the boards are sortable;
+    the card renders in array order). A placement carries `scale`/`mobileScale` (image corners),
+    `hideLabel` (image corners + `table`-form sections + boolean body fields), `hideIcon` (image corners
+    — overlays show the field's icon/image by default; **also** drops a boolean icon/stars **glyph** in
+    any section, falling back to the custom/Yes-No text via `formatBoolean`'s `hideIcon` opt), and the
+    **boolean per-field knobs** `showIfFalse`/`clickableInView`/`showLabelColon` (absent =
+    true)/`showValueBeforeLabel` (moved off the `CustomProperty` so each placement controls them;
+    non-listing surfaces resolve them from the single config via `resolveBooleanDisplay`). The **card
+    header** is not fixed: `title`, `externalLink`, and `more` are standard placeable fields (in
+    `STANDARD_CARD_FIELDS` / `STANDARD_CARD_FIELD_KEYS`), rendered by `describeField` and laid out as a
+    justified header row when co-located in a single section; they're kept out of the image corners.
+  - The legacy **`CardFieldZones` / `CARD_FIELD_ZONES` / `CARD_BODY_ZONES`** (`@eesimple/types`) survive
+    only as the **transform input** to `cardDisplayConfigFromFieldZones` (the shared default/seed builder
+    used by the client baseline, the middleware seed, and the boot backfill — one section per
+    `CardBodyZone`), **not** as the live render model. The shared Fastify schema fragments
+    (`routes/cardFieldZonesSchema.ts`, used by the card-display **and** homepage-sections routes)
+    **derive** their zone-name sets from `CARD_FIELD_ZONES`/`CARD_BODY_ZONES` and check the placement-prop
+    map exhaustive against `CardFieldPlacement` via `satisfies` — a new placement prop fails `tsc` there
+    until its schema is added. **To add a field or a per-field knob to this area, see the `card-field-area`
+    skill.**
 
 ## Page-header breadcrumbs
 
@@ -526,7 +528,7 @@ registry edit, never a pane edit.
     per-field placement. `usePrimaryLanguageField` is react-query-backed, so mounting it in two separate
     fields (name-sync + the standalone primary-language field) coordinates via the shared cache.
 - **Nav grouping survives the layout path.** The edit strip's "More" dropdown (consecutive same-`group`
-  tabs, e.g. Category's "Rules" = Autofill + Display Rules) is code-only metadata on `WorkbenchTab.group`,
+  tabs collapse under a shared `group` label) is code-only metadata on `WorkbenchTab.group`,
   **never persisted in the layout jsonb**. `deriveWorkbenchTabs` re-attaches each resolved tab's `group`
   from the matching `workbench.tabs[key]` — so a layout-driven descriptor keeps a thin `tabs` array solely
   as the group source, and a user-created tab (no matching key) stays flat.
@@ -551,12 +553,14 @@ registry edit, never a pane edit.
   `PUT` a layout for a kind and the live page rearranges in both modes; `DELETE` resets to the default.
   - **Editor selectable-list caveat.** The render path honors stored layouts for **all** kinds, but the
     editor's kind picker (`LAYOUT_DRIVEN_ENTITIES` in `lib/layoutDrivenEntities.ts`) currently lists only
-    **Category, Newsletter, Group, Bookmark, Custom Property, Genres & Moods, Tag, Website, Media Type,
-    Location, YouTube Channel, Person, Autofill, Card Display Rule**. Growing it to the rest is a
-    follow-up — add one `{ kind, label, fields, defaultLayout }` entry per kind; the render side needs no
-    change. (An entity is added here once its General composite (or, for a config entity, its main
-    composite field) is broken into granular fields — e.g. Group #1195, Website #1188, Location #1191,
-    YouTube Channel #1192, Person #1194, Autofill #1197, Card Display Rule #1198.)
+    these **13**: **Bookmark, Category, Newsletter, Group, Custom Property, Genres & Moods, Tag, Website,
+    Media Type, Location, YouTube Channel, Person, Autofill**. Growing it to the remaining layoutable
+    kinds is **T13 (#1371)** — add one `{ kind, label, fields, defaultLayout }` entry per kind; the render
+    side needs no change. (An entity is added here once its General composite (or, for a config entity,
+    its main composite field) is broken into granular fields — e.g. Group #1195, Website #1188, Location
+    #1191, YouTube Channel #1192, Person #1194, Autofill #1197.) **Card Display Rules is *not* a
+    layoutable kind** — it's a settings page, absent from `LAYOUTABLE_ENTITY_KINDS`, so it can't be added
+    here without first being turned into a slug-routed entity with a field registry.
 - **Dynamic (user-defined) placeable fields (#1163+).** The layout engine also carries **runtime-sourced**
   fields, not just the compile-time `fields` registry: a descriptor may set `useDynamicFields` (on
   `EntityWorkbench`) returning a `DynamicFieldSet` (fields keyed by a runtime id + a `defaultHome`
@@ -733,13 +737,13 @@ instead.
   facet slider bounds (`effectiveBounds`), and "which rules target this entity"
   (`lib/autofillRulesFilter.ts`). These are free because the list is already in cache; an endpoint
   would only duplicate logic.
-- **Card Display Rule resolution** — `lib/cardDisplayRules.ts` (`resolveCardDisplay` +
+- **Card Display resolution** — `lib/cardDisplayRules.ts` (`resolveCardDisplay` +
   `useResolveCardDisplay`) evaluates the shared `evaluateConditions` against each rendered bookmark in
-  the listing grid (`BookmarkListPane`) to decide that card's field visibility + image presentation.
-  It runs client-side because cards render client-side over already-cached rules/tags; there is **no**
-  server bookmark endpoint for rules. The CRUD service (`services/cardDisplayRules.ts`) is therefore
-  CRUD-only, and rules never touch `invalidateBookmarkCache()` (they're display-only, not matchable
-  data).
+  the listing grid (`BookmarkListPane`) to decide that card's **per-section** visibility (each
+  `CardDisplaySection.visibleIf`) + image presentation. It runs client-side because cards render
+  client-side over the already-cached config/tags; there is **no** server bookmark endpoint for the
+  config. The config service (`services/cardDisplayRules.ts`) is therefore CRUD-only, and it never
+  touches `invalidateBookmarkCache()` (display-only, not matchable data).
 
 **Caching / growth path.** When work must move server-side but the logic is shared with the client
 (filtering, condition matching), prefer the **middleware in-memory cache + shared predicate** over
@@ -807,9 +811,12 @@ change recipes):
 - **`language_usages`** — the codebase's **first value-carrying polymorphic association**. Keyed by
   `(ownerType, ownerId)` with **no FK on `ownerId`** (mirrors `taxonomy_images`), plus a surrogate `id`
   and a **`uniqueIndex`** on `(ownerType, ownerId, languageId, usageLevelId)` (a unique *index*, not a
-  table `unique()` — the composite-unique rule again). Owners are `LANGUAGE_USAGE_OWNER_TYPES` = bookmark
-  / movie / tvShow / website / youtubeChannel /
-  person. One shared service (`services/languageUsages.ts`) does it all: `loadLanguageUsages(ownerType,
+  table `unique()` — the composite-unique rule again). Owners are the API-authoritative
+  `LANGUAGE_USAGE_OWNER_TYPES` tuple in `@eesimple/types` (`languageUsages.ts`) = **`["bookmark",
+  "website", "youtubeChannel", "person"]`** — the enum the routes validate against. (A separate, wider
+  constant of the same name lives in the middleware `schema.ts`, but it is **not** the set the API
+  enforces; don't quote it as the owner list.) One shared service (`services/languageUsages.ts`) does it
+  all: `loadLanguageUsages(ownerType,
   ownerIds[])` (the batched, denormalized read loader reused by every owner), `setLanguageUsages`
   (replace-all), `deleteLanguageUsagesForOwner`, and `listLanguageUsageAssociations` (the overview
   matrix above).
@@ -817,7 +824,7 @@ change recipes):
 **Sync points a new owner type (or a schema change) must hit** — none of these are compiler-enforced:
 - Because `ownerId` has no FK, **every owner's delete service must call
   `deleteLanguageUsagesForOwner(<ownerType>, id)`** or it orphans rows (see the calls in
-  `services/{bookmarks,people,movies,tvShows,websites,youtubeChannels}.ts`).
+  `services/{bookmarks,people,websites,youtubeChannels}.ts`).
 - **Bookmarks are the matchable/filterable owner.** `setLanguageUsages`/`deleteLanguageUsagesForOwner`
   call `invalidateBookmarkCache()` **only** for `ownerType === "bookmark"`; the bookmark's usages ride
   on the hydrated `Bookmark` (`bookmarkHydration.ts`) and populate `ConditionInput.languageUsages` in
@@ -858,33 +865,41 @@ breadcrumb sync point).
 **Genres & Moods** is a single slug-routed hierarchical taxonomy (`/taxonomies/genres-moods`,
 `genre_moods` table, `GenreMood` type) that unifies genre- and mood-style classification into one
 `parentId` tree — built like a tree taxonomy (Media-Types-shaped scaffold, Tags-style tree + a
-Hierarchy tab; no built-ins). Unlike every other taxonomy it can be attached to **both bookmarks
-and any other taxonomy entity** via **one polymorphic table** — the second `(ownerType, ownerId)`
-precedent after `taxonomy_images`:
+Hierarchy tab; no built-ins). Unlike a single-FK taxonomy it attaches to **both bookmarks and any
+other taxonomy entity** through the **generic polymorphic assignment layer** — G&M is no longer
+special-cased; it is an ordinary taxonomy whose rows ride the same `taxonomy_assignments` table every
+custom taxonomy uses:
 
-- **`genre_mood_assignments (genreMoodId → genre_moods CASCADE, ownerType, ownerId)`** — a real FK on
-  the value side, an unconstrained `ownerId` on the owner side. `ownerType` is one of
-  **`GENRE_MOOD_OWNER_TYPES`** (`@eesimple/types` `genreMoods.ts`) — the **single edit point** to add
-  or remove a target taxonomy (currently bookmark + category/tag/website/mediaType/youtubeChannel/
-  person/group/newsletter/location/language + itself; config entities like autofill/card-display-rules
-  are intentionally excluded).
-- Because `ownerId` has **no cascade FK**, every owner's `delete*` service must clean up its rows.
-  Bookmarks do this via `cleanupGenreMoodAssignments` across **all three** bookmark-delete paths
-  (`deleteBookmark`/`bulkDeleteBookmarks`/`deleteOrphanedBookmarks`); the assignment service exposes
-  `deleteGenreMoodAssignmentsForOwner` for taxonomy owners. Bookmark-owner writes call
-  `invalidateBookmarkCache()`. The same no-FK cleanup rule covers **`taxonomy_images`**: every
-  media-taxonomy delete (Movies / TV Shows / Episodes / Albums / Tracks / Books / Podcasts) calls
-  `deleteTaxonomyImagesForOwner` (`services/taxonomyImages.ts`), which removes the stored objects
-  and then the rows — a new `TAXONOMY_IMAGE_OWNER_TYPES` owner must wire this into its delete
-  service too.
+- **`taxonomy_assignments (taxonomyId → taxonomies, termId → taxonomy_terms, ownerType, ownerId)`** —
+  the generic M:M linking any taxonomy term to any owner. Real FKs on the value side
+  (`taxonomyId`/`termId`), an unconstrained `ownerId` on the owner side (**no FK**). `ownerType` for a
+  G&M attachment is one of **`GENRE_MOOD_OWNER_TYPES`** (`@eesimple/types` `genreMoods.ts`) — the
+  **single edit point** for the G&M target set (currently bookmark + category/tag/website/mediaType/
+  youtubeChannel/person/group/newsletter/location/language + itself; config entities —
+  autofill/card-display-rules/import-rules/saved-filters — are intentionally excluded). The shared
+  service is `services/taxonomyAssignments.ts` (`getOwnerTaxonomyTerms` / `setOwnerTaxonomyTerms` /
+  `listTermIdsByOwnerType`); `services/genreMoodAssignments.ts` is a thin **legacy shim** that scopes
+  those generic calls to the G&M taxonomy id.
+- Because `ownerId` has **no cascade FK**, every owner's `delete*` service must clean up its rows via
+  **`deleteTaxonomyAssignmentsForOwner(ownerType, id)`** — one call removes *every* taxonomy's rows
+  (G&M included) for that owner. Bookmarks do this across **all three** bookmark-delete paths
+  (`deleteBookmark`/`bulkDeleteBookmarks`/`deleteOrphanedBookmarks`) via `cleanupGenreMoodAssignments`,
+  which deletes the bookmark's `taxonomy_assignments` rows. Bookmark-owner writes call
+  `invalidateBookmarkCache()`. **Image cleanup is separate and per-entity**, not a generic owner
+  registry: each entity that stores images has its own table + service (`bookmarkImages` / `groupImages`
+  / `personImages` / `youtubeChannelImages`; `socialImages` is a fetch-only helper), and its own delete
+  path removes its images. There is **no** `deleteTaxonomyImagesForOwner` / `TAXONOMY_IMAGE_OWNER_TYPES`
+  / `services/taxonomyImages.ts` — the `taxonomy_images` table exists as a schema pattern, but there is
+  no shared taxonomy-image owner-cleanup helper.
 - **Bookmarks** carry `genreMoods: BookmarkGenreMood[]` (hydrated via a batched join on
   `ownerType='bookmark'`, linked in the create/update tx like `bookmarkTags`, submitted as
   `genreMoodIds`) and expose a placeable **`genreMoods`** card field (kept in sync in both
   `STANDARD_CARD_FIELDS` and the middleware `STANDARD_CARD_FIELD_KEYS`).
-- **Cross-taxonomy UI is one reusable component** — `components/GenreMoodAssignmentSection.tsx`
-  (`ownerType`/`ownerId` props, auto-saving multi-select with inline create) — dropped into **every**
-  owner's edit General form. Adding a new owner = add it to `GENRE_MOOD_OWNER_TYPES` and drop the
-  section into that entity's edit form; don't hand-roll a per-owner junction table.
+- **Cross-taxonomy UI is one reusable component** — `components/GenreMoodAssignmentSection.tsx` (over
+  the generic `components/TaxonomyAssignmentSection.tsx`; `ownerType`/`ownerId` props, auto-saving
+  multi-select with inline create) — dropped into **every** owner's edit General form. Adding a new
+  owner = add it to `GENRE_MOOD_OWNER_TYPES` and drop the section into that entity's edit form; don't
+  hand-roll a per-owner junction table.
 
 Genres & Moods is **display/classification data, not a matchable condition leaf** today (no autofill/
 homepage/card-rule Genre condition yet) — a filter facet + condition leaf is the sanctioned follow-up
@@ -1066,7 +1081,8 @@ even though a bookmark can no longer link an Artist row). Groups has its **own a
   Groups, each with `useEntityCreateOption` inline-create) and both have a CMD+K quick-edit sub-palette
   (`PeopleSubPalette` / `GroupsSubPalette`, gated in `BookmarkTaxonomiesGroup`). A bookmark no longer has
   an `artistId`, and `"artist"` is **not** one of the six bookmark media-link FKs (`useBookmarkMediaField`
-  — book/movie/tvShow/episode/album/track) nor a `TAXONOMY_IMAGE_OWNER_TYPES` value.
+  — book/movie/tvShow/episode/album/track) nor an image-owner (there is no `artist` image table; image
+  storage is per-entity — `bookmarkImages` / `groupImages` / `personImages` / `youtubeChannelImages`).
 - **Migration**: existing `artists` rows were folded into `people` by name (idempotent `migrate.ts`
   steps copy the rows + bookmark/album links, then drop the artists table). Group bands can't be
   auto-classified, so they land in People — re-credit them to Groups by hand.

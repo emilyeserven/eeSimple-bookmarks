@@ -226,14 +226,6 @@ export function WidgetsListing() {
 | Custom Properties | `"custom-properties-listing"` |
 | Autofill Rules | `"autofill-rules-listing"` |
 | Relationship Types | `"relationship-types-listing"` |
-| Card Display Rules | `"card-display-rules-listing"` |
-
-## Card Display Rules special case — create-and-navigate, no modal
-
-Card display rules have no name-first modal: the header `+` creates a blank rule (`name: "New
-rule"`, empty condition tree) and navigates straight to its edit page, where per-field auto-save
-takes over. The registration lives in the **route** (`routes/card-display-rules.index.tsx`) so the
-button shows on both the sortable full list and the scoped (`?scope=…`) view.
 
 ## Autofill special case
 
