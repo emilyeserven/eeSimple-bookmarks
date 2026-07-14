@@ -473,6 +473,35 @@
     return trimmedText(el);
   }
 
+  // Compose an item's name from multiple child parts (`target.nameParts`): each part resolves a value
+  // from a relative selector (or the item element itself), narrows it with its own filters, reads +
+  // transforms it, and the non-empty parts are joined by `target.namePartSeparator` (default ""). Falls
+  // back to the single-selector `readName` when no parts are configured.
+  function readComposedName(el, target) {
+    if (!target.nameParts || target.nameParts.length === 0) return readName(el, target.itemName);
+    var baseUrl = el.ownerDocument ? el.ownerDocument.baseURI : "";
+    var parts = [];
+    target.nameParts.forEach(function (part) {
+      var candidates = part.selector
+        ? Array.prototype.slice.call(el.querySelectorAll(part.selector))
+        : [el];
+      (part.filters || []).forEach(function (filter) {
+        candidates = applyFilter(candidates, filter);
+      });
+      if (candidates.length === 0) return;
+      var raw = readValue(candidates[0], part.read);
+      if (raw == null) return;
+      // `readValue` already trims the raw DOM text; don't re-trim after transforms so intentional
+      // affix spacing (e.g. a "] " suffix) survives. Inter-part spacing uses `namePartSeparator`.
+      var value = raw;
+      (part.transform || []).forEach(function (transform) {
+        value = applyTransform(value, transform, baseUrl);
+      });
+      if (value !== "") parts.push(value);
+    });
+    return parts.join(target.namePartSeparator != null ? target.namePartSeparator : "");
+  }
+
   // Run the value pipeline (read + transforms) for one item element, returning its startValue string.
   function readItemValue(el, extract) {
     var raw = readValue(el, extract.read);
@@ -503,7 +532,7 @@
     // positional value; otherwise read the item's own value (href/page number/etc.) into startValue.
     var noValue = target.entryType === "name" || (target.itemUrl && target.entryType === "url");
     var leaf = {
-      name: readName(el, target.itemName),
+      name: readComposedName(el, target),
       type: target.entryType,
       startValue: noValue ? "" : readItemValue(el, extract),
     };

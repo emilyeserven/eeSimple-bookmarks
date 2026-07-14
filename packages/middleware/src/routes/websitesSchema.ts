@@ -367,6 +367,26 @@ export const fillResolveSchema = {
 
 const FILL_TARGET_KINDS = ["field", "customProperty", "taxonomy", "image", "taxonomyEntity", "taxonomyDirect", "sections"] as const;
 
+/** One composed-name part on a `sections` target: a relative selector + its own read/filters/transforms. */
+const sectionNamePartSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    selector: {
+      type: "string",
+    },
+    read: fillReadSchema,
+    filters: {
+      type: "array",
+      items: fillFilterSchema,
+    },
+    transform: {
+      type: "array",
+      items: fillTransformSchema,
+    },
+  },
+} as const;
+
 export const fillTargetSchema = {
   type: "object",
   additionalProperties: false,
@@ -455,6 +475,14 @@ export const fillTargetSchema = {
       type: "string",
     },
     itemUrl: {
+      type: "string",
+    },
+    // `sections` target: compose each item's name from multiple child elements (joined by namePartSeparator).
+    nameParts: {
+      type: "array",
+      items: sectionNamePartSchema,
+    },
+    namePartSeparator: {
       type: "string",
     },
     // `sections` target: text-content classifier grouping a flat item list into sections/subsections.

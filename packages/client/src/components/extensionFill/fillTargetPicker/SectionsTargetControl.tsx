@@ -1,12 +1,16 @@
 import type { LockedKeys } from "./fillTargetShared";
 import type { ComboboxOption } from "../../Combobox";
-import type { CustomProperty, FillTarget } from "@eesimple/types";
+import type { CustomProperty, FillTarget, SectionNamePart } from "@eesimple/types";
 
 import { useTranslation } from "react-i18next";
 
 import { Combobox } from "../../Combobox";
+import { Button } from "../../ui/button";
 import { Label } from "../../ui/label";
 import { KindSelect, LabeledInput } from "../controls";
+import { FillFilterList } from "../FillFilterList";
+import { FillReadField } from "../FillReadField";
+import { FillTransformList } from "../FillTransformList";
 import { TextMatchEditor } from "../TextMatchEditor";
 
 type SectionsTarget = Extract<FillTarget, { kind: "sections" }>;
@@ -238,7 +242,20 @@ export function SectionsTarget({
                 ...target,
                 itemName,
               })}
-              hint={t("Read within each item to get its name. Leave blank to use the item's own text.")}
+              hint={t("Read within each item to get its name. Leave blank to use the item's own text, or use \"Name parts\" below to compose it from several elements.")}
+            />
+            <SectionNamePartsEditor
+              parts={target.nameParts ?? []}
+              separator={target.namePartSeparator}
+              disabled={layoutLocked}
+              onPartsChange={nameParts => onChange({
+                ...target,
+                nameParts,
+              })}
+              onSeparatorChange={namePartSeparator => onChange({
+                ...target,
+                namePartSeparator,
+              })}
             />
             <LabeledInput
               label={t("Item link selector (within each item)")}
@@ -257,6 +274,129 @@ export function SectionsTarget({
             <SectionsUdemyExample />
           </>
         )}
+    </div>
+  );
+}
+
+/** One composed-name part: a relative selector plus its own read / filters / transforms. */
+function SectionNamePartRow({
+  part, index, disabled, onChange, onRemove,
+}: {
+  part: SectionNamePart;
+  index: number;
+  disabled: boolean;
+  onChange: (next: SectionNamePart) => void;
+  onRemove: () => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <div className="space-y-2 rounded-md border p-2">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-muted-foreground">
+          {t("Part {{n}}", {
+            n: index + 1,
+          })}
+        </span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          disabled={disabled}
+          onClick={onRemove}
+        >
+          {t("Remove")}
+        </Button>
+      </div>
+      <LabeledInput
+        label={t("Selector (within each item)")}
+        disabled={disabled}
+        placeholder={"[class*=\"badge\"]"}
+        value={part.selector ?? ""}
+        onChange={selector => onChange({
+          ...part,
+          selector,
+        })}
+        hint={t("Relative to the item. Leave blank to read the item element itself.")}
+      />
+      <FillReadField
+        read={part.read}
+        onChange={read => onChange({
+          ...part,
+          read,
+        })}
+      />
+      <FillFilterList
+        filters={part.filters ?? []}
+        onChange={filters => onChange({
+          ...part,
+          filters,
+        })}
+      />
+      <FillTransformList
+        transforms={part.transform ?? []}
+        onChange={transform => onChange({
+          ...part,
+          transform,
+        })}
+      />
+    </div>
+  );
+}
+
+/**
+ * Editor for composing a section item's name from **multiple** child elements. Each part targets a
+ * relative selector (or the item itself), with its own read/filters/transforms; the non-empty parts
+ * are joined by the separator. When empty, the single "Item name selector" above is used instead.
+ */
+function SectionNamePartsEditor({
+  parts, separator, disabled, onPartsChange, onSeparatorChange,
+}: {
+  parts: SectionNamePart[];
+  separator: string | undefined;
+  disabled: boolean;
+  onPartsChange: (parts: SectionNamePart[]) => void;
+  onSeparatorChange: (separator: string) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <div className="space-y-2 rounded-md border border-dashed p-2">
+      <Label>{t("Name parts (compose from multiple elements)")}</Label>
+      <p className="text-xs text-muted-foreground">
+        {t("Optional. When set, each item's name is built from these parts (joined by the separator) instead of the single \"Item name selector\" above — e.g. a badge span + a title span → \"quiz\" + \": \" + \"Why React?\".")}
+      </p>
+      {parts.map((part, index) => (
+        <SectionNamePartRow
+          key={index}
+          part={part}
+          index={index}
+          disabled={disabled}
+          onChange={next => onPartsChange(parts.map((existing, current) => (current === index ? next : existing)))}
+          onRemove={() => onPartsChange(parts.filter((_, current) => current !== index))}
+        />
+      ))}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        disabled={disabled}
+        onClick={() => onPartsChange([...parts, {}])}
+      >
+        {t("Add name part")}
+      </Button>
+      {parts.length > 0 && (
+        <LabeledInput
+          label={t("Join parts with")}
+          disabled={disabled}
+          placeholder=": "
+          value={separator ?? ""}
+          onChange={onSeparatorChange}
+          hint={t("Literal text inserted between parts (e.g. \": \"). Leave blank to concatenate directly.")}
+        />
+      )}
     </div>
   );
 }

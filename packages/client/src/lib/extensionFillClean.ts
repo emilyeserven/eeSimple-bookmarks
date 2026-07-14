@@ -5,6 +5,7 @@ import type {
   FillTarget,
   FillTransform,
   PathMatch,
+  SectionNamePart,
   TextMatch,
   WebsiteExtensionFillRule,
 } from "@eesimple/types";
@@ -178,12 +179,38 @@ function cleanTaxonomyDirectTarget(
  * the lower ones' fields, so the saved target is never the self-contradictory multi-mode the editor's
  * mode switch already prevents.
  */
+/**
+ * Normalize the composed-name parts: trim each part's selector, drop empty transform/filter arrays,
+ * and drop any part that carries no selector / read / filter / transform at all.
+ */
+function cleanSectionNameParts(parts: SectionNamePart[] | undefined): SectionNamePart[] {
+  if (!parts) return [];
+  return parts
+    .map((part) => {
+      const selector = part.selector?.trim();
+      const filters = part.filters ?? [];
+      const transform = part.transform ?? [];
+      const cleaned: SectionNamePart = {};
+      if (selector) cleaned.selector = selector;
+      if (part.read) cleaned.read = part.read;
+      if (filters.length > 0) cleaned.filters = filters;
+      if (transform.length > 0) cleaned.transform = transform;
+      return cleaned;
+    })
+    .filter(part => part.selector || part.read || part.filters || part.transform);
+}
+
 function cleanSectionsTarget(
   target: Extract<FillTarget, { kind: "sections" }>,
 ): FillTarget | null {
   if (!target.propertyId) return null;
   const itemName = target.itemName?.trim();
   const itemUrl = target.itemUrl?.trim();
+  const nameParts = cleanSectionNameParts(target.nameParts);
+  // The separator is deliberately NOT trimmed — e.g. ": " carries a meaningful trailing space.
+  const namePartSeparator = nameParts.length > 0 && target.namePartSeparator
+    ? target.namePartSeparator
+    : undefined;
   const sectionMatch = target.sectionMatch?.value.trim()
     ? target.sectionMatch
     : undefined;
@@ -214,6 +241,16 @@ function cleanSectionsTarget(
     ...(itemUrl
       ? {
         itemUrl,
+      }
+      : {}),
+    ...(nameParts.length > 0
+      ? {
+        nameParts,
+      }
+      : {}),
+    ...(namePartSeparator !== undefined
+      ? {
+        namePartSeparator,
       }
       : {}),
     ...(sectionHeaderSelector
