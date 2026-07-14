@@ -87,6 +87,21 @@ Rules:
 - **Idempotent and cheap to re-run** — they execute on every boot.
 - **They run *after* `app.listen()`** so `/healthz` and `/api/*` stay reachable while a slow
   backfill runs on modest hardware. Never reorder listen after the boot steps.
+- **Ordering between individual `ensure*` steps is significant when one seed reads another
+  built-in's id/value.** `ensureDefaultCategory()` runs first (guarantees the built-in "Default"
+  category, backfilling any bookmarks left without one) because later boot logic assumes it exists.
+  When a new seed needs a value another built-in's `ensure*` step produces, it must run **after**
+  that step in `index.ts`'s boot block, *and* the dependency must be expressed by **threading the
+  produced value as a function argument** — never by comment-only ordering, which silently breaks
+  under reordering or refactors:
+  ```ts
+  // Sections must be seeded before Progress: a fresh install's Progress derives from Sections
+  // completion, so the seed links itemInItemsSourcePropertyId to the Sections property id.
+  const sectionsPropertyId = await ensureSectionsProperty();
+  await ensureProgressProperty(sectionsPropertyId);
+  ```
+  A comment explaining *why* the order matters is still expected, but the comment alone is not the
+  enforcement mechanism — the threaded argument is.
 - A seed that should run only until the user takes ownership checks for `null` (never-initialized)
   vs. an explicit empty value the user set — see `ensureDefaultPlaceTypeLevelGroups()`.
 - A backfill that changes a bookmark's **matchable** data (row, tags, property values) or the tag
