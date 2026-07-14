@@ -4,6 +4,7 @@ import type { EntityRoute } from "../lib/entityRoutes";
 import type { SavedFilter, UpdateSavedFilterInput } from "@eesimple/types";
 
 import { SavedFilterCard } from "../components/SavedFilterCard";
+import { SavedFilterTable } from "../components/SavedFilterTable";
 import { savedFilterWorkbench } from "../components/workbench/savedFilter";
 import { useBulkDeleteSavedFilters, useSavedFilters } from "../hooks/useSavedFilters";
 import i18n from "../i18n";
@@ -56,6 +57,14 @@ export const savedFilterListingConfig: EntityListingConfig<SavedFilter> = {
     <SavedFilterCard
       filter={entity}
       {...rest}
+    />
+  ),
+  renderTable: ({
+    entities, selection,
+  }) => (
+    <SavedFilterTable
+      data={entities}
+      selection={selection}
     />
   ),
 };
