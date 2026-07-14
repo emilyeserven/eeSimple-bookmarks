@@ -5,70 +5,151 @@ import type { EntityLayout, GroupType } from "@eesimple/types";
 import { useTranslation } from "react-i18next";
 
 import i18n from "../../i18n";
-import { GroupTypeGeneralForm } from "../GroupTypeGeneralForm";
+import {
+  GroupTypeDescriptionEditField,
+  GroupTypeNameEditField,
+  GroupTypeSortOrderEditField,
+} from "../GroupTypeGeneralForm";
 
+import { DetailField } from "@/components/DetailField";
 import {
   useDeleteGroupType,
   useGroupTypes,
   useGroupTypeBySlug,
 } from "@/hooks/useGroupTypes";
 
-function GroupTypeGeneralView({
-  entity: groupType,
-}: {
-  entity: GroupType;
-}) {
+interface GroupTypeViewProps {
+  groupType: GroupType;
+}
+
+/** "Added" (created date) row. */
+function GroupTypeAddedView({
+  groupType,
+}: GroupTypeViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return <DetailField label={t("Added")}>{new Date(groupType.createdAt).toLocaleDateString()}</DetailField>;
+}
+
+/** "Slug" row (monospace). */
+function GroupTypeSlugView({
+  groupType,
+}: GroupTypeViewProps) {
   const {
     t,
   } = useTranslation();
   return (
-    <div className="space-y-4">
-      <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">{t("Added")}</dt>
-        <dd>{new Date(groupType.createdAt).toLocaleDateString()}</dd>
-        <dt className="text-muted-foreground">{t("Slug")}</dt>
-        <dd className="font-mono">{groupType.slug}</dd>
-        <dt className="text-muted-foreground">{t("Sort order")}</dt>
-        <dd>{groupType.sortOrder}</dd>
-        {groupType.description
-          ? (
-            <>
-              <dt className="text-muted-foreground">{t("Description")}</dt>
-              <dd>{groupType.description}</dd>
-            </>
-          )
-          : null}
-        {groupType.groupCount != null
-          ? (
-            <>
-              <dt className="text-muted-foreground">{t("Groups")}</dt>
-              <dd>{groupType.groupCount}</dd>
-            </>
-          )
-          : null}
-      </dl>
-    </div>
+    <DetailField label={t("Slug")}>
+      <span className="font-mono">{groupType.slug}</span>
+    </DetailField>
   );
 }
 
+/** "Sort order" row. */
+function GroupTypeSortOrderView({
+  groupType,
+}: GroupTypeViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return <DetailField label={t("Sort order")}>{groupType.sortOrder}</DetailField>;
+}
+
+/** "Description" row — self-hiding when empty. */
+function GroupTypeDescriptionView({
+  groupType,
+}: GroupTypeViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return <DetailField label={t("Description")}>{groupType.description || null}</DetailField>;
+}
+
+/** "Groups" (count) row — self-hiding when the count wasn't hydrated. */
+function GroupTypeGroupsView({
+  groupType,
+}: GroupTypeViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return <DetailField label={t("Groups")}>{groupType.groupCount ?? null}</DetailField>;
+}
+
 /**
- * The group type workbench's field registry (#1106 layout editor). A single `general` field carries
- * both modes (`GroupTypeGeneralView` view / `GroupTypeGeneralForm` edit) — the entity has one tab today.
+ * The group type workbench's field registry (#1106 layout editor). The old single `general` composite is
+ * fully atomized (#1371, following the media-type #1189 reference) into per-field, mode-aware
+ * {@link WorkbenchField}s so an operator can place each independently in **Settings → Page Layouts**. Each
+ * edit field owns its own single-field `useAppForm` + `useFieldAutoSave` — no form-context provider
+ * needed (the Category precedent). `name` is **edit-only**; `added`/`slug`/`groups` are **view-only**;
+ * `sortOrder`/`description` carry both. Authored as an exhaustive `Record<GroupTypeFieldKey, …>` so a key
+ * without a renderer fails `tsc`.
  */
-type GroupTypeFieldKey = "general";
+type GroupTypeFieldKey
+  = | "added"
+    | "slug"
+    | "name"
+    | "sortOrder"
+    | "description"
+    | "groups";
 
 const groupTypeFields = {
-  general: {
-    key: "general",
-    label: i18n.t("General"),
-    view: GroupTypeGeneralView,
+  added: {
+    key: "added",
+    label: i18n.t("Added"),
+    view: ({
+      entity,
+    }) => <GroupTypeAddedView groupType={entity} />,
+  },
+  slug: {
+    key: "slug",
+    label: i18n.t("Slug"),
+    view: ({
+      entity,
+    }) => <GroupTypeSlugView groupType={entity} />,
+  },
+  name: {
+    key: "name",
+    label: i18n.t("Name"),
     edit: ({
       entity,
-    }) => <GroupTypeGeneralForm groupType={entity} />,
+    }) => <GroupTypeNameEditField groupType={entity} />,
+  },
+  sortOrder: {
+    key: "sortOrder",
+    label: i18n.t("Sort order"),
+    view: ({
+      entity,
+    }) => <GroupTypeSortOrderView groupType={entity} />,
+    edit: ({
+      entity,
+    }) => <GroupTypeSortOrderEditField groupType={entity} />,
+  },
+  description: {
+    key: "description",
+    label: i18n.t("Description"),
+    view: ({
+      entity,
+    }) => <GroupTypeDescriptionView groupType={entity} />,
+    edit: ({
+      entity,
+    }) => <GroupTypeDescriptionEditField groupType={entity} />,
+  },
+  groups: {
+    key: "groups",
+    label: i18n.t("Groups"),
+    view: ({
+      entity,
+    }) => <GroupTypeGroupsView groupType={entity} />,
   },
 } satisfies Record<GroupTypeFieldKey, WorkbenchField<GroupType>>;
 
-/** The code default layout: the single General tab, one untitled section, one field. */
+/**
+ * The code default layout: one General tab, one untitled section listing every atomized field in one
+ * per-mode-sensible order — the view-visible subset (`added`/`slug`/`sortOrder`/`description`/`groups`)
+ * reproduces the pre-#1371 `<dl>` order, and the edit-visible subset (`name`/`sortOrder`/`description`)
+ * reproduces the pre-#1371 form order.
+ */
 const GROUP_TYPE_DEFAULT_LAYOUT: EntityLayout = {
   tabs: [
     {
@@ -76,7 +157,7 @@ const GROUP_TYPE_DEFAULT_LAYOUT: EntityLayout = {
       label: i18n.t("General"),
       sections: [{
         key: "general",
-        fields: ["general"] satisfies GroupTypeFieldKey[],
+        fields: ["added", "slug", "name", "sortOrder", "description", "groups"] satisfies GroupTypeFieldKey[],
       }],
     },
   ],

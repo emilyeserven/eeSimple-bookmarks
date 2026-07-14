@@ -2,57 +2,108 @@
 import type { EntityWorkbench, WorkbenchField } from "./types";
 import type { EntityLayout, LocationRelation } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import i18n from "../../i18n";
 import { LocationRelationCardsView } from "../LocationRelationCardsView";
-import { LocationRelationGeneralForm } from "../LocationRelationGeneralForm";
+import {
+  LocationRelationDescriptionEditField,
+  LocationRelationNameEditField,
+  LocationRelationSortOrderEditField,
+} from "../LocationRelationGeneralForm";
 
+import { DetailField } from "@/components/DetailField";
 import {
   useDeleteLocationRelation,
   useLocationRelationBySlug,
   useLocationRelations,
 } from "@/hooks/useLocationRelations";
 
-function LocationRelationGeneralView({
-  entity: relation,
-}: {
-  entity: LocationRelation;
-}) {
+interface LocationRelationViewProps {
+  locationRelation: LocationRelation;
+}
+
+/** "Added" (created date) row. */
+function LocationRelationAddedView({
+  locationRelation,
+}: LocationRelationViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return <DetailField label={t("Added")}>{new Date(locationRelation.createdAt).toLocaleDateString()}</DetailField>;
+}
+
+/** "Slug" row (monospace). */
+function LocationRelationSlugView({
+  locationRelation,
+}: LocationRelationViewProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
-    <div className="space-y-4">
-      <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">{i18n.t("Added")}</dt>
-        <dd>{new Date(relation.createdAt).toLocaleDateString()}</dd>
-        <dt className="text-muted-foreground">{i18n.t("Slug")}</dt>
-        <dd className="font-mono">{relation.slug}</dd>
-        <dt className="text-muted-foreground">{i18n.t("Sort order")}</dt>
-        <dd>{relation.sortOrder}</dd>
-        <dt className="text-muted-foreground">{i18n.t("Bookmarks")}</dt>
-        <dd>{relation.bookmarkCount}</dd>
-        {relation.builtIn
-          ? (
-            <>
-              <dt className="text-muted-foreground">{i18n.t("Built-in")}</dt>
-              <dd>{i18n.t("Yes")}</dd>
-            </>
-          )
-          : null}
-        {relation.description && (
-          <>
-            <dt className="text-muted-foreground">{i18n.t("Description")}</dt>
-            <dd>{relation.description}</dd>
-          </>
-        )}
-      </dl>
-    </div>
+    <DetailField label={t("Slug")}>
+      <span className="font-mono">{locationRelation.slug}</span>
+    </DetailField>
   );
 }
 
+/** "Sort order" row. */
+function LocationRelationSortOrderView({
+  locationRelation,
+}: LocationRelationViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return <DetailField label={t("Sort order")}>{locationRelation.sortOrder}</DetailField>;
+}
+
+/** "Bookmarks" (count) row. */
+function LocationRelationBookmarkCountView({
+  locationRelation,
+}: LocationRelationViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return <DetailField label={t("Bookmarks")}>{locationRelation.bookmarkCount}</DetailField>;
+}
+
+/** "Built-in" row — self-hiding for a non-built-in relation. */
+function LocationRelationBuiltInView({
+  locationRelation,
+}: LocationRelationViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return <DetailField label={t("Built-in")}>{locationRelation.builtIn ? t("Yes") : null}</DetailField>;
+}
+
+/** "Description" row — self-hiding when empty. */
+function LocationRelationDescriptionView({
+  locationRelation,
+}: LocationRelationViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return <DetailField label={t("Description")}>{locationRelation.description || null}</DetailField>;
+}
+
 /**
- * The location relation workbench's field registry (#1106 layout editor). `bookmarks` is **view-only**
- * (`LocationRelationCardsView`); `general` carries both modes — reproducing the old view-only
- * "Bookmarks" tab with no special-casing.
+ * The location relation workbench's field registry (#1106 layout editor). The old single `general`
+ * composite is fully atomized (#1371, following the media-type #1189 reference) into per-field,
+ * mode-aware {@link WorkbenchField}s. `bookmarks` (the cards list) stays a **view-only** field, keeping
+ * the old view-only "Bookmarks" tab; `name` is **edit-only**; `added`/`slug`/`bookmarkCount`/`builtIn`
+ * are **view-only**; `sortOrder`/`description` carry both. Authored as an exhaustive
+ * `Record<LocationRelationFieldKey, …>` so a key without a renderer fails `tsc`.
  */
-type LocationRelationFieldKey = "bookmarks" | "general";
+type LocationRelationFieldKey
+  = | "bookmarks"
+    | "added"
+    | "slug"
+    | "name"
+    | "sortOrder"
+    | "bookmarkCount"
+    | "builtIn"
+    | "description";
 
 const locationRelationFields = {
   bookmarks: {
@@ -62,17 +113,69 @@ const locationRelationFields = {
       entity,
     }) => <LocationRelationCardsView locationRelation={entity} />,
   },
-  general: {
-    key: "general",
-    label: i18n.t("General"),
-    view: LocationRelationGeneralView,
+  added: {
+    key: "added",
+    label: i18n.t("Added"),
+    view: ({
+      entity,
+    }) => <LocationRelationAddedView locationRelation={entity} />,
+  },
+  slug: {
+    key: "slug",
+    label: i18n.t("Slug"),
+    view: ({
+      entity,
+    }) => <LocationRelationSlugView locationRelation={entity} />,
+  },
+  name: {
+    key: "name",
+    label: i18n.t("Name"),
     edit: ({
       entity,
-    }) => <LocationRelationGeneralForm locationRelation={entity} />,
+    }) => <LocationRelationNameEditField locationRelation={entity} />,
+  },
+  sortOrder: {
+    key: "sortOrder",
+    label: i18n.t("Sort order"),
+    view: ({
+      entity,
+    }) => <LocationRelationSortOrderView locationRelation={entity} />,
+    edit: ({
+      entity,
+    }) => <LocationRelationSortOrderEditField locationRelation={entity} />,
+  },
+  bookmarkCount: {
+    key: "bookmarkCount",
+    label: i18n.t("Bookmarks"),
+    view: ({
+      entity,
+    }) => <LocationRelationBookmarkCountView locationRelation={entity} />,
+  },
+  builtIn: {
+    key: "builtIn",
+    label: i18n.t("Built-in"),
+    view: ({
+      entity,
+    }) => <LocationRelationBuiltInView locationRelation={entity} />,
+  },
+  description: {
+    key: "description",
+    label: i18n.t("Description"),
+    view: ({
+      entity,
+    }) => <LocationRelationDescriptionView locationRelation={entity} />,
+    edit: ({
+      entity,
+    }) => <LocationRelationDescriptionEditField locationRelation={entity} />,
   },
 } satisfies Record<LocationRelationFieldKey, WorkbenchField<LocationRelation>>;
 
-/** The code default layout: the current two tabs, one untitled section each, in current order. */
+/**
+ * The code default layout: the view-only Bookmarks tab, then the General tab whose single section lists
+ * every atomized field in one per-mode-sensible order — the view-visible subset reproduces the pre-#1371
+ * `<dl>` order (Added, Slug, Sort order, Bookmarks, Built-in, Description), and the edit-visible subset
+ * (`name`/`sortOrder`/`description`) reproduces the pre-#1371 form order.
+ */
 const LOCATION_RELATION_DEFAULT_LAYOUT: EntityLayout = {
   tabs: [
     {
@@ -88,7 +191,7 @@ const LOCATION_RELATION_DEFAULT_LAYOUT: EntityLayout = {
       label: "General",
       sections: [{
         key: "general",
-        fields: ["general"] satisfies LocationRelationFieldKey[],
+        fields: ["added", "slug", "name", "sortOrder", "bookmarkCount", "builtIn", "description"] satisfies LocationRelationFieldKey[],
       }],
     },
   ],

@@ -582,16 +582,19 @@ registry edit, never a pane edit.
   `IconPicker`, controlled `value`/`onChange`, no persistence of its own), staged and committed by
   `PageLayoutsSettings.tsx` on **Settings → Display → Page Layouts**. You can also prove the loop by hand:
   `PUT` a layout for a kind and the live page rearranges in both modes; `DELETE` resets to the default.
-  - **Editor selectable-list caveat.** The render path honors stored layouts for **all** kinds, but the
-    editor's kind picker (`LAYOUT_DRIVEN_ENTITIES` in `lib/layoutDrivenEntities.ts`) currently lists only
-    these **13**: **Bookmark, Category, Newsletter, Group, Custom Property, Genres & Moods, Tag, Website,
-    Media Type, Location, YouTube Channel, Person, Autofill**. Growing it to the remaining layoutable
-    kinds is **T13 (#1371)** — add one `{ kind, label, fields, defaultLayout }` entry per kind; the render
-    side needs no change. (An entity is added here once its General composite (or, for a config entity,
-    its main composite field) is broken into granular fields — e.g. Group #1195, Website #1188, Location
-    #1191, YouTube Channel #1192, Person #1194, Autofill #1197.) **Card Display Rules is *not* a
-    layoutable kind** — it's a settings page, absent from `LAYOUTABLE_ENTITY_KINDS`, so it can't be added
-    here without first being turned into a slug-routed entity with a field registry.
+  - **Editor selectable list = all layoutable kinds (#1371 complete).** The editor's kind picker
+    (`LAYOUT_DRIVEN_ENTITIES` in `lib/layoutDrivenEntities.ts`) now lists **every** `LAYOUTABLE_ENTITY_KIND`
+    — each entity's General composite has been atomized into granular, independently-placeable fields
+    (the media-type #1189 / Category #1186 recipe; the final batch — Language, Place Type, Location
+    Relation, Group Type, Relationship Type, Import Rule, Saved Filter, Taxonomy Term — landed in #1371).
+    To add a new layoutable kind: add one `{ kind, label }` entry here; the render side needs no change.
+    **`taxonomy-term` is the special case** — it has no `ENTITY_DESCRIPTORS` entry (its real workbench is
+    built per-taxonomy by `buildTaxonomyTermWorkbench`), so the picker resolves it through a static base
+    workbench (built from a synthetic hierarchical taxonomy) via a `baseWorkbenchForKind` special case, and
+    its preview uses the synthetic `buildSampleEntity("taxonomy-term")` (no real-instance list, since its
+    instances span every custom taxonomy). **Card Display Rules is *not* a layoutable kind** — it's a
+    settings page, absent from `LAYOUTABLE_ENTITY_KINDS`, so it can't be added here without first being
+    turned into a slug-routed entity with a field registry.
 - **Dynamic (user-defined) placeable fields (#1163+).** The layout engine also carries **runtime-sourced**
   fields, not just the compile-time `fields` registry: a descriptor may set `useDynamicFields` (on
   `EntityWorkbench`) returning a `DynamicFieldSet` (fields keyed by a runtime id + a `defaultHome`

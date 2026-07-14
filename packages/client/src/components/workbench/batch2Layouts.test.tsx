@@ -239,6 +239,11 @@ describe("autofill rule default layout", () => {
   });
 });
 
+/** The General tab's flattened section field-key order for a workbench + mode. */
+function generalFields<E extends { id: string }>(workbench: EntityWorkbench<E>, mode: WorkbenchMode) {
+  return shape(workbench, mode).find(tab => tab.key === "general")?.sections.flatMap(section => section.fields);
+}
+
 describe("import rule default layout", () => {
   const expectedTabs = ["general", "conditions"];
 
@@ -249,12 +254,38 @@ describe("import rule default layout", () => {
   it("renders the edit tabs in order", () => {
     expect(shape(importRuleWorkbench, "edit").map(tab => tab.key)).toEqual(expectedTabs);
   });
+
+  // The atomized General composite (#1371): edit reproduces the old form order; view reads
+  // description-first (byte-identity waived — the old view/edit orders conflicted on description).
+  it("atomizes the General composite into granular view fields", () => {
+    expect(generalFields(importRuleWorkbench, "view")).toEqual([
+      "description", "action", "sortOrder", "slug", "added",
+    ]);
+  });
+
+  it("atomizes the General composite into granular edit fields", () => {
+    expect(generalFields(importRuleWorkbench, "edit")).toEqual([
+      "name", "description", "action", "sortOrder",
+    ]);
+  });
 });
 
 describe("saved filter default layout", () => {
   it("renders the single tab in both modes", () => {
     expect(shape(savedFilterWorkbench, "view").map(tab => tab.key)).toEqual(["general"]);
     expect(shape(savedFilterWorkbench, "edit").map(tab => tab.key)).toEqual(["general"]);
+  });
+
+  it("atomizes the General composite into granular view fields (#1371)", () => {
+    expect(generalFields(savedFilterWorkbench, "view")).toEqual([
+      "description", "filters", "viewableOnline", "slug", "added",
+    ]);
+  });
+
+  it("atomizes the General composite into granular edit fields (#1371)", () => {
+    expect(generalFields(savedFilterWorkbench, "edit")).toEqual([
+      "name", "description", "filters", "viewableOnline",
+    ]);
   });
 });
 

@@ -10,57 +10,67 @@ import { useAppForm } from "../lib/form";
 
 import { Checkbox } from "@/components/ui/checkbox";
 
-const relationshipTypeGeneralSchema = z.object({
+const nameSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
+});
+
+const descriptionSchema = z.object({
   description: z.string(),
+});
+
+const directionalSchema = z.object({
   directional: z.boolean(),
 });
 
-interface Props {
+const NAME_LABELS: Partial<Record<keyof UpdateRelationshipTypeInput, string>> = {
+  name: "Name",
+};
+
+const DESCRIPTION_LABELS: Partial<Record<keyof UpdateRelationshipTypeInput, string>> = {
+  description: "Description",
+};
+
+const DIRECTIONAL_LABELS: Partial<Record<keyof UpdateRelationshipTypeInput, string>> = {
+  directional: "Direction",
+};
+
+interface RelationshipTypeFieldProps {
   relationshipType: RelationshipType;
 }
 
 /**
- * Edit a relationship type's name and direction. Each field auto-saves (no Save button): the name
- * persists on blur, the directional toggle on change. Built-in types can't be renamed.
+ * The relationship type's name. A standalone placeable field (the `name` field in the registry); it
+ * mounts its own `useAppForm` + `useFieldAutoSave` (no cross-field coordination — the Category #1186
+ * precedent). Auto-saves on blur and follows the new slug. Built-in types can't be renamed.
  */
-export function RelationshipTypeGeneralForm({
+export function RelationshipTypeNameEditField({
   relationshipType,
-}: Props) {
+}: RelationshipTypeFieldProps) {
   const {
     t,
   } = useTranslation();
-  const LABELS: Partial<Record<keyof UpdateRelationshipTypeInput, string>> = {
-    name: t("Name"),
-    description: t("Description"),
-    directional: t("Direction"),
-  };
   const navigate = useNavigate();
   const update = useUpdateRelationshipType();
   const autoSave = useFieldAutoSave<UpdateRelationshipTypeInput, RelationshipType>({
     id: relationshipType.id,
     update,
-    labels: LABELS,
+    labels: NAME_LABELS,
     initial: {
       name: relationshipType.name,
-      description: relationshipType.description ?? null,
-      directional: relationshipType.directional,
     },
   });
 
   const form = useAppForm({
     defaultValues: {
       name: relationshipType.name,
-      description: relationshipType.description ?? "",
-      directional: relationshipType.directional,
     },
     validators: {
-      onChange: relationshipTypeGeneralSchema,
+      onChange: nameSchema,
     },
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-1">
       <form.AppField name="name">
         {field => (
           <field.TextField
@@ -90,39 +100,119 @@ export function RelationshipTypeGeneralForm({
       {relationshipType.builtIn
         ? <p className="text-xs text-muted-foreground">{t("Built-in types can't be renamed.")}</p>
         : null}
+    </div>
+  );
+}
 
-      <form.AppField name="description">
-        {field => (
-          <field.TextareaField
-            label={t("Description")}
-            debounceSave
-            onBlur={() => autoSave.saveField(
-              "description",
-              field.state.value.trim() || null,
-              {
-                valid: field.state.meta.errors.length === 0,
-              },
-            )}
+/** The relationship type's description. A standalone placeable field; saves on blur. */
+export function RelationshipTypeDescriptionEditField({
+  relationshipType,
+}: RelationshipTypeFieldProps) {
+  const {
+    t,
+  } = useTranslation();
+  const update = useUpdateRelationshipType();
+  const autoSave = useFieldAutoSave<UpdateRelationshipTypeInput, RelationshipType>({
+    id: relationshipType.id,
+    update,
+    labels: DESCRIPTION_LABELS,
+    initial: {
+      description: relationshipType.description ?? null,
+    },
+  });
+
+  const form = useAppForm({
+    defaultValues: {
+      description: relationshipType.description ?? "",
+    },
+    validators: {
+      onChange: descriptionSchema,
+    },
+  });
+
+  return (
+    <form.AppField name="description">
+      {field => (
+        <field.TextareaField
+          label={t("Description")}
+          debounceSave
+          onBlur={() => autoSave.saveField(
+            "description",
+            field.state.value.trim() || null,
+            {
+              valid: field.state.meta.errors.length === 0,
+            },
+          )}
+        />
+      )}
+    </form.AppField>
+  );
+}
+
+/** The relationship type's direction toggle. A standalone placeable field; saves on change. */
+export function RelationshipTypeDirectionalEditField({
+  relationshipType,
+}: RelationshipTypeFieldProps) {
+  const {
+    t,
+  } = useTranslation();
+  const update = useUpdateRelationshipType();
+  const autoSave = useFieldAutoSave<UpdateRelationshipTypeInput, RelationshipType>({
+    id: relationshipType.id,
+    update,
+    labels: DIRECTIONAL_LABELS,
+    initial: {
+      directional: relationshipType.directional,
+    },
+  });
+
+  const form = useAppForm({
+    defaultValues: {
+      directional: relationshipType.directional,
+    },
+    validators: {
+      onChange: directionalSchema,
+    },
+  });
+
+  return (
+    <form.AppField name="directional">
+      {field => (
+        <label className="flex items-center gap-2 text-sm">
+          <Checkbox
+            checked={field.state.value}
+            onCheckedChange={(checked) => {
+              const next = checked === true;
+              field.handleChange(next);
+              autoSave.saveField("directional", next);
+            }}
+            aria-label={t("Directional")}
           />
-        )}
-      </form.AppField>
+          {t("Directional (reads parent → child rather than symmetric)")}
+        </label>
+      )}
+    </form.AppField>
+  );
+}
 
-      <form.AppField name="directional">
-        {field => (
-          <label className="flex items-center gap-2 text-sm">
-            <Checkbox
-              checked={field.state.value}
-              onCheckedChange={(checked) => {
-                const next = checked === true;
-                field.handleChange(next);
-                autoSave.saveField("directional", next);
-              }}
-              aria-label={t("Directional")}
-            />
-            {t("Directional (reads parent → child rather than symmetric)")}
-          </label>
-        )}
-      </form.AppField>
+interface Props {
+  relationshipType: RelationshipType;
+}
+
+/**
+ * Edit a relationship type's name, description, and direction. Each field auto-saves (no Save button).
+ * Composed from the same placeable sub-fields the relationship type workbench registry uses, so this
+ * whole-form shell (used by `RelationshipTypeGeneralForm.stories.tsx`) stays in lockstep with the
+ * layout-driven General tab.
+ */
+export function RelationshipTypeGeneralForm({
+  relationshipType,
+}: Props) {
+  return (
+    <div className="space-y-4">
+      <RelationshipTypeNameEditField relationshipType={relationshipType} />
+      <RelationshipTypeDescriptionEditField relationshipType={relationshipType} />
+      <RelationshipTypeDirectionalEditField relationshipType={relationshipType} />
     </div>
   );
 }
