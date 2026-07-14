@@ -451,6 +451,21 @@ const propertyNode = {
   },
 } as const;
 
+const fillableFieldsNode = {
+  type: "object",
+  additionalProperties: false,
+  required: ["type", "mode"],
+  properties: {
+    type: {
+      const: "fillable-fields",
+    },
+    mode: {
+      type: "string",
+      enum: ["has", "missing"],
+    },
+  },
+} as const;
+
 const groupNode = {
   type: "object",
   additionalProperties: false,
@@ -475,7 +490,7 @@ const groupNode = {
 /** Any node in the tree (group or one of the leaf kinds). Self-references for nesting. */
 export const conditionNodeSchema = {
   $id: "conditionNode",
-  oneOf: [groupNode, matchNode, categoryNode, websiteNode, tagNode, locationNode, youtubeChannelNode, mediaTypeNode, genreMoodNode, taxonomyNode, relationshipTypeNode, languageUsageNode, propertyNode],
+  oneOf: [groupNode, matchNode, categoryNode, websiteNode, tagNode, locationNode, youtubeChannelNode, mediaTypeNode, genreMoodNode, taxonomyNode, relationshipTypeNode, languageUsageNode, propertyNode, fillableFieldsNode],
 } as const;
 
 /** The persisted root: always a group. Referenced by request bodies as `conditionTree#`. */

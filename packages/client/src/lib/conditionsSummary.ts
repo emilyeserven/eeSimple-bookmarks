@@ -52,6 +52,8 @@ function summarizeNode(node: ConditionNode): string {
       return `has a language usage (${node.languageIds.length} lang / ${node.usageLevelIds.length} level)`;
     case "property":
       return `${node.predicate.valueKind} property condition`;
+    case "fillable-fields":
+      return node.mode === "has" ? "has fillable fields" : "has nothing to fill";
     default: {
       const exhaustive: never = node;
       return exhaustive;

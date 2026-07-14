@@ -26,13 +26,15 @@ import type {
   BookmarkYouTubeChannel,
   ImageDisplayPreference,
   InstagramReelArchive,
+  WebsiteExtensionFillRule,
 } from "@eesimple/types";
+import { bookmarkFillPresence, websiteRulesCanFill } from "@eesimple/types";
 import { type BookmarkRow } from "@/db/schema";
 import { loadLanguageUsages } from "@/services/languageUsages";
 import { loadTaxonomyTermsForOwners } from "@/services/taxonomyAssignments";
 import { loadEntityNames } from "@/services/entityNames";
 import { resolveDefaultCategoryId } from "@/services/categories";
-import { channelsById, importsById, mediaTypesById, newslettersById, websitesById } from "@/services/bookmarkHydrationEntities";
+import { channelsById, importsById, mediaTypesById, newslettersById, websiteFillRulesById, websitesById } from "@/services/bookmarkHydrationEntities";
 import {
   blacklistedLocationIdsByBookmarkId,
   blacklistedTagIdsByBookmarkId,
@@ -121,8 +123,13 @@ const EMPTY_EXTRAS: BookmarkExtras = {
 };
 
 /** Map a DB row plus its hydrated relations to the shared `Bookmark` wire type. */
-function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId: string): Bookmark {
-  return {
+function toBookmark(
+  row: BookmarkRow,
+  extras: BookmarkExtras,
+  defaultCategoryId: string,
+  fillRules: WebsiteExtensionFillRule[],
+): Bookmark {
+  const bookmark: Bookmark = {
     id: row.id,
     url: row.url,
     originalUrl: row.originalUrl,
@@ -183,7 +190,11 @@ function toBookmark(row: BookmarkRow, extras: BookmarkExtras, defaultCategoryId:
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     updatedAt: row.updatedAt instanceof Date ? row.updatedAt.toISOString() : null,
+    hasFillableFields: false,
   };
+  bookmark.hasFillableFields
+    = fillRules.length > 0 && websiteRulesCanFill(fillRules, bookmarkFillPresence(bookmark));
+  return bookmark;
 }
 
 /** Hydrate all custom-property relations for a set of bookmark rows in batched queries. */
@@ -257,9 +268,10 @@ export async function hydrateBookmarkRows(rows: BookmarkRow[]): Promise<Bookmark
   const channelIds = [...new Set(rows.map(row => row.youtubeChannelId).filter((id): id is string => id !== null))];
   const newsletterIds = [...new Set(rows.map(row => row.newsletterId).filter((id): id is string => id !== null))];
   const issueIds = [...new Set(rows.map(row => row.importId).filter((id): id is string => id !== null))];
-  const [grouped, websiteMap, mediaTypeMap, channelMap, newsletterMap, importMap] = await Promise.all([
+  const [grouped, websiteMap, fillRulesMap, mediaTypeMap, channelMap, newsletterMap, importMap] = await Promise.all([
     extrasByBookmarkId(rows.map(row => row.id)),
     websitesById(websiteIds),
+    websiteFillRulesById(websiteIds),
     mediaTypesById(mediaTypeIds),
     channelsById(channelIds),
     newslettersById(newsletterIds),
@@ -274,6 +286,6 @@ export async function hydrateBookmarkRows(rows: BookmarkRow[]): Promise<Bookmark
       youtubeChannel: row.youtubeChannelId ? channelMap.get(row.youtubeChannelId) ?? null : null,
       newsletter: row.newsletterId ? newsletterMap.get(row.newsletterId) ?? null : null,
       import: row.importId ? importMap.get(row.importId) ?? null : null,
-    }, defaultCategoryId);
+    }, defaultCategoryId, row.websiteId ? fillRulesMap.get(row.websiteId) ?? [] : []);
   });
 }

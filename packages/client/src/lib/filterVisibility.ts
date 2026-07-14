@@ -4,8 +4,8 @@ import type { Bookmark, Person, Category, CustomProperty, GenreMood, MediaType, 
 
 import { FILTER_FACETS, facetHasActiveSelection, propertyHasActiveSelection } from "./filterFacets";
 
-/** The bookmark fields the media-source facet's data-presence check reads. */
-export type MediaSourceBookmark = Pick<Bookmark, "plexRatingKey" | "kavitaSeriesId" | "isbn" | "feedUrl">;
+/** The bookmark fields the presence-only facets' (media-source, fillable-fields) data checks read. */
+export type MediaSourceBookmark = Pick<Bookmark, "plexRatingKey" | "kavitaSeriesId" | "isbn" | "feedUrl" | "hasFillableFields">;
 
 /** The facet source data the filter rail derives its visibility from. */
 export interface FilterFacetInputs {
@@ -54,6 +54,7 @@ export function computeFacetData(inputs: FilterFacetInputs): Record<FilterFacetK
     "sections": enabledProperties.some(p => p.type === "sections"),
     "media-source": (inputs.bookmarks ?? []).some(b =>
       b.plexRatingKey != null || b.kavitaSeriesId != null || b.isbn != null || b.feedUrl != null),
+    "fillable-fields": (inputs.bookmarks ?? []).some(b => b.hasFillableFields),
   };
 }
 

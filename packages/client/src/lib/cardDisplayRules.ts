@@ -94,6 +94,7 @@ export function bookmarkToConditionInput(bookmark: Bookmark): ConditionInput {
     choicesValues: new Map(bookmark.choicesValues.map(v => [v.propertyId, v.values])),
     sectionsValues: new Map(bookmark.sectionsValues.map(v => [v.propertyId, v])),
     textValues: new Map(bookmark.textValues.map(v => [v.propertyId, v.value])),
+    hasFillableFields: bookmark.hasFillableFields,
   };
 }
 

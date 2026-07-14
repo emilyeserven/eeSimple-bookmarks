@@ -5,6 +5,7 @@ import type {
   BookmarkNewsletter,
   BookmarkWebsite,
   BookmarkYouTubeChannel,
+  WebsiteExtensionFillRule,
 } from "@eesimple/types";
 import { db } from "@/db";
 import {
@@ -44,6 +45,33 @@ export async function websitesById(websiteIds: string[]): Promise<Map<string, Bo
         ? `/api/websites/${row.id}/image?v=${new Date(row.faviconCreatedAt).getTime()}`
         : null,
     });
+  }
+  return byId;
+}
+
+/**
+ * Load just the `extensionFillRules` jsonb for a set of website ids, keyed by website id. Kept
+ * separate from {@link websitesById} so the lightweight `BookmarkWebsite` never carries the heavy
+ * rules blob; used only to derive `Bookmark.hasFillableFields`. Websites with no rules are omitted.
+ */
+export async function websiteFillRulesById(
+  websiteIds: string[],
+): Promise<Map<string, WebsiteExtensionFillRule[]>> {
+  const byId = new Map<string, WebsiteExtensionFillRule[]>();
+  if (websiteIds.length === 0) return byId;
+
+  const rows = await db
+    .select({
+      id: websites.id,
+      extensionFillRules: websites.extensionFillRules,
+    })
+    .from(websites)
+    .where(inArray(websites.id, websiteIds));
+
+  for (const row of rows) {
+    if (row.extensionFillRules && row.extensionFillRules.length > 0) {
+      byId.set(row.id, row.extensionFillRules);
+    }
   }
   return byId;
 }

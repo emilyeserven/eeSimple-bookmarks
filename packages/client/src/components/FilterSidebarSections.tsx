@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import {
   PersonFilterSection,
   CategoryFilterSection,
+  FillableFieldsFilterSection,
   LanguageUsageFilterSection,
   GenreMoodFilterSection,
   MediaSourceFilterSection,
@@ -27,7 +28,7 @@ import { Separator } from "./ui/separator";
 /** The filter sections themselves, with separators between adjacent groups. */
 export function FilterSections({
   tree, enabledProperties, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, people, placeTypes, genreMoods, bookmarks, search, onSearchChange,
-  hasTags, hasProperties, hasSectionsFilter, hasCategoryFilter, hasMediaTypeFilter, hasChannelFilter, hasWebsiteFilter, hasRelationshipTypeFilter, hasPersonFilter, hasPlaceTypeFilter, hasGenreMoodFilter, hasMediaSourceFilter,
+  hasTags, hasProperties, hasSectionsFilter, hasCategoryFilter, hasMediaTypeFilter, hasChannelFilter, hasWebsiteFilter, hasRelationshipTypeFilter, hasPersonFilter, hasPlaceTypeFilter, hasGenreMoodFilter, hasMediaSourceFilter, hasFillableFieldsFilter,
   sectionFilter,
 }: {
   tree: TagNode[];
@@ -55,6 +56,7 @@ export function FilterSections({
   hasPlaceTypeFilter: boolean;
   hasGenreMoodFilter: boolean;
   hasMediaSourceFilter: boolean;
+  hasFillableFieldsFilter: boolean;
   sectionFilter?: string;
 }) {
   const {
@@ -203,6 +205,16 @@ export function FilterSections({
           show: sectionShown(hasMediaSourceFilter, t("Media source")),
           node: (
             <MediaSourceFilterSection
+              search={search}
+              onSearchChange={onSearchChange}
+            />
+          ),
+        },
+        {
+          key: "fillable-fields",
+          show: sectionShown(hasFillableFieldsFilter, t("Fillable fields")),
+          node: (
+            <FillableFieldsFilterSection
               search={search}
               onSearchChange={onSearchChange}
             />

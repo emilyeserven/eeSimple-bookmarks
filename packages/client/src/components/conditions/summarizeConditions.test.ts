@@ -31,6 +31,7 @@ describe("summarizeConditions", () => {
       relationshipTypes: 0,
       languageUsages: 0,
       properties: 0,
+      fillableFields: 0,
       combinator: "and",
     });
   });

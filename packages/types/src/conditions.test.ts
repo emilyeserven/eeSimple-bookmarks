@@ -49,6 +49,7 @@ function makeInput(overrides: Partial<ConditionInput> = {}): ConditionInput {
     choicesValues: new Map(),
     sectionsValues: new Map(),
     textValues: new Map(),
+    hasFillableFields: false,
     ...overrides,
   };
 }
@@ -1005,4 +1006,27 @@ test("nested groups recurse: an inner group is one child of an outer group", () 
     evaluateConditions(group([group([urlMatch, titleMiss], "and")], "and"), makeInput()),
     false,
   );
+});
+
+test("fillable-fields leaf matches on the derived hasFillableFields flag", () => {
+  const has: ConditionNode = {
+    type: "fillable-fields",
+    mode: "has",
+  };
+  const missing: ConditionNode = {
+    type: "fillable-fields",
+    mode: "missing",
+  };
+  assert.equal(evaluateConditions(has, makeInput({
+    hasFillableFields: true,
+  })), true);
+  assert.equal(evaluateConditions(has, makeInput({
+    hasFillableFields: false,
+  })), false);
+  assert.equal(evaluateConditions(missing, makeInput({
+    hasFillableFields: true,
+  })), false);
+  assert.equal(evaluateConditions(missing, makeInput({
+    hasFillableFields: false,
+  })), true);
 });

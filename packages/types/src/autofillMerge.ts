@@ -51,6 +51,7 @@ export function urlTitleConditionInput(input: AutofillMatchInput): ConditionInpu
     choicesValues: new Map(),
     sectionsValues: new Map(),
     textValues: new Map(),
+    hasFillableFields: false,
   };
 }
 

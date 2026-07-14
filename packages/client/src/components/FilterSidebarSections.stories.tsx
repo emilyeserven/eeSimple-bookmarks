@@ -40,6 +40,7 @@ const meta = {
     hasPlaceTypeFilter: false,
     hasGenreMoodFilter: false,
     hasMediaSourceFilter: false,
+    hasFillableFieldsFilter: false,
   },
 } satisfies Meta<typeof FilterSections>;
 

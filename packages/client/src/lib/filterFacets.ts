@@ -55,6 +55,10 @@ export const FILTER_FACETS = [
     key: "media-source",
     label: i18n.t("Media source"),
   },
+  {
+    key: "fillable-fields",
+    label: i18n.t("Fillable fields"),
+  },
 ] as const;
 
 export type FilterFacetKey = (typeof FILTER_FACETS)[number]["key"];
@@ -94,6 +98,8 @@ export function facetHasActiveSelection(key: FilterFacetKey, search: BookmarkSea
         || search.kavitaSeriesId !== undefined
         || search.isbn !== undefined
         || search.feedUrl !== undefined;
+    case "fillable-fields":
+      return search.fillableFieldsPresence !== undefined;
   }
 }
 
@@ -167,6 +173,11 @@ export function facetSelectionSummary(key: FilterFacetKey, search: BookmarkSearc
       return {
         count: 0,
         presence: search.mediaSourcePresence,
+      };
+    case "fillable-fields":
+      return {
+        count: 0,
+        presence: search.fillableFieldsPresence,
       };
   }
 }
@@ -257,6 +268,8 @@ export function facetVisibilityHint(key: FilterFacetKey, t: TFunction): string {
       return t("Appears when a Sections-type custom property exists.");
     case "media-source":
       return t("Appears when a bookmark is linked to Plex, Kavita, an ISBN, or an RSS feed.");
+    case "fillable-fields":
+      return t("Appears when a bookmark's website has an extension-fill rule that could fill an empty field.");
   }
 }
 

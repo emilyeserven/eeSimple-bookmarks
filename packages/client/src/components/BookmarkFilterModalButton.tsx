@@ -108,6 +108,7 @@ export function BookmarkFilterModalButton(props: FilterPillsRowProps) {
             hasPlaceTypeFilter={facetData["place-types"]}
             hasGenreMoodFilter={facetData["genre-moods"]}
             hasMediaSourceFilter={facetData["media-source"]}
+            hasFillableFieldsFilter={facetData["fillable-fields"]}
           />
         </div>
       </DialogContent>
