@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- this module pairs the bookmark view-field
    components with the small shared helpers (relationshipBadges, MEDIA_SOURCE_FIELD_LABELS) they use */
+/* eslint-disable import/max-dependencies -- field registry pairing each bookmark view field with its renderer by design (#1368) */
 import type { MediaSourceMatchGroup } from "../../hooks/useBookmarksSharingMediaSource";
 import type { Bookmark, BookmarkRelationship } from "@eesimple/types";
 import type { ReactNode } from "react";

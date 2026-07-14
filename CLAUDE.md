@@ -49,6 +49,24 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
 - **ESLint** uses the flat config in `eslint.config.js`, which re-exports
   `@emilyeserven/eslint-config`. Run `pnpm lint:fix` from the repo root — running from a package
   produces import ordering that CI rejects.
+- **Import cap (`import/max-dependencies`) is enforced at `["error", { max: 20, ignoreTypeImports: true }]`.**
+  The shared `@emilyeserven/eslint-config` ships it as an ignored `warn`/10; `eslint.config.js` overrides the
+  rule **in place** on the shared config object that registers it (`emilyConfigWithCap` — a standalone
+  override object can't resolve the `import` plugin, and redeclaring the plugin throws) so it becomes an
+  `error` at max 20 (#1368). CI fails on any file over **20** non-type module dependencies, where the rule
+  counts `import … from`, `export … from` (re-exports **do** count), and side-effect `import "x"`, **deduped
+  by module path** (`import type` / `export type` are ignored). **Scope:** the shared config **excludes
+  `packages/middleware/src/**/*.ts` from all `import/*` rules** (its `ignores`), so the cap governs only the
+  **client**, **types**, and **gateway/scripts** — the middleware route/boot hubs (`app.ts` 57, `index.ts` 21)
+  are outside the rule and need no exemption. The **only** allowed exemptions are genuine by-design hubs in the
+  in-scope packages, added as a file-top `/* eslint-disable import/max-dependencies … */`: field/entity
+  registries (`workbench/bookmarkViewFields.tsx`) and the `@eesimple/types` public barrel
+  (`types/src/index.ts`); the vendored `components/ui/**` stays `off`. A **non-hub** file over the cap is a
+  coordination smell — **split it, don't exempt it**: the reference is `PersonGeneralForm.tsx`, whose
+  per-field sub-components were relocated into `components/person/*` (a recomposition + re-export shell keeps
+  every consumer importing from one module — #1194/#1368). Don't reintroduce a `warn`, and don't raise the
+  cap to hide a straggler. (Note: an eslint-disable comment must not contain a literal `*/` — it closes the
+  block early; word the justification around it.)
 - **Conventional Commits** are enforced by commitlint (commit-msg hook) and the `pr-title` workflow.
   Valid types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`,
   `revert`. release-please derives `CHANGELOG.md` and version bumps from them.
