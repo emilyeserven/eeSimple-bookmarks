@@ -1,3 +1,4 @@
+/* eslint-disable import/max-dependencies -- the @eesimple/types public barrel: re-exports every module by design (#1368) */
 /**
  * Shared eeSimple Bookmarks domain types.
  *

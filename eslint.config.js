@@ -8,6 +8,30 @@ import globals from "globals";
  * Always run `pnpm lint:fix` from the repo root — running from a package produces import
  * ordering that CI rejects.
  */
+
+/**
+ * The shared config ships `import/max-dependencies` as an ignored `warn`/10, leaving the cap
+ * policy-free (#1368). Enforce it as an `error` at a realistic max of 20 by overriding the rule
+ * **in place** on the shared config object that already registers it (a standalone override object
+ * can't resolve the `import` plugin and redeclaring the plugin throws "Cannot redefine"). Genuine
+ * by-design hubs/registries/barrels carry a file-top eslint-disable for the rule; a non-hub file
+ * over the cap is a coordination smell to split, not exempt — see CLAUDE.md → Conventions.
+ */
+const IMPORT_MAX_DEPENDENCIES = ["error", {
+  max: 20,
+  ignoreTypeImports: true,
+}];
+const emilyConfigWithCap = (Array.isArray(emilyConfig) ? emilyConfig : [emilyConfig]).map(config =>
+  config.rules?.["import/max-dependencies"]
+    ? {
+      ...config,
+      rules: {
+        ...config.rules,
+        "import/max-dependencies": IMPORT_MAX_DEPENDENCIES,
+      },
+    }
+    : config);
+
 export default [
   {
     ignores: [
@@ -27,7 +51,7 @@ export default [
       "packages/client/public/mockServiceWorker.js",
     ],
   },
-  ...(Array.isArray(emilyConfig) ? emilyConfig : [emilyConfig]),
+  ...emilyConfigWithCap,
   {
     // Plain-Node JavaScript (gateway entrypoint + repo scripts) runs outside the TS pipeline.
     files: ["packages/gateway/**/*.js", "scripts/**/*.{js,mjs}"],
