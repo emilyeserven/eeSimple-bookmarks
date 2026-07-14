@@ -34,7 +34,7 @@ const ERROR_CODE_MESSAGES: Record<string, Translator> = {
     i18n.t("A bookmark with this URL already exists: {{url}}", {
       url: p?.url ?? "",
     }),
-  duplicateChannelKey: () => i18n.t("A channel with that key already exists"),
+  duplicateChannelKey: () => i18n.t("A channel with this URL already exists"),
   builtInImmutable: () => i18n.t("Built-in items can't be modified or deleted"),
   cycle: () => i18n.t("Cannot move an item under itself or one of its descendants"),
   invalidReassignTarget: () => i18n.t("Invalid reassignment target"),
