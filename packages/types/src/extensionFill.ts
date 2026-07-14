@@ -161,6 +161,14 @@ export type FillTarget
    *   `m:ss` / `h:mm:ss` timestamp lines (e.g. a video description); the engine parses each line into
    *   a flat entry whose `startValue` is the total number of **seconds**. `container`/`header`/
    *   `itemName`/`sectionMatch`/`sectionHeaderSelector` are ignored.
+   *
+   * **`nameParts`** (all entry types) — compose each item's NAME from **multiple** child elements
+   * instead of the single `itemName` selector. Each {@link SectionNamePart} targets a relative child
+   * (or the item element itself), applies its own filters/read/transforms, and the resolved non-empty
+   * parts are joined with {@link namePartSeparator} (default `""`). Use it when a repeated item wraps
+   * several elements — e.g. a `<span class="badge">quiz</span>` + `<span class="title">Why React?</span>`
+   * composed into `"Quiz: Why React?"`. When `nameParts` is absent (or empty) the name still comes from
+   * `itemName`/the item's own text. Only the name is composed; the value/url pipeline is unchanged.
    */
               | { kind: "sections";
                 propertyId: string;
@@ -169,6 +177,8 @@ export type FillTarget
                 header?: string;
                 itemName?: string;
                 itemUrl?: string;
+                nameParts?: SectionNamePart[];
+                namePartSeparator?: string;
                 sectionMatch?: TextMatch;
                 sectionHeaderSelector?: string; };
 
@@ -178,6 +188,23 @@ export type FillTarget
  * comes from `itemName`/its own text, so no value selector or transform is needed.
  */
 export type SectionFillEntryType = "name" | "url" | "page" | "timestamp";
+
+/**
+ * One component of a composed section-item name (see the `sections` target's `nameParts`). Each part
+ * resolves a value from within the repeated item element and the parts are concatenated (joined by the
+ * target's `namePartSeparator`). Reuses the same {@link FillExtract} building blocks as the rule's main
+ * extract, applied per part.
+ */
+export interface SectionNamePart {
+  /** Relative `querySelector` within the item element; absent = the item element itself. */
+  selector?: string;
+  /** How the matched element's value is read (default trimmed `textContent`). */
+  read?: FillExtract["read"];
+  /** Narrows which element within the item is used (same semantics as a rule's extract filters). */
+  filters?: FillFilter[];
+  /** String transforms applied to this part's value, in order (incl. `affix` for literal glue). */
+  transform?: FillTransform[];
+}
 
 /** How to extract a rule's value(s) from the page. */
 export interface FillExtract {

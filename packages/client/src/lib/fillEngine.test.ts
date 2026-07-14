@@ -1489,6 +1489,154 @@ describe("eesimpleFillEngine.runRules — sections target", () => {
     expect(result.entries).toBeUndefined();
     expect(result.values).toEqual(["One"]);
   });
+
+  // A quiz list whose items wrap a badge span + a title span (the composed-name case).
+  const MULTISPAN_HTML = `
+    <ul>
+      <li><a href="/react/why"><span class="badge">quiz</span><span class="title">Why React?</span></a></li>
+      <li><a href="/react/state"><span class="badge">lesson</span><span class="title">State</span></a></li>
+    </ul>
+  `;
+
+  it("composes an item name from multiple nameParts joined by the separator", () => {
+    const rule = {
+      id: "quiz",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "url",
+        itemUrl: "a",
+        namePartSeparator: ": ",
+        nameParts: [
+          {
+            selector: ".badge",
+          },
+          {
+            selector: ".title",
+          },
+        ],
+      },
+      extract: {
+        selector: "li",
+      },
+    };
+    expect(runSections(rule, MULTISPAN_HTML)).toEqual([
+      {
+        name: "quiz: Why React?",
+        type: "url",
+        startValue: "",
+        url: "/react/why",
+      },
+      {
+        name: "lesson: State",
+        type: "url",
+        startValue: "",
+        url: "/react/state",
+      },
+    ]);
+  });
+
+  it("applies per-part transforms (e.g. affix) when composing the name", () => {
+    const rule = {
+      id: "quiz",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "name",
+        nameParts: [
+          {
+            selector: ".badge",
+            transform: [{
+              kind: "affix",
+              prefix: "[",
+              suffix: "] ",
+            }],
+          },
+          {
+            selector: ".title",
+          },
+        ],
+      },
+      extract: {
+        selector: "li",
+      },
+    };
+    expect(runSections(rule, MULTISPAN_HTML)).toEqual([
+      {
+        name: "[quiz] Why React?",
+        type: "name",
+        startValue: "",
+      },
+      {
+        name: "[lesson] State",
+        type: "name",
+        startValue: "",
+      },
+    ]);
+  });
+
+  it("skips a part whose selector matches nothing rather than emitting a blank fragment", () => {
+    const rule = {
+      id: "quiz",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "name",
+        namePartSeparator: " — ",
+        nameParts: [
+          {
+            selector: ".missing",
+          },
+          {
+            selector: ".title",
+          },
+        ],
+      },
+      extract: {
+        selector: "li",
+      },
+    };
+    // Only the title part resolves, so no separator glue is emitted around the missing part.
+    expect(runSections(rule, MULTISPAN_HTML)).toEqual([
+      {
+        name: "Why React?",
+        type: "name",
+        startValue: "",
+      },
+      {
+        name: "State",
+        type: "name",
+        startValue: "",
+      },
+    ]);
+  });
+
+  it("falls back to the single itemName selector when nameParts is absent", () => {
+    const rule = {
+      id: "quiz",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "name",
+        itemName: ".title",
+      },
+      extract: {
+        selector: "li",
+      },
+    };
+    expect(runSections(rule, MULTISPAN_HTML)).toEqual([
+      {
+        name: "Why React?",
+        type: "name",
+        startValue: "",
+      },
+      {
+        name: "State",
+        type: "name",
+        startValue: "",
+      },
+    ]);
+  });
 });
 
 interface TaxonomyFill {

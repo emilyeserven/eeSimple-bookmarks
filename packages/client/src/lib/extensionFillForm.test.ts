@@ -1525,6 +1525,72 @@ describe("sections target", () => {
     });
   });
 
+  it("carries composed nameParts + a non-trimmed separator through normalization", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "sections",
+        propertyId: "p1",
+        entryType: "url",
+        itemUrl: "a",
+        namePartSeparator: ": ",
+        nameParts: [
+          {
+            selector: ".badge",
+          },
+          {
+            selector: ".title",
+            transform: [{
+              kind: "trim",
+            }],
+          },
+        ],
+      },
+      extract: {
+        selector: "li",
+      },
+    })]);
+    expect(out.target).toEqual({
+      kind: "sections",
+      propertyId: "p1",
+      entryType: "url",
+      itemUrl: "a",
+      namePartSeparator: ": ",
+      nameParts: [
+        {
+          selector: ".badge",
+        },
+        {
+          selector: ".title",
+          transform: [{
+            kind: "trim",
+          }],
+        },
+      ],
+    });
+  });
+
+  it("drops empty nameParts and the separator when no parts survive", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "sections",
+        propertyId: "p1",
+        entryType: "name",
+        namePartSeparator: ": ",
+        nameParts: [{
+          selector: "  ",
+        }, {}],
+      },
+      extract: {
+        selector: "li",
+      },
+    })]);
+    expect(out.target).toEqual({
+      kind: "sections",
+      propertyId: "p1",
+      entryType: "name",
+    });
+  });
+
   it("summarizes a sections target, flagging grouped mode", () => {
     expect(describeFillTarget({
       kind: "sections",
