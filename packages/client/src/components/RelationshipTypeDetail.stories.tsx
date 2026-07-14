@@ -1,21 +1,17 @@
-import type { RelationshipType } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { RelationshipTypeDetail } from "./RelationshipTypeDetail";
+import { makeRelationshipType } from "../test-utils/factories";
 
-const baseType: RelationshipType = {
+const baseType = makeRelationshipType({
   id: "rt-1",
   name: "Parent / Child",
   slug: "parent-child",
-  description: null,
   directional: true,
   builtIn: true,
-  hidden: false,
-  sortOrder: 0,
-  createdAt: "2024-01-15T00:00:00.000Z",
   bookmarkCount: 42,
   relationshipCount: 38,
-};
+});
 
 const meta = {
   title: "Components/RelationshipTypeDetail",

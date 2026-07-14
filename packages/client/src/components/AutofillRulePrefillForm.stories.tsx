@@ -1,40 +1,33 @@
-import type { AutofillRule, MediaTypeNode } from "@eesimple/types";
+import type { MediaTypeNode } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { emptyConditionTree } from "@eesimple/types";
 import { HttpResponse, http } from "msw";
 
 import { AutofillRulePrefillForm } from "./AutofillRulePrefillForm";
+import { makeAutofillRule } from "../test-utils/factories";
 import { apiHandlers, sampleMediaTypes } from "../test-utils/story-mocks";
-
-const NOW = "2026-06-01T00:00:00.000Z";
 
 const mediaTypeTree: MediaTypeNode[] = sampleMediaTypes.map(mediaType => ({
   ...mediaType,
   children: [],
 }));
 
-const rule: AutofillRule = {
+const rule = makeAutofillRule({
   id: "rule-recipes",
   name: "Recipes",
   slug: "recipes",
   description: "Tag recipe links",
-  conditions: emptyConditionTree(),
   setCategoryId: "cat-workflow",
   setMediaTypeId: "media-article",
   tagIds: ["tag-cli"],
-  locationIds: [],
   numberValues: [
     {
       propertyId: "prop-priority",
       value: 8,
     },
   ],
-  booleanValues: [],
-  dateTimeValues: [],
   sortOrder: 3,
-  createdAt: NOW,
-};
+});
 
 const handlers = [
   ...apiHandlers,

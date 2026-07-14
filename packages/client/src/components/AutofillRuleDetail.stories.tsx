@@ -1,4 +1,4 @@
-import type { AutofillRule, Tag } from "@eesimple/types";
+import type { Tag } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import {
@@ -6,10 +6,8 @@ import {
   AutofillGeneralFields,
   AutofillPrefillFields,
 } from "./AutofillRuleDetail";
-import { makeLocation, makeTag } from "../test-utils/factories";
+import { makeAutofillRule, makeLocation, makeTag } from "../test-utils/factories";
 import { sampleCategories, sampleMediaTypes, sampleProperties } from "../test-utils/story-mocks";
-
-const NOW = "2026-06-01T00:00:00.000Z";
 
 const tags: Tag[] = [
   makeTag({
@@ -26,7 +24,7 @@ const locations = [makeLocation({
   slug: "san-francisco",
 })];
 
-const rule: AutofillRule = {
+const rule = makeAutofillRule({
   id: "rule-recipes",
   name: "Recipes",
   slug: "recipes",
@@ -57,11 +55,8 @@ const rule: AutofillRule = {
       value: 8,
     },
   ],
-  booleanValues: [],
-  dateTimeValues: [],
   sortOrder: 3,
-  createdAt: NOW,
-};
+});
 
 const meta = {
   title: "Components/AutofillRuleDetail",

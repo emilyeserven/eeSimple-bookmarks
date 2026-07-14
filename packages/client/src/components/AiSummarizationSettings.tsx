@@ -137,7 +137,7 @@ export function AiSummarizationSettings() {
               id="extra-context"
               value={extraContext}
               onChange={e => setExtraContext(e.target.value)}
-              placeholder="Add any extra context or instructions for this session…"
+              placeholder={t("Add any extra context or instructions for this session…")}
               rows={3}
             />
           </div>
@@ -193,7 +193,7 @@ export function AiSummarizationSettings() {
             onChange={e => patchForm({
               aiSummarizationPrompt: e.target.value,
             })}
-            placeholder="Enter instructions for the AI to follow when summarizing your queued bookmarks…"
+            placeholder={t("Enter instructions for the AI to follow when summarizing your queued bookmarks…")}
             rows={6}
           />
         </CardContent>

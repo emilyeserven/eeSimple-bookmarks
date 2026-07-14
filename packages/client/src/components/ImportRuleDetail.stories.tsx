@@ -1,10 +1,9 @@
-import type { ConditionTree, ImportRule } from "@eesimple/types";
+import type { ConditionTree } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { ImportRuleConditionsFields, ImportRuleGeneralFields } from "./ImportRuleDetail";
+import { makeImportRule } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
-
-const NOW = "2026-06-01T00:00:00.000Z";
 
 const conditions: ConditionTree = {
   type: "group",
@@ -25,7 +24,7 @@ const conditions: ConditionTree = {
   ],
 };
 
-const rule: ImportRule = {
+const rule = makeImportRule({
   id: "rule-block-social",
   name: "Block social media",
   slug: "block-social-media",
@@ -33,8 +32,7 @@ const rule: ImportRule = {
   conditions,
   action: "block",
   sortOrder: 2,
-  createdAt: NOW,
-};
+});
 
 const meta = {
   title: "Components/ImportRuleDetail",

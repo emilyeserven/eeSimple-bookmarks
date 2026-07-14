@@ -1,31 +1,21 @@
-import type { AutofillBackfillResult, AutofillRule } from "@eesimple/types";
+import type { AutofillBackfillResult } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { emptyConditionTree } from "@eesimple/types";
 import { HttpResponse, http } from "msw";
 
 import { AutofillBackfillView } from "./AutofillBackfillView";
-import { makeBookmark } from "../test-utils/factories";
+import { makeAutofillRule, makeBookmark } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
-const rule: AutofillRule = {
+const rule = makeAutofillRule({
   id: "rule-recipes",
   name: "Recipes",
   slug: "recipes",
   description: "Tag recipe links",
-  conditions: emptyConditionTree(),
   setCategoryId: "cat-workflow",
-  setMediaTypeId: null,
   tagIds: ["tag-cli"],
-  locationIds: [],
-  numberValues: [],
-  booleanValues: [],
-  dateTimeValues: [],
   sortOrder: 3,
-  createdAt: NOW,
-};
+});
 
 const backfillResult: AutofillBackfillResult = {
   entries: [

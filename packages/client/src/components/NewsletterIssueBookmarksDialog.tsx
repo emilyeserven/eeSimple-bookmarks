@@ -87,7 +87,7 @@ export function NewsletterIssueBookmarksDialog({
         <Input
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="Search bookmarks…"
+          placeholder={t("Search bookmarks…")}
         />
 
         <ul className="max-h-72 space-y-1 overflow-y-auto">

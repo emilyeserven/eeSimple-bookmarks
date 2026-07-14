@@ -73,7 +73,7 @@ export function DebugView({
           options={bookmarkOptions}
           value={selectedBookmarkId}
           onValueChange={v => setSelectedBookmarkId(v ?? undefined)}
-          placeholder="Search bookmarks to include in a debug prompt…"
+          placeholder={t("Search bookmarks to include in a debug prompt…")}
           searchPlaceholder="Search bookmarks…"
           emptyText="No bookmarks found."
         />

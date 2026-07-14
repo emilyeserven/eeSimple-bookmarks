@@ -28,7 +28,7 @@ type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 /** Thrown when a create/rename collides with an existing person name. */
 export class DuplicatePersonError extends AppError {
   constructor(name: string) {
-    super(`An person named "${name}" already exists`, "duplicateName", 409, {
+    super(`A person named "${name}" already exists`, "duplicateName", 409, {
       entity: "person",
       name,
     });

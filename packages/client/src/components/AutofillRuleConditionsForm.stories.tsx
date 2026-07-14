@@ -1,14 +1,12 @@
-import type { AutofillRule } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { emptyConditionTree } from "@eesimple/types";
 
 import { AutofillRuleConditionsForm } from "./AutofillRuleConditionsForm";
+import { makeAutofillRule } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
-const rule: AutofillRule = {
+const rule = makeAutofillRule({
   id: "rule-recipes",
   name: "Recipes",
   slug: "recipes",
@@ -26,15 +24,9 @@ const rule: AutofillRule = {
     ],
   },
   setCategoryId: "cat-workflow",
-  setMediaTypeId: null,
   tagIds: ["tag-cli"],
-  locationIds: [],
-  numberValues: [],
-  booleanValues: [],
-  dateTimeValues: [],
   sortOrder: 3,
-  createdAt: NOW,
-};
+});
 
 const meta = {
   title: "Components/AutofillRuleConditionsForm",

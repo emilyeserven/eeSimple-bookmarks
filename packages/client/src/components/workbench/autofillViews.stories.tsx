@@ -1,15 +1,12 @@
-import type { AutofillRule } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { HttpResponse, http } from "msw";
 
 import { ConditionsView } from "./autofillViews";
-import { makeLocation } from "../../test-utils/factories";
+import { makeAutofillRule, makeLocation } from "../../test-utils/factories";
 import { apiHandlers } from "../../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
-const rule: AutofillRule = {
+const rule = makeAutofillRule({
   id: "rule-recipes",
   name: "Recipes",
   slug: "recipes",
@@ -40,11 +37,8 @@ const rule: AutofillRule = {
       value: 8,
     },
   ],
-  booleanValues: [],
-  dateTimeValues: [],
   sortOrder: 3,
-  createdAt: NOW,
-};
+});
 
 const handlers = [
   http.get("/api/locations", () => HttpResponse.json([makeLocation({
