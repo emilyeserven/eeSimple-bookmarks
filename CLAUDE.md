@@ -13,7 +13,9 @@ tooling and architecture of [course-tracker](https://github.com/emilyeserven/cou
 - **Testing:** Vitest + Testing Library (client), Node test runner (middleware). Pure client
   `.test.ts` files opt into the faster `node` environment with a first-line
   `// @vitest-environment node` pragma — see the **`vitest-node-environment`** skill for the
-  decision rule, and the **`what-not-to-test`** skill for what deliberately has no test at all.
+  decision rule, the **`what-not-to-test`** skill for what deliberately has no test at all, and
+  the **`test-structure`** skill for how to structure one (the middleware in-memory fake-`db`
+  harness, the client `renderWithRouter` + `vi.mock` recipe, and MSW as a story-only tool).
 
 ## Monorepo layout
 
@@ -577,7 +579,8 @@ registry edit, never a pane edit.
   one shared cached query) and returns the kind's stored `layout` (or `null` → the code `defaultLayout`).
   Writes go through `useSaveEntityLayout`/`useResetEntityLayout` (`PUT`/`DELETE /api/entity-layouts/:kind`,
   served by `middleware/routes/entityLayouts.ts` + `services/entityLayouts.ts`, whose `upsertEntityLayout`
-  is select-then-branch so it stays testable against the in-memory fake db). The **DnD editor** is
+  is select-then-branch (see the **`test-structure`** skill) so it stays testable against the
+  in-memory fake db). The **DnD editor** is
   `components/LayoutBoard.tsx` (a dnd-kit Tab › Section › Field board with an unplaced-fields tray + a tab
   `IconPicker`, controlled `value`/`onChange`, no persistence of its own), staged and committed by
   `PageLayoutsSettings.tsx` on **Settings → Display → Page Layouts**. You can also prove the loop by hand:
