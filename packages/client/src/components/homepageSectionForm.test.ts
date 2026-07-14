@@ -1,9 +1,8 @@
 // @vitest-environment node
-import type { HomepageSection } from "@eesimple/types";
-
 import { describe, expect, it } from "vitest";
 
 import { buildHomepageSectionInitialValues } from "./homepageSectionForm";
+import { makeHomepageSection } from "../test-utils/factories";
 
 describe("buildHomepageSectionInitialValues", () => {
   it("returns all defaults for a brand-new section (no section, no default zones)", () => {
@@ -22,7 +21,7 @@ describe("buildHomepageSectionInitialValues", () => {
   });
 
   it("carries over the editing section's values", () => {
-    const section = {
+    const section = makeHomepageSection({
       id: "s1",
       title: "My Section",
       description: "Desc",
@@ -37,7 +36,7 @@ describe("buildHomepageSectionInitialValues", () => {
           direction: "asc",
         },
       },
-    } as unknown as HomepageSection;
+    });
     const values = buildHomepageSectionInitialValues(section, undefined, []);
     expect(values.title).toBe("My Section");
     expect(values.description).toBe("Desc");

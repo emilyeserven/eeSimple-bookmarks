@@ -1,10 +1,9 @@
 // @vitest-environment node
-import type { AutofillRule } from "@eesimple/types";
-
 import { describe, expect, it } from "vitest";
 
 import { buildAutofillRuleDefaultValues, NO_MEDIA_TYPE } from "./autofillRuleForm";
 import { NO_CATEGORY } from "../lib/autofillScope";
+import { makeAutofillRule } from "../test-utils/factories";
 
 describe("buildAutofillRuleDefaultValues", () => {
   it("uses sentinels/empties for a new rule with no scope defaults", () => {
@@ -32,14 +31,14 @@ describe("buildAutofillRuleDefaultValues", () => {
   });
 
   it("prefers the edited rule's values over scope defaults", () => {
-    const rule = {
+    const rule = makeAutofillRule({
       name: "Rule",
       description: "Desc",
       setCategoryId: "cat-real",
       setMediaTypeId: "mt-real",
       tagIds: ["t-real"],
       sortOrder: 3,
-    } as unknown as AutofillRule;
+    });
     expect(buildAutofillRuleDefaultValues(rule, {
       defaultCategoryId: "cat-1",
     })).toEqual({

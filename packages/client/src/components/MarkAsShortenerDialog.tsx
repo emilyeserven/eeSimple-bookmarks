@@ -185,7 +185,7 @@ export function MarkAsShortenerDialog({
                       options={websiteOptions}
                       value={selectedWebsiteId}
                       onValueChange={setSelectedWebsiteId}
-                      placeholder="Select a website…"
+                      placeholder={t("Select a website…")}
                       searchPlaceholder="Search websites…"
                       emptyText="No websites found."
                       aria-label="Website"

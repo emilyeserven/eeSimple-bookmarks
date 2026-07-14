@@ -1,35 +1,36 @@
 import type { SidebarEntityData } from "./useSidebarEntityData";
 import type { FlyoutInputs } from "./useSidebarFlyoutConfigs";
-import type { Category, Tag, Taxonomy, TaxonomyTerm } from "@eesimple/types";
+import type { Tag } from "@eesimple/types";
 import type { TFunction } from "i18next";
 
 import { GENRES_MOODS_TAXONOMY_SLUG } from "@eesimple/types";
 import { describe, expect, it } from "vitest";
 
 import { buildSidebarFlyoutData } from "./useSidebarFlyoutConfigs";
+import { makeCategory, makeTaxonomy, makeTaxonomyTerm } from "../test-utils/factories";
 
 // Fake `t`: interpolate {{name}}, else return the key verbatim — enough to assert titles/keys.
 const t = ((key: string, opts?: { name?: string }) =>
   opts?.name ? key.replace("{{name}}", opts.name) : key) as unknown as TFunction;
 
-function cat(id: string, isFavorite: boolean): Category {
-  return {
+function cat(id: string, isFavorite: boolean) {
+  return makeCategory({
     id,
     name: `Cat ${id}`,
     slug: `cat-${id}`,
     isFavorite,
     bookmarkCount: 3,
-  } as unknown as Category;
+  });
 }
 
-function term(id: string, taxonomyId: string, isFavorite: boolean): TaxonomyTerm {
-  return {
+function term(id: string, taxonomyId: string, isFavorite: boolean) {
+  return makeTaxonomyTerm({
     id,
     taxonomyId,
     name: `Term ${id}`,
     slug: `term-${id}`,
     isFavorite,
-  } as unknown as TaxonomyTerm;
+  });
 }
 
 const GM_ID = "gm-taxonomy";
@@ -51,18 +52,18 @@ function inputs(overrides: Partial<FlyoutInputs> = {}): FlyoutInputs {
       term("t3", CUSTOM_ID, false),
     ],
     taxonomies: [
-      {
+      makeTaxonomy({
         id: GM_ID,
         slug: GENRES_MOODS_TAXONOMY_SLUG,
         name: "Genres & Moods",
         icon: null,
-      } as unknown as Taxonomy,
-      {
+      }),
+      makeTaxonomy({
         id: CUSTOM_ID,
         slug: "topics",
         name: "Topics",
         icon: null,
-      } as unknown as Taxonomy,
+      }),
     ],
     ...overrides,
   };

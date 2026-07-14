@@ -1,11 +1,10 @@
 import type { AutofillRule, Category, CustomProperty, MediaTypeNode } from "@eesimple/types";
 
-import { emptyConditionTree } from "@eesimple/types";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AutofillRulePrefillForm } from "./AutofillRulePrefillForm";
-import { makeCategory, makeMediaType } from "../test-utils/factories";
+import { makeAutofillRule, makeCategory, makeMediaType } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
 
 const updateMutate
@@ -120,22 +119,12 @@ vi.mock("./AutofillRulePrefillPickers", () => ({
   ),
 }));
 
-const rule: AutofillRule = {
+const rule = makeAutofillRule({
   id: "rule-1",
   name: "Recipes",
   slug: "recipes",
-  description: null,
-  conditions: emptyConditionTree(),
-  setCategoryId: null,
-  setMediaTypeId: null,
-  tagIds: [],
-  locationIds: [],
-  numberValues: [],
-  booleanValues: [],
-  dateTimeValues: [],
-  sortOrder: 0,
   createdAt: "2024-01-01T00:00:00.000Z",
-};
+});
 
 describe("AutofillRulePrefillForm (auto-save)", () => {
   beforeEach(() => {

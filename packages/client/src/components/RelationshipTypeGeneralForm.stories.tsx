@@ -1,21 +1,17 @@
-import type { RelationshipType } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { RelationshipTypeGeneralForm } from "./RelationshipTypeGeneralForm";
+import { makeRelationshipType } from "../test-utils/factories";
 
-const baseType: RelationshipType = {
+const baseType = makeRelationshipType({
   id: "rt-sequel",
   name: "Sequel of",
   slug: "sequel-of",
-  description: null,
   directional: true,
-  builtIn: false,
-  hidden: false,
   sortOrder: 5,
-  createdAt: "2026-06-01T00:00:00.000Z",
   bookmarkCount: 3,
   relationshipCount: 3,
-};
+});
 
 const meta = {
   title: "Components/RelationshipTypeGeneralForm",

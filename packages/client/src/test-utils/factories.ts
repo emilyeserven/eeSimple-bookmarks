@@ -1,16 +1,20 @@
 import type {
   Person,
+  AutofillRule,
   Bookmark,
   BookmarkImage,
   Category,
   CustomProperty,
   GenreMood,
+  HomepageSection,
+  ImportRule,
   Language,
   Group,
   GroupType,
   Location,
   LanguageUsage,
   LanguageUsageLevel,
+  RelationshipType,
   TranslationSource,
   MediaType,
   Newsletter,
@@ -21,6 +25,8 @@ import type {
   Website,
   YouTubeChannel,
 } from "@eesimple/types";
+
+import { defaultCardZoneLayouts, emptyConditionTree } from "@eesimple/types";
 
 /**
  * Shared test/story factories for the full shared entity shapes.
@@ -724,6 +730,84 @@ export function makeScanPipelineReport(overrides: Partial<ScanPipelineReport> = 
       ttlMs: 60_000,
     },
     generatedAt: NOW,
+    ...overrides,
+  };
+}
+
+/** A fully-populated `RelationshipType` (a non-built-in, symmetric type by default). */
+export function makeRelationshipType(overrides: Partial<RelationshipType> = {}): RelationshipType {
+  return {
+    id: "rt",
+    name: "Relationship",
+    slug: "relationship",
+    description: null,
+    directional: false,
+    builtIn: false,
+    hidden: false,
+    sortOrder: 0,
+    createdAt: NOW,
+    ...overrides,
+  };
+}
+
+/** A fully-populated `AutofillRule` with no actions and an empty condition tree by default. */
+export function makeAutofillRule(overrides: Partial<AutofillRule> = {}): AutofillRule {
+  return {
+    id: "rule",
+    name: "Rule",
+    slug: "rule",
+    description: null,
+    conditions: emptyConditionTree(),
+    setCategoryId: null,
+    setMediaTypeId: null,
+    tagIds: [],
+    locationIds: [],
+    numberValues: [],
+    booleanValues: [],
+    dateTimeValues: [],
+    sortOrder: 0,
+    createdAt: NOW,
+    ...overrides,
+  };
+}
+
+/** A fully-populated `HomepageSection` with default display settings and an empty condition tree. */
+export function makeHomepageSection(overrides: Partial<HomepageSection> = {}): HomepageSection {
+  return {
+    id: "section",
+    title: "Section",
+    description: null,
+    conditions: emptyConditionTree(),
+    sortOrder: 0,
+    hideIfEmpty: false,
+    sort: null,
+    columns: 3,
+    imageMode: "natural",
+    imageLayout: "above",
+    imageVisibility: "shown",
+    viewMode: "cards",
+    fieldZones: null,
+    cardZoneLayouts: defaultCardZoneLayouts(),
+    hiddenCardFields: [],
+    cornerOverlays: false,
+    hideWebsiteForYouTube: false,
+    bookmarkLimit: null,
+    createdAt: NOW,
+    ...overrides,
+  };
+}
+
+/** A fully-populated `ImportRule` (an "approve" action with an empty condition tree by default). */
+export function makeImportRule(overrides: Partial<ImportRule> = {}): ImportRule {
+  return {
+    id: "import-rule",
+    name: "Import Rule",
+    slug: "import-rule",
+    description: null,
+    conditions: emptyConditionTree(),
+    action: "approve",
+    sortOrder: 0,
+    createdAt: NOW,
     ...overrides,
   };
 }

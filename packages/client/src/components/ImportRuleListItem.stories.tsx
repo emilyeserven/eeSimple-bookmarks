@@ -1,16 +1,13 @@
-import type { ImportRule } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { ImportRuleListItem } from "./ImportRuleListItem";
+import { makeImportRule } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
-const rule: ImportRule = {
+const rule = makeImportRule({
   id: "rule-block-social",
   name: "Block social media",
   slug: "block-social-media",
-  description: null,
   conditions: {
     type: "group",
     combinator: "and",
@@ -23,8 +20,7 @@ const rule: ImportRule = {
   },
   action: "reject",
   sortOrder: 2,
-  createdAt: NOW,
-};
+});
 
 const meta = {
   title: "Components/ImportRuleListItem",

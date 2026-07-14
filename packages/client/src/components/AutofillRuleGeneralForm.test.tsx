@@ -1,10 +1,10 @@
 import type { AutofillRule } from "@eesimple/types";
 
-import { emptyConditionTree } from "@eesimple/types";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AutofillRuleGeneralForm } from "./AutofillRuleGeneralForm";
+import { makeAutofillRule } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
 
 const updateMutate
@@ -42,22 +42,14 @@ vi.mock("../lib/autoSave", () => ({
   notifyFieldSaveError: (label: string, cause?: string) => notifyFieldSaveError(label, cause),
 }));
 
-const rule: AutofillRule = {
+const rule = makeAutofillRule({
   id: "rule-1",
   name: "Recipes",
   slug: "recipes",
   description: "Cooking links",
-  conditions: emptyConditionTree(),
-  setCategoryId: null,
-  setMediaTypeId: null,
-  tagIds: [],
-  locationIds: [],
-  numberValues: [],
-  booleanValues: [],
-  dateTimeValues: [],
   sortOrder: 3,
   createdAt: "2024-01-01T00:00:00.000Z",
-};
+});
 
 describe("AutofillRuleGeneralForm (auto-save)", () => {
   beforeEach(() => {
