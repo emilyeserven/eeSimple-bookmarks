@@ -9,57 +9,67 @@ import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useUpdateLanguage } from "../hooks/useLanguages";
 import { useAppForm } from "../lib/form";
 
-const languageGeneralSchema = z.object({
+const nameSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
+});
+
+const isoCodeSchema = z.object({
   isoCode: z.string(),
+});
+
+const descriptionSchema = z.object({
   description: z.string(),
 });
 
-interface Props {
+const NAME_LABELS: Partial<Record<keyof UpdateLanguageInput, string>> = {
+  name: "Name",
+};
+
+const ISO_CODE_LABELS: Partial<Record<keyof UpdateLanguageInput, string>> = {
+  isoCode: "ISO code",
+};
+
+const DESCRIPTION_LABELS: Partial<Record<keyof UpdateLanguageInput, string>> = {
+  description: "Description",
+};
+
+interface LanguageFieldProps {
   language: Language;
 }
 
 /**
- * Edit a language's name and ISO code. Each field auto-saves (no Save button): both persist on
- * blur. Built-in languages can't be renamed.
+ * The language's name. A standalone placeable field (the `name` field in the registry); it mounts its
+ * own `useAppForm` + `useFieldAutoSave` (no cross-field coordination — the Category #1186 precedent).
+ * Auto-saves on blur and follows the new slug. Built-in languages can't be renamed.
  */
-export function LanguageGeneralForm({
+export function LanguageNameEditField({
   language,
-}: Props) {
+}: LanguageFieldProps) {
   const {
     t,
   } = useTranslation();
-  const LABELS: Partial<Record<keyof UpdateLanguageInput, string>> = {
-    name: t("Name"),
-    isoCode: t("ISO code"),
-    description: t("Description"),
-  };
   const navigate = useNavigate();
   const update = useUpdateLanguage();
   const autoSave = useFieldAutoSave<UpdateLanguageInput, Language>({
     id: language.id,
     update,
-    labels: LABELS,
+    labels: NAME_LABELS,
     initial: {
       name: language.name,
-      isoCode: language.isoCode ?? "",
-      description: language.description ?? null,
     },
   });
 
   const form = useAppForm({
     defaultValues: {
       name: language.name,
-      isoCode: language.isoCode ?? "",
-      description: language.description ?? "",
     },
     validators: {
-      onChange: languageGeneralSchema,
+      onChange: nameSchema,
     },
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-1">
       <form.AppField name="name">
         {field => (
           <field.TextField
@@ -89,7 +99,38 @@ export function LanguageGeneralForm({
       {language.builtIn
         ? <p className="text-xs text-muted-foreground">{t("Built-in languages can't be renamed.")}</p>
         : null}
+    </div>
+  );
+}
 
+/** The language's ISO 639-1 code. A standalone placeable field; saves on blur. */
+export function LanguageIsoCodeEditField({
+  language,
+}: LanguageFieldProps) {
+  const {
+    t,
+  } = useTranslation();
+  const update = useUpdateLanguage();
+  const autoSave = useFieldAutoSave<UpdateLanguageInput, Language>({
+    id: language.id,
+    update,
+    labels: ISO_CODE_LABELS,
+    initial: {
+      isoCode: language.isoCode ?? "",
+    },
+  });
+
+  const form = useAppForm({
+    defaultValues: {
+      isoCode: language.isoCode ?? "",
+    },
+    validators: {
+      onChange: isoCodeSchema,
+    },
+  });
+
+  return (
+    <div className="space-y-1">
       <form.AppField name="isoCode">
         {field => (
           <field.TextField
@@ -103,23 +144,72 @@ export function LanguageGeneralForm({
       <p className="text-xs text-muted-foreground">
         {t("ISO 639-1 code, used to match autofetched languages from scans and ISBN lookups.")}
       </p>
+    </div>
+  );
+}
 
-      <form.AppField name="description">
-        {field => (
-          <field.TextareaField
-            label={t("Description")}
-            debounceSave
-            onBlur={() => autoSave.saveField(
-              "description",
-              field.state.value.trim() || null,
-              {
-                valid: field.state.meta.errors.length === 0,
-              },
-            )}
-          />
-        )}
-      </form.AppField>
+/** The language's description. A standalone placeable field; saves on blur. */
+export function LanguageDescriptionEditField({
+  language,
+}: LanguageFieldProps) {
+  const {
+    t,
+  } = useTranslation();
+  const update = useUpdateLanguage();
+  const autoSave = useFieldAutoSave<UpdateLanguageInput, Language>({
+    id: language.id,
+    update,
+    labels: DESCRIPTION_LABELS,
+    initial: {
+      description: language.description ?? null,
+    },
+  });
 
+  const form = useAppForm({
+    defaultValues: {
+      description: language.description ?? "",
+    },
+    validators: {
+      onChange: descriptionSchema,
+    },
+  });
+
+  return (
+    <form.AppField name="description">
+      {field => (
+        <field.TextareaField
+          label={t("Description")}
+          debounceSave
+          onBlur={() => autoSave.saveField(
+            "description",
+            field.state.value.trim() || null,
+            {
+              valid: field.state.meta.errors.length === 0,
+            },
+          )}
+        />
+      )}
+    </form.AppField>
+  );
+}
+
+interface Props {
+  language: Language;
+}
+
+/**
+ * Edit a language's name, ISO code, description, and genres/moods. Each field auto-saves (no Save
+ * button). Composed from the same placeable sub-fields the language workbench registry uses, so this
+ * whole-form shell stays in lockstep with the layout-driven General tab.
+ */
+export function LanguageGeneralForm({
+  language,
+}: Props) {
+  return (
+    <div className="space-y-4">
+      <LanguageNameEditField language={language} />
+      <LanguageIsoCodeEditField language={language} />
+      <LanguageDescriptionEditField language={language} />
       <GenreMoodAssignmentSection
         ownerType="language"
         ownerId={language.id}

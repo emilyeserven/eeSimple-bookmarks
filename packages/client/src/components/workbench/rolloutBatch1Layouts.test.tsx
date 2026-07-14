@@ -17,38 +17,61 @@ import { shape } from "./workbenchLayoutTestUtils";
  * helpers, so no React rendering happens.
  */
 
-describe("language default layout", () => {
-  it("renders the single view/edit tab", () => {
-    const expected = [{
+// The General composites of these config entities were atomized into granular fields (#1371, the
+// media-type #1189 recipe). The unified field order is shared; the mode filters which render (edit-only
+// `name`/flag fields drop in view; view-only metadata rows drop in edit), so the view and edit
+// projections of the General tab now differ.
+
+describe("language default layout (#1371)", () => {
+  it("renders the granular General view fields (name/genreMoods edit-only, so they drop)", () => {
+    expect(shape(languageWorkbench, "view")).toEqual([{
       key: "general",
       group: undefined,
       sections: [{
         key: "general",
-        fields: ["general"],
+        fields: ["slug", "isoCode", "description", "bookmarks", "builtIn", "added"],
       }],
-    }];
-    expect(shape(languageWorkbench, "view")).toEqual(expected);
-    expect(shape(languageWorkbench, "edit")).toEqual(expected);
+    }]);
   });
-});
 
-describe("placeType default layout", () => {
-  it("renders the single view/edit tab", () => {
-    const expected = [{
+  it("renders the granular General edit fields (view-only metadata drops)", () => {
+    expect(shape(languageWorkbench, "edit")).toEqual([{
       key: "general",
       group: undefined,
       sections: [{
         key: "general",
-        fields: ["general"],
+        fields: ["name", "isoCode", "description", "genreMoods"],
       }],
-    }];
-    expect(shape(placeTypeWorkbench, "view")).toEqual(expected);
-    expect(shape(placeTypeWorkbench, "edit")).toEqual(expected);
+    }]);
   });
 });
 
-describe("locationRelation default layout", () => {
-  it("renders both view tabs (bookmarks, general)", () => {
+describe("placeType default layout (#1371)", () => {
+  it("renders the granular General view fields (name edit-only, so it drops)", () => {
+    expect(shape(placeTypeWorkbench, "view")).toEqual([{
+      key: "general",
+      group: undefined,
+      sections: [{
+        key: "general",
+        fields: ["added", "slug", "sortOrder", "locations", "description", "map"],
+      }],
+    }]);
+  });
+
+  it("renders the granular General edit fields (view-only metadata drops)", () => {
+    expect(shape(placeTypeWorkbench, "edit")).toEqual([{
+      key: "general",
+      group: undefined,
+      sections: [{
+        key: "general",
+        fields: ["name", "sortOrder", "description"],
+      }],
+    }]);
+  });
+});
+
+describe("locationRelation default layout (#1371)", () => {
+  it("renders both view tabs (bookmarks + granular general)", () => {
     expect(shape(locationRelationWorkbench, "view")).toEqual([
       {
         key: "bookmarks",
@@ -63,20 +86,20 @@ describe("locationRelation default layout", () => {
         group: undefined,
         sections: [{
           key: "general",
-          fields: ["general"],
+          fields: ["added", "slug", "sortOrder", "bookmarkCount", "builtIn", "description"],
         }],
       },
     ]);
   });
 
-  it("renders only the general edit tab (bookmarks is view-only, so it vanishes in edit)", () => {
+  it("renders only the granular general edit tab (bookmarks is view-only, so it vanishes in edit)", () => {
     expect(shape(locationRelationWorkbench, "edit")).toEqual([
       {
         key: "general",
         group: undefined,
         sections: [{
           key: "general",
-          fields: ["general"],
+          fields: ["name", "sortOrder", "description"],
         }],
       },
     ]);
@@ -166,23 +189,32 @@ describe("group default layout", () => {
   });
 });
 
-describe("groupType default layout", () => {
-  it("renders the single view/edit tab", () => {
-    const expected = [{
+describe("groupType default layout (#1371)", () => {
+  it("renders the granular General view fields (name edit-only, so it drops)", () => {
+    expect(shape(groupTypeWorkbench, "view")).toEqual([{
       key: "general",
       group: undefined,
       sections: [{
         key: "general",
-        fields: ["general"],
+        fields: ["added", "slug", "sortOrder", "description", "groups"],
       }],
-    }];
-    expect(shape(groupTypeWorkbench, "view")).toEqual(expected);
-    expect(shape(groupTypeWorkbench, "edit")).toEqual(expected);
+    }]);
+  });
+
+  it("renders the granular General edit fields (view-only metadata drops)", () => {
+    expect(shape(groupTypeWorkbench, "edit")).toEqual([{
+      key: "general",
+      group: undefined,
+      sections: [{
+        key: "general",
+        fields: ["name", "sortOrder", "description"],
+      }],
+    }]);
   });
 });
 
-describe("relationshipType default layout", () => {
-  it("renders both view tabs (relationships, general)", () => {
+describe("relationshipType default layout (#1371)", () => {
+  it("renders both view tabs (relationships + granular general)", () => {
     expect(shape(relationshipTypeWorkbench, "view")).toEqual([
       {
         key: "relationships",
@@ -197,20 +229,20 @@ describe("relationshipType default layout", () => {
         group: undefined,
         sections: [{
           key: "general",
-          fields: ["general"],
+          fields: ["slug", "description", "directional", "bookmarkCount", "relationshipCount", "builtIn", "added"],
         }],
       },
     ]);
   });
 
-  it("renders only the general edit tab (relationships is view-only, so it vanishes in edit)", () => {
+  it("renders only the granular general edit tab (relationships is view-only, so it vanishes in edit)", () => {
     expect(shape(relationshipTypeWorkbench, "edit")).toEqual([
       {
         key: "general",
         group: undefined,
         sections: [{
           key: "general",
-          fields: ["general"],
+          fields: ["name", "description", "directional"],
         }],
       },
     ]);

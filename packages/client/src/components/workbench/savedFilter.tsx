@@ -2,61 +2,154 @@
 import type { EntityWorkbench, WorkbenchField } from "./types";
 import type { EntityLayout, SavedFilter } from "@eesimple/types";
 
-import { Globe } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import i18n from "../../i18n";
-import { SavedFilterGeneralForm } from "../SavedFilterGeneralForm";
+import {
+  SavedFilterDescriptionEditField,
+  SavedFilterFiltersField,
+  SavedFilterNameEditField,
+  SavedFilterViewableOnlineEditField,
+} from "../SavedFilterGeneralForm";
 
+import { DetailField } from "@/components/DetailField";
 import { useDeleteSavedFilter, useSavedFilterBySlug, useSavedFilters } from "@/hooks/useSavedFilters";
 import { summarizeBookmarkSearch } from "@/lib/bookmarkSearch";
 
-function SavedFilterGeneralView({
-  entity: filter,
-}: {
-  entity: SavedFilter;
-}) {
+interface SavedFilterViewProps {
+  filter: SavedFilter;
+}
+
+/** The description paragraph — self-hiding when empty. */
+function SavedFilterDescriptionView({
+  filter,
+}: SavedFilterViewProps) {
+  return filter.description
+    ? <p className="text-sm text-muted-foreground">{filter.description}</p>
+    : null;
+}
+
+/** "Filters" (summary) row. */
+function SavedFilterFiltersView({
+  filter,
+}: SavedFilterViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return <DetailField label={t("Filters")}>{summarizeBookmarkSearch(filter.filters)}</DetailField>;
+}
+
+/** "Sidebar shortcut" (Yes/No) row. */
+function SavedFilterSidebarShortcutView({
+  filter,
+}: SavedFilterViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return <DetailField label={t("Sidebar shortcut")}>{filter.viewableOnline ? t("Yes") : t("No")}</DetailField>;
+}
+
+/** "Slug" row (monospace), with an em-dash fallback so the row always shows. */
+function SavedFilterSlugView({
+  filter,
+}: SavedFilterViewProps) {
+  const {
+    t,
+  } = useTranslation();
   return (
-    <div className="space-y-4">
-      {filter.description
-        ? <p className="text-sm text-muted-foreground">{filter.description}</p>
-        : null}
-      <dl className="grid grid-cols-[10rem_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground">{i18n.t("Filters")}</dt>
-        <dd>{summarizeBookmarkSearch(filter.filters)}</dd>
-        <dt className="flex items-center gap-1 text-muted-foreground">
-          <Globe className="size-3.5" />
-          {i18n.t("Sidebar shortcut")}
-        </dt>
-        <dd>{filter.viewableOnline ? i18n.t("Yes") : i18n.t("No")}</dd>
-        <dt className="text-muted-foreground">{i18n.t("Slug")}</dt>
-        <dd className="font-mono">{filter.slug ?? "—"}</dd>
-        <dt className="text-muted-foreground">{i18n.t("Added")}</dt>
-        <dd>{new Date(filter.createdAt).toLocaleDateString()}</dd>
-      </dl>
-    </div>
+    <DetailField label={t("Slug")}>
+      <span className="font-mono">{filter.slug ?? "—"}</span>
+    </DetailField>
   );
 }
 
+/** "Added" (created date) row. */
+function SavedFilterAddedView({
+  filter,
+}: SavedFilterViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return <DetailField label={t("Added")}>{new Date(filter.createdAt).toLocaleDateString()}</DetailField>;
+}
+
 /**
- * The saved-filter workbench's field registry (#1106 layout editor). The single `general` pane
- * becomes ONE placeable, mode-aware {@link WorkbenchField} keyed by the tab's own key — the
- * composite-editor recipe (#1165). Authored as an exhaustive `Record<SavedFilterFieldKey, …>` so a
- * key without a renderer fails `tsc`.
+ * The saved-filter workbench's field registry (#1106 layout editor). The old single `general` composite
+ * is fully atomized (#1371, following the media-type #1189 reference) into per-field, mode-aware
+ * {@link WorkbenchField}s so an operator can place each independently in **Settings → Page Layouts**. Each
+ * edit field owns its own single-field `useAppForm` + `useFieldAutoSave` — no form-context provider
+ * needed (the Category precedent). `name` is **edit-only**; `slug`/`added` are **view-only**;
+ * `description`/`filters`/`viewableOnline` carry both. Authored as an exhaustive
+ * `Record<SavedFilterFieldKey, …>` so a key without a renderer fails `tsc`.
  */
-type SavedFilterFieldKey = "general";
+type SavedFilterFieldKey
+  = | "name"
+    | "description"
+    | "filters"
+    | "viewableOnline"
+    | "slug"
+    | "added";
 
 const savedFilterFields = {
-  general: {
-    key: "general",
-    label: i18n.t("General"),
-    view: SavedFilterGeneralView,
+  name: {
+    key: "name",
+    label: i18n.t("Name"),
     edit: ({
       entity,
-    }) => <SavedFilterGeneralForm filter={entity} />,
+    }) => <SavedFilterNameEditField filter={entity} />,
+  },
+  description: {
+    key: "description",
+    label: i18n.t("Description"),
+    view: ({
+      entity,
+    }) => <SavedFilterDescriptionView filter={entity} />,
+    edit: ({
+      entity,
+    }) => <SavedFilterDescriptionEditField filter={entity} />,
+  },
+  filters: {
+    key: "filters",
+    label: i18n.t("Filters"),
+    view: ({
+      entity,
+    }) => <SavedFilterFiltersView filter={entity} />,
+    edit: ({
+      entity,
+    }) => <SavedFilterFiltersField filter={entity} />,
+  },
+  viewableOnline: {
+    key: "viewableOnline",
+    label: i18n.t("Sidebar shortcut"),
+    view: ({
+      entity,
+    }) => <SavedFilterSidebarShortcutView filter={entity} />,
+    edit: ({
+      entity,
+    }) => <SavedFilterViewableOnlineEditField filter={entity} />,
+  },
+  slug: {
+    key: "slug",
+    label: i18n.t("Slug"),
+    view: ({
+      entity,
+    }) => <SavedFilterSlugView filter={entity} />,
+  },
+  added: {
+    key: "added",
+    label: i18n.t("Added"),
+    view: ({
+      entity,
+    }) => <SavedFilterAddedView filter={entity} />,
   },
 } satisfies Record<SavedFilterFieldKey, WorkbenchField<SavedFilter>>;
 
-/** The code default layout: the single General tab, one untitled section. */
+/**
+ * The code default layout: one General tab, one untitled section listing every atomized field in one
+ * per-mode-sensible order — the edit-visible subset (`name`/`description`/`filters`/`viewableOnline`)
+ * reproduces the pre-#1371 form order, and the view-visible subset
+ * (`description`/`filters`/`viewableOnline`/`slug`/`added`) reproduces the pre-#1371 view order.
+ */
 const SAVED_FILTER_DEFAULT_LAYOUT: EntityLayout = {
   tabs: [
     {
@@ -64,7 +157,7 @@ const SAVED_FILTER_DEFAULT_LAYOUT: EntityLayout = {
       label: i18n.t("General"),
       sections: [{
         key: "general",
-        fields: ["general"] satisfies SavedFilterFieldKey[],
+        fields: ["name", "description", "filters", "viewableOnline", "slug", "added"] satisfies SavedFilterFieldKey[],
       }],
     },
   ],

@@ -1,4 +1,4 @@
-import type { Bookmark, LayoutableEntityKind } from "@eesimple/types";
+import type { Bookmark, LayoutableEntityKind, TaxonomyTermNode } from "@eesimple/types";
 
 import { sampleBookmark } from "../test-utils/story-mocks";
 
@@ -13,6 +13,7 @@ import {
   makeNewsletter,
   makePerson,
   makeTag,
+  makeTaxonomyTerm,
   makeWebsite,
   makeYouTubeChannel,
 } from "@/test-utils/factories";
@@ -152,6 +153,23 @@ export function buildSampleEntity(kind: LayoutableEntityKind): { id: string } | 
         year: 1815,
         imageUrl: "https://example.com/person.webp",
       });
+    case "taxonomy-term": {
+      // taxonomy-term has no real-instance list in the preview picker (its instances span every custom
+      // taxonomy), so this synthetic node is its only preview entity. A `TaxonomyTermNode` is a
+      // `TaxonomyTerm` plus `children`.
+      const node: TaxonomyTermNode = {
+        ...makeTaxonomyTerm({
+          id: SAMPLE_ID,
+          name: "Ambient",
+          slug: "ambient",
+          description: "A representative taxonomy term.",
+          bookmarkCount: 5,
+          ownBookmarkCount: 3,
+        }),
+        children: [],
+      };
+      return node;
+    }
     case "autofill":
       return null;
     default:

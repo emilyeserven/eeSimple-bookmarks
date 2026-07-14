@@ -54,6 +54,13 @@ export function usePreviewInstancesByKind(): Partial<Record<LayoutableEntityKind
   const group = req(ENTITY_DESCRIPTORS.group.listing).useItems();
   const autofill = req(ENTITY_DESCRIPTORS.autofill.listing).useItems();
   const customProperty = req(ENTITY_DESCRIPTORS["custom-property"].listing).useItems();
+  const language = req(ENTITY_DESCRIPTORS.language.listing).useItems();
+  const placeType = req(ENTITY_DESCRIPTORS["place-type"].listing).useItems();
+  const locationRelation = req(ENTITY_DESCRIPTORS["location-relation"].listing).useItems();
+  const groupType = req(ENTITY_DESCRIPTORS["group-type"].listing).useItems();
+  const relationshipType = req(ENTITY_DESCRIPTORS["relationship-type"].listing).useItems();
+  const importRule = req(ENTITY_DESCRIPTORS["import-rule"].listing).useItems();
+  const savedFilter = req(ENTITY_DESCRIPTORS["saved-filter"].listing).useItems();
 
   const tag = req(ENTITY_DESCRIPTORS.tag.treeListing).useTree();
   const mediaType = req(ENTITY_DESCRIPTORS["media-type"].treeListing).useTree();
@@ -77,5 +84,14 @@ export function usePreviewInstancesByKind(): Partial<Record<LayoutableEntityKind
     "media-type": treeToOptions(ENTITY_DESCRIPTORS["media-type"].workbench, mediaType.data),
     "genre-mood": treeToOptions(ENTITY_DESCRIPTORS["genre-mood"].workbench, genreMood.data),
     "location": treeToOptions(ENTITY_DESCRIPTORS.location.workbench, location.data),
+    "language": toOptions(ENTITY_DESCRIPTORS.language.workbench, language.data),
+    "place-type": toOptions(ENTITY_DESCRIPTORS["place-type"].workbench, placeType.data),
+    "location-relation": toOptions(ENTITY_DESCRIPTORS["location-relation"].workbench, locationRelation.data),
+    "group-type": toOptions(ENTITY_DESCRIPTORS["group-type"].workbench, groupType.data),
+    "relationship-type": toOptions(ENTITY_DESCRIPTORS["relationship-type"].workbench, relationshipType.data),
+    "import-rule": toOptions(ENTITY_DESCRIPTORS["import-rule"].workbench, importRule.data),
+    "saved-filter": toOptions(ENTITY_DESCRIPTORS["saved-filter"].workbench, savedFilter.data),
+    // taxonomy-term instances span every custom taxonomy; its preview uses the synthetic Sample entity
+    // (`buildSampleEntity`) instead of a real-instance list.
   };
 }

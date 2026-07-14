@@ -3,32 +3,91 @@ import type { EntityLayout, ImportRule } from "@eesimple/types";
 
 import i18n from "../../i18n";
 import { ImportRuleConditionsForm } from "../ImportRuleConditionsForm";
-import { ImportRuleConditionsFields, ImportRuleGeneralFields } from "../ImportRuleDetail";
-import { ImportRuleGeneralForm } from "../ImportRuleGeneralForm";
+import {
+  ImportRuleActionView,
+  ImportRuleAddedView,
+  ImportRuleConditionsFields,
+  ImportRuleDescriptionView,
+  ImportRulePriorityView,
+  ImportRuleSlugView,
+} from "../ImportRuleDetail";
+import {
+  ImportRuleActionEditField,
+  ImportRuleDescriptionEditField,
+  ImportRuleNameEditField,
+  ImportRuleSortOrderEditField,
+} from "../ImportRuleGeneralForm";
 
 import { useImportRuleById, useImportRuleBySlug, useDeleteImportRule } from "@/hooks/useImportRules";
 
 /**
- * The import-rule workbench's field registry (#1106 layout editor). Each existing tab pane
- * becomes ONE placeable, mode-aware {@link WorkbenchField} keyed by the tab's own key — the
- * composite-editor recipe (#1165): `conditions`'s edit renderer is the URL/website conditions
- * builder, kept as one opaque block. Authored as an exhaustive `Record<ImportRuleFieldKey, …>` so a
- * key without a renderer fails `tsc`.
+ * The import-rule workbench's field registry (#1106 layout editor). The old single `general` composite is
+ * fully atomized (#1371, following the media-type #1189 reference) into per-field, mode-aware
+ * {@link WorkbenchField}s; `conditions`'s edit renderer is the URL/website conditions builder, kept as one
+ * opaque block (the composite-editor recipe #1165). `name` is **edit-only**; `slug`/`added` are
+ * **view-only**; `action`/`sortOrder`/`description` carry both. Authored as an exhaustive
+ * `Record<ImportRuleFieldKey, …>` so a key without a renderer fails `tsc`.
  */
 type ImportRuleFieldKey
-  = | "general"
+  = | "name"
+    | "description"
+    | "action"
+    | "sortOrder"
+    | "slug"
+    | "added"
     | "conditions";
 
 const importRuleFields = {
-  general: {
-    key: "general",
-    label: i18n.t("General"),
-    view: ({
-      entity,
-    }) => <ImportRuleGeneralFields rule={entity} />,
+  name: {
+    key: "name",
+    label: i18n.t("Name"),
     edit: ({
       entity,
-    }) => <ImportRuleGeneralForm rule={entity} />,
+    }) => <ImportRuleNameEditField rule={entity} />,
+  },
+  description: {
+    key: "description",
+    label: i18n.t("Description"),
+    view: ({
+      entity,
+    }) => <ImportRuleDescriptionView rule={entity} />,
+    edit: ({
+      entity,
+    }) => <ImportRuleDescriptionEditField rule={entity} />,
+  },
+  action: {
+    key: "action",
+    label: i18n.t("Action"),
+    view: ({
+      entity,
+    }) => <ImportRuleActionView rule={entity} />,
+    edit: ({
+      entity,
+    }) => <ImportRuleActionEditField rule={entity} />,
+  },
+  sortOrder: {
+    key: "sortOrder",
+    label: i18n.t("Priority"),
+    view: ({
+      entity,
+    }) => <ImportRulePriorityView rule={entity} />,
+    edit: ({
+      entity,
+    }) => <ImportRuleSortOrderEditField rule={entity} />,
+  },
+  slug: {
+    key: "slug",
+    label: i18n.t("Slug"),
+    view: ({
+      entity,
+    }) => <ImportRuleSlugView rule={entity} />,
+  },
+  added: {
+    key: "added",
+    label: i18n.t("Added"),
+    view: ({
+      entity,
+    }) => <ImportRuleAddedView rule={entity} />,
   },
   conditions: {
     key: "conditions",
@@ -42,7 +101,13 @@ const importRuleFields = {
   },
 } satisfies Record<ImportRuleFieldKey, WorkbenchField<ImportRule>>;
 
-/** The code-defined default layout — the current tab list, one untitled section per tab. */
+/**
+ * The code-defined default layout — the General tab (atomized) then the Conditions tab. The General
+ * section lists the atomized fields in one order that keeps the edit-visible subset
+ * (`name`/`description`/`action`/`sortOrder`) exactly the pre-#1371 form order; the view-visible subset
+ * (`description`/`action`/`sortOrder`/`slug`/`added`) reads description-first (byte-identity is waived, as
+ * for media-type — the old view and edit orders differed).
+ */
 const IMPORT_RULE_DEFAULT_LAYOUT: EntityLayout = {
   tabs: [
     {
@@ -50,7 +115,7 @@ const IMPORT_RULE_DEFAULT_LAYOUT: EntityLayout = {
       label: i18n.t("General"),
       sections: [{
         key: "general",
-        fields: ["general"] satisfies ImportRuleFieldKey[],
+        fields: ["name", "description", "action", "sortOrder", "slug", "added"] satisfies ImportRuleFieldKey[],
       }],
     },
     {

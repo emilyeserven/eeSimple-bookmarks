@@ -8,6 +8,7 @@ import type {
 
 import { useTranslation } from "react-i18next";
 
+import { DetailField } from "@/components/DetailField";
 import i18n from "@/i18n";
 
 function operatorVerb(operator: ConditionMatchOperator): string {
@@ -61,28 +62,87 @@ function describeImportConditionNode(node: ConditionNode): string {
   }
 }
 
-/** Body of the General view tab: action badge, description, and metadata. */
-export function ImportRuleGeneralFields({
+interface ImportRuleViewProps {
+  rule: ImportRule;
+}
+
+/** "Action" row (bold value). */
+export function ImportRuleActionView({
   rule,
-}: { rule: ImportRule }) {
+}: ImportRuleViewProps) {
   const {
     t,
   } = useTranslation();
   return (
+    <DetailField label={t("Action")}>
+      <span className="font-medium">{actionLabel(rule.action)}</span>
+    </DetailField>
+  );
+}
+
+/** "Priority" (sort order) row. */
+export function ImportRulePriorityView({
+  rule,
+}: ImportRuleViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return <DetailField label={t("Priority")}>{rule.sortOrder}</DetailField>;
+}
+
+/** "Slug" row (monospace). */
+export function ImportRuleSlugView({
+  rule,
+}: ImportRuleViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <DetailField label={t("Slug")}>
+      <span className="font-mono">{rule.slug}</span>
+    </DetailField>
+  );
+}
+
+/** "Added" (created date) row. */
+export function ImportRuleAddedView({
+  rule,
+}: ImportRuleViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return <DetailField label={t("Added")}>{new Date(rule.createdAt).toLocaleDateString()}</DetailField>;
+}
+
+/** The description paragraph — falls back to a muted "No description." so the field always shows. */
+export function ImportRuleDescriptionView({
+  rule,
+}: ImportRuleViewProps) {
+  const {
+    t,
+  } = useTranslation();
+  return rule.description
+    ? <p className="text-sm">{rule.description}</p>
+    : <p className="text-sm text-muted-foreground">{t("No description.")}</p>;
+}
+
+/**
+ * Body of the General view tab, recomposed from the same placeable per-field components the import-rule
+ * workbench registry uses — so this whole-view shell (used by `ImportRuleDetail.stories.tsx`) stays in
+ * lockstep with the layout-driven General tab.
+ */
+export function ImportRuleGeneralFields({
+  rule,
+}: { rule: ImportRule }) {
+  return (
     <div className="space-y-3 text-sm">
-      <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-2">
-        <dt className="text-muted-foreground">{t("Action")}</dt>
-        <dd className="font-medium">{actionLabel(rule.action)}</dd>
-        <dt className="text-muted-foreground">{t("Priority")}</dt>
-        <dd>{rule.sortOrder}</dd>
-        <dt className="text-muted-foreground">{t("Slug")}</dt>
-        <dd className="font-mono">{rule.slug}</dd>
-        <dt className="text-muted-foreground">{t("Added")}</dt>
-        <dd>{new Date(rule.createdAt).toLocaleDateString()}</dd>
-      </dl>
-      {rule.description
-        ? <p className="mt-2">{rule.description}</p>
-        : <p className="text-muted-foreground">{t("No description.")}</p>}
+      <div className="space-y-2">
+        <ImportRuleActionView rule={rule} />
+        <ImportRulePriorityView rule={rule} />
+        <ImportRuleSlugView rule={rule} />
+        <ImportRuleAddedView rule={rule} />
+      </div>
+      <ImportRuleDescriptionView rule={rule} />
     </div>
   );
 }

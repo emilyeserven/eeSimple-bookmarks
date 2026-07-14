@@ -3,8 +3,30 @@ import type { EntityWorkbench, WorkbenchField } from "../components/workbench/ty
 import type { LayoutableEntityKind } from "@eesimple/types";
 
 import { bookmarkWorkbench } from "../components/workbench/bookmark";
+import { buildTaxonomyTermWorkbench } from "../components/workbench/taxonomyTerm";
 import { ENTITY_DESCRIPTORS } from "../entities/registry";
 import i18n from "../i18n";
+import { makeTaxonomy } from "../test-utils/factories";
+
+/**
+ * The static, taxonomy-agnostic base workbench for the generic `"taxonomy-term"` layout kind. Unlike the
+ * other kinds, taxonomy-term has no `ENTITY_DESCRIPTORS` entry — its real workbench is built per-taxonomy
+ * by {@link buildTaxonomyTermWorkbench}. For the Page Layouts editor (which edits the shared
+ * `"taxonomy-term"` layout every non-custom taxonomy renders through) we build one representative
+ * workbench from a synthetic **hierarchical** taxonomy (so every field — incl. `parent`/`hierarchy` —
+ * surfaces) whose `customLayout: false` makes `taxonomyTermLayoutKind` resolve to the literal
+ * `"taxonomy-term"`. Constructing the workbench calls no hooks (its `use*` members are closures), so
+ * module-load construction is safe.
+ */
+const taxonomyTermBaseWorkbench = buildTaxonomyTermWorkbench(
+  makeTaxonomy({
+    id: "__taxonomy_term_layout__",
+    name: i18n.t("Taxonomy term"),
+    slug: "taxonomy-terms",
+    hierarchical: true,
+    customLayout: false,
+  }),
+) as unknown as EntityWorkbench<{ id: string }>;
 
 /** One entity kind selectable on the Page Layouts settings page. */
 export interface LayoutDrivenEntity {
@@ -30,15 +52,19 @@ export function fieldsFromRegistry<E>(fields: Record<string, WorkbenchField<E>> 
  */
 export function baseWorkbenchForKind(kind: LayoutableEntityKind): EntityWorkbench<{ id: string }> {
   if (kind === "bookmark") return bookmarkWorkbench as unknown as EntityWorkbench<{ id: string }>;
+  // taxonomy-term has no `ENTITY_DESCRIPTORS` entry (its real workbench is per-taxonomy); the picker
+  // edits the shared `"taxonomy-term"` layout through this representative base workbench.
+  if (kind === "taxonomy-term") return taxonomyTermBaseWorkbench;
   const descriptors = ENTITY_DESCRIPTORS as unknown as Record<string, { workbench: EntityWorkbench<{ id: string }> }>;
   return descriptors[kind].workbench;
 }
 
 /**
- * Entity kinds whose field registry (#1159) has landed — the Page Layouts settings page (#1162)
- * only lists these, per `LAYOUTABLE_ENTITY_KINDS`' own doc note that not every kind has a registry
- * yet. Add an entry here as each entity's workbench gains `layoutKind`/`fields`/`defaultLayout`
- * (see CLAUDE.md "Entity page layouts").
+ * Every layoutable entity kind, selectable on the Page Layouts settings page (#1162). As of #1371 this
+ * lists all of `LAYOUTABLE_ENTITY_KINDS` — each entity's workbench carries `layoutKind`/`fields`/
+ * `defaultLayout` with its General composite atomized into granular, independently-placeable fields (see
+ * CLAUDE.md "Entity page layouts"). Adding a new layoutable kind means adding one entry here (and, if it
+ * has no `ENTITY_DESCRIPTORS` entry like `taxonomy-term`, a `baseWorkbenchForKind` special case).
  */
 export const LAYOUT_DRIVEN_ENTITIES: LayoutDrivenEntity[] = [
   {
@@ -92,5 +118,37 @@ export const LAYOUT_DRIVEN_ENTITIES: LayoutDrivenEntity[] = [
   {
     kind: "autofill",
     label: i18n.t("Autofill Rules"),
+  },
+  {
+    kind: "language",
+    label: i18n.t("Language"),
+  },
+  {
+    kind: "place-type",
+    label: i18n.t("Place Type"),
+  },
+  {
+    kind: "location-relation",
+    label: i18n.t("Location Relation"),
+  },
+  {
+    kind: "group-type",
+    label: i18n.t("Group Type"),
+  },
+  {
+    kind: "relationship-type",
+    label: i18n.t("Relationship Type"),
+  },
+  {
+    kind: "import-rule",
+    label: i18n.t("Import Rule"),
+  },
+  {
+    kind: "saved-filter",
+    label: i18n.t("Saved Filter"),
+  },
+  {
+    kind: "taxonomy-term",
+    label: i18n.t("Taxonomy Term"),
   },
 ];
