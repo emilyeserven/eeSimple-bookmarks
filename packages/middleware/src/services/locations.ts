@@ -57,6 +57,7 @@ function toLocation(
     names: names ?? [],
     slug: row.slug ?? slugify(row.name),
     description: row.description,
+    isFavorite: row.isFavorite,
     alternateNames: row.alternateNames ?? [],
     latitude: row.latitude,
     longitude: row.longitude,
@@ -413,6 +414,7 @@ export function locationInputToPatch(input: UpdateLocationInput): Partial<Locati
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
   if (input.parentId !== undefined) patch.parentId = input.parentId;
   if (input.labeledWebsites !== undefined) patch.labeledWebsites = input.labeledWebsites;
+  if (input.isFavorite !== undefined) patch.isFavorite = input.isFavorite;
   return patch;
 }
 

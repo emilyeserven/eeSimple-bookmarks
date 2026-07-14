@@ -85,6 +85,7 @@ function toRelationshipType(
     directional: row.directional,
     builtIn: row.builtIn,
     hidden: row.hidden ?? false,
+    isFavorite: row.isFavorite,
     sortOrder: row.sortOrder,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
@@ -123,6 +124,7 @@ export async function listRelationshipTypes(): Promise<RelationshipType[]> {
         directional: relationshipTypes.directional,
         builtIn: relationshipTypes.builtIn,
         hidden: relationshipTypes.hidden,
+        isFavorite: relationshipTypes.isFavorite,
         sortOrder: relationshipTypes.sortOrder,
         createdAt: relationshipTypes.createdAt,
         relationshipCount: db.$count(
@@ -178,7 +180,7 @@ export async function updateRelationshipType(
   const patch: Partial<
     Pick<
       RelationshipTypeRow,
-      "name" | "slug" | "description" | "directional" | "sortOrder" | "hidden"
+      "name" | "slug" | "description" | "directional" | "sortOrder" | "hidden" | "isFavorite"
     >
   > = {};
   if (input.name !== undefined && input.name.trim() !== existing.name) {
@@ -195,6 +197,7 @@ export async function updateRelationshipType(
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
   // Hiding is allowed even on built-ins (unlike rename/delete above).
   if (input.hidden !== undefined) patch.hidden = input.hidden;
+  if (input.isFavorite !== undefined) patch.isFavorite = input.isFavorite;
   if (Object.keys(patch).length === 0) return toRelationshipType(existing);
 
   const [row] = await db

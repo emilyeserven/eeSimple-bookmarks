@@ -57,6 +57,8 @@ export interface Taxonomy {
 /** A term within a taxonomy. `parentId === null` marks a root term (always so for a flat taxonomy). */
 export interface TaxonomyTerm {
   id: string;
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   /** The owning taxonomy. */
   taxonomyId: string;
   /** Display name, unique among its siblings within the taxonomy. */
@@ -152,6 +154,8 @@ export interface CreateTaxonomyTermInput {
 
 /** Payload for renaming and/or reparenting a term. `parentId === null` moves it to root. */
 export interface UpdateTaxonomyTermInput {
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   name?: string;
   parentId?: string | null;
   description?: string | null;

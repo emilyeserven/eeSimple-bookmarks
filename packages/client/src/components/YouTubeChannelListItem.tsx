@@ -6,7 +6,8 @@ import { Info, MonitorPlay, Pencil, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { CategoryPill } from "./CategoryPill";
-import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { FavoriteToggleButton, HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { useFavoriteToggle } from "../hooks/useFavoriteToggle";
 import { useAutoYouTubeChannelImage } from "../hooks/useYouTubeChannels";
 
 import { useEntityImage } from "@/hooks/useEntityImage";
@@ -31,6 +32,7 @@ export function YouTubeChannelListItem({
     t,
   } = useTranslation();
   const autoAvatar = useAutoYouTubeChannelImage();
+  const favorite = useFavoriteToggle("youtube-channel");
   const {
     showImage,
     onError,
@@ -79,24 +81,35 @@ export function YouTubeChannelListItem({
         </Link>
       )}
       renderExtra={() => (
-        <HoverIconButton>
-          <button
-            type="button"
-            title={t("Fetch avatar")}
-            disabled={autoAvatar.isPending || autoAvatar.cooldown.isOnCooldown}
-            onClick={() => autoAvatar.mutate({
+        <>
+          <FavoriteToggleButton
+            isFavorite={Boolean(channel.isFavorite)}
+            name={channel.name}
+            onToggle={() => favorite.toggle({
               id: channel.id,
-              sourceUrl: channelUrlFromKey(channel.channelKey),
+              name: channel.name,
+              isFavorite: Boolean(channel.isFavorite),
             })}
-          >
-            <Sparkles className="size-4" />
-            <span className="sr-only">
-              {t("Fetch avatar for {{name}}", {
-                name: channel.name,
+          />
+          <HoverIconButton>
+            <button
+              type="button"
+              title={t("Fetch avatar")}
+              disabled={autoAvatar.isPending || autoAvatar.cooldown.isOnCooldown}
+              onClick={() => autoAvatar.mutate({
+                id: channel.id,
+                sourceUrl: channelUrlFromKey(channel.channelKey),
               })}
-            </span>
-          </button>
-        </HoverIconButton>
+            >
+              <Sparkles className="size-4" />
+              <span className="sr-only">
+                {t("Fetch avatar for {{name}}", {
+                  name: channel.name,
+                })}
+              </span>
+            </button>
+          </HoverIconButton>
+        </>
       )}
       renderEdit={() => (
         <HoverIconButton>

@@ -12,6 +12,7 @@ import {
 } from "../hooks/useLanguages";
 import i18n from "../i18n";
 import { languagesApi } from "../lib/api/taxonomies";
+import { starredPaletteField } from "../lib/starredPaletteField";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
@@ -31,6 +32,7 @@ const LANGUAGE_PALETTE: EntityPaletteConfig = {
   listFn: () => languagesApi.list(),
   updateFn: (id, patch) => languagesApi.update(id, patch as UpdateLanguageInput),
   extraInvalidateKeys: [BOOKMARKS_KEY],
+  fields: [starredPaletteField],
 };
 
 export const languageListingConfig: EntityListingConfig<Language> = {

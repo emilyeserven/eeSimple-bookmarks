@@ -1105,6 +1105,47 @@ row into this shape. The convention rides entirely on existing bookmark/relation
   `media_properties` retirement** — a person↔franchise link is expressible post-migration by crediting
   the person on the hub bookmark (`bookmark_people`).
 
+## Favorite (starring) & sidebar flyouts
+
+Every slug-routed entity (and every custom-taxonomy **term**) can be **starred** via a per-row
+`isFavorite: boolean("is_favorite").notNull().default(false)` column. Starring surfaces a star toggle on
+the entity's **header strip**, its **listing row**, and the **CMD+K palette**, and its starred members
+appear in a hover **flyout** off that entity's sidebar item. The whole system is **generalized** — one
+hook, one flyout component, one header resolver, one palette-field constant — so adding favorites to an
+entity is a handful of sync points, not new components. **See the `entity-favorites` skill for the
+recipe.** The load-bearing pieces:
+
+- **`hooks/useFavoriteToggle.ts`** — `useFavoriteToggle(kind)` → `{ toggle(item) }`, registry-driven off
+  `ENTITY_PALETTE_CONFIGS[kind]` (`updateFn`/`queryKey`/`extraInvalidateKeys`) with the standard
+  Starred/Unstarred toast. `FAVORITABLE_KINDS` is the favoritable-kind set (all except the shortcut
+  sub-taxonomies place-type/group-type/location-relation). Custom-taxonomy **terms** aren't registry
+  kinds → `useTaxonomyTermFavoriteToggle(taxonomyId)` (`hooks/useTaxonomies.ts`).
+- **`components/StarredFlyoutSidebarItem.tsx`** — the single sidebar flyout (subsumed the old per-entity
+  `Categories/Tags/Groups/Languages/Locations SidebarItem`s). A `SidebarFlyoutConfig` carries the trigger
+  + optional fixed `shortcuts` (sub-taxonomy links like Group Types) + `starred` links; with neither it
+  degrades to a plain link. Every taxonomy/customization sidebar item + every custom taxonomy
+  (`taxonomy:${id}`) now renders through it via `ExpandableLinkSection.renderItem`.
+- **`components/useSidebarFlyoutConfigs.tsx`** — builds the `Record<sidebarItemKey, EntityFlyoutData>`
+  from the loaded lists (filter `isFavorite` → map to flyout entries linked to `${item.to}/${slug}`).
+  Adding an entity's starred list is one entry in `buildSidebarFlyoutData`.
+- **`components/HeaderFavoriteButton.tsx`** + **`hooks/useHeaderFavoriteContext.ts`** — the header star,
+  resolved generically from the route (`matchEntityRoute` + the entity's list-query cache); any
+  favoritable kind lights up with **no** per-entity header wiring (replaced the old 2-branch
+  `resolveFavoriteContext`).
+- **`lib/entityPaletteRegistry.ts` `starredPaletteField`** — the shared palette field appended to each
+  descriptor's `fields`; `EntityCommandGroup` renders it automatically.
+- **Listing toggles:** flat rows use `FavoriteToggleButton` (`StandardListingCard`) via `renderExtra`
+  (fragment-combine if occupied); tree entities use the `isFavorite`/`onToggleFavorite` slot pair on
+  `TaxonomyTreeRow`. Templates: `CategoryPreviewRow.tsx` (flat), `TagTreeList.tsx` (tree).
+
+**Term-level favorites** (Custom Taxonomies + Genres & Moods): one `taxonomy_terms.isFavorite` column,
+surfaced through **both** `services/taxonomyTerms.ts` and `services/genreMoods.ts`; the sidebar reads all
+starred terms via `GET /api/taxonomy-terms/favorites` (`listFavoriteTaxonomyTerms` →
+`useFavoriteTaxonomyTerms()`), grouped by `taxonomyId`. **`isFavorite` is update-only** — never in a
+Create input/body/insert (the Autofill/Import-Rules route bodies that alias `createRuleBody.properties`
+must spread instead), and the read-interface field is **optional** (the mapper always sets it) to avoid
+breaking construction sites.
+
 ## Hiding seeded built-in vocabularies
 
 Four seeded vocabularies — **media types** (`services/mediaTypes.ts`), **relationship types**

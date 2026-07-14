@@ -10,6 +10,7 @@ import { useBulkDeleteCustomProperties, useCustomProperties } from "../hooks/use
 import i18n from "../i18n";
 import { customPropertiesApi } from "../lib/api/taxonomies";
 import { TYPE_LABELS } from "../lib/propertyFormat";
+import { starredPaletteField } from "../lib/starredPaletteField";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
@@ -55,6 +56,7 @@ const CUSTOM_PROPERTY_PALETTE: EntityPaletteConfig = {
       label: i18n.t("Enabled in Inbox"),
       getValue: entity => (entity as CustomProperty).enabledInInbox,
     },
+    starredPaletteField,
   ],
 };
 

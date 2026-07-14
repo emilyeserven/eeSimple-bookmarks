@@ -142,6 +142,7 @@ function toGroup(
     names: names ?? [],
     slug: row.slug ?? slugify(row.name),
     description: row.description,
+    isFavorite: row.isFavorite,
     groupTypeId: row.groupTypeId,
     groupType: groupType
       ? {
@@ -367,6 +368,9 @@ export async function updateGroup(id: string, input: UpdateGroupInput): Promise<
   }
   if (input.sortOrder !== undefined) {
     updates.sortOrder = input.sortOrder;
+  }
+  if (input.isFavorite !== undefined) {
+    updates.isFavorite = input.isFavorite;
   }
 
   const hasAssociationChanges

@@ -4,7 +4,8 @@ import { Link } from "@tanstack/react-router";
 import { Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { FavoriteToggleButton, HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { useFavoriteToggle } from "../hooks/useFavoriteToggle";
 import { summarizeConditions } from "../lib/conditionsSummary";
 
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +33,7 @@ export function AutofillRuleListItem({
   const categoryName = rule.setCategoryId
     ? categories.find(category => category.id === rule.setCategoryId)?.name
     : null;
+  const favorite = useFavoriteToggle("autofill");
 
   return (
     <StandardListingCard
@@ -39,6 +41,17 @@ export function AutofillRuleListItem({
       selected={selected}
       onSelectToggle={onSelectToggle}
       inSelectionMode={inSelectionMode}
+      renderExtra={() => (
+        <FavoriteToggleButton
+          isFavorite={Boolean(rule.isFavorite)}
+          name={rule.name}
+          onToggle={() => favorite.toggle({
+            id: rule.id,
+            name: rule.name,
+            isFavorite: Boolean(rule.isFavorite),
+          })}
+        />
+      )}
       title={rule.name}
       titleAdornment={categoryName ? <Badge variant="secondary">{categoryName}</Badge> : undefined}
       subtitle={summarizeConditions(rule.conditions)}

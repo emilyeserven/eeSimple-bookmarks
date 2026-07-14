@@ -1,77 +1,71 @@
+import type { FavoriteEntityConfig, FavoritableKind } from "../lib/favoriteEntityConfig";
+
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
-import { useCategories, useUpdateCategory } from "./useCategories";
-import { useTags, useUpdateTag } from "./useTags";
+import { FAVORITE_ENTITY_CONFIGS } from "../lib/favoriteEntityConfig";
 import { notifyError, notifySuccess } from "../lib/notifications";
 
-/** The favoritable taxonomies (their starred members surface in the sidebar flyouts). */
-export type FavoriteEntityType = "category" | "tag";
-
-/** The favoritable entity for the page/row the star toggle is attached to. */
+/** The favoritable entity/context the header star or a listing row toggles. */
 export interface FavoriteContext {
-  entityType: FavoriteEntityType;
+  kind: FavoritableKind;
   entityId: string;
-  label?: string;
+  label: string;
+  isFavorite: boolean;
+}
+
+/** The minimal item a toggle call needs (already held by the calling row/node). */
+interface FavoriteItem {
+  id: string;
+  name: string;
+  isFavorite: boolean;
 }
 
 /**
- * Starred state + toggle for a category or tag. Shared by `HeaderFavoriteButton` (the header star)
- * and the listing-card star toggle, so both stay in sync. Starring flips the entity's `isFavorite`
- * flag (which drives the sidebar Categories / Tags flyouts). Mirrors {@link usePinToggle}.
+ * Registry-driven star toggle for any favoritable entity kind. Backed by the dedicated
+ * `FAVORITE_ENTITY_CONFIGS` (API-layer only, so listing rows importing this create no cycle back
+ * through the entity descriptors). The caller already holds the row/node, so no list fetch is
+ * needed — pass the item's current `isFavorite`/`name`. Fires the standard Starred/Unstarred toast.
+ * Flat listing rows call it once per row; tree lists call it once and thread `toggle` into the node
+ * callbacks.
  */
-export function useFavoriteToggle(context: FavoriteContext) {
+export function useFavoriteToggle(kind: FavoritableKind) {
   const {
     t,
   } = useTranslation();
-  const {
-    data: categories = [],
-  } = useCategories();
-  const {
-    data: tags = [],
-  } = useTags();
-  const updateCategory = useUpdateCategory();
-  const updateTag = useUpdateTag();
+  const queryClient = useQueryClient();
+  const config: FavoriteEntityConfig = FAVORITE_ENTITY_CONFIGS[kind];
 
-  const entity = context.entityType === "category"
-    ? categories.find(c => c.id === context.entityId)
-    : tags.find(tag => tag.id === context.entityId);
-  const isFavorite = Boolean(entity?.isFavorite);
-  const name = context.label ?? entity?.name ?? t("this item");
-
-  function toggle() {
-    const next = !isFavorite;
-    const handlers = {
-      onSuccess: () =>
-        notifySuccess(next
-          ? t("Starred {{name}}", {
-            name,
-          })
-          : t("Unstarred {{name}}", {
-            name,
-          })),
-      onError: (error: Error) => notifyError(error.message),
-    };
-    if (context.entityType === "category") {
-      updateCategory.mutate({
-        id: context.entityId,
-        input: {
-          isFavorite: next,
-        },
-      }, handlers);
-    }
-    else {
-      updateTag.mutate({
-        id: context.entityId,
-        input: {
-          isFavorite: next,
-        },
-      }, handlers);
-    }
-  }
+  const mutation = useMutation({
+    mutationFn: ({
+      id, next,
+    }: { id: string;
+      next: boolean;
+      name: string; }) => config.update(id, {
+      isFavorite: next,
+    }),
+    onSuccess: (_data, variables) => {
+      notifySuccess(variables.next
+        ? t("Starred {{name}}", {
+          name: variables.name,
+        })
+        : t("Unstarred {{name}}", {
+          name: variables.name,
+        }));
+      for (const key of config.invalidateKeys) {
+        void queryClient.invalidateQueries({
+          queryKey: [...key],
+        });
+      }
+    },
+    onError: (error: Error) => notifyError(error.message),
+  });
 
   return {
-    isFavorite,
-    name,
-    toggle,
+    toggle: (item: FavoriteItem) => mutation.mutate({
+      id: item.id,
+      next: !item.isFavorite,
+      name: item.name,
+    }),
   };
 }

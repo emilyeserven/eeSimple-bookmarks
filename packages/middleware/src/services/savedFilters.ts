@@ -19,6 +19,7 @@ function toSavedFilter(row: SavedFilterRow): SavedFilter {
     description: row.description,
     filters: row.filters,
     viewableOnline: row.viewableOnline,
+    isFavorite: row.isFavorite,
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
 }
@@ -69,6 +70,7 @@ export async function updateSavedFilter(
   if (input.description !== undefined) updates.description = input.description ?? null;
   if (input.filters !== undefined) updates.filters = input.filters;
   if (input.viewableOnline !== undefined) updates.viewableOnline = input.viewableOnline;
+  if (input.isFavorite !== undefined) updates.isFavorite = input.isFavorite;
 
   if (Object.keys(updates).length === 0) {
     return getSavedFilterById(id);

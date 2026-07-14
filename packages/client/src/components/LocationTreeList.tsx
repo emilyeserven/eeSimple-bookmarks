@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 
 import { LocalizedNameLabel } from "./LocalizedNameLabel";
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
+import { useFavoriteToggle } from "../hooks/useFavoriteToggle";
 import { isLocationHidden } from "../lib/locationMainMap";
 import { expandableIds, flattenTree } from "../lib/tagTree";
 
@@ -44,6 +45,7 @@ export function LocationTreeList({
     t,
   } = useTranslation();
   const isMobile = useIsMobile();
+  const favorite = useFavoriteToggle("location");
   const filterSet = new Set(filterIds);
   // The effectively-hidden ids across this tree (session override, else the persisted setting).
   const hiddenSet = new Set(
@@ -65,6 +67,12 @@ export function LocationTreeList({
         ? node => onToggleVisibility(node.id, hiddenSet.has(node.id))
         : undefined}
       isHidden={onToggleVisibility ? node => hiddenSet.has(node.id) : undefined}
+      isFavorite={node => Boolean((node as unknown as LocationNode).isFavorite)}
+      onToggleFavorite={node => favorite.toggle({
+        id: node.id,
+        name: node.name,
+        isFavorite: Boolean((node as unknown as LocationNode).isFavorite),
+      })}
       // The location taxonomy already conveys "this is a place" via its breadcrumb/context, so the
       // generic tag glyph is redundant here — render no icon.
       renderIcon={() => null}

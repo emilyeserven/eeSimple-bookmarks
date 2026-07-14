@@ -39,7 +39,7 @@ export function FavoriteMenuItem({
   );
 }
 
-/** Star/un-star the current category or tag from the More menu. */
+/** Star/un-star the current entity from the More menu. */
 export function FavoriteTaxonomyMenuItem({
   context,
 }: {
@@ -49,19 +49,27 @@ export function FavoriteTaxonomyMenuItem({
     t,
   } = useTranslation();
   const {
-    isFavorite, name, toggle,
-  } = useFavoriteToggle(context);
+    toggle,
+  } = useFavoriteToggle(context.kind);
   return (
-    <DropdownMenuItem onSelect={toggle}>
+    <DropdownMenuItem
+      onSelect={() => toggle({
+        id: context.entityId,
+        name: context.label,
+        isFavorite: context.isFavorite,
+      })}
+    >
       <Star
-        className={cn("size-4", isFavorite && "fill-current text-yellow-500")}
+        className={cn("size-4", context.isFavorite && `
+          fill-current text-yellow-500
+        `)}
       />
-      {isFavorite
+      {context.isFavorite
         ? t("Unstar {{name}}", {
-          name,
+          name: context.label,
         })
         : t("Star {{name}}", {
-          name,
+          name: context.label,
         })}
     </DropdownMenuItem>
   );

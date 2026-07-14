@@ -214,6 +214,8 @@ export const taxonomiesApi = {
     }),
   // Terms — nested for list/tree/create, flat by id for update/remove/bulk.
   listTerms: (taxonomyId: string) => request<TaxonomyTerm[]>(`/taxonomies/${taxonomyId}/terms`),
+  /** Every starred term across all taxonomies (for the per-taxonomy sidebar flyouts + Genres & Moods). */
+  favoriteTerms: () => request<TaxonomyTerm[]>("/taxonomy-terms/favorites"),
   termTree: (taxonomyId: string) => request<TaxonomyTermNode[]>(`/taxonomies/${taxonomyId}/terms/tree`),
   createTerm: (taxonomyId: string, input: CreateTaxonomyTermInput) =>
     request<TaxonomyTerm>(`/taxonomies/${taxonomyId}/terms`, {

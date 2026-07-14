@@ -3,7 +3,9 @@ import type { CustomProperty, CustomPropertyType } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
+import { FavoriteToggleButton } from "./StandardListingCard";
 import { useDisplayPreferenceSettings } from "../hooks/useAppSettings";
+import { useFavoriteToggle } from "../hooks/useFavoriteToggle";
 import { TYPE_LABELS, resolvePropertyTypeIcon } from "../lib/propertyFormat";
 import { propertyPreviewSummary } from "../lib/propertyPreview";
 
@@ -104,6 +106,7 @@ export function PropertyPreview({
   } = useDisplayPreferenceSettings();
   const typeIcons = displayPrefs?.customPropertyTypeIcons ?? null;
   const summary = propertyPreviewSummary(property, allProperties);
+  const favorite = useFavoriteToggle("custom-property");
 
   return (
     <RowCard
@@ -112,6 +115,17 @@ export function PropertyPreview({
         hover:bg-accent
       `, selected && "ring-2 ring-primary")}
     >
+      <div className="absolute top-2 right-2 z-10">
+        <FavoriteToggleButton
+          isFavorite={Boolean(property.isFavorite)}
+          name={property.name}
+          onToggle={() => favorite.toggle({
+            id: property.id,
+            name: property.name,
+            isFavorite: Boolean(property.isFavorite),
+          })}
+        />
+      </div>
       {(inSelectionMode && selectable)
         ? (
           <button

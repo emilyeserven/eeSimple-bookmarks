@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 
 import { LocalizedNameLabel } from "./LocalizedNameLabel";
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
+import { useFavoriteToggle } from "../hooks/useFavoriteToggle";
 
 interface GenreMoodTreeListProps {
   /** The root entries to render. */
@@ -25,6 +26,7 @@ export function GenreMoodTreeList({
   const {
     t,
   } = useTranslation();
+  const favorite = useFavoriteToggle("genre-mood");
 
   return (
     <TaxonomyTreeList
@@ -32,6 +34,12 @@ export function GenreMoodTreeList({
       expanded={expanded}
       onToggle={onToggle}
       columns={columns}
+      isFavorite={node => Boolean((node as unknown as GenreMoodNode).isFavorite)}
+      onToggleFavorite={node => favorite.toggle({
+        id: node.id,
+        name: node.name,
+        isFavorite: Boolean((node as unknown as GenreMoodNode).isFavorite),
+      })}
       renderNameLink={node => (
         <Link
           to="/taxonomies/genres-moods/$genreMoodSlug"

@@ -1,11 +1,13 @@
+import type { SidebarFlyoutData } from "./useSidebarFlyoutConfigs";
 import type { ResolvedPin } from "./useSidebarPins";
-import type { Category, PinnedSection, Tag } from "@eesimple/types";
+import type { PinnedSection } from "@eesimple/types";
 
 import * as React from "react";
 
 import { useRouterState } from "@tanstack/react-router";
 
 import { useSidebarEntityData } from "./useSidebarEntityData";
+import { useSidebarFlyoutConfigs } from "./useSidebarFlyoutConfigs";
 import { useResolvedPins, useViewableFilters } from "./useSidebarPins";
 import {
   useAdvancedSettings,
@@ -130,10 +132,8 @@ interface SidebarNavItem {
 
 export interface AppSidebarData<T extends SidebarNavItem, C extends SidebarNavItem> {
   pathname: string;
-  /** Starred categories surfaced in the Categories sidebar flyout. */
-  starredCategories: Category[];
-  /** Starred tags surfaced in the Tags sidebar flyout. */
-  starredTags: Tag[];
+  /** Per-sidebar-item flyout data (shortcut links + starred members), keyed by item key. */
+  flyoutConfigs: SidebarFlyoutData;
   visibleTaxonomyItems: (T & { count: number | undefined })[];
   seeMoreTaxonomyItemsList: (T & { count: number | undefined })[];
   taxonomiesExpanded: boolean;
@@ -202,8 +202,7 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
   const [taxonomiesExpanded, setTaxonomiesExpanded] = React.useState(false);
   const [customizationExpanded, setCustomizationExpanded] = React.useState(false);
 
-  const starredCategories = (data.categories ?? []).filter(c => c.isFavorite);
-  const starredTags = (data.allTags ?? []).filter(t => t.isFavorite);
+  const flyoutConfigs = useSidebarFlyoutConfigs(data);
 
   const taxonomyCounts = {
     "categories": data.categories?.length,
@@ -262,8 +261,7 @@ export function useAppSidebarData<T extends SidebarNavItem, C extends SidebarNav
 
   return {
     pathname,
-    starredCategories,
-    starredTags,
+    flyoutConfigs,
     visibleTaxonomyItems,
     seeMoreTaxonomyItemsList,
     taxonomiesExpanded,

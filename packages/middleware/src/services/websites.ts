@@ -196,6 +196,7 @@ function toWebsite(
     slug: row.slug ?? slugFromDomain(row.domain),
     description: row.description,
     builtIn: row.builtIn,
+    isFavorite: row.isFavorite,
     shortenedLinks: row.shortenedLinks,
     paramRules: row.paramRules,
     createdAt:
@@ -233,6 +234,7 @@ const websiteSelect = {
   slug: websites.slug,
   description: websites.description,
   builtIn: websites.builtIn,
+  isFavorite: websites.isFavorite,
   shortenedLinks: websites.shortenedLinks,
   paramRules: websites.paramRules,
   socialLinks: websites.socialLinks,
@@ -573,7 +575,8 @@ export async function updateWebsite(
     throw new BuiltInWebsiteError("A built-in website cannot be renamed or moved");
   }
 
-  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "description" | "slug" | "shortenedLinks" | "paramRules" | "categoryId" | "mediaTypeId" | "socialLinks" | "labeledWebsites" | "alternateNames" | "extensionFillRules" | "extensionFillRuleGroups" | "scanObservations" | "redirectResolutionFailure" | "scanUrlForIsbn">> = buildWebsiteScalarPatch(input);
+  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "description" | "slug" | "shortenedLinks" | "paramRules" | "categoryId" | "mediaTypeId" | "socialLinks" | "labeledWebsites" | "alternateNames" | "extensionFillRules" | "extensionFillRuleGroups" | "scanObservations" | "redirectResolutionFailure" | "scanUrlForIsbn" | "isFavorite">> = buildWebsiteScalarPatch(input);
+  if (input.isFavorite !== undefined) patch.isFavorite = input.isFavorite;
   if (input.domain !== undefined) {
     const domain = normalizeWebsiteDomain(input.domain);
     const [clash] = await db.select({

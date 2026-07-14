@@ -5,7 +5,8 @@ import { Globe, Info, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { CategoryPill } from "./CategoryPill";
-import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { FavoriteToggleButton, HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { useFavoriteToggle } from "../hooks/useFavoriteToggle";
 
 import { useEntityImage } from "@/hooks/useEntityImage";
 
@@ -32,6 +33,7 @@ export function WebsiteListItem({
     showImage,
     onError,
   } = useEntityImage(website.imageUrl);
+  const favorite = useFavoriteToggle("website");
 
   return (
     <StandardListingCard
@@ -39,6 +41,17 @@ export function WebsiteListItem({
       selected={selected}
       onSelectToggle={onSelectToggle}
       inSelectionMode={inSelectionMode}
+      renderExtra={() => (
+        <FavoriteToggleButton
+          isFavorite={Boolean(website.isFavorite)}
+          name={website.siteName}
+          onToggle={() => favorite.toggle({
+            id: website.id,
+            name: website.siteName,
+            isFavorite: Boolean(website.isFavorite),
+          })}
+        />
+      )}
       icon={(
         <span
           className="

@@ -4,7 +4,8 @@ import { Link } from "@tanstack/react-router";
 import { Info, Link2, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { HideToggleButton, HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { FavoriteToggleButton, HideToggleButton, HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { useFavoriteToggle } from "../hooks/useFavoriteToggle";
 import { useUpdateRelationshipType } from "../hooks/useRelationshipTypes";
 
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ export function RelationshipTypeCard({
   const builtInName = useBuiltInName();
   const name = builtInName(relationshipType);
   const update = useUpdateRelationshipType();
+  const favorite = useFavoriteToggle("relationship-type");
 
   const toggleHidden = () => {
     const nextHidden = !relationshipType.hidden;
@@ -71,11 +73,22 @@ export function RelationshipTypeCard({
       subtitle={relationshipType.directional ? t("Directional") : t("Symmetric")}
       count={relationshipType.bookmarkCount}
       renderExtra={() => (
-        <HideToggleButton
-          hidden={relationshipType.hidden}
-          name={name}
-          onToggle={toggleHidden}
-        />
+        <>
+          <FavoriteToggleButton
+            isFavorite={Boolean(relationshipType.isFavorite)}
+            name={name}
+            onToggle={() => favorite.toggle({
+              id: relationshipType.id,
+              name,
+              isFavorite: Boolean(relationshipType.isFavorite),
+            })}
+          />
+          <HideToggleButton
+            hidden={relationshipType.hidden}
+            name={name}
+            onToggle={toggleHidden}
+          />
+        </>
       )}
       renderPrimaryLink={(className, children) => (
         <Link

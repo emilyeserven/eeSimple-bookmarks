@@ -10,6 +10,7 @@ import { useBulkDeleteTags, useTagTree } from "../hooks/useTags";
 import { useInterfaceTitleSort } from "../hooks/useTitleSortContext";
 import i18n from "../i18n";
 import { tagsApi } from "../lib/api/taxonomies";
+import { starredPaletteField } from "../lib/starredPaletteField";
 import { flattenTree, sortTagTree } from "../lib/tagTree";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -43,12 +44,7 @@ const TAG_PALETTE: EntityPaletteConfig = {
       label: i18n.t("Exclude from Backfill"),
       getValue: entity => (entity as Tag).excludeFromBackfill ?? false,
     },
-    {
-      type: "boolean",
-      key: "isFavorite",
-      label: i18n.t("Starred"),
-      getValue: entity => (entity as Tag).isFavorite ?? false,
-    },
+    starredPaletteField,
   ],
 };
 

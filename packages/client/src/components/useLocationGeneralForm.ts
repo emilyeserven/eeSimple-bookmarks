@@ -47,6 +47,7 @@ const LABELS: Record<keyof UpdateLocationInput, string> = {
   parentId: "Parent",
   tagIds: "Tags",
   labeledWebsites: "Websites",
+  isFavorite: "Starred",
 };
 
 /**

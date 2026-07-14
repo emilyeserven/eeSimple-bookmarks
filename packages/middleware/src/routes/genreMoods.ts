@@ -58,6 +58,9 @@ const updateGenreMoodBody = {
       format: "uuid",
       nullable: true,
     },
+    isFavorite: {
+      type: "boolean",
+    },
   },
 } as const;
 

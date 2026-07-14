@@ -94,6 +94,7 @@ function toAutofillRule(
     booleanValues,
     dateTimeValues,
     sortOrder: row.sortOrder,
+    isFavorite: row.isFavorite,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
@@ -430,7 +431,7 @@ export async function updateAutofillRule(
     if (!existing) return false;
 
     const patch: Partial<
-      Pick<AutofillRuleRow, "name" | "slug" | "description" | "conditions" | "setCategoryId" | "setMediaTypeId" | "sortOrder">
+      Pick<AutofillRuleRow, "name" | "slug" | "description" | "conditions" | "setCategoryId" | "setMediaTypeId" | "sortOrder" | "isFavorite">
     > = {};
     if (input.name !== undefined) {
       patch.name = input.name;
@@ -444,6 +445,7 @@ export async function updateAutofillRule(
     if (input.setCategoryId !== undefined) patch.setCategoryId = input.setCategoryId ?? null;
     if (input.setMediaTypeId !== undefined) patch.setMediaTypeId = input.setMediaTypeId ?? null;
     if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
+    if (input.isFavorite !== undefined) patch.isFavorite = input.isFavorite;
 
     if (Object.keys(patch).length > 0) {
       await tx.update(autofillRules).set(patch).where(eq(autofillRules.id, id));

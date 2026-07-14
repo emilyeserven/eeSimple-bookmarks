@@ -9,6 +9,7 @@ import { newsletterWorkbench } from "../components/workbench/newsletter";
 import { useBulkDeleteNewsletters, useNewsletters } from "../hooks/useNewsletters";
 import i18n from "../i18n";
 import { newslettersApi } from "../lib/api/imports";
+import { starredPaletteField } from "../lib/starredPaletteField";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
@@ -28,6 +29,7 @@ const NEWSLETTER_PALETTE: EntityPaletteConfig = {
   listFn: () => newslettersApi.list(),
   updateFn: (id, patch) => newslettersApi.update(id, patch as UpdateNewsletterInput),
   extraInvalidateKeys: [BOOKMARKS_KEY],
+  fields: [starredPaletteField],
 };
 
 export const newsletterListingConfig: EntityListingConfig<Newsletter> = {

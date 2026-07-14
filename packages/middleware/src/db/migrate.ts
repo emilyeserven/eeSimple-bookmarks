@@ -603,6 +603,62 @@ const migrations: RuntimeMigration[] = [
       sql`ALTER TABLE "pinned_sidebar_items" ADD COLUMN IF NOT EXISTS "section_id" uuid`,
     ),
   },
+  // `is_favorite` rollout across 13 existing taxonomy/config tables. Each is a NOT NULL column with a
+  // DEFAULT on an already-populated table, which trips drizzle-kit push's non-TTY `pgSuggestions`
+  // prompt (and `--force` does not suppress it), so per the db-schema-change rule we pre-apply each
+  // here idempotently (`ADD COLUMN IF NOT EXISTS`) — push's subsequent diff is then empty and silent.
+  {
+    name: "add websites.is_favorite",
+    run: db => db.execute(sql`ALTER TABLE "websites" ADD COLUMN IF NOT EXISTS "is_favorite" boolean NOT NULL DEFAULT false`),
+  },
+  {
+    name: "add media_types.is_favorite",
+    run: db => db.execute(sql`ALTER TABLE "media_types" ADD COLUMN IF NOT EXISTS "is_favorite" boolean NOT NULL DEFAULT false`),
+  },
+  {
+    name: "add groups.is_favorite",
+    run: db => db.execute(sql`ALTER TABLE "groups" ADD COLUMN IF NOT EXISTS "is_favorite" boolean NOT NULL DEFAULT false`),
+  },
+  {
+    name: "add relationship_types.is_favorite",
+    run: db => db.execute(sql`ALTER TABLE "relationship_types" ADD COLUMN IF NOT EXISTS "is_favorite" boolean NOT NULL DEFAULT false`),
+  },
+  {
+    name: "add youtube_channels.is_favorite",
+    run: db => db.execute(sql`ALTER TABLE "youtube_channels" ADD COLUMN IF NOT EXISTS "is_favorite" boolean NOT NULL DEFAULT false`),
+  },
+  {
+    name: "add newsletters.is_favorite",
+    run: db => db.execute(sql`ALTER TABLE "newsletters" ADD COLUMN IF NOT EXISTS "is_favorite" boolean NOT NULL DEFAULT false`),
+  },
+  {
+    name: "add people.is_favorite",
+    run: db => db.execute(sql`ALTER TABLE "people" ADD COLUMN IF NOT EXISTS "is_favorite" boolean NOT NULL DEFAULT false`),
+  },
+  {
+    name: "add custom_properties.is_favorite",
+    run: db => db.execute(sql`ALTER TABLE "custom_properties" ADD COLUMN IF NOT EXISTS "is_favorite" boolean NOT NULL DEFAULT false`),
+  },
+  {
+    name: "add autofill_rules.is_favorite",
+    run: db => db.execute(sql`ALTER TABLE "autofill_rules" ADD COLUMN IF NOT EXISTS "is_favorite" boolean NOT NULL DEFAULT false`),
+  },
+  {
+    name: "add import_rules.is_favorite",
+    run: db => db.execute(sql`ALTER TABLE "import_rules" ADD COLUMN IF NOT EXISTS "is_favorite" boolean NOT NULL DEFAULT false`),
+  },
+  {
+    name: "add saved_filters.is_favorite",
+    run: db => db.execute(sql`ALTER TABLE "saved_filters" ADD COLUMN IF NOT EXISTS "is_favorite" boolean NOT NULL DEFAULT false`),
+  },
+  {
+    name: "add locations.is_favorite",
+    run: db => db.execute(sql`ALTER TABLE "locations" ADD COLUMN IF NOT EXISTS "is_favorite" boolean NOT NULL DEFAULT false`),
+  },
+  {
+    name: "add taxonomy_terms.is_favorite",
+    run: db => db.execute(sql`ALTER TABLE "taxonomy_terms" ADD COLUMN IF NOT EXISTS "is_favorite" boolean NOT NULL DEFAULT false`),
+  },
 ];
 
 async function main(): Promise<void> {

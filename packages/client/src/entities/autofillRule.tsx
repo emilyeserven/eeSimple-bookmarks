@@ -10,6 +10,7 @@ import { useAutofillRules, useBulkDeleteAutofillRules } from "../hooks/useAutofi
 import i18n from "../i18n";
 import { autofillApi } from "../lib/api/autofill";
 import { summarizeConditions } from "../lib/conditionsSummary";
+import { starredPaletteField } from "../lib/starredPaletteField";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
@@ -40,6 +41,7 @@ const AUTOFILL_PALETTE: EntityPaletteConfig = {
       tab: "prefill",
     },
   ],
+  fields: [starredPaletteField],
 };
 
 /**

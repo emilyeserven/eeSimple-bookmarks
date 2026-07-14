@@ -127,6 +127,9 @@ const updateGroupBody = {
     },
     youtubeChannelIds: uuidArraySchema,
     websiteIds: uuidArraySchema,
+    isFavorite: {
+      type: "boolean",
+    },
   },
 } as const;
 

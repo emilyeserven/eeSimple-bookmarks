@@ -221,6 +221,7 @@ function toYouTubeChannel(
     name: row.name,
     description: row.description ?? null,
     slug: row.slug ?? slugify(row.name),
+    isFavorite: row.isFavorite,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
@@ -265,6 +266,7 @@ export async function listYouTubeChannels(): Promise<YouTubeChannel[]> {
       name: youtubeChannels.name,
       description: youtubeChannels.description,
       slug: youtubeChannels.slug,
+      isFavorite: youtubeChannels.isFavorite,
       labeledWebsites: youtubeChannels.labeledWebsites,
       createdAt: youtubeChannels.createdAt,
       bookmarkCount: db.$count(bookmarks, eq(bookmarks.youtubeChannelId, youtubeChannels.id)),
@@ -303,6 +305,7 @@ const channelSelect = {
   name: youtubeChannels.name,
   description: youtubeChannels.description,
   slug: youtubeChannels.slug,
+  isFavorite: youtubeChannels.isFavorite,
   categoryId: youtubeChannels.categoryId,
   labeledWebsites: youtubeChannels.labeledWebsites,
   createdAt: youtubeChannels.createdAt,
@@ -484,6 +487,15 @@ export async function updateYouTubeChannel(
 
   if (input.groupIds !== undefined) {
     await setChannelGroups(db, id, input.groupIds);
+  }
+
+  if (input.isFavorite !== undefined) {
+    await db
+      .update(youtubeChannels)
+      .set({
+        isFavorite: input.isFavorite,
+      })
+      .where(eq(youtubeChannels.id, id));
   }
 
   return getYouTubeChannel(id);

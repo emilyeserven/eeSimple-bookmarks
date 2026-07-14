@@ -133,9 +133,10 @@ describe("buildToolbarActions", () => {
     expect(keys(ctx())).not.toContain("favorite-taxonomy");
     expect(keys(ctx({
       favoriteContext: {
-        entityType: "category",
+        kind: "category",
         entityId: "c1",
         label: "Reading",
+        isFavorite: false,
       },
     }))).toContain("favorite-taxonomy");
   });
@@ -153,9 +154,10 @@ describe("buildToolbarActions", () => {
         label: "Display",
       } as unknown as ToolbarContext["settingsPage"],
       favoriteContext: {
-        entityType: "tag",
+        kind: "tag",
         entityId: "t1",
         label: "dev",
+        isFavorite: false,
       },
       pinContext: {
         entityType: "category",

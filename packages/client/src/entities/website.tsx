@@ -13,6 +13,7 @@ import { useWebsiteFacetFilter, useWebsiteSortedItems } from "../hooks/useWebsit
 import { useWebsites } from "../hooks/useWebsites";
 import i18n from "../i18n";
 import { websitesApi } from "../lib/api/taxonomies";
+import { starredPaletteField } from "../lib/starredPaletteField";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
@@ -49,6 +50,7 @@ const WEBSITE_PALETTE: EntityPaletteConfig = {
       options: "media-types",
       getValue: entity => (entity as Website).mediaTypeId ?? null,
     },
+    starredPaletteField,
   ],
 };
 

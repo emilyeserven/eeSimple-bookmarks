@@ -112,6 +112,9 @@ const updatePersonBody = {
         format: "uuid",
       },
     },
+    isFavorite: {
+      type: "boolean",
+    },
   },
 } as const;
 

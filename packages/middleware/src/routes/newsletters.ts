@@ -67,6 +67,9 @@ const updateNewsletterBody = {
         format: "uuid",
       },
     },
+    isFavorite: {
+      type: "boolean",
+    },
   },
 } as const;
 

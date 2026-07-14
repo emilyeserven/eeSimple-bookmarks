@@ -6,15 +6,26 @@ import type {
 } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { taxonomiesApi } from "../lib/api/taxonomies";
+import { notifyError, notifySuccess } from "../lib/notifications";
 import { flattenTree } from "../lib/tagTree";
 
 const TAXONOMIES_KEY = ["taxonomies"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
+const FAVORITE_TERMS_KEY = ["taxonomy-terms", "favorites"] as const;
 
 const termTreeKey = (taxonomyId: string) => [...TAXONOMIES_KEY, taxonomyId, "terms", "tree"] as const;
+
+/** Every starred taxonomy term across all taxonomies — feeds each taxonomy's sidebar flyout. */
+export function useFavoriteTaxonomyTerms() {
+  return useQuery({
+    queryKey: FAVORITE_TERMS_KEY,
+    queryFn: taxonomiesApi.favoriteTerms,
+  });
+}
 
 /** Every taxonomy (definitions only), ordered by sort order then name. */
 export function useTaxonomies() {
@@ -60,6 +71,9 @@ export function useTaxonomyInvalidation() {
     });
     void queryClient.invalidateQueries({
       queryKey: BOOKMARKS_KEY,
+    });
+    void queryClient.invalidateQueries({
+      queryKey: FAVORITE_TERMS_KEY,
     });
     if (taxonomyId) {
       void queryClient.invalidateQueries({
@@ -113,6 +127,40 @@ export function useUpdateTaxonomyTerm(taxonomyId: string) {
       input: UpdateTaxonomyTermInput; }) => taxonomiesApi.updateTerm(id, input),
     onSuccess: () => invalidate(taxonomyId),
   });
+}
+
+/**
+ * Star toggle for a custom-taxonomy term (the term-level analog of `useFavoriteToggle`, which only
+ * covers registry kinds). Backed by the term PATCH; fires the standard Starred/Unstarred toast.
+ */
+export function useTaxonomyTermFavoriteToggle(taxonomyId: string) {
+  const update = useUpdateTaxonomyTerm(taxonomyId);
+  const {
+    t,
+  } = useTranslation();
+  return {
+    toggle: (item: { id: string;
+      name: string;
+      isFavorite: boolean; }) => {
+      const next = !item.isFavorite;
+      update.mutate({
+        id: item.id,
+        input: {
+          isFavorite: next,
+        },
+      }, {
+        onSuccess: () =>
+          notifySuccess(next
+            ? t("Starred {{name}}", {
+              name: item.name,
+            })
+            : t("Unstarred {{name}}", {
+              name: item.name,
+            })),
+        onError: error => notifyError(error.message),
+      });
+    },
+  };
 }
 
 export function useDeleteTaxonomyTerm(taxonomyId: string) {

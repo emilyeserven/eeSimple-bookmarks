@@ -5,7 +5,8 @@ import { Info, Mail, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { CategoryPill } from "./CategoryPill";
-import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { FavoriteToggleButton, HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { useFavoriteToggle } from "../hooks/useFavoriteToggle";
 
 /** A single row in the newsletter listing: an icon, a body link to its issues, and hover Edit / Info. */
 export function NewsletterListItem({
@@ -24,6 +25,7 @@ export function NewsletterListItem({
   const {
     t,
   } = useTranslation();
+  const favorite = useFavoriteToggle("newsletter");
 
   return (
     <StandardListingCard
@@ -31,6 +33,17 @@ export function NewsletterListItem({
       selected={selected}
       onSelectToggle={onSelectToggle}
       inSelectionMode={inSelectionMode}
+      renderExtra={() => (
+        <FavoriteToggleButton
+          isFavorite={Boolean(newsletter.isFavorite)}
+          name={newsletter.name}
+          onToggle={() => favorite.toggle({
+            id: newsletter.id,
+            name: newsletter.name,
+            isFavorite: Boolean(newsletter.isFavorite),
+          })}
+        />
+      )}
       icon={(
         <span
           className="

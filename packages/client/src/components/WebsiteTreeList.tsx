@@ -5,6 +5,7 @@ import { Info, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
+import { useFavoriteToggle } from "../hooks/useFavoriteToggle";
 
 interface WebsiteTreeListProps {
   tree: WebsiteNode[];
@@ -20,6 +21,7 @@ function toTaxonomyNode(node: WebsiteNode): {
   children: ReturnType<typeof toTaxonomyNode>[];
   builtIn: boolean;
   bookmarkCount?: number;
+  isFavorite?: boolean;
 } {
   return {
     id: node.id,
@@ -28,6 +30,7 @@ function toTaxonomyNode(node: WebsiteNode): {
     children: node.children.map(toTaxonomyNode),
     builtIn: node.builtIn,
     bookmarkCount: node.bookmarkCount,
+    isFavorite: node.isFavorite,
   };
 }
 
@@ -38,6 +41,7 @@ export function WebsiteTreeList({
   const {
     t,
   } = useTranslation();
+  const favorite = useFavoriteToggle("website");
 
   return (
     <TaxonomyTreeList
@@ -45,6 +49,12 @@ export function WebsiteTreeList({
       expanded={expanded}
       onToggle={onToggle}
       columns={columns}
+      isFavorite={node => Boolean((node as unknown as { isFavorite?: boolean }).isFavorite)}
+      onToggleFavorite={node => favorite.toggle({
+        id: node.id,
+        name: node.name,
+        isFavorite: Boolean((node as unknown as { isFavorite?: boolean }).isFavorite),
+      })}
       renderNameLink={node => (
         <Link
           to="/taxonomies/websites/$websiteSlug"

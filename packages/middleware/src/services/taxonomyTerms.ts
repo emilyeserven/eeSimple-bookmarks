@@ -52,6 +52,7 @@ function toTaxonomyTerm(
     slug: row.slug ?? slugify(row.name),
     description: row.description,
     parentId: row.parentId,
+    isFavorite: row.isFavorite,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: counts?.subtree,
@@ -130,6 +131,12 @@ export async function listTaxonomyTerms(taxonomyId: string): Promise<TaxonomyTer
   return rows.map(row => toTaxonomyTerm(row, counts.get(row.id), namesMap.get(row.id)));
 }
 
+/** Every term flagged as a favorite, across all taxonomies. */
+export async function listFavoriteTaxonomyTerms(): Promise<TaxonomyTerm[]> {
+  const rows = await db.select().from(taxonomyTerms).where(eq(taxonomyTerms.isFavorite, true));
+  return rows.map(row => toTaxonomyTerm(row));
+}
+
 /** A taxonomy's terms as a nested tree (roots first). */
 export async function getTaxonomyTermTree(taxonomyId: string): Promise<TaxonomyTermNode[]> {
   return buildTermTree(await listTaxonomyTerms(taxonomyId));
@@ -171,13 +178,14 @@ export async function updateTaxonomyTerm(
     if (wouldCreateCycle(all, id, input.parentId)) throw new TaxonomyTermCycleError();
   }
 
-  const patch: Partial<Pick<TaxonomyTermRow, "name" | "slug" | "description" | "parentId">> = {};
+  const patch: Partial<Pick<TaxonomyTermRow, "name" | "slug" | "description" | "parentId" | "isFavorite">> = {};
   if (input.name !== undefined) {
     patch.name = input.name.trim();
     patch.slug = uniqueSlug(input.name, await takenTermSlugs(current.taxonomyId, id), "term");
   }
   if (input.description !== undefined) patch.description = input.description ?? null;
   if (input.parentId !== undefined) patch.parentId = input.parentId;
+  if (input.isFavorite !== undefined) patch.isFavorite = input.isFavorite;
   if (Object.keys(patch).length === 0) return toTaxonomyTerm(current);
 
   const [row] = await db.update(taxonomyTerms).set(patch).where(eq(taxonomyTerms.id, id)).returning();

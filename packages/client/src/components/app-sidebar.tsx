@@ -1,4 +1,4 @@
-import type { Category, Tag } from "@eesimple/types";
+import type { SidebarFlyoutData } from "./useSidebarFlyoutConfigs";
 
 import * as React from "react";
 
@@ -13,17 +13,13 @@ import {
   SidebarConnectorsSection,
   SidebarResizeHandle,
 } from "./app-sidebar-sections";
-import { CategoriesSidebarItem } from "./CategoriesSidebarItem";
-import { GroupsSidebarItem } from "./GroupsSidebarItem";
-import { LanguagesSidebarItem } from "./LanguagesSidebarItem";
-import { LocationsSidebarItem } from "./LocationsSidebarItem";
 import { SettingsFavoritesFlyout } from "./SettingsFavoritesFlyout";
 import { SidebarCountBadge } from "./SidebarCountBadge";
 import { SidebarPrimaryNav } from "./SidebarPrimaryNav";
 import { SidebarSavedFiltersSection } from "./SidebarSavedFiltersSection";
 import { SidebarScratchpad } from "./SidebarScratchpad";
 import { SidebarTabBasket } from "./SidebarTabBasket";
-import { TagsSidebarItem } from "./TagsSidebarItem";
+import { StarredFlyoutSidebarItem } from "./StarredFlyoutSidebarItem";
 import { useAppSidebarData } from "./useAppSidebarData";
 import { useTaxonomies } from "../hooks/useTaxonomies";
 
@@ -70,11 +66,7 @@ function ExpandableLinkSection({
   pathname,
   sidebarState,
   seeMoreTooltip,
-  placeTypesCount,
-  locationRelationsCount,
-  groupTypesCount,
-  starredCategories,
-  starredTags,
+  flyoutConfigs,
 }: {
   sectionKey: string;
   label: string;
@@ -85,95 +77,37 @@ function ExpandableLinkSection({
   pathname: string;
   sidebarState: string;
   seeMoreTooltip: string;
-  placeTypesCount?: number;
-  locationRelationsCount?: number;
-  groupTypesCount?: number;
-  starredCategories?: Category[];
-  starredTags?: Tag[];
+  flyoutConfigs: SidebarFlyoutData;
 }) {
   const {
     t,
   } = useTranslation();
+  // Every item renders through the generic flyout component: its per-key config supplies the fixed
+  // shortcut links and/or starred members; with neither, it degrades to a plain link. Starred members
+  // link to `${item.to}/${slug}` (the entity's detail page).
   const renderItem = (item: LinkSidebarItem) => {
-    // Categories gets a hover flyout surfacing the user's starred categories.
-    if (item.key === "categories") {
-      return (
-        <CategoriesSidebarItem
-          key={item.key}
-          pathname={pathname}
-          categoriesCount={item.count}
-          starredCategories={starredCategories ?? []}
-          sidebarState={sidebarState}
-        />
-      );
-    }
-    // Tags gets a hover flyout surfacing the user's starred tags.
-    if (item.key === "tags") {
-      return (
-        <TagsSidebarItem
-          key={item.key}
-          pathname={pathname}
-          tagsCount={item.count}
-          starredTags={starredTags ?? []}
-          sidebarState={sidebarState}
-        />
-      );
-    }
-    // Locations gets a hover flyout surfacing its Place Types taxonomy; every other item is a plain link.
-    if (item.key === "locations") {
-      return (
-        <LocationsSidebarItem
-          key={item.key}
-          pathname={pathname}
-          locationsCount={item.count}
-          placeTypesCount={placeTypesCount}
-          locationRelationsCount={locationRelationsCount}
-          sidebarState={sidebarState}
-        />
-      );
-    }
-    // Groups gets a hover flyout surfacing its Group Types taxonomy.
-    if (item.key === "groups") {
-      return (
-        <GroupsSidebarItem
-          key={item.key}
-          pathname={pathname}
-          groupsCount={item.count}
-          groupTypesCount={groupTypesCount}
-          sidebarState={sidebarState}
-        />
-      );
-    }
-    // Languages gets a hover flyout surfacing its Usage Levels taxonomy.
-    if (item.key === "languages") {
-      return (
-        <LanguagesSidebarItem
-          key={item.key}
-          pathname={pathname}
-          languagesCount={item.count}
-          sidebarState={sidebarState}
-        />
-      );
-    }
-    const isActive = pathname.startsWith(item.to);
+    const flyout = flyoutConfigs[item.key];
     return (
-      <SidebarMenuItem key={item.key}>
-        <SidebarMenuButton
-          asChild
-          isActive={isActive}
-          tooltip={t(item.title)}
-        >
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          <Link to={item.to as any}>
-            <item.icon />
-            <span>{t(item.title)}</span>
-          </Link>
-        </SidebarMenuButton>
-        <SidebarCountBadge
-          count={item.count}
-          sidebarState={sidebarState}
-        />
-      </SidebarMenuItem>
+      <StarredFlyoutSidebarItem
+        key={item.key}
+        pathname={pathname}
+        sidebarState={sidebarState}
+        config={{
+          rootTo: item.to,
+          triggerIcon: <item.icon />,
+          label: t(item.title),
+          count: item.count,
+          starredTitle: flyout?.starredTitle ?? t("Starred"),
+          shortcuts: flyout?.shortcuts,
+          starred: flyout?.starred?.map(entry => ({
+            id: entry.id,
+            label: entry.name,
+            icon: entry.icon,
+            to: `${item.to}/${entry.slug}`,
+            count: entry.count,
+          })),
+        }}
+      />
     );
   };
 
@@ -254,8 +188,7 @@ export function AppSidebar({
   );
   const {
     pathname,
-    starredCategories,
-    starredTags,
+    flyoutConfigs,
     visibleTaxonomyItems,
     seeMoreTaxonomyItemsList,
     taxonomiesExpanded,
@@ -273,9 +206,6 @@ export function AppSidebar({
     allBookmarks,
     inboxCount,
     aiSummarizationCount,
-    placeTypesCount,
-    locationRelationsCount,
-    groupTypesCount,
     hiddenSidebarGroups,
     advanced,
   } = useAppSidebarData(mergedTaxonomyItems, customizationItems);
@@ -351,11 +281,7 @@ export function AppSidebar({
               pathname={pathname}
               sidebarState={state}
               seeMoreTooltip={t("Show more taxonomy links")}
-              placeTypesCount={placeTypesCount}
-              locationRelationsCount={locationRelationsCount}
-              groupTypesCount={groupTypesCount}
-              starredCategories={starredCategories}
-              starredTags={starredTags}
+              flyoutConfigs={flyoutConfigs}
             />
           )
           : null}
@@ -372,6 +298,7 @@ export function AppSidebar({
               pathname={pathname}
               sidebarState={state}
               seeMoreTooltip={t("Show more customization links")}
+              flyoutConfigs={flyoutConfigs}
             />
           )
           : null}

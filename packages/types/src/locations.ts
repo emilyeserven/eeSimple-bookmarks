@@ -43,6 +43,8 @@ export interface LocationAlternateName {
 /** A node in the hierarchical Locations taxonomy. `parentId === null` marks a root location. */
 export interface Location {
   id: string;
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   /** Primary display title, unique among its siblings. */
   name: string;
   /** Multilingual names for this location, each labelled by language; the `isPrimary` row mirrors `name`. */
@@ -165,6 +167,8 @@ export interface CreateLocationInput {
 
 /** Payload for partially updating a location (rename, reparent, edit coordinates, etc.). */
 export interface UpdateLocationInput {
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   name?: string;
   /** English name candidate (e.g. resolved from Wikidata / Nominatim); merged into `entity_names`. */
   englishName?: string | null;

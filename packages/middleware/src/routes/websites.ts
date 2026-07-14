@@ -840,6 +840,9 @@ const updateWebsiteBody = {
     scanUrlForIsbn: {
       type: "boolean",
     },
+    isFavorite: {
+      type: "boolean",
+    },
   },
 } as const;
 

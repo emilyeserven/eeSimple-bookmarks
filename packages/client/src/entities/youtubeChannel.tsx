@@ -12,6 +12,7 @@ import { useYouTubeChannelFacetFilter } from "../hooks/useYouTubeChannelListing"
 import { useBulkDeleteYouTubeChannels, useYouTubeChannels } from "../hooks/useYouTubeChannels";
 import i18n from "../i18n";
 import { youtubeChannelsApi } from "../lib/api/taxonomies";
+import { starredPaletteField } from "../lib/starredPaletteField";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
@@ -40,6 +41,7 @@ const YOUTUBE_CHANNEL_PALETTE: EntityPaletteConfig = {
       options: "categories",
       getValue: entity => (entity as YouTubeChannel).category?.id ?? null,
     },
+    starredPaletteField,
   ],
 };
 
