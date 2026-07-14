@@ -14,7 +14,6 @@ import {
   bulkDeleteYouTubeChannels,
   createYouTubeChannel,
   deleteYouTubeChannel,
-  DuplicateChannelKeyError,
   getYouTubeChannel,
   listYouTubeChannels,
   updateYouTubeChannel,
@@ -190,18 +189,10 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
       body: createChannelBody,
     },
   }, async (req, reply) => {
-    try {
-      const channel = await createYouTubeChannel(req.body as CreateYouTubeChannelInput);
-      return reply.code(201).send(channel);
-    }
-    catch (err) {
-      if (err instanceof DuplicateChannelKeyError) {
-        return reply.code(409).send({
-          message: "A channel with this URL already exists",
-        });
-      }
-      throw err;
-    }
+    // A duplicate throws `DuplicateChannelKeyError` (409, code `duplicateChannelKey`) from the
+    // service and is serialized centrally — the client translates the code (don't reword it here).
+    const channel = await createYouTubeChannel(req.body as CreateYouTubeChannelInput);
+    return reply.code(201).send(channel);
   });
 
   app.patch("/api/youtube-channels/:id", {
@@ -271,10 +262,12 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
     if (result === "not_found") {
       throw new NotFoundError("Channel");
     }
+    // Sanctioned discriminated-result → reply.code mapping: emit the standard error envelope shape.
     if (typeof result === "object" && "code" in result) {
       return reply.code(415).send({
         message: "Unsupported or invalid image",
         code: result.code,
+        statusCode: 415,
         detail: result.detail,
       });
     }
@@ -298,10 +291,14 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
     if (result === "not_found") {
       throw new NotFoundError("Channel");
     }
+    // Sanctioned discriminated-result → reply.code mapping (external avatar fetch failed): emit the
+    // standard error envelope shape. `code` is the grab helper's free-form reason, not an ErrorCode —
+    // the client falls back to the English `message`.
     if (typeof result === "object" && "code" in result) {
       return reply.code(502).send({
         message: IMAGE_GRAB_ERROR_MESSAGES[result.code] ?? "Could not fetch an avatar",
         code: result.code,
+        statusCode: 502,
         detail: result.detail,
       });
     }
@@ -309,6 +306,7 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
       return reply.code(502).send({
         message: IMAGE_GRAB_ERROR_MESSAGES[result] ?? "Could not fetch an avatar",
         code: result,
+        statusCode: 502,
       });
     }
     return reply.code(201).send(result);
