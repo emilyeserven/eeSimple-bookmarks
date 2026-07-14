@@ -169,6 +169,9 @@ const updateLocationBody = {
     },
     ...locationFields,
     labeledWebsites: labeledWebsitesSchema,
+    isFavorite: {
+      type: "boolean",
+    },
   },
 } as const;
 

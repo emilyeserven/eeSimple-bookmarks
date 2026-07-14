@@ -4,7 +4,8 @@ import { Link } from "@tanstack/react-router";
 import { BookOpen, Info, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { FavoriteToggleButton, HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { useFavoriteToggle } from "../hooks/useFavoriteToggle";
 
 interface GroupListItemProps {
   group: Group;
@@ -25,6 +26,7 @@ export function GroupListItem({
   const {
     t,
   } = useTranslation();
+  const favorite = useFavoriteToggle("group");
 
   const primaryWebsite = group.labeledWebsites[0];
   const websiteLabel = primaryWebsite
@@ -39,6 +41,17 @@ export function GroupListItem({
       selected={selected}
       onSelectToggle={onSelectToggle}
       inSelectionMode={inSelectionMode}
+      renderExtra={() => (
+        <FavoriteToggleButton
+          isFavorite={Boolean(group.isFavorite)}
+          name={group.name}
+          onToggle={() => favorite.toggle({
+            id: group.id,
+            name: group.name,
+            isFavorite: Boolean(group.isFavorite),
+          })}
+        />
+      )}
       icon={(
         <span
           className="

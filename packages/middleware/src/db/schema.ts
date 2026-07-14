@@ -333,6 +333,8 @@ export const websites = pgTable("websites", {
   // …) plus operator-added notes. Nullable (push-safe additive); NULL = none. See
   // packages/types/src/websiteScanObservations.ts for the shape.
   scanObservations: jsonb("scan_observations").$type<WebsiteScanObservation[]>(),
+  // User-starred favorite; surfaced in the sidebar flyout.
+  isFavorite: boolean("is_favorite").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -367,6 +369,8 @@ export const mediaTypes = pgTable("media_types", {
   parentId: uuid("parent_id").references((): AnyPgColumn => mediaTypes.id, {
     onDelete: "cascade",
   }),
+  // User-starred favorite; surfaced in the sidebar flyout.
+  isFavorite: boolean("is_favorite").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -614,6 +618,8 @@ export const groups = pgTable("groups", {
   plexItemType: text("plex_item_type"),
   plexItemTitle: text("plex_item_title"),
   year: integer("year"),
+  // User-starred favorite; surfaced in the sidebar flyout.
+  isFavorite: boolean("is_favorite").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -669,6 +675,8 @@ export const relationshipTypes = pgTable("relationship_types", {
   hidden: boolean("hidden"),
   // Display ordering; lower sorts first.
   sortOrder: integer("sort_order").notNull().default(0),
+  // User-starred favorite; surfaced in the sidebar flyout.
+  isFavorite: boolean("is_favorite").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -695,6 +703,8 @@ export const youtubeChannels = pgTable("youtube_channels", {
   categoryId: uuid("category_id").references((): AnyPgColumn => categories.id, {
     onDelete: "set null",
   }),
+  // User-starred favorite; surfaced in the sidebar flyout.
+  isFavorite: boolean("is_favorite").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -809,6 +819,8 @@ export const newsletters = pgTable("newsletters", {
   mediaTypeId: uuid("media_type_id").references((): AnyPgColumn => mediaTypes.id, {
     onDelete: "set null",
   }),
+  // User-starred favorite; surfaced in the sidebar flyout.
+  isFavorite: boolean("is_favorite").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -960,6 +972,8 @@ export const taxonomyTerms = pgTable("taxonomy_terms", {
   parentId: uuid("parent_id").references((): AnyPgColumn => taxonomyTerms.id, {
     onDelete: "cascade",
   }),
+  // User-starred favorite; surfaced in the sidebar flyout.
+  isFavorite: boolean("is_favorite").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -1066,6 +1080,8 @@ export const locations = pgTable("locations", {
   parentId: uuid("parent_id").references((): AnyPgColumn => locations.id, {
     onDelete: "cascade",
   }),
+  // User-starred favorite; surfaced in the sidebar flyout.
+  isFavorite: boolean("is_favorite").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -1484,6 +1500,8 @@ export const customProperties = pgTable("custom_properties", {
   cardImageCornerScale: real("card_image_corner_scale"),
   cardImageCornerMobileScale: real("card_image_corner_mobile_scale"),
   cardImageCornerHideLabel: boolean("card_image_corner_hide_label"),
+  // User-starred favorite; surfaced in the sidebar flyout.
+  isFavorite: boolean("is_favorite").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -2292,6 +2310,8 @@ export const autofillRules = pgTable("autofill_rules", {
   }),
   // Lower sorts first; later (higher) rules win for single-valued targets when several match.
   sortOrder: integer("sort_order").notNull().default(0),
+  // User-starred favorite; surfaced in the sidebar flyout.
+  isFavorite: boolean("is_favorite").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -2400,6 +2420,8 @@ export const importRules = pgTable("import_rules", {
   conditions: jsonb("conditions").$type<ConditionTree>().notNull(),
   action: text("action").notNull().default("reject"),
   sortOrder: integer("sort_order").notNull().default(0),
+  // User-starred favorite; surfaced in the sidebar flyout.
+  isFavorite: boolean("is_favorite").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -2596,6 +2618,8 @@ export const savedFilters = pgTable("saved_filters", {
   description: text("description"),
   filters: jsonb("filters").$type<Record<string, unknown>>().notNull(),
   viewableOnline: boolean("viewable_online").notNull().default(false),
+  // User-starred favorite; surfaced in the sidebar flyout.
+  isFavorite: boolean("is_favorite").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
@@ -2763,6 +2787,8 @@ export const people = pgTable("people", {
   plexItemType: text("plex_item_type"),
   plexItemTitle: text("plex_item_title"),
   year: integer("year"),
+  // User-starred favorite; surfaced in the sidebar flyout.
+  isFavorite: boolean("is_favorite").notNull().default(false),
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),

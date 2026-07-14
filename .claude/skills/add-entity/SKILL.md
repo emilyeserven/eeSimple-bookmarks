@@ -327,6 +327,7 @@ change kind rather than re-running the whole scaffold:
 - **Expose or edit a field** → `surface-entity-field`; **new tab** → `tabbed-pages`; **palette
   fields** → `cmd-k-entity-context`; **listing affordances** → `listing-page-controls` /
   `listing-table-view` / `bulk-listing-actions` / `standard-listing-card`.
+- **Make the entity favoritable** (star toggle + sidebar flyout of starred members) → `entity-favorites`.
 - **Rename an entity (label-only, the default):** label sources are centralized —
   `crumbLabel()`/`LABEL_OVERRIDES` in the breadcrumb helpers, `TAXONOMY_DESCRIPTORS`,
   `lib/sidebarNavItems.ts`, and `ENTITY_ROUTES` — but slugs are persisted; keep route prefixes and

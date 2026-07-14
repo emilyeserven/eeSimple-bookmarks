@@ -12,6 +12,7 @@ import {
 } from "../hooks/useRelationshipTypes";
 import i18n from "../i18n";
 import { relationshipTypesApi } from "../lib/api/taxonomies";
+import { starredPaletteField } from "../lib/starredPaletteField";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
@@ -39,6 +40,7 @@ const RELATIONSHIP_TYPE_PALETTE: EntityPaletteConfig = {
       getValue: entity => (entity as RelationshipType).directional,
       isEditable: entity => !(entity as RelationshipType).builtIn,
     },
+    starredPaletteField,
   ],
 };
 

@@ -88,6 +88,9 @@ const updateChannelBody = {
       },
     },
     labeledWebsites: labeledWebsitesSchema,
+    isFavorite: {
+      type: "boolean",
+    },
   },
 } as const;
 

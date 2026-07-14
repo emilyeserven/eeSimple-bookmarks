@@ -10,6 +10,7 @@ import { useBulkDeleteImportRules, useImportRules } from "../hooks/useImportRule
 import i18n from "../i18n";
 import { importRulesApi } from "../lib/api/importRules";
 import { summarizeConditions } from "../lib/conditionsSummary";
+import { starredPaletteField } from "../lib/starredPaletteField";
 
 /** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
 const IMPORT_RULE_ROUTE: EntityRoute = {
@@ -33,6 +34,7 @@ const IMPORT_RULE_PALETTE: EntityPaletteConfig = {
       tab: "conditions",
     },
   ],
+  fields: [starredPaletteField],
 };
 
 export const importRuleListingConfig: EntityListingConfig<ImportRule> = {

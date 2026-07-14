@@ -4,7 +4,8 @@ import { Link } from "@tanstack/react-router";
 import { Globe, Info, ListFilter, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { FavoriteToggleButton, HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { useFavoriteToggle } from "../hooks/useFavoriteToggle";
 import { useUpdateSavedFilter } from "../hooks/useSavedFilters";
 import { summarizeBookmarkSearch } from "../lib/bookmarkSearch";
 import { notifySuccess } from "../lib/notifications";
@@ -32,6 +33,7 @@ export function SavedFilterCard({
     t,
   } = useTranslation();
   const updateMutation = useUpdateSavedFilter();
+  const favorite = useFavoriteToggle("saved-filter");
 
   const checkboxId = `viewable-online-${filter.id}`;
   const slug = filter.slug;
@@ -42,6 +44,17 @@ export function SavedFilterCard({
       selected={selected}
       onSelectToggle={onSelectToggle}
       inSelectionMode={inSelectionMode}
+      renderExtra={() => (
+        <FavoriteToggleButton
+          isFavorite={Boolean(filter.isFavorite)}
+          name={filter.name}
+          onToggle={() => favorite.toggle({
+            id: filter.id,
+            name: filter.name,
+            isFavorite: Boolean(filter.isFavorite),
+          })}
+        />
+      )}
       icon={(
         <span
           className="

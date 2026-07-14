@@ -13,6 +13,7 @@ import { useBulkDeleteCategories, useCategories } from "../hooks/useCategories";
 import { useCategorySortedItems } from "../hooks/useCategoryListing";
 import i18n from "../i18n";
 import { categoriesApi } from "../lib/api/taxonomies";
+import { starredPaletteField } from "../lib/starredPaletteField";
 
 const CATEGORIES_PAGE_KEY = "categories-listing";
 
@@ -42,12 +43,7 @@ const CATEGORY_PALETTE: EntityPaletteConfig = {
       label: i18n.t("Homepage Category"),
       getValue: entity => (entity as Category).isHomepage,
     },
-    {
-      type: "boolean",
-      key: "isFavorite",
-      label: i18n.t("Starred"),
-      getValue: entity => (entity as Category).isFavorite,
-    },
+    starredPaletteField,
   ],
 };
 

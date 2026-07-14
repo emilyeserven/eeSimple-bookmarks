@@ -62,6 +62,9 @@ const updateBody = {
     viewableOnline: {
       type: "boolean",
     },
+    isFavorite: {
+      type: "boolean",
+    },
   },
 } as const;
 

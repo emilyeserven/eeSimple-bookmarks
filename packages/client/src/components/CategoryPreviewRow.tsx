@@ -28,11 +28,7 @@ export function CategoryPreviewRow({
   const {
     t,
   } = useTranslation();
-  const favorite = useFavoriteToggle({
-    entityType: "category",
-    entityId: category.id,
-    label: category.name,
-  });
+  const favorite = useFavoriteToggle("category");
   return (
     <StandardListingCard
       selectable={selectable}
@@ -41,9 +37,13 @@ export function CategoryPreviewRow({
       inSelectionMode={inSelectionMode}
       renderExtra={() => (
         <FavoriteToggleButton
-          isFavorite={favorite.isFavorite}
+          isFavorite={Boolean(category.isFavorite)}
           name={category.name}
-          onToggle={favorite.toggle}
+          onToggle={() => favorite.toggle({
+            id: category.id,
+            name: category.name,
+            isFavorite: Boolean(category.isFavorite),
+          })}
         />
       )}
       icon={(

@@ -139,7 +139,13 @@ const createRuleBody = {
 const updateRuleBody = {
   type: "object",
   additionalProperties: false,
-  properties: createRuleBody.properties,
+  properties: {
+    ...createRuleBody.properties,
+    // Update-only: starring is toggled via update, never set at create.
+    isFavorite: {
+      type: "boolean",
+    },
+  },
 } as const;
 
 const slugParams = {

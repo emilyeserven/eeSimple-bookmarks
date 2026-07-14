@@ -9,6 +9,7 @@ import { personWorkbench } from "../components/workbench/person";
 import { usePeople, useBulkDeletePeople } from "../hooks/usePeople";
 import i18n from "../i18n";
 import { peopleApi } from "../lib/api/taxonomies";
+import { starredPaletteField } from "../lib/starredPaletteField";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
@@ -28,6 +29,7 @@ const PERSON_PALETTE: EntityPaletteConfig = {
   listFn: () => peopleApi.list(),
   updateFn: (id, patch) => peopleApi.update(id, patch as UpdatePersonInput),
   extraInvalidateKeys: [BOOKMARKS_KEY],
+  fields: [starredPaletteField],
 };
 
 export const personListingConfig: EntityListingConfig<Person> = {

@@ -9,6 +9,7 @@ import { groupWorkbench } from "../components/workbench/group";
 import { useBulkDeleteGroups, useGroups } from "../hooks/useGroups";
 import i18n from "../i18n";
 import { groupsApi } from "../lib/api/taxonomies";
+import { starredPaletteField } from "../lib/starredPaletteField";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 
@@ -28,6 +29,7 @@ const GROUP_PALETTE: EntityPaletteConfig = {
   listFn: () => groupsApi.list(),
   updateFn: (id, patch) => groupsApi.update(id, patch as UpdateGroupInput),
   extraInvalidateKeys: [BOOKMARKS_KEY],
+  fields: [starredPaletteField],
 };
 
 export const groupListingConfig: EntityListingConfig<Group> = {

@@ -9,6 +9,7 @@ import { mediaTypeWorkbench } from "../components/workbench/mediaType";
 import { useBulkDeleteMediaTypes, useMediaTypeTree } from "../hooks/useMediaTypes";
 import i18n from "../i18n";
 import { mediaTypesApi } from "../lib/api/taxonomies";
+import { starredPaletteField } from "../lib/starredPaletteField";
 import { flattenTree } from "../lib/tagTree";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -29,6 +30,7 @@ const MEDIA_TYPE_PALETTE: EntityPaletteConfig = {
   listFn: () => mediaTypesApi.list(),
   updateFn: (id, patch) => mediaTypesApi.update(id, patch as UpdateMediaTypeInput),
   extraInvalidateKeys: [BOOKMARKS_KEY],
+  fields: [starredPaletteField],
 };
 
 export const mediaTypeTreeListingConfig: EntityTreeListingConfig<MediaTypeNode> = {

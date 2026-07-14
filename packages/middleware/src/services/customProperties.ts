@@ -75,6 +75,7 @@ function toCustomProperty(
     slug: row.slug ?? slugify(row.name),
     type: row.type as CustomProperty["type"],
     builtIn: row.builtIn,
+    isFavorite: row.isFavorite,
     numberFormat: (row.numberFormat as CustomProperty["numberFormat"]) ?? null,
     dateTimeFormat: (row.dateTimeFormat as CustomProperty["dateTimeFormat"]) ?? null,
     dateTimeAllowYearMonth: row.dateTimeAllowYearMonth ?? false,
@@ -419,6 +420,7 @@ export type UpdatePatch = Partial<
     | "sectionsDefaultType"
     | "sectionsAllowedTypes"
     | "sectionsTiered"
+    | "isFavorite"
   >
 >;
 
@@ -484,6 +486,7 @@ const COPYABLE_FIELDS = [
   "sectionsDefaultType",
   "sectionsAllowedTypes",
   "sectionsTiered",
+  "isFavorite",
 ] as const satisfies readonly CopyableField[];
 
 /**

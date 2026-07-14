@@ -5,6 +5,7 @@ import { Info, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
+import { useFavoriteToggle } from "../hooks/useFavoriteToggle";
 
 import { useBuiltInName } from "@/lib/builtInName";
 
@@ -27,6 +28,7 @@ export function MediaTypeTreeList({
     t,
   } = useTranslation();
   const builtInName = useBuiltInName();
+  const favorite = useFavoriteToggle("media-type");
 
   return (
     <TaxonomyTreeList
@@ -34,6 +36,12 @@ export function MediaTypeTreeList({
       expanded={expanded}
       onToggle={onToggle}
       columns={columns}
+      isFavorite={node => Boolean((node as unknown as MediaTypeNode).isFavorite)}
+      onToggleFavorite={node => favorite.toggle({
+        id: node.id,
+        name: node.name,
+        isFavorite: Boolean((node as unknown as MediaTypeNode).isFavorite),
+      })}
       renderNameLink={node => (
         <Link
           to="/taxonomies/media-types/$mediaTypeSlug"

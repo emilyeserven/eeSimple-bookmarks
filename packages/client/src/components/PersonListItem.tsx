@@ -4,8 +4,9 @@ import { Link } from "@tanstack/react-router";
 import { Info, Pencil, UserRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { FavoriteToggleButton, HoverIconButton, StandardListingCard } from "./StandardListingCard";
 import { useEntityImage } from "../hooks/useEntityImage";
+import { useFavoriteToggle } from "../hooks/useFavoriteToggle";
 
 interface PersonListItemProps {
   person: Person;
@@ -30,6 +31,7 @@ export function PersonListItem({
     showImage,
     onError,
   } = useEntityImage(person.imageUrl);
+  const favorite = useFavoriteToggle("person");
 
   return (
     <StandardListingCard
@@ -37,6 +39,17 @@ export function PersonListItem({
       selected={selected}
       onSelectToggle={onSelectToggle}
       inSelectionMode={inSelectionMode}
+      renderExtra={() => (
+        <FavoriteToggleButton
+          isFavorite={Boolean(person.isFavorite)}
+          name={person.name}
+          onToggle={() => favorite.toggle({
+            id: person.id,
+            name: person.name,
+            isFavorite: Boolean(person.isFavorite),
+          })}
+        />
+      )}
       icon={(
         <span
           className="

@@ -156,6 +156,7 @@ function toPerson(
     names: names ?? [],
     slug: row.slug ?? slugify(row.name),
     description: row.description ?? null,
+    isFavorite: row.isFavorite,
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount,
     imageUrl: avatarUrlFrom(row.id, row.avatarCreatedAt ?? null),
@@ -195,6 +196,7 @@ export async function listPeople(): Promise<Person[]> {
       name: people.name,
       slug: people.slug,
       description: people.description,
+      isFavorite: people.isFavorite,
       socialLinks: people.socialLinks,
       labeledWebsites: people.labeledWebsites,
       sortOrder: people.sortOrder,
@@ -272,7 +274,7 @@ export async function updatePerson(id: string, input: UpdatePersonInput): Promis
   const [existing] = await db.select().from(people).where(eq(people.id, id));
   if (!existing) return null;
 
-  const patch: Partial<Pick<PersonRow, "name" | "slug" | "description" | "socialLinks" | "labeledWebsites" | "sortOrder">> & Partial<PersonDataColumns> = {
+  const patch: Partial<Pick<PersonRow, "name" | "slug" | "description" | "socialLinks" | "labeledWebsites" | "sortOrder" | "isFavorite">> & Partial<PersonDataColumns> = {
     ...creatorDataFromInput(input),
   };
   if (input.name !== undefined && input.name.trim() !== existing.name) {
@@ -288,6 +290,7 @@ export async function updatePerson(id: string, input: UpdatePersonInput): Promis
   if ("socialLinks" in input) patch.socialLinks = input.socialLinks ?? [];
   if ("labeledWebsites" in input) patch.labeledWebsites = input.labeledWebsites ?? [];
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
+  if (input.isFavorite !== undefined) patch.isFavorite = input.isFavorite;
 
   const hasAssociationChanges
     = input.youtubeChannelIds !== undefined

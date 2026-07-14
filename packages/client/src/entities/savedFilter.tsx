@@ -8,6 +8,7 @@ import { savedFilterWorkbench } from "../components/workbench/savedFilter";
 import { useBulkDeleteSavedFilters, useSavedFilters } from "../hooks/useSavedFilters";
 import i18n from "../i18n";
 import { savedFiltersApi } from "../lib/api/settings";
+import { starredPaletteField } from "../lib/starredPaletteField";
 
 /** Referenced by this entity's descriptor below, which `entities/registry.ts` aggregates into `ENTITY_DESCRIPTORS` (the source `ENTITY_ROUTES` derives from). */
 const SAVED_FILTER_ROUTE: EntityRoute = {
@@ -31,6 +32,7 @@ const SAVED_FILTER_PALETTE: EntityPaletteConfig = {
       label: i18n.t("Sidebar Shortcut"),
       getValue: entity => (entity as SavedFilter).viewableOnline,
     },
+    starredPaletteField,
   ],
 };
 

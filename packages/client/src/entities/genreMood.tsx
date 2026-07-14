@@ -9,6 +9,7 @@ import { genreMoodWorkbench } from "../components/workbench/genreMood";
 import { useBulkDeleteGenreMoods, useGenreMoodTree } from "../hooks/useGenreMoods";
 import i18n from "../i18n";
 import { genreMoodsApi } from "../lib/api/taxonomies";
+import { starredPaletteField } from "../lib/starredPaletteField";
 import { flattenTree } from "../lib/tagTree";
 
 const BOOKMARKS_KEY = ["bookmarks"] as const;
@@ -31,6 +32,7 @@ const GENRE_MOOD_PALETTE: EntityPaletteConfig = {
   listFn: () => genreMoodsApi.list(),
   updateFn: (id, patch) => genreMoodsApi.update(id, patch as UpdateGenreMoodInput),
   extraInvalidateKeys: [BOOKMARKS_KEY],
+  fields: [starredPaletteField],
 };
 
 export const genreMoodTreeListingConfig: EntityTreeListingConfig<GenreMoodNode> = {

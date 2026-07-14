@@ -13,6 +13,7 @@ import { useInterfaceTitleSort } from "../hooks/useTitleSortContext";
 import i18n from "../i18n";
 import { locationsApi } from "../lib/api/taxonomies";
 import { sortLocationTree } from "../lib/locationSort";
+import { starredPaletteField } from "../lib/starredPaletteField";
 import { flattenTree } from "../lib/tagTree";
 import { useUiStore } from "../stores/uiStore";
 
@@ -34,6 +35,7 @@ const LOCATION_PALETTE: EntityPaletteConfig = {
   listFn: () => locationsApi.list(),
   updateFn: (id, patch) => locationsApi.update(id, patch as UpdateLocationInput),
   extraInvalidateKeys: [BOOKMARKS_KEY],
+  fields: [starredPaletteField],
 };
 
 /**

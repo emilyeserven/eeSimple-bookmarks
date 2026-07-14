@@ -8,9 +8,9 @@ import { useFavoriteToggle } from "@/hooks/useFavoriteToggle";
 import { cn } from "@/lib/utils";
 
 /**
- * Header toolbar control that stars / un-stars the current category or tag ({@link FavoriteContext}).
- * Rendered only when the current page is a favoritable taxonomy entity. Starred items surface in the
- * sidebar Categories / Tags flyouts. Mirrors the toggle half of {@link HeaderPinButton}.
+ * Header toolbar control that stars / un-stars the current entity ({@link FavoriteContext}, resolved
+ * generically by `useHeaderFavoriteContext`). Rendered only when the current page is a favoritable
+ * entity detail page. Starred items surface in that entity's sidebar flyout.
  */
 export function HeaderFavoriteButton({
   context,
@@ -21,26 +21,32 @@ export function HeaderFavoriteButton({
     t,
   } = useTranslation();
   const {
-    isFavorite, name, toggle,
-  } = useFavoriteToggle(context);
+    toggle,
+  } = useFavoriteToggle(context.kind);
 
   return (
     <Button
       type="button"
       variant="ghost"
       size="icon"
-      aria-label={isFavorite
+      aria-label={context.isFavorite
         ? t("Unstar {{name}}", {
-          name,
+          name: context.label,
         })
         : t("Star {{name}}", {
-          name,
+          name: context.label,
         })}
-      aria-pressed={isFavorite}
-      onClick={toggle}
+      aria-pressed={context.isFavorite}
+      onClick={() => toggle({
+        id: context.entityId,
+        name: context.label,
+        isFavorite: context.isFavorite,
+      })}
     >
       <Star
-        className={cn("size-4", isFavorite && "fill-current text-yellow-500")}
+        className={cn("size-4", context.isFavorite && `
+          fill-current text-yellow-500
+        `)}
       />
     </Button>
   );

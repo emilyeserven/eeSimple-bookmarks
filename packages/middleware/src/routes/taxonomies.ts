@@ -18,6 +18,7 @@ import {
   createTaxonomyTerm,
   deleteTaxonomyTerm,
   getTaxonomyTermTree,
+  listFavoriteTaxonomyTerms,
   listTaxonomyTerms,
   updateTaxonomyTerm,
 } from "@/services/taxonomyTerms";
@@ -166,6 +167,9 @@ const updateTermBody = {
       type: "string",
       format: "uuid",
       nullable: true,
+    },
+    isFavorite: {
+      type: "boolean",
     },
   },
 } as const;
@@ -328,6 +332,13 @@ export async function taxonomyRoutes(app: FastifyInstance): Promise<void> {
     const term = await createTaxonomyTerm(taxonomyId, req.body as CreateTaxonomyTermInput);
     return reply.code(201).send(term);
   });
+
+  // Literal path — registered before `/api/taxonomy-terms/:id` so it wins over the param route.
+  app.get("/api/taxonomy-terms/favorites", {
+    schema: {
+      tags: ["taxonomies"],
+    },
+  }, async () => listFavoriteTaxonomyTerms());
 
   app.patch("/api/taxonomy-terms/:id", {
     schema: {

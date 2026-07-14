@@ -10,6 +10,8 @@ import type { EntityName } from "./entityNames.js";
 /** A node in the Genres & Moods taxonomy tree. `parentId === null` marks a root entry. */
 export interface GenreMood {
   id: string;
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   /** Display name, unique among its siblings. */
   name: string;
   /** Multilingual names for this entry, each labelled by language; the `isPrimary` row mirrors `name`. */
@@ -46,6 +48,8 @@ export interface CreateGenreMoodInput {
 
 /** Payload for renaming and/or reparenting a Genres & Moods entry. `parentId === null` moves it to root. */
 export interface UpdateGenreMoodInput {
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   name?: string;
   parentId?: string | null;
   description?: string | null;

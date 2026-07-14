@@ -63,6 +63,7 @@ function toGenreMood(row: TaxonomyTermRow, counts?: SubtreeBookmarkCounts, names
     slug: row.slug ?? slugify(row.name),
     description: row.description,
     parentId: row.parentId,
+    isFavorite: row.isFavorite,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: counts?.subtree,
@@ -179,13 +180,14 @@ export async function updateGenreMood(
     if (wouldCreateCycle(all, id, input.parentId)) throw new GenreMoodCycleError();
   }
 
-  const patch: Partial<Pick<TaxonomyTermRow, "name" | "slug" | "description" | "parentId">> = {};
+  const patch: Partial<Pick<TaxonomyTermRow, "name" | "slug" | "description" | "parentId" | "isFavorite">> = {};
   if (input.name !== undefined) {
     patch.name = input.name.trim();
     patch.slug = uniqueSlug(input.name, await takenSlugs(taxonomyId, id), "genre-mood");
   }
   if (input.description !== undefined) patch.description = input.description ?? null;
   if (input.parentId !== undefined) patch.parentId = input.parentId;
+  if (input.isFavorite !== undefined) patch.isFavorite = input.isFavorite;
   if (Object.keys(patch).length === 0) {
     const [existing] = await db.select().from(taxonomyTerms).where(eq(taxonomyTerms.id, id));
     return existing ? toGenreMood(existing) : null;

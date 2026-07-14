@@ -65,6 +65,9 @@ const updateRelationshipTypeBody = {
     hidden: {
       type: "boolean",
     },
+    isFavorite: {
+      type: "boolean",
+    },
   },
 } as const;
 

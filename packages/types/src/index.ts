@@ -171,6 +171,8 @@ export interface Website {
   shortenedLinks: ShortenedLink[];
   /** Path-scoped query-param whitelist applied when canonicalizing this site's URLs. */
   paramRules: WebsiteParamRule[];
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   /** ISO-8601 timestamp of when the website was first seen. */
   createdAt: string;
   /** Number of bookmarks associated with this website (populated by list endpoints). */
@@ -244,6 +246,8 @@ export interface CreateWebsiteInput {
 
 /** Payload for updating a website (rename its site name and/or change its domain). */
 export interface UpdateWebsiteInput {
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   siteName?: string;
   domain?: string;
   shortenedLinks?: ShortenedLink[];
@@ -843,6 +847,8 @@ export interface MediaType {
   sortOrder: number;
   /** Id of the parent media type, or `null` for a top-level (root) type. One level of nesting only. */
   parentId: string | null;
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   /** ISO-8601 timestamp of when the media type was created. */
   createdAt: string;
   /** Distinct bookmarks with this media type or any child (populated by list endpoints). */
@@ -871,6 +877,8 @@ export interface CreateMediaTypeInput {
 
 /** Payload for updating a media type (rename, reorder, reparent, and/or hide). */
 export interface UpdateMediaTypeInput {
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   name?: string;
   sortOrder?: number;
   icon?: string | null;
@@ -946,6 +954,8 @@ export interface Group {
   groupType?: { id: string;
     name: string;
     slug: string; } | null;
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   /** ISO-8601 timestamp of when the group was created. */
   createdAt: string;
   /** Distinct bookmarks with this group (populated by list endpoints). */
@@ -985,6 +995,8 @@ export interface CreateGroupInput {
 
 /** Payload for updating a group. */
 export interface UpdateGroupInput {
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   name?: string;
   /** Id of the group type to classify this group under; null to clear it. */
   groupTypeId?: string | null;
@@ -1027,6 +1039,8 @@ export interface RelationshipType {
   hidden: boolean;
   /** Display ordering weight; lower sorts first. */
   sortOrder: number;
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   /** ISO-8601 timestamp of when the relationship type was created. */
   createdAt: string;
   /** Number of relationship edges using this type (populated by list endpoints). */
@@ -1045,6 +1059,8 @@ export interface CreateRelationshipTypeInput {
 
 /** Payload for updating a relationship type (rename, toggle direction, reorder, and/or hide). */
 export interface UpdateRelationshipTypeInput {
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   name?: string;
   directional?: boolean;
   sortOrder?: number;
@@ -1068,6 +1084,8 @@ export interface YouTubeChannel {
   slug: string;
   /** Free-text description surfaced on the channel's detail page. */
   description: string | null;
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   /** ISO-8601 timestamp of when the channel was first seen. */
   createdAt: string;
   /** Number of bookmarks associated with this channel (populated by list endpoints). */
@@ -1120,6 +1138,8 @@ export interface CreateYouTubeChannelInput {
 
 /** Payload for updating a YouTube channel (rename and/or self-identifier list). */
 export interface UpdateYouTubeChannelInput {
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   name?: string;
   description?: string | null;
   /** Full replacement list of self-identifiers. Omit to leave unchanged. */
@@ -1149,6 +1169,8 @@ export interface Newsletter {
   slug: string;
   /** Free-text description surfaced on the newsletter's detail page. */
   description: string | null;
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   /** ISO-8601 timestamp of when the newsletter was created. */
   createdAt: string;
   /** Number of bookmarks associated with this newsletter (populated by list endpoints). */
@@ -1174,6 +1196,8 @@ export interface Person {
   /** Multilingual names for this person, each labelled by language; the `isPrimary` row mirrors `name`. */
   names?: EntityName[];
   slug: string;
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   createdAt: string;
   bookmarkCount?: number;
   /** Free-text description surfaced on the person's detail page. */
@@ -1214,6 +1238,8 @@ export interface CreatePersonInput {
 
 /** Payload for partially updating an person. */
 export interface UpdatePersonInput {
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   name?: string;
   description?: string | null;
   /** Social media links for this person. Replaces the full list; omit to leave unchanged. */
@@ -1250,6 +1276,8 @@ export interface CreateNewsletterInput {
 
 /** Payload for updating a newsletter (rename and/or default category / tags / media type). */
 export interface UpdateNewsletterInput {
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   name?: string;
   description?: string | null;
   /** Default category. `null` clears the association; omit to leave unchanged. */
@@ -2659,6 +2687,8 @@ export interface CustomProperty {
    * relevant for `sections`.
    */
   sectionsTiered: boolean | null;
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   createdAt: string;
 }
 
@@ -2761,7 +2791,10 @@ export interface CreateCustomPropertyInput {
 }
 
 /** Payload for updating a custom property. Its `type` is immutable. */
-export type UpdateCustomPropertyInput = Partial<Omit<CreateCustomPropertyInput, "type">>;
+export interface UpdateCustomPropertyInput extends Partial<Omit<CreateCustomPropertyInput, "type">> {
+  /** User-starred favorite. */
+  isFavorite?: boolean;
+}
 
 /**
  * Whether a property is assigned to a given category. A property with `allCategories` set, or with
@@ -2961,6 +2994,8 @@ export interface AutofillRule {
   dateTimeValues: BookmarkDateTimeValue[];
   /** Lower sorts first; later (higher) rules win for single-valued targets when several match. */
   sortOrder: number;
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   createdAt: string;
   /** Existing bookmarks currently matched by this rule's conditions (populated by the list endpoint). */
   matchCount?: number;
@@ -2982,7 +3017,10 @@ export interface CreateAutofillRuleInput {
 }
 
 /** Payload for partially updating an autofill rule. */
-export type UpdateAutofillRuleInput = Partial<CreateAutofillRuleInput>;
+export interface UpdateAutofillRuleInput extends Partial<CreateAutofillRuleInput> {
+  /** User-starred favorite. */
+  isFavorite?: boolean;
+}
 
 /** The action an import rule fires when its conditions match a candidate URL. */
 export type ImportRuleAction = "approve" | "reject" | "block";
@@ -2996,6 +3034,8 @@ export interface ImportRule {
   conditions: ConditionTree;
   action: ImportRuleAction;
   sortOrder: number;
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   createdAt: string;
 }
 
@@ -3009,7 +3049,10 @@ export interface CreateImportRuleInput {
 }
 
 /** Payload for partially updating an import rule. */
-export type UpdateImportRuleInput = Partial<CreateImportRuleInput>;
+export interface UpdateImportRuleInput extends Partial<CreateImportRuleInput> {
+  /** User-starred favorite. */
+  isFavorite?: boolean;
+}
 
 /**
  * Request body for previewing which existing bookmarks a condition tree would match. The match is
@@ -3733,6 +3776,8 @@ export interface SavedFilter {
   filters: Record<string, unknown>;
   /** Surface this filter as a quick-access shortcut in the app sidebar (handy in the installed PWA). */
   viewableOnline: boolean;
+  /** User-starred favorite. */
+  isFavorite?: boolean;
   createdAt: string;
 }
 
@@ -3743,7 +3788,10 @@ export interface CreateSavedFilterInput {
   viewableOnline?: boolean;
 }
 
-export type UpdateSavedFilterInput = Partial<CreateSavedFilterInput>;
+export interface UpdateSavedFilterInput extends Partial<CreateSavedFilterInput> {
+  /** User-starred favorite. */
+  isFavorite?: boolean;
+}
 
 export type PinnedSidebarEntityType
   = "category"

@@ -300,6 +300,9 @@ const updatePropertyBody = {
     sectionsDefaultType: createPropertyBody.properties.sectionsDefaultType,
     sectionsAllowedTypes: createPropertyBody.properties.sectionsAllowedTypes,
     sectionsTiered: createPropertyBody.properties.sectionsTiered,
+    isFavorite: {
+      type: "boolean",
+    },
   },
 } as const;
 

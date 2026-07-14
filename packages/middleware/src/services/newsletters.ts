@@ -58,6 +58,7 @@ function toNewsletter(
     name: row.name,
     slug: row.slug ?? slugify(row.name),
     description: row.description,
+    isFavorite: row.isFavorite,
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
@@ -84,6 +85,7 @@ const newsletterSelect = {
   name: newsletters.name,
   slug: newsletters.slug,
   description: newsletters.description,
+  isFavorite: newsletters.isFavorite,
   categoryId: newsletters.categoryId,
   mediaTypeId: newsletters.mediaTypeId,
   createdAt: newsletters.createdAt,
@@ -200,6 +202,15 @@ export async function updateNewsletter(
 
   if (input.tagIds !== undefined) {
     await setNewsletterTags(id, input.tagIds);
+  }
+
+  if (input.isFavorite !== undefined) {
+    await db
+      .update(newsletters)
+      .set({
+        isFavorite: input.isFavorite,
+      })
+      .where(eq(newsletters.id, id));
   }
 
   return getNewsletter(id);

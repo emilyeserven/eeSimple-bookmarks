@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 
 import { LocalizedNameLabel } from "./LocalizedNameLabel";
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
+import { useTaxonomyTermFavoriteToggle } from "../hooks/useTaxonomies";
 
 interface TaxonomyTermTreeListProps {
   /** The slug of the owning taxonomy — used to build the term route links. */
@@ -28,6 +29,8 @@ export function TaxonomyTermTreeList({
   const {
     t,
   } = useTranslation();
+  const taxonomyId = tree[0]?.taxonomyId ?? "";
+  const favorite = useTaxonomyTermFavoriteToggle(taxonomyId);
 
   return (
     <TaxonomyTreeList
@@ -35,6 +38,12 @@ export function TaxonomyTermTreeList({
       expanded={expanded}
       onToggle={onToggle}
       columns={columns}
+      isFavorite={node => Boolean((node as unknown as TaxonomyTermNode).isFavorite)}
+      onToggleFavorite={node => favorite.toggle({
+        id: node.id,
+        name: node.name,
+        isFavorite: Boolean((node as unknown as TaxonomyTermNode).isFavorite),
+      })}
       renderNameLink={node => (
         <Link
           to="/taxonomies/$taxonomyKey/$termSlug"

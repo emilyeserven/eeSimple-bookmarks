@@ -45,6 +45,7 @@ function toImportRule(row: ImportRuleRow): ImportRule {
     conditions: row.conditions ?? emptyConditionTree(),
     action: row.action as ImportRuleAction,
     sortOrder: row.sortOrder,
+    isFavorite: row.isFavorite,
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };
 }
@@ -98,6 +99,7 @@ export async function updateImportRule(id: string, input: UpdateImportRuleInput)
   if (input.conditions !== undefined) patch.conditions = input.conditions;
   if (input.action !== undefined) patch.action = input.action;
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
+  if (input.isFavorite !== undefined) patch.isFavorite = input.isFavorite;
 
   if (Object.keys(patch).length > 0) {
     await db.update(importRules).set(patch).where(eq(importRules.id, id));
