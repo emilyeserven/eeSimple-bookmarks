@@ -51,6 +51,21 @@ Copy `services/mediaTypes.ts`. It provides the canonical shape:
   Copying the inline `select slug … where id != excludeId` block from `mediaTypes.ts` adds to
   the fallow duplication budget (already near its ceiling) and caused a CI failure when a fourth
   service duplicated it.
+- **Write a private `toX(row, names?)` mapper** that turns a raw DB row into the wire type, and
+  route every read/write path through it — never return a raw row. It upholds one invariant: **the
+  wire type is never null** even when the column is nullable. Three recurring shapes:
+  - **Nullable-coalescing** — `names ?? []`, `hidden ?? false`, `icon ?? null`.
+  - **Fallback-slug** — `row.slug ?? slugify(row.name)`: slug backfill runs at boot, but the mapper
+    still derives one on the fly so a row read before backfill never serializes a null slug.
+  - **ISO-date normalization** — `row.createdAt instanceof Date ? row.createdAt.toISOString() :
+    String(row.createdAt)`: the driver doesn't always return a `Date` instance.
+  Reference implementations: `toCategory` in `services/categories.ts`, `toMediaType` in
+  `services/mediaTypes.ts`.
+- **Structure `create*`/`update*` as select-then-branch, not an atomic upsert** — look up the
+  existing row first, branch on it in JS, then issue a separate `update`/`insert` (never
+  `onConflictDoUpdate`), mirroring `updateCategory` in `services/categories.ts`. This is what keeps
+  the service testable against the in-memory fake-db harness, which supports only
+  select/insert/update/delete/transaction primitives — see the **`test-structure`** skill for why.
 - A `backfill*Slugs()` / `ensure*()` boot helper for existing rows.
   - **Seeded built-ins that support hiding** (media types, relationship types, group types, language
     usage levels — see CLAUDE.md → **Hiding seeded built-in vocabularies**) carry a nullable `hidden`
