@@ -196,31 +196,3 @@ export function LocationRelationDescriptionEditField({
     </form.AppField>
   );
 }
-
-interface LocationRelationGeneralFormProps {
-  locationRelation: LocationRelation;
-}
-
-/**
- * Edit a location relation's name, sort order, and description. Each field auto-saves (no Save button).
- * Composed from the same placeable sub-fields the location relation workbench registry uses, so this
- * whole-form shell stays in lockstep with the layout-driven General tab.
- */
-export function LocationRelationGeneralForm({
-  locationRelation,
-}: LocationRelationGeneralFormProps) {
-  return (
-    <div className="space-y-4">
-      <LocationRelationNameEditField locationRelation={locationRelation} />
-      <div
-        className="
-          grid gap-3
-          sm:grid-cols-2
-        "
-      >
-        <LocationRelationSortOrderEditField locationRelation={locationRelation} />
-        <LocationRelationDescriptionEditField locationRelation={locationRelation} />
-      </div>
-    </div>
-  );
-}

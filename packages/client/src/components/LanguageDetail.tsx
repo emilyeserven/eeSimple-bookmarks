@@ -75,23 +75,3 @@ export function LanguageAddedView({
   } = useTranslation();
   return <DetailField label={t("Added")}>{new Date(language.createdAt).toLocaleDateString()}</DetailField>;
 }
-
-/**
- * Read-only detail body for a single language, recomposed from the same placeable per-row
- * {@link DetailField} components the language workbench registry uses — so this whole-view shell stays in
- * lockstep with the layout-driven General tab.
- */
-export function LanguageDetail({
-  language,
-}: { language: Language }) {
-  return (
-    <div className="space-y-2">
-      <LanguageSlugView language={language} />
-      <LanguageIsoCodeView language={language} />
-      <LanguageDescriptionView language={language} />
-      <LanguageBookmarksView language={language} />
-      <LanguageBuiltInView language={language} />
-      <LanguageAddedView language={language} />
-    </div>
-  );
-}

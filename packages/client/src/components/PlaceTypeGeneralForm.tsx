@@ -185,31 +185,3 @@ export function PlaceTypeDescriptionEditField({
     </form.AppField>
   );
 }
-
-interface PlaceTypeGeneralFormProps {
-  placeType: PlaceType;
-}
-
-/**
- * Edit a place type's name, sort order, and description. Each field auto-saves (no Save button).
- * Composed from the same placeable sub-fields the place type workbench registry uses, so this
- * whole-form shell stays in lockstep with the layout-driven General tab.
- */
-export function PlaceTypeGeneralForm({
-  placeType,
-}: PlaceTypeGeneralFormProps) {
-  return (
-    <div className="space-y-4">
-      <div
-        className="
-          grid gap-3
-          sm:grid-cols-2
-        "
-      >
-        <PlaceTypeNameEditField placeType={placeType} />
-        <PlaceTypeSortOrderEditField placeType={placeType} />
-        <PlaceTypeDescriptionEditField placeType={placeType} />
-      </div>
-    </div>
-  );
-}

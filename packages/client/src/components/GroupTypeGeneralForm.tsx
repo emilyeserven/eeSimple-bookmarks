@@ -186,31 +186,3 @@ export function GroupTypeDescriptionEditField({
     </form.AppField>
   );
 }
-
-interface Props {
-  groupType: GroupType;
-}
-
-/**
- * Edit a group type's name, sort order, and description. Each field auto-saves (no Save button).
- * Composed from the same placeable sub-fields the group type workbench registry uses, so this
- * whole-form shell stays in lockstep with the layout-driven General tab.
- */
-export function GroupTypeGeneralForm({
-  groupType,
-}: Props) {
-  return (
-    <div className="space-y-4">
-      <div
-        className="
-          grid gap-3
-          sm:grid-cols-[1fr_8rem]
-        "
-      >
-        <GroupTypeNameEditField groupType={groupType} />
-        <GroupTypeSortOrderEditField groupType={groupType} />
-      </div>
-      <GroupTypeDescriptionEditField groupType={groupType} />
-    </div>
-  );
-}

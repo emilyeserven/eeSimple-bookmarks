@@ -4,7 +4,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
-import { GenreMoodAssignmentSection } from "./GenreMoodAssignmentSection";
 import { useFieldAutoSave } from "../hooks/useFieldAutoSave";
 import { useUpdateLanguage } from "../hooks/useLanguages";
 import { useAppForm } from "../lib/form";
@@ -190,30 +189,5 @@ export function LanguageDescriptionEditField({
         />
       )}
     </form.AppField>
-  );
-}
-
-interface Props {
-  language: Language;
-}
-
-/**
- * Edit a language's name, ISO code, description, and genres/moods. Each field auto-saves (no Save
- * button). Composed from the same placeable sub-fields the language workbench registry uses, so this
- * whole-form shell stays in lockstep with the layout-driven General tab.
- */
-export function LanguageGeneralForm({
-  language,
-}: Props) {
-  return (
-    <div className="space-y-4">
-      <LanguageNameEditField language={language} />
-      <LanguageIsoCodeEditField language={language} />
-      <LanguageDescriptionEditField language={language} />
-      <GenreMoodAssignmentSection
-        ownerType="language"
-        ownerId={language.id}
-      />
-    </div>
   );
 }
