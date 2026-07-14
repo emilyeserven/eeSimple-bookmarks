@@ -70,7 +70,9 @@ Copy `services/mediaTypes.ts`. It provides the canonical shape:
   this.
 
 ### 3. Middleware — routes (`packages/middleware/src/routes/<entity>.ts`)
-Copy `routes/mediaTypes.ts`; register the plugin in `src/app.ts` alongside the others.
+Copy `routes/mediaTypes.ts`; register the plugin in `src/app.ts` alongside the others. For the full
+recipe (schema consts, `registerBulkDelete`, status codes, and the `removeAdditional` field-drop trap
+on `additionalProperties: false` bodies), see the **`add-endpoint`** skill.
 
 ### 4. Middleware — boot step (`packages/middleware/src/index.ts`)
 If you added a `backfill*`/`ensure*` helper, call it in the boot block **after** `app.listen()`

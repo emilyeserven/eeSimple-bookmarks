@@ -172,7 +172,9 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
     layouts/settings keys) lives in `migrate.ts`. **The bookmark PATCH sections schema in
     `routes/bookmarks.ts` must list every optional `SectionEntry` field** (entry AND child level) —
     the bodies are `additionalProperties: false` and Fastify's AJV `removeAdditional` silently
-    strips unknown props from every whole-set save (guarded by `bookmarkSectionsSchema.test.ts`).
+    strips unknown props from every whole-set save (guarded by `bookmarkSectionsSchema.test.ts`). This
+    is an instance of a general rule — see the `add-endpoint` skill for the full `removeAdditional`
+    trap and the defensive patterns for a new hand-maintained body schema.
   - **User custom properties** — write the property's existing `showInForm`/`hiddenFromForm` flags via
     the normal `useUpdateCustomProperty` mutation. Card 3 lists **every** enabled custom property
     regardless of category/media-type lock, but the **category-lock stays the ultimate runtime gate**:
@@ -246,7 +248,8 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
     (`routes/cardFieldZonesSchema.ts`, used by the card-display **and** homepage-sections routes)
     **derive** their zone-name sets from `CARD_FIELD_ZONES`/`CARD_BODY_ZONES` and check the placement-prop
     map exhaustive against `CardFieldPlacement` via `satisfies` — a new placement prop fails `tsc` there
-    until its schema is added. **To add a field or a per-field knob to this area, see the `card-field-area`
+    until its schema is added (an instance of the general `removeAdditional` trap — see the
+    `add-endpoint` skill). **To add a field or a per-field knob to this area, see the `card-field-area`
     skill.**
 - **API error envelope — services `throw`, one handler, one shape.** Every user-facing failure is an
   `AppError` (`packages/middleware/src/utils/errors.ts`) carrying a stable `code` + HTTP `statusCode` +
