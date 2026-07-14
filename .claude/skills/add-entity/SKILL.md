@@ -91,7 +91,12 @@ explicit `.js` extensions** (ESM) — e.g. `export * from "./conditions.js"`.
 
 ### 6. Client — data hook (`packages/client/src/hooks/use<Entity>.ts`)
 Copy `hooks/useMediaTypes.ts`: `use<Entities>`, `useCreate*`, `useUpdate*`, `useDelete*`
-(TanStack Query, with `onSuccess` invalidation).
+(TanStack Query, with `onSuccess` invalidation). For the full convention — query-key naming, the
+`createCrudApi` factory, the cross-entity **invalidation graph** + the rule for extending it (a new entity
+that hydrates onto bookmarks ⇒ invalidate `["bookmarks"]`), and toast wiring — see the
+**`client-data-hooks`** skill (the leanest reference is `useMediaTypes.ts`; the richer one is
+`useCategories.ts`). Getting the invalidation dependents wrong is the failure mode copy-from-sibling won't
+catch.
 
 **Only add `use<Entity>BySlug`** if the breadcrumb system will actually resolve this entity's
 name from a slug. Check `TAXONOMY_DESCRIPTORS` in `packages/client/src/routes/-appHeader.tsx` —
