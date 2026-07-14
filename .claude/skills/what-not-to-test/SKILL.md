@@ -26,6 +26,10 @@ Two rules follow, and this skill records both:
 2. **Do not write the categories of test below** — they add cost and false-failure surface without
    adding a real regression net.
 
+Once you've decided a test *should* exist, the **`test-structure`** skill covers how to build it —
+which of the three mocking worlds (fake `db`, `renderWithRouter` + `vi.mock`, or MSW-for-stories) it
+belongs to.
+
 ## What we deliberately don't test (and why)
 
 **Re-export barrels.** A `lib/` module that only re-exports another package is tested at the

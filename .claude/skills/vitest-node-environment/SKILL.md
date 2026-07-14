@@ -23,6 +23,10 @@ This cut the full client run from ~109 s to ~88 s. The pragma is per-file and ex
 intentionally **no** config-level glob mapping (Vitest 4 removed `environmentMatchGlobs`; a
 `projects` split would hide the decision from the file itself).
 
+This skill picks the *environment*; once you know it's a client test, the **`test-structure`** skill
+covers *how to build it* (`renderWithRouter` + `vi.mock`, the fake-db harness, MSW for stories), and
+**`what-not-to-test`** covers *whether* to write it at all.
+
 ## The decision rule
 
 **Default to `node` for a `.test.ts` file; stay on jsdom the moment anything below applies.**
