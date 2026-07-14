@@ -230,6 +230,16 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
     map exhaustive against `CardFieldPlacement` via `satisfies` — a new placement prop fails `tsc` there
     until its schema is added. **To add a field or a per-field knob to this area, see the `card-field-area`
     skill.**
+- **API error envelope — services `throw`, one handler, one shape.** Every user-facing failure is an
+  `AppError` (`packages/middleware/src/utils/errors.ts`) carrying a stable `code` + HTTP `statusCode` +
+  English `message` + optional `params`; the single `setErrorHandler` serializes it to
+  `{ message, code, statusCode, params? }`, and the client re-maps `code` → a translated phrase
+  (`lib/errorMessages.ts`), falling back to the English `message` for an unmapped code. Services/routes
+  just `throw` (reuse a generic subclass or a per-service `Duplicate*`/`BuiltIn*` one) — they don't
+  build error bodies for domain failures. A route may `reply.code().send()` **only** to map a helper's
+  *discriminated result union* (external-fetch/image-grab), and then only in the same envelope shape. A
+  new client-translatable `code` needs both an `ErrorCode` union entry and an `errorMessages.ts` entry
+  (a non-`tsc`-enforced sync point). **See the `api-errors` skill.**
 
 ## Page-header breadcrumbs
 
