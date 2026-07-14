@@ -155,7 +155,6 @@ Only these are exempt. Anything else missing `createOption` is a defect, not a j
   registry mints taxonomy rows via a matching CRUD service; this mints an ordinary bookmark via
   `useCreateBookmark`, a different shape). `BookmarkRelationshipsEditor` itself is unchanged.
 - **`PinManager`** — pins existing entities to the sidebar; doesn't create.
-- **`CardDisplayRuleInspector`** — debug/inspect selector for bookmarks; read-only.
 - **CMD+K quick-create** (`commandPaletteModals.tsx`, `useCommandPaletteState`) — a separate
   quick-create mechanism, not a combobox `createOption` site.
 - **Listing-page "New X" header buttons** — the page-level create action, not an inline picker

@@ -5,7 +5,7 @@ description: >-
   field-registry + `defaultLayout` descriptor rendered by `EntityInfoView` / `EntityEditView`, plus
   the `?tab=` route files. Use when asked to "give X a tabbed layout", "add/rename/remove/reorder a
   tab on X", "make X's detail/edit pages tabbed like Categories", "split the X page into tabs", or
-  "add an autofill/display-rules tab to X". Mirrors how every slug-routed entity (Categories, Custom
+  "add an autofill tab to X". Mirrors how every slug-routed entity (Categories, Custom
   Properties, Websites, Media Types, YouTube Channels, Tags, …) is laid out today.
 ---
 
@@ -38,9 +38,9 @@ Almost always the entity already exists and is already tabbed — so this skill 
 `add-entity` skill points here for the descriptor + route shape. Copy whichever entity is closest:
 
 - **Custom Properties** (`workbench/property.tsx`) — the richest: a **conditional** Options tab
-  (`showIf`), plus scoped Autofill + Display-Rules tabs.
+  (`showIf`), plus a scoped Autofill Rules tab.
 - **Categories** (`workbench/category.tsx`) — asymmetric view/edit fields (`genreMoods` edit-only,
-  `autofillSources` view-only), a decomposed General, and a "Rules" **group** (Autofill + Display Rules).
+  `autofillSources` view-only), a decomposed General, and a scoped **Autofill Rules** tab.
 - **Media Types / YouTube Channels** — the leanest: each tab is **one** composite
   field (`general` bundles the whole view+edit General), plus a view-only Hierarchy where applicable.
 
@@ -94,8 +94,8 @@ All descriptor-only — **no route file changes**, because the rail/strip derive
   `resolveLayout` note: a **stored** layout that still references a removed field key silently drops it,
   and a removed tab a user hadn't customized just disappears — no migration needed.
 - **Group tabs into a "More" dropdown**: give consecutive tabs the same `group: i18n.t("Rules")` on the
-  thin `tabs` array (Category/Media Type do this for Autofill + Display Rules). `group` is **never**
-  persisted in the layout jsonb.
+  thin `tabs` array and they collapse into a trailing "More" dropdown. `group` is **never** persisted in
+  the layout jsonb.
 
 **Tab drift** ("the Info rail and edit strip disagree") means a field's `view`/`edit`/`showIf` is
 scoped to one mode by mistake — fix the registry entry, not one shell.
@@ -139,18 +139,13 @@ autofillRules: {
   view: ({ entity }) => <AutofillRulesList categoryId={entity.id} query="" />,
   edit: ({ entity }) => <AutofillRulesList categoryId={entity.id} query="" />,
 },
-displayRules: {
-  key: "displayRules", label: i18n.t("Display Rules"),
-  view: ({ entity }) => <CardDisplayRulesList categoryId={entity.id} />,
-  edit: ({ entity }) => <CardDisplayRulesList categoryId={entity.id} />,
-},
 ```
 
-Place each in its own `defaultLayout` tab and give the two thin-`tabs` entries `group: i18n.t("Rules")`
-to collapse them into the "More" dropdown. `AutofillRulesList` takes a scope prop (`categoryId` /
-`mediaTypeId` / `propertyId` / …); add a new scope prop the same way if needed (filter `scopedRules`,
-hide the category filter when scoped, add a scoped empty message). See the `scope-autofill` and
-`display-rules-tab` skills.
+Place it in its own `defaultLayout` tab; if you add sibling scoped tabs, give them the same
+`group: i18n.t("Rules")` on the thin `tabs` array to collapse them into the "More" dropdown.
+`AutofillRulesList` takes a scope prop (`categoryId` / `mediaTypeId` / `propertyId` / …); add a new
+scope prop the same way if needed (filter `scopedRules`, hide the category filter when scoped, add a
+scoped empty message). See the `scope-autofill` skill.
 
 ## Bookmarks are the same registry, off `ENTITY_DESCRIPTORS`
 
@@ -175,4 +170,4 @@ Then run `pnpm dev` and check that the entity:
   on Info but not Edit,
 - has an **Edit** link on Info that preserves the active `?tab=`; an old `…/edit/<tab>` deep link
   redirects to `…/edit?tab=<tab>`; each edit field auto-saves (no Save button; see `toast-notifications`),
-- (if added) shows only the autofill/display rules scoped to the entity on those tabs.
+- (if added) shows only the autofill rules scoped to the entity on that tab.

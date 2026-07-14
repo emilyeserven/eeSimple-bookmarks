@@ -66,7 +66,8 @@ Copy `services/mediaTypes.ts`. It provides the canonical shape:
   **must call `invalidateBookmarkCache()`**, *including `delete*`*: a delete that FK-set-nulls or
   reassigns a bookmark column, or cascades join rows away, changes match results just like an
   update does (this was missed on categories/media-types/channels/relationship-types once). Gate it
-  on rows-affected, mirroring `services/tags.ts`. Display-only entities (card display rules) skip this.
+  on rows-affected, mirroring `services/tags.ts`. Display-only config (the card-display settings) skips
+  this.
 
 ### 3. Middleware — routes (`packages/middleware/src/routes/<entity>.ts`)
 Copy `routes/mediaTypes.ts`; register the plugin in `src/app.ts` alongside the others.
@@ -252,8 +253,12 @@ case.
 
 Reach for this **instead** of the bookmark-linked wiring above when a new taxonomy must attach to
 **both** bookmarks and **other taxonomy entities** (not a single-FK on the bookmark row, and not a
-per-owner junction table). The worked example is **Genres & Moods** (`genre_moods` +
-`genre_mood_assignments`). Use **one polymorphic assignment table**, mirroring `taxonomy_images`:
+per-owner junction table). The worked example is **Genres & Moods**, which today rides the **generic
+taxonomy-assignment layer** (`taxonomy_assignments`) rather than a bespoke table — G&M is an ordinary
+taxonomy whose cross-owner attachments live in the shared `services/taxonomyAssignments.ts`
+(`setOwnerTaxonomyTerms` / `deleteTaxonomyAssignmentsForOwner`); `services/genreMoodAssignments.ts` is a
+thin shim over it. **Prefer that generic engine for a new cross-taxonomy vocabulary.** If you genuinely
+need a **dedicated** polymorphic assignment table, the pattern (mirroring `taxonomy_images`) is:
 
 1. **Schema**: the value table (tree taxonomy), plus `<x>_assignments (<x>Id → <x> CASCADE,
    ownerType text, ownerId uuid)` with a composite PK + `(ownerType, ownerId)` index. `ownerId` has
