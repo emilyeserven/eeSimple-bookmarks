@@ -750,7 +750,9 @@ export const youtubeChannelSelfIds = pgTable("youtube_channel_self_ids", {
   }),
   value: text("value").notNull(),
 }, table => [
-  unique("youtube_channel_self_ids_channel_value_unique").on(table.channelId, table.value),
+  // A `uniqueIndex`, NOT a table `unique()` constraint — see the composite-unique push-prompt rule.
+  // `migrate.ts` carries the constraint→index conversion step for existing deployments.
+  uniqueIndex("youtube_channel_self_ids_channel_value_unique").on(table.channelId, table.value),
 ]);
 
 /** `website_tags` join — default tags applied to bookmarks saved for a given website. */
@@ -1228,7 +1230,9 @@ export const bookmarkRelationships = pgTable("bookmark_relationships", {
   // Optional, more specific free-text label for this edge (e.g. "sequel", "same person").
   label: text("label"),
 }, table => [
-  unique("bookmark_relationships_pair_type_unique").on(
+  // A `uniqueIndex`, NOT a table `unique()` constraint — see the composite-unique push-prompt rule.
+  // `migrate.ts` carries the constraint→index conversion step for existing deployments.
+  uniqueIndex("bookmark_relationships_pair_type_unique").on(
     table.bookmarkAId,
     table.bookmarkBId,
     table.relationshipTypeId,
@@ -2728,7 +2732,7 @@ export type PinnedSectionRow = typeof pinnedSections.$inferSelect;
 
 /**
  * `pinned_sidebar_items` — entities and saved filters pinned as quick-access links in the sidebar,
- * displayed below the Bookmarks link. Composite unique constraint prevents duplicates.
+ * displayed below the Bookmarks link. Composite unique index prevents duplicates.
  */
 export const pinnedSidebarItems = pgTable("pinned_sidebar_items", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -2744,7 +2748,9 @@ export const pinnedSidebarItems = pgTable("pinned_sidebar_items", {
     withTimezone: true,
   }).notNull().defaultNow(),
 }, table => [
-  unique("pinned_sidebar_items_entity_unique").on(table.entityType, table.entityId),
+  // A `uniqueIndex`, NOT a table `unique()` constraint — see the composite-unique push-prompt rule.
+  // `migrate.ts` carries the constraint→index conversion step for existing deployments.
+  uniqueIndex("pinned_sidebar_items_entity_unique").on(table.entityType, table.entityId),
 ]);
 
 export type PinnedSidebarItemRow = typeof pinnedSidebarItems.$inferSelect;

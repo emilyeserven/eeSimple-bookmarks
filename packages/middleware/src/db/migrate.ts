@@ -659,6 +659,32 @@ const migrations: RuntimeMigration[] = [
     name: "add taxonomy_terms.is_favorite",
     run: db => db.execute(sql`ALTER TABLE "taxonomy_terms" ADD COLUMN IF NOT EXISTS "is_favorite" boolean NOT NULL DEFAULT false`),
   },
+  // The last 3 composite `unique()` constraints in schema.ts are now declared as `uniqueIndex()`
+  // (issue #1359 — see the composite-unique push-prompt rule). Convert each existing deployment's
+  // constraint to a same-named unique index: dropping the constraint also drops its backing index
+  // (Postgres names them identically), so the immediately-following `CREATE UNIQUE INDEX IF NOT
+  // EXISTS` recreates it under the same name push now expects. One statement per `db.execute`.
+  {
+    name: "convert youtube_channel_self_ids composite unique to index",
+    run: async (db) => {
+      await db.execute(sql`ALTER TABLE "youtube_channel_self_ids" DROP CONSTRAINT IF EXISTS "youtube_channel_self_ids_channel_value_unique"`);
+      await db.execute(sql`CREATE UNIQUE INDEX IF NOT EXISTS "youtube_channel_self_ids_channel_value_unique" ON "youtube_channel_self_ids" ("channel_id", "value")`);
+    },
+  },
+  {
+    name: "convert bookmark_relationships composite unique to index",
+    run: async (db) => {
+      await db.execute(sql`ALTER TABLE "bookmark_relationships" DROP CONSTRAINT IF EXISTS "bookmark_relationships_pair_type_unique"`);
+      await db.execute(sql`CREATE UNIQUE INDEX IF NOT EXISTS "bookmark_relationships_pair_type_unique" ON "bookmark_relationships" ("bookmark_a_id", "bookmark_b_id", "relationship_type_id")`);
+    },
+  },
+  {
+    name: "convert pinned_sidebar_items composite unique to index",
+    run: async (db) => {
+      await db.execute(sql`ALTER TABLE "pinned_sidebar_items" DROP CONSTRAINT IF EXISTS "pinned_sidebar_items_entity_unique"`);
+      await db.execute(sql`CREATE UNIQUE INDEX IF NOT EXISTS "pinned_sidebar_items_entity_unique" ON "pinned_sidebar_items" ("entity_type", "entity_id")`);
+    },
+  },
 ];
 
 async function main(): Promise<void> {
