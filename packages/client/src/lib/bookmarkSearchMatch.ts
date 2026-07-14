@@ -29,6 +29,7 @@ type SearchableBookmark = Pick<
   | "kavitaSeriesId"
   | "isbn"
   | "feedUrl"
+  | "hasFillableFields"
 >;
 
 /** A multi-select relationship-type filter passes when empty or the bookmark has a matching edge. */
@@ -334,6 +335,10 @@ const BOOKMARK_SEARCH_FACETS: BookmarkSearchFacet[] = [
       || search.kavitaSeriesId !== undefined
       || search.isbn !== undefined
       || search.feedUrl !== undefined,
+  },
+  {
+    matches: (bookmark, search) => passesPresence(search.fillableFieldsPresence, bookmark.hasFillableFields),
+    isActive: search => search.fillableFieldsPresence !== undefined,
   },
 ];
 

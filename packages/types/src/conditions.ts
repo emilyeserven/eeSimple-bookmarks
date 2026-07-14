@@ -245,6 +245,16 @@ export interface PropertyCondition {
                   predicate: TextPredicate; };
 }
 
+/**
+ * Leaf: whether the bookmark has ≥1 field an extension-fill rule could fill (its website has a rule
+ * targeting a currently-empty bookmark field). `mode: "has"` matches such bookmarks; `"missing"`
+ * matches those with nothing left to fill. Derived per-bookmark into {@link ConditionInput.hasFillableFields}.
+ */
+export interface FillableFieldsCondition {
+  type: "fillable-fields";
+  mode: "has" | "missing";
+}
+
 /** Branch: combines its children with `and`/`or`. The only node that nests. */
 export interface ConditionGroup {
   type: "group";
@@ -266,7 +276,8 @@ export type ConditionNode
     | TaxonomyCondition
     | RelationshipTypeCondition
     | LanguageUsageCondition
-    | PropertyCondition;
+    | PropertyCondition
+    | FillableFieldsCondition;
 
 /** The persisted root is always a group, so the AND/OR combinator always has a home. */
 export type ConditionTree = ConditionGroup;
@@ -333,6 +344,12 @@ export interface ConditionInput {
   sectionsValues: Map<string, BookmarkSectionsValue>;
   /** Text custom-property values (plain strings), keyed by property id. */
   textValues: Map<string, string>;
+  /**
+   * Whether the bookmark's website has ≥1 extension-fill rule targeting a currently-empty bookmark
+   * field (see `websiteRulesCanFill`). Derived server-side; `false` for url/title-only, import, and
+   * unsaved-create-form inputs that have no resolved website rules. Backs the `fillable-fields` leaf.
+   */
+  hasFillableFields: boolean;
 }
 
 /** Resolves a tag id to the inclusive set of its descendant ids (for cascade matching). */
@@ -740,6 +757,8 @@ export function evaluateConditions(
       return evaluateLanguageUsage(node, input);
     case "property":
       return evaluateProperty(node, input);
+    case "fillable-fields":
+      return node.mode === "has" ? input.hasFillableFields : !input.hasFillableFields;
     default: {
       const exhaustive: never = node;
       return exhaustive;

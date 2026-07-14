@@ -63,5 +63,7 @@ export function formStateToConditionInput(
     relationshipTypeIds: new Set(),
     languageUsages: [],
     fileValues: new Set(),
+    // The bookmark isn't saved yet and its website's fill rules aren't resolved on the create form.
+    hasFillableFields: false,
   };
 }

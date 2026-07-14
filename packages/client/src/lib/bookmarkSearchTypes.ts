@@ -85,6 +85,12 @@ export interface BookmarkSearch {
   kavitaSeriesId?: number;
   isbn?: string;
   feedUrl?: string;
+  /**
+   * Filter bookmarks by whether their website has an extension-fill rule that could fill a
+   * currently-empty bookmark field (`Bookmark.hasFillableFields`): "has" = something to fill,
+   * "missing" = nothing left to fill.
+   */
+  fillableFieldsPresence?: "has" | "missing";
   /** Active sort order (primary + optional secondary dimension, or a random shuffle). Absent = server's default `createdAt DESC` order. */
   sort?: BookmarkSort;
 }

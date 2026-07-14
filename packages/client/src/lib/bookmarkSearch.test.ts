@@ -532,6 +532,7 @@ describe("bookmarkMatchesSearch", () => {
     plexRatingKey: null,
     kavitaSeriesId: null,
     feedUrl: null,
+    hasFillableFields: false,
   };
 
   it("passes when no filters are active", () => {
@@ -930,6 +931,7 @@ describe("bookmarkMatchesSearch", () => {
     plexRatingKey: null,
     kavitaSeriesId: null,
     feedUrl: null,
+    hasFillableFields: false,
   };
 
   it("passes the presence filter based on whether any identity field is set", () => {
@@ -1234,7 +1236,44 @@ describe("bookmarkMatchesSearch — exclude mode", () => {
     plexRatingKey: null,
     kavitaSeriesId: null,
     feedUrl: null,
+    hasFillableFields: false,
   };
+
+  describe("fillable-fields facet", () => {
+    it("matches the presence toggle against the derived hasFillableFields flag", () => {
+      const fillable = {
+        ...base,
+        hasFillableFields: true,
+      };
+      expect(bookmarkMatchesSearch(fillable, {
+        fillableFieldsPresence: "has",
+      })).toBe(true);
+      expect(bookmarkMatchesSearch(base, {
+        fillableFieldsPresence: "has",
+      })).toBe(false);
+      expect(bookmarkMatchesSearch(fillable, {
+        fillableFieldsPresence: "missing",
+      })).toBe(false);
+      expect(bookmarkMatchesSearch(base, {
+        fillableFieldsPresence: "missing",
+      })).toBe(true);
+    });
+
+    it("counts as an active filter only when set, and round-trips through bookmarkSearchEquals", () => {
+      expect(hasAnyActiveFilter({
+        fillableFieldsPresence: "has",
+      })).toBe(true);
+      expect(hasAnyActiveFilter({})).toBe(false);
+      expect(bookmarkSearchEquals({
+        fillableFieldsPresence: "has",
+      }, {
+        fillableFieldsPresence: "has",
+      })).toBe(true);
+      expect(bookmarkSearchEquals({
+        fillableFieldsPresence: "has",
+      }, {})).toBe(false);
+    });
+  });
 
   describe("tag exclusion", () => {
     it("excludes bookmark whose tags overlap with the excluded set", () => {

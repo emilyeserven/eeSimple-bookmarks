@@ -380,3 +380,90 @@ export interface ExtensionFillContext {
    */
   primaryLanguageLevelId?: string | null;
 }
+
+/**
+ * Which of a bookmark's fields are currently FILLED (non-empty). Consumed by
+ * {@link websiteRulesCanFill} to decide whether a website's extension-fill rule has an empty bookmark
+ * field left to offer. Built from either a fully-hydrated {@link Bookmark} (see
+ * {@link bookmarkFillPresence}) or, server-side, the middleware's grouped condition-input batches —
+ * the flat shape lets both callers share the "which target kinds count" logic below.
+ */
+export interface BookmarkFillPresence {
+  title: boolean;
+  description: boolean;
+  isbn: boolean;
+  year: boolean;
+  image: boolean;
+  people: boolean;
+  groups: boolean;
+  locations: boolean;
+  tags: boolean;
+  /** Custom-property ids (non-sections) that carry a stored value. */
+  filledPropertyIds: Set<string>;
+  /** Sections-property ids that carry a non-empty value. */
+  filledSectionsPropertyIds: Set<string>;
+}
+
+/** Whether a single fill target points at an empty bookmark field (linked-entity kinds never do). */
+function fillTargetIsEmpty(target: FillTarget, presence: BookmarkFillPresence): boolean {
+  switch (target.kind) {
+    case "field":
+      return !presence[target.field];
+    case "customProperty":
+      return !presence.filledPropertyIds.has(target.propertyId);
+    case "sections":
+      return !presence.filledSectionsPropertyIds.has(target.propertyId);
+    case "taxonomy":
+      return !presence[target.taxonomy];
+    case "image":
+      return !presence.image;
+    // Written into a LINKED taxonomy entity, not the bookmark — never counts as a fillable bookmark field.
+    case "taxonomyEntity":
+    case "taxonomyDirect":
+      return false;
+  }
+}
+
+/**
+ * Whether ≥1 of a website's extension-fill rules targets a BOOKMARK field that is currently empty on
+ * the bookmark — i.e. the rule could actually fill something. `taxonomyEntity`/`taxonomyDirect` rules
+ * write into linked taxonomy entities (not the bookmark) and are ignored. An empty rule list — or one
+ * whose bookmark-field targets are all already filled — yields `false`.
+ */
+export function websiteRulesCanFill(
+  rules: WebsiteExtensionFillRule[],
+  presence: BookmarkFillPresence,
+): boolean {
+  return rules.some(rule => fillTargetIsEmpty(rule.target, presence));
+}
+
+/**
+ * Build a {@link BookmarkFillPresence} from a fully-hydrated bookmark. A custom property counts as
+ * filled when any of its value collections carries it (choices/sections/text require a non-empty
+ * value); `year` is present when non-null; scalars and `image` follow their own emptiness.
+ */
+export function bookmarkFillPresence(bookmark: Bookmark): BookmarkFillPresence {
+  const filledPropertyIds = new Set<string>();
+  for (const v of bookmark.numberValues) filledPropertyIds.add(v.propertyId);
+  for (const v of bookmark.booleanValues) filledPropertyIds.add(v.propertyId);
+  for (const v of bookmark.dateTimeValues) filledPropertyIds.add(v.propertyId);
+  for (const v of bookmark.fileValues) filledPropertyIds.add(v.propertyId);
+  for (const v of bookmark.progressValues) filledPropertyIds.add(v.propertyId);
+  for (const v of bookmark.choicesValues) if (v.values.length > 0) filledPropertyIds.add(v.propertyId);
+  for (const v of bookmark.textValues) if (v.value.trim() !== "") filledPropertyIds.add(v.propertyId);
+  const filledSectionsPropertyIds = new Set<string>();
+  for (const v of bookmark.sectionsValues) if (v.sections.length > 0) filledSectionsPropertyIds.add(v.propertyId);
+  return {
+    title: (bookmark.title ?? "").trim() !== "",
+    description: (bookmark.description ?? "").trim() !== "",
+    isbn: (bookmark.isbn ?? "").trim() !== "",
+    year: bookmark.year != null,
+    image: bookmark.image != null,
+    people: bookmark.people.length > 0,
+    groups: bookmark.groups.length > 0,
+    locations: bookmark.locations.length > 0,
+    tags: bookmark.tags.length > 0,
+    filledPropertyIds,
+    filledSectionsPropertyIds,
+  };
+}

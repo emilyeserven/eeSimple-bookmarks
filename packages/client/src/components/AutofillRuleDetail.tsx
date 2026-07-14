@@ -122,6 +122,10 @@ function describeConditionNode(
       const name = property?.name ?? i18n.t("Unknown property");
       return `${name}: ${describePropertyPredicate(node.predicate, property)}`;
     }
+    case "fillable-fields":
+      return node.mode === "has"
+        ? i18n.t("has fillable fields")
+        : i18n.t("has nothing to fill");
     default: {
       const exhaustive: never = node;
       return String(exhaustive);

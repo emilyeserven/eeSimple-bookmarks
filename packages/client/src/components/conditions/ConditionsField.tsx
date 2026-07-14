@@ -109,7 +109,7 @@ export function ConditionsField({
   const leaves = splitRootConditions(value);
   const {
     matches, urlMatches, categoryLeaf, websiteLeaf, tagLeaf, locationLeaf, youtubeChannelLeaf, mediaTypeLeaf,
-    genreMoodLeaf, relationshipTypeLeaf, languageUsageLeaf, propertyLeaves, counts,
+    genreMoodLeaf, relationshipTypeLeaf, languageUsageLeaf, propertyLeaves, fillableLeaf, counts,
   } = leaves;
 
   const commit = (next: Parameters<typeof buildRootChildren>[1]) =>
@@ -388,6 +388,44 @@ export function ConditionsField({
             })}
         />
       </CountSection>
+
+      <Section
+        title={i18n.t("Fillable fields")}
+        summary={fillableLeaf
+          ? fillableLeaf.mode === "has"
+            ? i18n.t("Has fillable fields")
+            : i18n.t("Nothing to fill")
+          : undefined}
+        defaultOpen={fillableLeaf !== undefined}
+      >
+        <div className="space-y-2">
+          <p className="text-sm text-muted-foreground">
+            {i18n.t("Match bookmarks whose website has an extension-fill rule that could fill a currently-empty field.")}
+          </p>
+          <ToggleGroup
+            type="single"
+            size="sm"
+            value={fillableLeaf?.mode ?? "off"}
+            onValueChange={(next) => {
+              if (next === "has" || next === "missing") {
+                commit({
+                  fillable: {
+                    type: "fillable-fields",
+                    mode: next,
+                  },
+                });
+              }
+              else commit({
+                fillable: null,
+              });
+            }}
+          >
+            <ToggleGroupItem value="off">{i18n.t("Any")}</ToggleGroupItem>
+            <ToggleGroupItem value="has">{i18n.t("Has fillable fields")}</ToggleGroupItem>
+            <ToggleGroupItem value="missing">{i18n.t("Nothing to fill")}</ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+      </Section>
     </div>
   );
 }

@@ -34,6 +34,7 @@ import {
 import { useFilterPillsRow } from "./useFilterPillsRow";
 import {
   withCategoryPresence,
+  withFillableFieldsPresence,
   withGenreMoodPresence,
   withMediaSourcePresence,
   withMediaTypePresence,
@@ -49,9 +50,10 @@ import { facetHasActiveSelection, facetSelectionSummary, languageUsageHasActiveS
 export interface FilterPillsRowProps extends FilterFacetInputs {
   /**
    * Bookmarks in view, used to derive custom-property slider bounds when a property has no min/max,
-   * and to check whether any carries a Plex/Kavita/ISBN/feed identity (the "Media source" facet).
+   * to check whether any carries a Plex/Kavita/ISBN/feed identity (the "Media source" facet), and
+   * whether any has an extension-fillable field (the "Fillable fields" facet).
    */
-  bookmarks: Pick<Bookmark, "numberValues" | "plexRatingKey" | "kavitaSeriesId" | "isbn" | "feedUrl">[];
+  bookmarks: Pick<Bookmark, "numberValues" | "plexRatingKey" | "kavitaSeriesId" | "isbn" | "feedUrl" | "hasFillableFields">[];
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
   /**
@@ -259,6 +261,19 @@ function renderFacetBody(key: FilterFacetKey, ctx: FacetBodyContext): FacetRende
             onChange={mode => onSearchChange(withMediaSourcePresence(search, mode === "exclude" ? undefined : mode))}
             hasLabel={t("Linked to a media source")}
             missingLabel={t("Not linked")}
+            hideExclude
+          />
+        ),
+        body: null,
+      };
+    case "fillable-fields":
+      return {
+        presenceControl: (
+          <FacetPresenceToggle
+            value={search.fillableFieldsPresence}
+            onChange={mode => onSearchChange(withFillableFieldsPresence(search, mode === "exclude" ? undefined : mode))}
+            hasLabel={t("Has fillable fields")}
+            missingLabel={t("Nothing to fill")}
             hideExclude
           />
         ),

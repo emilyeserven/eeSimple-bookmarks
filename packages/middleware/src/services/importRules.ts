@@ -152,6 +152,7 @@ export async function applyImportRules(
     choicesValues: new Map<string, string[]>(),
     sectionsValues: new Map(),
     textValues: new Map<string, string>(),
+    hasFillableFields: false,
   };
 
   for (const rule of rules) {

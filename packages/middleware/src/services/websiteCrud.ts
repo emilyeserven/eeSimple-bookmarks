@@ -1,6 +1,7 @@
 import { asc, eq, inArray } from "drizzle-orm";
 import type { BulkBookmarkResult, BulkDeleteResult, CreateWebsiteInput, ExtensionFillRuleGroup, LabeledWebsite, SocialLink, UpdateWebsiteInput, Website, WebsiteExtensionFillRule, WebsiteNode, WebsiteScanObservation } from "@eesimple/types";
 import { getShortenerIgnoreList } from "@/services/appSettings";
+import { invalidateBookmarkCache } from "@/services/bookmarkCacheVersion";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { db } from "@/db";
 import { deleteTaxonomyAssignmentsForOwner } from "@/services/taxonomyAssignments";
@@ -323,6 +324,12 @@ export async function updateWebsite(
   }
   if (input.youtubeChannelIds !== undefined) {
     await setWebsiteChannels(db, id, input.youtubeChannelIds);
+  }
+
+  // Editing a website's extension-fill rules changes which of its bookmarks have a fillable field,
+  // and that boolean feeds the condition cache — so rebuild it (mirrors bookmark-write invalidation).
+  if (input.extensionFillRules !== undefined || input.extensionFillRuleGroups !== undefined) {
+    invalidateBookmarkCache();
   }
 
   return getWebsite(id);

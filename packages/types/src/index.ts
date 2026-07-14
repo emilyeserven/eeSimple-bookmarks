@@ -1597,6 +1597,13 @@ export interface Bookmark {
   createdAt: string;
   /** ISO-8601 timestamp of when the bookmark was last edited, or `null` when never updated. */
   updatedAt: string | null;
+  /**
+   * Whether the bookmark's linked website has ≥1 extension-fill rule targeting a bookmark field that
+   * is currently empty on this bookmark — i.e. a rule the extension could actually fill. Derived at
+   * hydration time via `websiteRulesCanFill`; drives the "Fillable fields" search facet and the
+   * `fillable-fields` condition leaf. `false` when the bookmark has no website or nothing left to fill.
+   */
+  hasFillableFields: boolean;
 }
 
 /** Payload for creating a bookmark. */

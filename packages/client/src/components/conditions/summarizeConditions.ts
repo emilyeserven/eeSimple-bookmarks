@@ -29,6 +29,8 @@ export interface ConditionSummary {
   /** Number of language-usage leaves in the tree. */
   languageUsages: number;
   properties: number;
+  /** Number of fillable-fields leaves in the tree. */
+  fillableFields: number;
   combinator: "and" | "or";
 }
 
@@ -46,6 +48,7 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
   let relationshipTypes = 0;
   let languageUsages = 0;
   let properties = 0;
+  let fillableFields = 0;
   for (const child of tree.children) {
     if (child.type === "match") {
       if (child.field === "url") urlMatch += 1;
@@ -61,6 +64,7 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
     else if (child.type === "relationship-type") relationshipTypes += child.relationshipTypeIds.length;
     else if (child.type === "language-usage") languageUsages += 1;
     else if (child.type === "property") properties += 1;
+    else if (child.type === "fillable-fields") fillableFields += 1;
   }
   return {
     total: tree.children.length,
@@ -76,6 +80,7 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
     relationshipTypes,
     languageUsages,
     properties,
+    fillableFields,
     combinator: tree.combinator,
   };
 }
@@ -170,6 +175,11 @@ const BREAKDOWN_LABELS: {
     key: "properties",
     singular: "custom property",
     plural: "custom properties",
+  },
+  {
+    key: "fillableFields",
+    singular: "fillable-fields condition",
+    plural: "fillable-fields conditions",
   },
 ];
 

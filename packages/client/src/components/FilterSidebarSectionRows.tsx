@@ -28,6 +28,7 @@ import {
   withCategoryPresence,
   withChoicesFilter,
   withDateTimeFilter,
+  withFillableFieldsPresence,
   withGenreMoodPresence,
   withMediaSourcePresence,
   withMediaTypePresence,
@@ -698,6 +699,34 @@ export function MediaSourceFilterSection({
         onChange={mode => onSearchChange(withMediaSourcePresence(search, mode === "exclude" ? undefined : mode))}
         hasLabel={t("Linked to a media source")}
         missingLabel={t("Not linked")}
+        hideExclude
+      />
+    </div>
+  );
+}
+
+/**
+ * Presence-only toggle for bookmarks whose website has an extension-fill rule that could fill a
+ * currently-empty bookmark field. No combobox — this is a derived boolean, so just the header row.
+ */
+export function FillableFieldsFilterSection({
+  search, onSearchChange,
+}: {
+  search: BookmarkSearch;
+  onSearchChange: (next: BookmarkSearch) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-sm font-semibold">{t("Fillable fields")}</span>
+      <FacetPresenceToggle
+        value={search.fillableFieldsPresence}
+        onChange={mode => onSearchChange(withFillableFieldsPresence(search, mode === "exclude" ? undefined : mode))}
+        hasLabel={t("Has fillable fields")}
+        missingLabel={t("Nothing to fill")}
         hideExclude
       />
     </div>

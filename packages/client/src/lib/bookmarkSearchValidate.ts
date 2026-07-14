@@ -182,6 +182,7 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
     kavitaSeriesId: validNumber(search.kavitaSeriesId),
     isbn: validString(search.isbn),
     feedUrl: validString(search.feedUrl),
+    fillableFieldsPresence: validHasMissingPresence(search.fillableFieldsPresence),
     sort: validSort(search.sort),
   };
 
@@ -267,6 +268,7 @@ export function summarizeBookmarkSearch(raw: Record<string, unknown>): string {
     sectionPresencePart(search.sectionsPresence),
     search.sectionTypes && search.sectionTypes.length > 0 ? `section types: ${search.sectionTypes.join(", ")}` : null,
     search.mediaSourcePresence !== undefined ? `media source: ${search.mediaSourcePresence}` : null,
+    search.fillableFieldsPresence !== undefined ? `fillable fields: ${search.fillableFieldsPresence}` : null,
     sortSummaryPart(search.sort),
   ];
   return parts.filter((part): part is string => part !== null).join(" · ") || i18n.t("No filters");

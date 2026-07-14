@@ -2,6 +2,7 @@ import type {
   CategoryCondition,
   ConditionNode,
   ConditionTree,
+  FillableFieldsCondition,
   GenreMoodCondition,
   LanguageUsageCondition,
   LocationCondition,
@@ -35,6 +36,7 @@ export interface RootConditionLeaves {
   relationshipTypeLeaf: RelationshipTypeCondition | undefined;
   languageUsageLeaf: LanguageUsageCondition | undefined;
   propertyLeaves: PropertyCondition[];
+  fillableLeaf: FillableFieldsCondition | undefined;
   /** Nested groups (not editable in this v1 UI), preserved so the tree round-trips. */
   nestedGroups: ConditionNode[];
   /** Per-section selection counts, used for the section summaries / default-open state. */
@@ -65,6 +67,7 @@ export interface RootConditionPatch {
   relationshipType?: RelationshipTypeCondition | null;
   languageUsage?: LanguageUsageCondition | null;
   properties?: PropertyCondition[];
+  fillable?: FillableFieldsCondition | null;
 }
 
 /** Split the root group's children into the per-section leaves (plus their selection counts). */
@@ -78,6 +81,7 @@ export function splitRootConditions(value: ConditionTree): RootConditionLeaves {
   const genreMoodLeaf = value.children.find((child): child is GenreMoodCondition => child.type === "genre-mood");
   const relationshipTypeLeaf = value.children.find((child): child is RelationshipTypeCondition => child.type === "relationship-type");
   const languageUsageLeaf = value.children.find((child): child is LanguageUsageCondition => child.type === "language-usage");
+  const fillableLeaf = value.children.find((child): child is FillableFieldsCondition => child.type === "fillable-fields");
   const allMatches = value.children.filter((child): child is MatchCondition => child.type === "match");
   return {
     matches: allMatches.filter(match => match.field === "title"),
@@ -93,6 +97,7 @@ export function splitRootConditions(value: ConditionTree): RootConditionLeaves {
     relationshipTypeLeaf,
     languageUsageLeaf,
     propertyLeaves: value.children.filter((child): child is PropertyCondition => child.type === "property"),
+    fillableLeaf,
     nestedGroups: value.children.filter(child => child.type === "group"),
     counts: {
       category: categoryLeaf?.categoryIds.length ?? 0,
@@ -148,6 +153,7 @@ export function buildRootChildren(
       leaf => leaf.languageIds.length > 0 || leaf.usageLevelIds.length > 0,
     ),
     ...(next.properties ?? current.propertyLeaves),
+    ...resolveLeaf(next.fillable, current.fillableLeaf, () => true),
     ...current.nestedGroups,
   ];
 }

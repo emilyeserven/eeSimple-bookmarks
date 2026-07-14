@@ -1,14 +1,17 @@
 import { and, eq, inArray, or } from "drizzle-orm";
-import type { BookmarkSectionsValue, ConditionInput, EvaluateOptions, SectionEntry, TagDescendants } from "@eesimple/types";
-import { buildLocationDescendants, buildMediaTypeDescendants, buildTagDescendants, buildTaxonomyTermDescendants } from "@eesimple/types";
+import type { BookmarkFillPresence, BookmarkSectionsValue, ConditionInput, EvaluateOptions, SectionEntry, TagDescendants, WebsiteExtensionFillRule } from "@eesimple/types";
+import { buildLocationDescendants, buildMediaTypeDescendants, buildTagDescendants, buildTaxonomyTermDescendants, websiteRulesCanFill } from "@eesimple/types";
 import { db } from "@/db";
 import {
   bookmarkBooleanValues,
   bookmarkChoicesValues,
   bookmarkDateTimeValues,
   bookmarkFileValues,
+  bookmarkGroups,
+  bookmarkImages,
   bookmarkLocations,
   bookmarkNumberValues,
+  bookmarkPeople,
   bookmarkProgressValues,
   bookmarkSectionsValues,
   bookmarkTextValues,
@@ -24,6 +27,7 @@ import {
   taxonomyTerms,
 } from "@/db/schema";
 import { bookmarkCacheVersion } from "@/services/bookmarkCacheVersion";
+import { websiteFillRulesById } from "@/services/bookmarkHydrationEntities";
 import { resolveDefaultCategoryId } from "@/services/categories";
 import { loadEntityNames } from "@/services/entityNames";
 
@@ -189,6 +193,41 @@ export interface ConditionInputGroups {
     usageLevelId: string; }[]>;
   /** Per-bookmark language-labelled name values (values only), matched alongside title. */
   namesByBid: Map<string, string[]>;
+  /** Extension-fill rules keyed by website id — used to derive `hasFillableFields`. */
+  fillRulesByWebsiteId: Map<string, WebsiteExtensionFillRule[]>;
+  /** Bookmark ids that have ≥1 stored image (for the `image` fill-target emptiness check). */
+  imagePresenceBids: Set<string>;
+  /** Bookmark ids that credit ≥1 person. */
+  peoplePresenceBids: Set<string>;
+  /** Bookmark ids that credit ≥1 group. */
+  groupPresenceBids: Set<string>;
+}
+
+/** Build a {@link BookmarkFillPresence} for one bookmark from its base row + grouped value maps. */
+function buildRowFillPresence(row: BookmarkRow, groups: ConditionInputGroups): BookmarkFillPresence {
+  const filledPropertyIds = new Set<string>();
+  // numsByBid already includes progress `current` values (merged below), mirroring hydration.
+  for (const id of groups.numsByBid.get(row.id)?.keys() ?? []) filledPropertyIds.add(id);
+  for (const id of groups.boolsByBid.get(row.id)?.keys() ?? []) filledPropertyIds.add(id);
+  for (const id of groups.datesByBid.get(row.id)?.keys() ?? []) filledPropertyIds.add(id);
+  for (const id of groups.filesByBid.get(row.id) ?? []) filledPropertyIds.add(id);
+  for (const [id, values] of groups.choicesByBid.get(row.id) ?? []) if (values.length > 0) filledPropertyIds.add(id);
+  for (const [id, value] of groups.textsByBid.get(row.id) ?? []) if (value.trim() !== "") filledPropertyIds.add(id);
+  const filledSectionsPropertyIds = new Set<string>();
+  for (const [id, sv] of groups.sectionsByBid.get(row.id) ?? []) if (sv.sections.length > 0) filledSectionsPropertyIds.add(id);
+  return {
+    title: (row.title ?? "").trim() !== "",
+    description: (row.description ?? "").trim() !== "",
+    isbn: (row.isbn ?? "").trim() !== "",
+    year: row.year != null,
+    image: groups.imagePresenceBids.has(row.id),
+    people: groups.peoplePresenceBids.has(row.id),
+    groups: groups.groupPresenceBids.has(row.id),
+    locations: (groups.locationsByBid.get(row.id)?.size ?? 0) > 0,
+    tags: (groups.tagsByBid.get(row.id)?.size ?? 0) > 0,
+    filledPropertyIds,
+    filledSectionsPropertyIds,
+  };
 }
 
 /**
@@ -221,6 +260,10 @@ export function assembleConditionInput(
     relationshipTypeIds: groups.relTypesByBid.get(row.id) ?? new Set(),
     languageUsages: groups.languageUsagesByBid.get(row.id) ?? [],
     names: groups.namesByBid.get(row.id) ?? [],
+    hasFillableFields: (() => {
+      const rules = row.websiteId ? groups.fillRulesByWebsiteId.get(row.websiteId) : undefined;
+      return rules ? websiteRulesCanFill(rules, buildRowFillPresence(row, groups)) : false;
+    })(),
   };
 }
 
@@ -231,7 +274,7 @@ async function buildConditionInputs(
   const ids = baseRows.map(row => row.id);
   if (ids.length === 0) return new Map();
 
-  const [tagRows, taxonomyTermRows, locationRows, numberRows, booleanRows, dateTimeRows, choicesRows, fileRows, progressRows, sectionsRows, textRows, relationshipRows, languageUsageRows] = await Promise.all([
+  const [tagRows, taxonomyTermRows, locationRows, numberRows, booleanRows, dateTimeRows, choicesRows, fileRows, progressRows, sectionsRows, textRows, relationshipRows, languageUsageRows, imageRows, peopleRows, groupRows] = await Promise.all([
     db
       .select({
         bookmarkId: bookmarkTags.bookmarkId,
@@ -342,6 +385,24 @@ async function buildConditionInputs(
       })
       .from(languageUsages)
       .where(and(eq(languageUsages.ownerType, "bookmark"), inArray(languageUsages.ownerId, ids))),
+    db
+      .select({
+        bookmarkId: bookmarkImages.bookmarkId,
+      })
+      .from(bookmarkImages)
+      .where(inArray(bookmarkImages.bookmarkId, ids)),
+    db
+      .select({
+        bookmarkId: bookmarkPeople.bookmarkId,
+      })
+      .from(bookmarkPeople)
+      .where(inArray(bookmarkPeople.bookmarkId, ids)),
+    db
+      .select({
+        bookmarkId: bookmarkGroups.bookmarkId,
+      })
+      .from(bookmarkGroups)
+      .where(inArray(bookmarkGroups.bookmarkId, ids)),
   ]);
 
   const tagsByBid = groupToSets(tagRows, r => r.bookmarkId, r => r.tagId);
@@ -412,6 +473,13 @@ async function buildConditionInputs(
     namesByBid.set(bookmarkId, names.map(name => name.value));
   }
 
+  // Fillability inputs: presence sets for image/people/group targets + each website's fill rules.
+  const imagePresenceBids = new Set(imageRows.map(r => r.bookmarkId));
+  const peoplePresenceBids = new Set(peopleRows.map(r => r.bookmarkId));
+  const groupPresenceBids = new Set(groupRows.map(r => r.bookmarkId));
+  const websiteIds = [...new Set(baseRows.map(row => row.websiteId).filter((id): id is string => id !== null))];
+  const fillRulesByWebsiteId = await websiteFillRulesById(websiteIds);
+
   const groups: ConditionInputGroups = {
     tagsByBid,
     taxonomyTermsByBid,
@@ -427,6 +495,10 @@ async function buildConditionInputs(
     relTypesByBid,
     languageUsagesByBid,
     namesByBid,
+    fillRulesByWebsiteId,
+    imagePresenceBids,
+    peoplePresenceBids,
+    groupPresenceBids,
   };
   const result = new Map<string, ConditionInput>();
   for (const row of baseRows) {

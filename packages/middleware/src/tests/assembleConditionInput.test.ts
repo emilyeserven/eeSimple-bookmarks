@@ -21,6 +21,10 @@ function emptyGroups(): ConditionInputGroups {
     relTypesByBid: new Map(),
     languageUsagesByBid: new Map(),
     namesByBid: new Map(),
+    fillRulesByWebsiteId: new Map(),
+    imagePresenceBids: new Set(),
+    peoplePresenceBids: new Set(),
+    groupPresenceBids: new Set(),
   };
 }
 
@@ -53,6 +57,41 @@ test("assembleConditionInput pulls the bookmark's language-labelled names into t
   groups.namesByBid.set("b1", ["新世紀エヴァンゲリオン", "Neon Genesis Evangelion"]);
   const input = assembleConditionInput(bookmarkRow(), groups, "cat-default");
   assert.deepEqual(input.names, ["新世紀エヴァンゲリオン", "Neon Genesis Evangelion"]);
+});
+
+test("assembleConditionInput sets hasFillableFields when the website has a rule targeting an empty field", () => {
+  const groups = emptyGroups();
+  // The website has a rule targeting the ISBN field; the bookmark row below has no ISBN → fillable.
+  groups.fillRulesByWebsiteId.set("w1", [
+    {
+      id: "r1",
+      label: "ISBN",
+      target: {
+        kind: "field",
+        field: "isbn",
+      },
+      extract: {},
+    },
+  ]);
+  const fillable = assembleConditionInput(bookmarkRow({
+    websiteId: "w1",
+    isbn: null,
+  }), groups, "cat-default");
+  assert.equal(fillable.hasFillableFields, true);
+
+  // Same rule, but the ISBN is already filled → nothing to fill.
+  const filled = assembleConditionInput(bookmarkRow({
+    websiteId: "w1",
+    isbn: "9780131103627",
+  }), groups, "cat-default");
+  assert.equal(filled.hasFillableFields, false);
+
+  // No website → never fillable.
+  const noWebsite = assembleConditionInput(bookmarkRow({
+    websiteId: null,
+    isbn: null,
+  }), groups, "cat-default");
+  assert.equal(noWebsite.hasFillableFields, false);
 });
 
 test("assembleConditionInput uses the bookmark's own category over the default and pulls its grouped values", () => {

@@ -319,6 +319,19 @@ export function withMediaSourcePresence(
   return next;
 }
 
+/** Return a copy of `search` with the fillable-fields-presence filter set or cleared. */
+export function withFillableFieldsPresence(
+  search: BookmarkSearch,
+  mode: "has" | "missing" | undefined,
+): BookmarkSearch {
+  const next = {
+    ...search,
+  };
+  if (mode === undefined) delete next.fillableFieldsPresence;
+  else next.fillableFieldsPresence = mode;
+  return next;
+}
+
 /**
  * Return a fresh search with only the given media-source identity field set to `value` — clears
  * the other three exact-match fields (and any other active filter) so the "N bookmarks share this
