@@ -1060,7 +1060,8 @@ function randomId() {
 
 // image: grab image URL(s) off the page (resolved to absolute against the tab URL) and, on apply,
 // download the bytes in the browser and upload them to the bookmark. `setMain` makes the first
-// grabbed image the bookmark's main image. Non-http(s) values (e.g. data: URIs) are dropped.
+// grabbed image the bookmark's main image. http(s) URLs and inline data:image/svg+xml URIs are
+// accepted (SVG logos are commonly inlined); other non-http(s) values are dropped.
 function buildImageRow(rule, values, bookmark) {
   const urls = values
     .map(resolveImageUrl)
@@ -1081,9 +1082,12 @@ function buildImageRow(rule, values, bookmark) {
   return row;
 }
 
-// Resolve an extracted value to an absolute http(s) URL against the current tab, or null if it
-// isn't a usable remote image URL.
+// Resolve an extracted value to a usable image URL: an absolute http(s) URL against the current
+// tab, or an inline data:image/svg+xml URI (returned verbatim — the browser fetch in
+// uploadImageFromUrl reads its bytes directly). Returns null for anything else.
 function resolveImageUrl(value) {
+  const trimmed = typeof value === "string" ? value.trim() : "";
+  if (/^data:image\/svg\+xml[;,]/i.test(trimmed)) return trimmed;
   try {
     const resolved = new URL(value, currentTab?.url ?? undefined);
     if (resolved.protocol !== "http:" && resolved.protocol !== "https:") return null;

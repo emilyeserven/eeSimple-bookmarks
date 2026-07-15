@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import sharp from "sharp";
 import { downloadImage, extractFaviconUrl, extractFaviconUrls, extractImageUrl, fetchOgImage, isPublicHttpUrl } from "@/services/metadata";
-import { MAX_IMAGE_EDGE, processImage } from "@/utils/image";
+import { isSvgBytes, MAX_IMAGE_EDGE, prepareStoredImage, processImage, svgIntrinsicSize } from "@/utils/image";
 
 // Pure-function coverage for the bookmark-image pipeline and og:image parsing — no DB or network.
 
@@ -55,6 +55,82 @@ test("processImage respects a maxEdge override", async () => {
   assert.ok(!("error" in result), "expected a processed image");
   assert.equal(result.width, 400);
   assert.equal(result.height, 100);
+});
+
+test("isSvgBytes detects SVG behind a prolog, comment, doctype, or BOM", () => {
+  assert.equal(isSvgBytes(Buffer.from("<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>")), true);
+  assert.equal(isSvgBytes(Buffer.from("<?xml version=\"1.0\"?>\n<svg></svg>")), true);
+  assert.equal(isSvgBytes(Buffer.from("  \n<!-- a licence banner --><svg />")), true);
+  assert.equal(isSvgBytes(Buffer.from("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"x.dtd\"><svg>")), true);
+  assert.equal(isSvgBytes(Buffer.from("﻿<svg></svg>")), true);
+});
+
+test("isSvgBytes rejects non-SVG bytes (raster magic bytes, HTML, plain text)", () => {
+  // PNG signature.
+  assert.equal(isSvgBytes(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])), false);
+  // JPEG SOI.
+  assert.equal(isSvgBytes(Buffer.from([0xff, 0xd8, 0xff, 0xe0])), false);
+  assert.equal(isSvgBytes(Buffer.from("<html><body><svg></svg></body></html>")), false);
+  assert.equal(isSvgBytes(Buffer.from("definitely not an image")), false);
+});
+
+test("svgIntrinsicSize reads width/height attributes, tolerating a px suffix", () => {
+  assert.deepEqual(svgIntrinsicSize("<svg width=\"48\" height=\"24\"></svg>"), {
+    width: 48,
+    height: 24,
+  });
+  assert.deepEqual(svgIntrinsicSize("<svg width=\"120px\" height=\"60px\"></svg>"), {
+    width: 120,
+    height: 60,
+  });
+});
+
+test("svgIntrinsicSize falls back to viewBox, then to the max edge, clamping to >= 1", () => {
+  assert.deepEqual(svgIntrinsicSize("<svg viewBox=\"0 0 200 100\"></svg>"), {
+    width: 200,
+    height: 100,
+  });
+  // No usable dimensions → default to the max edge on both axes.
+  assert.deepEqual(svgIntrinsicSize("<svg></svg>"), {
+    width: MAX_IMAGE_EDGE,
+    height: MAX_IMAGE_EDGE,
+  });
+  // Zero/degenerate dimensions are ignored in favour of the default.
+  assert.deepEqual(svgIntrinsicSize("<svg width=\"0\" height=\"0\"></svg>"), {
+    width: MAX_IMAGE_EDGE,
+    height: MAX_IMAGE_EDGE,
+  });
+});
+
+test("prepareStoredImage passes an SVG through verbatim as image/svg+xml", async () => {
+  const svg = Buffer.from("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"48\" height=\"24\"><rect width=\"48\" height=\"24\"/></svg>");
+  const result = await prepareStoredImage(svg);
+  assert.ok(!("error" in result), "expected a processed image");
+  assert.equal(result.contentType, "image/svg+xml");
+  assert.equal(result.width, 48);
+  assert.equal(result.height, 24);
+  // Bytes are stored unchanged — never rasterized.
+  assert.ok(result.body.equals(svg));
+});
+
+test("prepareStoredImage delegates raster bytes to the WebP pipeline", async () => {
+  const png = await sharp({
+    create: {
+      width: 60,
+      height: 40,
+      channels: 3,
+      background: {
+        r: 10,
+        g: 120,
+        b: 200,
+      },
+    },
+  }).png().toBuffer();
+  const result = await prepareStoredImage(png);
+  assert.ok(!("error" in result), "expected a processed image");
+  assert.equal(result.contentType, "image/webp");
+  assert.equal(result.width, 60);
+  assert.equal(result.height, 40);
 });
 
 test("extractImageUrl prefers og:image and resolves relative URLs", () => {

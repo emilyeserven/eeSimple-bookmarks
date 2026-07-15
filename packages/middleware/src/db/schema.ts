@@ -129,7 +129,7 @@ export const bookmarkImages = pgTable("bookmark_images", {
   // Legacy single-image rows keep their original "bookmarks/<id>.webp" key; the serving route reads
   // this column rather than reconstructing it, so the two schemes coexist.
   objectKey: text("object_key").notNull(),
-  // Always "image/webp" after the resize/encode pipeline.
+  // "image/webp" after the resize/encode pipeline; "image/svg+xml" for a stored-verbatim SVG.
   contentType: text("content_type").notNull(),
   width: integer("width").notNull(),
   height: integer("height").notNull(),
