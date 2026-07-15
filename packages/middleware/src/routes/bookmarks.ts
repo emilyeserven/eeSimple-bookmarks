@@ -1,4 +1,5 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyReply } from "fastify";
+import type { Readable } from "node:stream";
 import type { BulkBookmarkTagOp, BulkUrlUpdate, CreateBookmarkInput, UpdateBookmarkInput, UpdateBookmarkRelationshipsInput } from "@eesimple/types";
 import {
   getBookmarkImageRow,
@@ -24,6 +25,7 @@ import {
 import { getBookmarkReelArchiveRow } from "@/services/reelArchive";
 import { quickAddBookmarkDirect, quickSaveToInbox } from "@/services/imports";
 import { getObjectRange, getObjectStream } from "@/utils/objectStore";
+import { SVG_CONTENT_TYPE } from "@/utils/image";
 import { isValidUrl } from "@/utils/url";
 import { AppError, NotFoundError, ValidationError } from "@/utils/errors";
 import { registerBookmarkImageRoutes } from "./bookmarkImageRoutes";
@@ -44,6 +46,22 @@ import {
 // Re-exported for the sections round-trip schema test (`tests/bookmarkSectionsSchema.test.ts`),
 // which imports `updateBookmarkBody` from `@/routes/bookmarks`.
 export { updateBookmarkBody } from "./bookmarksSchema";
+
+/**
+ * Set the response's `Content-Type` and, for a stored-verbatim SVG, lock it down. An SVG can carry
+ * inline `<script>`; served same-origin it would otherwise run on direct navigation (an `<img>`
+ * never executes it). `sandbox` + `default-src 'none'` neutralizes any script/fetch, and `nosniff`
+ * stops a browser from re-interpreting the bytes as something executable.
+ */
+function sendImageBytes(reply: FastifyReply, contentType: string, body: Readable): FastifyReply {
+  reply.header("Content-Type", contentType);
+  reply.header("Cache-Control", "public, max-age=31536000, immutable");
+  if (contentType === SVG_CONTENT_TYPE) {
+    reply.header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; sandbox");
+    reply.header("X-Content-Type-Options", "nosniff");
+  }
+  return reply.send(body);
+}
 
 /** Read/query routes: list, on-host filter, and url duplicate check. */
 function registerBookmarkQueryRoutes(app: FastifyInstance): void {
@@ -386,9 +404,7 @@ function registerBookmarkRelationshipRoutes(app: FastifyInstance): void {
     if (!object) {
       throw new NotFoundError("Image", "No image");
     }
-    reply.header("Content-Type", row.contentType);
-    reply.header("Cache-Control", "public, max-age=31536000, immutable");
-    return reply.send(object.body);
+    return sendImageBytes(reply, row.contentType, object.body);
   });
 
   // Serve one specific image of a bookmark by id. Same immutable `?v=` caching as `/image`.
@@ -410,9 +426,7 @@ function registerBookmarkRelationshipRoutes(app: FastifyInstance): void {
     if (!object) {
       throw new NotFoundError("Image", "No image");
     }
-    reply.header("Content-Type", row.contentType);
-    reply.header("Cache-Control", "public, max-age=31536000, immutable");
-    return reply.send(object.body);
+    return sendImageBytes(reply, row.contentType, object.body);
   });
 
   // Serve a bookmark's screenshot bytes from object storage.

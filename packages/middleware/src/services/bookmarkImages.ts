@@ -15,7 +15,7 @@ import { buildImageCandidates } from "@/services/imageCandidates";
 import { downloadImage, fetchOgImage } from "@/services/metadata";
 import { fetchOEmbedThumbnail } from "@/services/oembed";
 import { fetchYouTubeThumbnail, isYouTubeVideoUrl } from "@/services/youtube";
-import { processImage } from "@/utils/image";
+import { prepareStoredImage, processImage, SVG_CONTENT_TYPE } from "@/utils/image";
 import { deleteObject, putObject } from "@/utils/objectStore";
 import { getActiveHostedEndpoint, getDecryptedHostedApiKey, getImageProcessingOptions, getImageUrlBlacklist } from "@/services/appSettings";
 
@@ -25,11 +25,14 @@ export type AutoImageResult = BookmarkImage | "not_found" | ImageAutoGrabError;
 
 /**
  * Object-storage key for one of a bookmark's images, scoped by the image's surrogate id so a
- * bookmark can hold several. Legacy single-image rows keep their original `bookmarks/<id>.webp` key
- * (the serving route reads the stored `objectKey` rather than reconstructing it, so both coexist).
+ * bookmark can hold several. The extension is taken from the content type — `.webp` for the raster
+ * pipeline, `.svg` for a stored-verbatim SVG. Legacy single-image rows keep their original
+ * `bookmarks/<id>.webp` key (the serving route reads the stored `objectKey` rather than
+ * reconstructing it, so all schemes coexist).
  */
-function objectKeyFor(bookmarkId: string, imageId: string): string {
-  return `bookmarks/${bookmarkId}/${imageId}.webp`;
+function objectKeyFor(bookmarkId: string, imageId: string, contentType: string): string {
+  const ext = contentType === SVG_CONTENT_TYPE ? "svg" : "webp";
+  return `bookmarks/${bookmarkId}/${imageId}.${ext}`;
 }
 
 /** Version token embedded in the serving URL so a replaced image busts the browser cache. */
@@ -349,7 +352,7 @@ async function storeImageRow(
     sortOrder: number; },
 ): Promise<BookmarkImageRow> {
   const id = randomUUID();
-  const objectKey = objectKeyFor(bookmarkId, id);
+  const objectKey = objectKeyFor(bookmarkId, id, processed.contentType);
   await putObject(objectKey, processed.body, processed.contentType);
 
   const [row] = await db
@@ -394,6 +397,8 @@ async function deleteAllBookmarkImages(bookmarkId: string): Promise<void> {
  * Add an image to a bookmark, keeping its other images. Returns the wire shape, `"not_found"` when
  * the bookmark is gone, `"bad_image"` for undecodable bytes, or `"too_many"` once the per-bookmark
  * cap is reached. The new image is made main when `setMain` is set or it's the bookmark's first.
+ * SVG bytes are stored verbatim (vector passthrough) rather than re-encoded to WebP — see
+ * {@link prepareStoredImage}.
  */
 export async function addBookmarkImage(
   bookmarkId: string,
@@ -409,7 +414,7 @@ export async function addBookmarkImage(
   const existing = await listBookmarkImageRows(bookmarkId);
   if (existing.length >= MAX_BOOKMARK_IMAGES) return "too_many";
 
-  const processed = await processImage(rawBytes, await getImageProcessingOptions());
+  const processed = await prepareStoredImage(rawBytes, await getImageProcessingOptions());
   if ("error" in processed) return "bad_image";
 
   const makeMain = opts?.setMain === true || existing.length === 0;
@@ -433,7 +438,8 @@ export async function addBookmarkImage(
 /**
  * Replace ALL of a bookmark's images with a single main image. The back-compat path for the legacy
  * `/image` upload route, the gallery attach, and the auto/bulk capture (which conceptually set "the"
- * image). Returns the wire shape, `"not_found"`, or `"bad_image"`.
+ * image). Returns the wire shape, `"not_found"`, or `"bad_image"`. SVG bytes are stored verbatim
+ * (vector passthrough) rather than re-encoded to WebP — see {@link prepareStoredImage}.
  */
 export async function setBookmarkImage(
   bookmarkId: string,
@@ -445,7 +451,7 @@ export async function setBookmarkImage(
   }).from(bookmarks).where(eq(bookmarks.id, bookmarkId));
   if (!bookmark) return "not_found";
 
-  const processed = await processImage(rawBytes, await getImageProcessingOptions());
+  const processed = await prepareStoredImage(rawBytes, await getImageProcessingOptions());
   if ("error" in processed) return "bad_image";
 
   await deleteAllBookmarkImages(bookmarkId);

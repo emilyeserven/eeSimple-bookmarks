@@ -15,11 +15,14 @@ export interface FakeDbHandle {
   db: unknown;
   /** Register (or replace) the fixture rows a `select().from(table)...` should resolve to. */
   setRows: (table: unknown, rows: unknown[]) => void;
-  /** Clear all fixtures and recorded insert/delete calls between tests. */
+  /** Clear all fixtures and recorded insert/update/delete calls between tests. */
   reset: () => void;
   /** Every `insert(table).values(rows)` call made against the fake, in order. */
   inserted: { table: unknown;
     rows: unknown[]; }[];
+  /** Every `update(table).set(values)` call made against the fake, in order. */
+  updated: { table: unknown;
+    values: unknown; }[];
   /** Every `delete(table).where(...)` call made against the fake, in order. */
   deleted: { table: unknown }[];
 }
@@ -28,6 +31,8 @@ export function createFakeDb(): FakeDbHandle {
   const rowsByTable = new Map<unknown, unknown[]>();
   const inserted: { table: unknown;
     rows: unknown[]; }[] = [];
+  const updated: { table: unknown;
+    values: unknown; }[] = [];
   const deleted: { table: unknown }[] = [];
 
   /**
@@ -71,6 +76,15 @@ export function createFakeDb(): FakeDbHandle {
         return node(() => rows);
       },
     }),
+    update: (table: unknown) => ({
+      set: (values: unknown) => {
+        updated.push({
+          table,
+          values,
+        });
+        return node(() => rowsByTable.get(table) ?? []);
+      },
+    }),
     delete: (table: unknown) => ({
       where: () => {
         deleted.push({
@@ -90,9 +104,11 @@ export function createFakeDb(): FakeDbHandle {
     reset: () => {
       rowsByTable.clear();
       inserted.length = 0;
+      updated.length = 0;
       deleted.length = 0;
     },
     inserted,
+    updated,
     deleted,
   };
 }
