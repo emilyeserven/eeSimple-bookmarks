@@ -525,6 +525,10 @@ export const fillTargetSchema = {
     sectionHeaderSelector: {
       type: "string",
     },
+    // `sections` target: mark the written value exhaustive (the scraped list is the complete set).
+    exhaustive: {
+      type: "boolean",
+    },
   },
   allOf: [
     {

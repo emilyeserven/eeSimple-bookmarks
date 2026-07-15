@@ -108,7 +108,8 @@ export function describeFillTarget(target: FillTarget, property?: CustomProperty
         target.sectionMatch?.value.trim() || target.sectionHeaderSelector?.trim() || target.container?.trim(),
       );
       const grouped = isGrouped ? " · grouped" : "";
-      return `${name} · ${SECTION_FILL_ENTRY_TYPE_LABELS[target.entryType]}${grouped}`;
+      const exhaustive = target.exhaustive ? " · exhaustive" : "";
+      return `${name} · ${SECTION_FILL_ENTRY_TYPE_LABELS[target.entryType]}${grouped}${exhaustive}`;
     }
   }
 }

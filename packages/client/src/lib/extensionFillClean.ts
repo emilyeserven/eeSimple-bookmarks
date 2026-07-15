@@ -269,6 +269,12 @@ function cleanSectionsTarget(
         sectionMatch,
       }
       : {}),
+    // A false/unset flag stays out of the stored jsonb (like resolveItemUrl).
+    ...(target.exhaustive
+      ? {
+        exhaustive: true,
+      }
+      : {}),
   };
 }
 
