@@ -52,6 +52,9 @@
     .fill-sub { color: #555; font-size: 12px; margin: 0 0 8px; }
     button.secondary { background: #fff; color: #2563eb; border: 1px solid #2563eb; }
     button.secondary:hover { background: #eff6ff; }
+    button.danger { background: #fff; color: #b91c1c; border: 1px solid #b91c1c; }
+    button.danger:hover { background: #fef2f2; }
+    button.danger.confirming { background: #b91c1c; color: #fff; }
     #fillRows { margin: 4px 0 10px; }
     .fill-row {
       display: flex;
@@ -160,12 +163,15 @@
     <button id="viewInboxBtn">View Inbox</button>
     <button id="captureSuccessBtn" class="secondary hidden" style="margin-top:6px">Capture screenshot</button>
     <div id="captureSuccessStatus" class="fill-note"></div>
+    <button id="deleteSuccessBtn" class="danger hidden" style="margin-top:6px">Delete bookmark</button>
+    <div id="deleteSuccessStatus" class="fill-note"></div>
   </div>
 
   <div id="inboxSaved" class="hidden">
     <p id="inboxSavedMsg" class="fill-title">Saved to Inbox.</p>
     <button id="moveToBookmarksBtn">Move to Bookmarks</button>
     <button id="inboxSavedViewBtn" class="secondary" style="margin-top:6px">View Inbox</button>
+    <button id="inboxUndoBtn" class="danger hidden" style="margin-top:6px">Undo</button>
     <div id="inboxSavedError" class="hidden"></div>
   </div>
 
@@ -174,6 +180,8 @@
     <button id="savedOpenBtn">Open Bookmark</button>
     <button id="captureSavedBtn" class="secondary hidden" style="margin-top:6px">Capture screenshot</button>
     <div id="captureSavedStatus" class="fill-note"></div>
+    <button id="deleteSavedBtn" class="danger hidden" style="margin-top:6px">Delete bookmark</button>
+    <div id="deleteSavedStatus" class="fill-note"></div>
   </div>
 
   <div id="fillFilling" class="hidden">
@@ -195,6 +203,8 @@
     <button id="fillAppliedOpenBtn">Open Bookmark</button>
     <button id="captureAppliedBtn" class="secondary hidden" style="margin-top:6px">Capture screenshot</button>
     <div id="captureAppliedStatus" class="fill-note"></div>
+    <button id="deleteAppliedBtn" class="danger hidden" style="margin-top:6px">Delete bookmark</button>
+    <div id="deleteAppliedStatus" class="fill-note"></div>
   </div>
 
   <div id="progress" class="hidden"><div id="progressBar"></div></div>

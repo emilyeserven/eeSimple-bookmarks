@@ -25,6 +25,7 @@ const inboxSavedEl = document.getElementById("inboxSaved");
 const inboxSavedMsg = document.getElementById("inboxSavedMsg");
 const moveToBookmarksBtn = document.getElementById("moveToBookmarksBtn");
 const inboxSavedViewBtn = document.getElementById("inboxSavedViewBtn");
+const inboxUndoBtn = document.getElementById("inboxUndoBtn");
 const inboxSavedError = document.getElementById("inboxSavedError");
 // Fill-mode screens
 const savedStateEl = document.getElementById("savedState");
@@ -47,6 +48,13 @@ const captureSuccessBtn = document.getElementById("captureSuccessBtn");
 const captureSuccessStatus = document.getElementById("captureSuccessStatus");
 const captureAppliedBtn = document.getElementById("captureAppliedBtn");
 const captureAppliedStatus = document.getElementById("captureAppliedStatus");
+// Delete-bookmark controls (one per bookmark-context terminal screen)
+const deleteSavedBtn = document.getElementById("deleteSavedBtn");
+const deleteSavedStatus = document.getElementById("deleteSavedStatus");
+const deleteSuccessBtn = document.getElementById("deleteSuccessBtn");
+const deleteSuccessStatus = document.getElementById("deleteSuccessStatus");
+const deleteAppliedBtn = document.getElementById("deleteAppliedBtn");
+const deleteAppliedStatus = document.getElementById("deleteAppliedStatus");
 
 let serverUrl = "";
 let pageTitle = "";
@@ -289,12 +297,51 @@ function renderInboxSaved(itemId, url, message) {
     moveToBookmarksBtn.disabled = false;
     moveToBookmarksBtn.textContent = "Move to Bookmarks";
     moveToBookmarksBtn.onclick = () => void moveToBookmarks(itemId, url);
+    // Undo is only possible while we hold the pending import-item id.
+    inboxUndoBtn.classList.remove("hidden");
+    inboxUndoBtn.disabled = false;
+    inboxUndoBtn.textContent = "Undo";
+    inboxUndoBtn.onclick = () => void undoInboxSave(itemId);
   }
   else {
     moveToBookmarksBtn.classList.add("hidden");
+    inboxUndoBtn.classList.add("hidden");
   }
   show("inboxSaved");
   startCountdown();
+}
+
+// Undo an Inbox save: reject the pending import item so it leaves the review queue. A 404 means it's
+// already gone, which satisfies the same intent — treat it as success. Cancels the auto-close so the
+// popup stays open through the round-trip.
+async function undoInboxSave(itemId) {
+  cancelCountdown();
+  inboxSavedError.classList.add("hidden");
+  inboxSavedError.textContent = "";
+  inboxUndoBtn.disabled = true;
+  inboxUndoBtn.textContent = "Undoing…";
+  moveToBookmarksBtn.disabled = true;
+  try {
+    const res = await fetch(`${serverUrl}/api/imports/items/${itemId}/reject`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({}),
+    });
+    if (!res.ok && res.status !== 404) throw new Error(`status ${res.status}`);
+    inboxSavedMsg.textContent = "Removed from Inbox.";
+    moveToBookmarksBtn.classList.add("hidden");
+    inboxUndoBtn.classList.add("hidden");
+    startCountdown();
+  }
+  catch {
+    inboxUndoBtn.disabled = false;
+    inboxUndoBtn.textContent = "Undo";
+    moveToBookmarksBtn.disabled = false;
+    inboxSavedError.textContent = "Couldn't undo. Please try again.";
+    inboxSavedError.classList.remove("hidden");
+  }
 }
 
 // Promote the pending inbox item to a real bookmark (consumes the item, no orphan), then flow into
@@ -406,6 +453,7 @@ function gateRules(rules, url) {
 function renderSaved(bookmark) {
   savedOpenBtn.onclick = () => openBookmark(bookmark?.id);
   wireCaptureButton(captureSavedBtn, captureSavedStatus, bookmark?.id);
+  wireDeleteButton(deleteSavedBtn, deleteSavedStatus, bookmark?.id);
   show("saved");
 }
 
@@ -452,7 +500,9 @@ async function submit() {
       }),
     });
     if (res.status === 201) {
-      onSuccess("Queued in Inbox.");
+      // Land on the inbox-saved screen (Move to Bookmarks + Undo) — capture the pending item id.
+      const data = await res.json().catch(() => ({}));
+      renderInboxSaved(data && data.id, url, "Queued in Inbox.");
     }
     else if (res.status === 409) {
       onSuccess("Already saved.", true);
@@ -533,8 +583,9 @@ function onSuccess(message, hideViewInbox = false) {
       window.close();
     };
   }
-  // Inbox-only success has no bookmark to attach a screenshot to.
+  // Inbox-only success has no bookmark to attach a screenshot to or delete.
   wireCaptureButton(captureSuccessBtn, captureSuccessStatus, null);
+  wireDeleteButton(deleteSuccessBtn, deleteSuccessStatus, null);
   show("success");
   startCountdown();
 }
@@ -549,6 +600,7 @@ function onBookmarkSuccess(message, bookmarkId) {
     openBookmark(bookmarkId);
   };
   wireCaptureButton(captureSuccessBtn, captureSuccessStatus, bookmarkId);
+  wireDeleteButton(deleteSuccessBtn, deleteSuccessStatus, bookmarkId);
   show("success");
   startCountdown();
 }
@@ -617,6 +669,69 @@ async function captureScreenshot(bookmarkId, btn, statusEl) {
     btn.disabled = false;
     btn.textContent = "Capture screenshot";
     if (statusEl) statusEl.textContent = "Couldn't capture the screenshot. Please try again.";
+  }
+}
+
+// --- Delete bookmark ----------------------------------------------------
+// Reset a screen's "Delete bookmark" button and wire it to the bookmark. Hidden when there's no
+// bookmark (e.g. taxonomy-only fill mode). Deletion is permanent, so the button confirms inline: the
+// first click arms a "Click again to delete" state that auto-reverts after 3s; the second click deletes.
+function wireDeleteButton(btn, statusEl, bookmarkId) {
+  if (!btn) return;
+  if (statusEl) statusEl.textContent = "";
+  if (!bookmarkId) {
+    btn.classList.add("hidden");
+    return;
+  }
+  btn.classList.remove("hidden");
+  btn.disabled = false;
+  btn.classList.remove("confirming");
+  btn.textContent = "Delete bookmark";
+  let revertTimer = null;
+  const reset = () => {
+    if (revertTimer) {
+      clearTimeout(revertTimer);
+      revertTimer = null;
+    }
+    btn.classList.remove("confirming");
+    btn.textContent = "Delete bookmark";
+  };
+  btn.onclick = () => {
+    if (btn.classList.contains("confirming")) {
+      reset();
+      void deleteBookmark(bookmarkId, btn, statusEl);
+      return;
+    }
+    // First click: arm confirmation. Keep the popup open while the user decides.
+    cancelCountdown();
+    if (statusEl) statusEl.textContent = "";
+    btn.classList.add("confirming");
+    btn.textContent = "Click again to delete";
+    revertTimer = setTimeout(reset, 3000);
+  };
+}
+
+// Permanently delete the bookmark, then close the popup. A 404 means it's already gone — same intent,
+// treat it as success. On failure, re-arm the button and report inline.
+async function deleteBookmark(bookmarkId, btn, statusEl) {
+  if (!bookmarkId) return;
+  cancelCountdown();
+  btn.disabled = true;
+  btn.textContent = "Deleting…";
+  if (statusEl) statusEl.textContent = "";
+  try {
+    const res = await fetch(`${serverUrl}/api/bookmarks/${bookmarkId}`, {
+      method: "DELETE",
+    });
+    if (!res.ok && res.status !== 404) throw new Error(`status ${res.status}`);
+    btn.textContent = "Deleted";
+    setTimeout(() => window.close(), 800);
+  }
+  catch {
+    btn.disabled = false;
+    btn.classList.remove("confirming");
+    btn.textContent = "Delete bookmark";
+    if (statusEl) statusEl.textContent = "Couldn't delete. Please try again.";
   }
 }
 
@@ -2471,6 +2586,7 @@ async function applyChanges(rows, bookmark) {
     fillAppliedOpenBtn.classList.toggle("hidden", !bookmark);
     fillAppliedOpenBtn.onclick = () => openBookmark(bookmark?.id);
     wireCaptureButton(captureAppliedBtn, captureAppliedStatus, bookmark?.id);
+    wireDeleteButton(deleteAppliedBtn, deleteAppliedStatus, bookmark?.id);
     show("applied");
   }
   catch {
