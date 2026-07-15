@@ -113,6 +113,17 @@
         return !matchesText(trimmedText(el), filter.match);
       });
     }
+    if (filter.kind === "excludeSelector") {
+      return candidates.filter(function (el) {
+        try {
+          return !el.matches(filter.selector);
+        }
+        catch {
+          // A malformed selector matches nothing → keep the candidate; never poison the batch.
+          return true;
+        }
+      });
+    }
     throw new Error("Unknown filter kind: " + filter.kind);
   }
 

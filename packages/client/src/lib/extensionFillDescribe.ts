@@ -176,6 +176,8 @@ export function describeFillFilter(filter: FillFilter): string {
       return `Nth match #${filter.index}`;
     case "exclude":
       return `Exclude ${describeTextMatch(filter.match)}`;
+    case "excludeSelector":
+      return `Exclude nodes matching "${filter.selector}"`;
   }
 }
 

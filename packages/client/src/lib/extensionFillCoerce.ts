@@ -199,6 +199,11 @@ export function coerceFillFilter(kind: FillFilter["kind"], prev: FillFilter): Fi
         kind: "exclude",
         match,
       };
+    case "excludeSelector":
+      return {
+        kind: "excludeSelector",
+        selector: prev.kind === "excludeSelector" || prev.kind === "closest" ? prev.selector : "",
+      };
   }
 }
 
