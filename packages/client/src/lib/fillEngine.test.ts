@@ -1896,6 +1896,162 @@ describe("eesimpleFillEngine.runRules — sections target", () => {
       },
     ]);
   });
+
+  // A course-curriculum sidebar: each section is a card (`aside > ul > li`) with an <h2> header and a
+  // list of lesson items; a lesson may carry a `.capitalize` badge span ("quiz"/"challenge") beside its
+  // `.truncate` title span. Mirrors the shape from the #extension-fill-sections-filters report.
+  const SIDEBAR_HTML = `
+    <aside>
+      <ul>
+        <li>
+          <header><h2>The Big Picture</h2></header>
+          <ul>
+            <li><a href="/c/react/why"><span class="inline-flex"><span class="truncate">Why React?</span></span></a></li>
+            <li><a href="/c/react/why-quiz"><span class="inline-flex"><span class="capitalize">quiz</span><span class="truncate">Why React?</span></span></a></li>
+            <li><a href="/c/react/badge"><span class="inline-flex"><span class="capitalize">challenge</span><span class="truncate">Badge Variables</span></span></a></li>
+          </ul>
+        </li>
+      </ul>
+    </aside>
+  `;
+
+  it("applies extract-level filters in the container path (an excludeSelector drops badge items)", () => {
+    // The original mis-authored selector matches the inner spans (badge + title), so each badge became
+    // its own leaf. An extract-level `excludeSelector` filter now drops the `.capitalize` badge items —
+    // before the fix `runSectionsRule` ignored `extract.filters` entirely.
+    const rule = {
+      id: "curriculum",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "name",
+        container: "aside > ul > li",
+        header: "aside > ul > li > header > h2",
+      },
+      extract: {
+        selector: "aside > ul > li > ul > li span span",
+        filters: [{
+          kind: "excludeSelector",
+          selector: ".capitalize",
+        }],
+      },
+    };
+    expect(runSections(rule, SIDEBAR_HTML)).toEqual([
+      {
+        name: "The Big Picture",
+        type: "name",
+        startValue: "",
+        children: [
+          {
+            name: "Why React?",
+            type: "name",
+            startValue: "",
+          },
+          {
+            name: "Why React?",
+            type: "name",
+            startValue: "",
+          },
+          {
+            name: "Badge Variables",
+            type: "name",
+            startValue: "",
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("composes badge + title per item when the selector matches each lesson row", () => {
+    // The corrected selector matches each lesson `<li>` (one leaf per item); nameParts compose the badge
+    // and title, and a badge-less item composes to just its title.
+    const rule = {
+      id: "curriculum",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "name",
+        container: "aside > ul > li",
+        header: "aside > ul > li > header > h2",
+        namePartSeparator: ": ",
+        nameParts: [
+          {
+            selector: "span.capitalize",
+          },
+          {
+            selector: "span.truncate",
+          },
+        ],
+      },
+      extract: {
+        selector: "aside > ul > li > ul > li",
+      },
+    };
+    expect(runSections(rule, SIDEBAR_HTML)).toEqual([
+      {
+        name: "The Big Picture",
+        type: "name",
+        startValue: "",
+        children: [
+          {
+            name: "Why React?",
+            type: "name",
+            startValue: "",
+          },
+          {
+            name: "quiz: Why React?",
+            type: "name",
+            startValue: "",
+          },
+          {
+            name: "challenge: Badge Variables",
+            type: "name",
+            startValue: "",
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("applies extract-level filters in the flat path (an exclude text filter drops matching items)", () => {
+    const html = `
+      <ul>
+        <li class="row">Intro</li>
+        <li class="row">quiz</li>
+        <li class="row">Outro</li>
+      </ul>
+    `;
+    const rule = {
+      id: "flat",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "name",
+      },
+      extract: {
+        selector: ".row",
+        filters: [{
+          kind: "exclude",
+          match: {
+            mode: "equals",
+            value: "quiz",
+          },
+        }],
+      },
+    };
+    expect(runSections(rule, html)).toEqual([
+      {
+        name: "Intro",
+        type: "name",
+        startValue: "",
+      },
+      {
+        name: "Outro",
+        type: "name",
+        startValue: "",
+      },
+    ]);
+  });
 });
 
 interface TaxonomyFill {

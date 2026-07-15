@@ -127,6 +127,18 @@
     throw new Error("Unknown filter kind: " + filter.kind);
   }
 
+  // Narrow a candidate node list by the extract's item-level filters (parity with `runRule`, which
+  // applies them at lines ~454-456). Used by the sections path so an `exclude` / `excludeSelector`
+  // filter drops whole items — the sections engine previously ignored `extract.filters` entirely, even
+  // though the editor exposes them, so a badge-excluding filter was silently dead.
+  function filterCandidates(nodes, extract) {
+    var out = nodes;
+    ((extract && extract.filters) || []).forEach(function (filter) {
+      out = applyFilter(out, filter);
+    });
+    return out;
+  }
+
   // Pull the first `url(…)` out of a CSS `background-image` value. Handles quoted/unquoted urls and a
   // multi-layer list (takes the first layer); returns null for `none` / no url.
   function firstBackgroundImageUrl(value) {
@@ -651,7 +663,7 @@
     if (target.sectionMatch) {
       var groups = [];
       var current = null;
-      candidateNodes(extract, doc).forEach(function (el) {
+      filterCandidates(candidateNodes(extract, doc), extract).forEach(function (el) {
         var leaf = buildSectionLeaf(el, target, extract);
         if (!leaf) return;
         // Section boundaries key off the item's OWN text (`itemName`/own-text), NOT the composed
@@ -680,6 +692,9 @@
       var headerGroups = [];
       var currentGroup = null;
       var combined = target.sectionHeaderSelector + "," + extract.selector;
+      // Item-level filters apply only to the item subset, not the interleaved headers, so pre-filter the
+      // items and keep a leaf only when its element survived (membership by identity).
+      var keptItems = filterCandidates(candidateNodes(extract, doc), extract);
       Array.prototype.slice.call(doc.querySelectorAll(combined)).forEach(function (el) {
         if (el.matches(target.sectionHeaderSelector)) {
           // A header opens a new section; its name is the matched element's own text.
@@ -690,6 +705,9 @@
             children: [],
           };
           headerGroups.push(currentGroup);
+        }
+        else if (keptItems.indexOf(el) === -1) {
+          // An item the filters dropped — skip it (it is not a header, so it opens nothing).
         }
         else if (currentGroup) {
           var childLeaf = buildSectionLeaf(el, target, extract);
@@ -706,7 +724,10 @@
     // Tiered: a repeated container element carries a header and its own items (the children).
     if (target.container) {
       return Array.prototype.slice.call(doc.querySelectorAll(target.container)).map(function (group) {
-        var items = Array.prototype.slice.call(group.querySelectorAll(extract.selector));
+        var items = filterCandidates(
+          Array.prototype.slice.call(group.querySelectorAll(extract.selector)),
+          extract,
+        );
         return {
           name: target.header ? readName(group, target.header, extract.excludeSelectors) : "",
           type: target.entryType,
@@ -721,7 +742,7 @@
     }
 
     // Flat: each matched item is one entry.
-    return candidateNodes(extract, doc)
+    return filterCandidates(candidateNodes(extract, doc), extract)
       .map(function (el) {
         return buildSectionLeaf(el, target, extract);
       })

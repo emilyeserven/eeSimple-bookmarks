@@ -169,6 +169,11 @@ export type FillTarget
    * several elements — e.g. a `<span class="badge">quiz</span>` + `<span class="title">Why React?</span>`
    * composed into `"Quiz: Why React?"`. When `nameParts` is absent (or empty) the name still comes from
    * `itemName`/the item's own text. Only the name is composed; the value/url pipeline is unchanged.
+   *
+   * **`extract.filters`** apply to the matched **items** in every grouping mode (parity with the flat
+   * non-sections path): an `exclude` / `excludeSelector` filter drops whole item candidates before each
+   * leaf is built, so e.g. an `excludeSelector: ".badge"` removes stray badge rows. (This is distinct
+   * from per-`nameParts` `filters`, which only narrow which element a name part reads.)
    */
               | { kind: "sections";
                 propertyId: string;
