@@ -604,6 +604,13 @@ describe("describeFillFilter", () => {
       kind: "nth",
       index: 1,
     })).toBe("Nth match #1");
+    expect(describeFillFilter({
+      kind: "exclude",
+      match: {
+        mode: "equals",
+        value: "See all",
+      },
+    })).toBe("Exclude equals \"See all\"");
   });
 });
 
@@ -701,6 +708,13 @@ describe("coerceFillFilter", () => {
       kind: "nth",
       index: 0,
     });
+    expect(coerceFillFilter("exclude", self)).toEqual({
+      kind: "exclude",
+      match: {
+        mode: "equals",
+        value: "Pages",
+      },
+    });
   });
 });
 
@@ -782,6 +796,46 @@ describe("normalizeExtensionFillRules", () => {
         propertyId: "",
       },
     })])).toEqual([]);
+  });
+
+  it("trims excludeSelectors and drops blanks, omitting the key when all are empty", () => {
+    const [kept] = normalizeExtensionFillRules([rule({
+      extract: {
+        selector: ".desc",
+        excludeSelectors: ["  .read-more ", "", "   "],
+      },
+    })]);
+    expect(kept.extract.excludeSelectors).toEqual([".read-more"]);
+
+    const [none] = normalizeExtensionFillRules([rule({
+      extract: {
+        selector: ".desc",
+        excludeSelectors: ["   ", ""],
+      },
+    })]);
+    expect("excludeSelectors" in none.extract).toBe(false);
+  });
+
+  it("normalizes an exclude filter through the round-trip", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      extract: {
+        selector: ".author",
+        filters: [{
+          kind: "exclude",
+          match: {
+            mode: "equals",
+            value: "See all",
+          },
+        }],
+      },
+    })]);
+    expect(out.extract.filters).toEqual([{
+      kind: "exclude",
+      match: {
+        mode: "equals",
+        value: "See all",
+      },
+    }]);
   });
 
   it("preserves a rule's groupId across the round-trip", () => {

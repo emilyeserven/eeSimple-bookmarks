@@ -141,7 +141,7 @@ export const fillFilterSchema = {
   properties: {
     kind: {
       type: "string",
-      enum: ["selfText", "siblingText", "ancestorText", "closest", "nth"],
+      enum: ["selfText", "siblingText", "ancestorText", "closest", "nth", "exclude"],
     },
     match: textMatchSchema,
     maxDepth: {
@@ -213,6 +213,18 @@ export const fillFilterSchema = {
       },
       then: {
         required: ["kind", "index"],
+      },
+    },
+    {
+      if: {
+        properties: {
+          kind: {
+            const: "exclude",
+          },
+        },
+      },
+      then: {
+        required: ["kind", "match"],
       },
     },
   ],
@@ -323,6 +335,12 @@ export const fillExtractSchema = {
     filters: {
       type: "array",
       items: fillFilterSchema,
+    },
+    excludeSelectors: {
+      type: "array",
+      items: {
+        type: "string",
+      },
     },
     read: fillReadSchema,
     transform: {

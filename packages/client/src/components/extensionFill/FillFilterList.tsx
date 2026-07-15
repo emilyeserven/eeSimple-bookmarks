@@ -100,6 +100,7 @@ function FillFilterFields({
   switch (filter.kind) {
     case "selfText":
     case "siblingText":
+    case "exclude":
       return (
         <TextMatchEditor
           match={filter.match}
@@ -227,6 +228,10 @@ function FILTER_KIND_OPTIONS(t: (key: string) => string): KindOption<FilterKind>
     {
       value: "nth",
       label: t("Nth match"),
+    },
+    {
+      value: "exclude",
+      label: t("Exclude by text"),
     },
   ];
 }

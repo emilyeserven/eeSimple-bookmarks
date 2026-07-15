@@ -18,6 +18,27 @@
     return (el.textContent || "").trim();
   }
 
+  // Read an element's trimmed text with `excludeSelectors`' matching descendants stripped first. Works
+  // on a throwaway clone so the live page is untouched; a bad selector is skipped (never poisons the
+  // batch). No selectors → identical to `trimmedText`.
+  function textExcluding(el, excludeSelectors) {
+    if (!excludeSelectors || excludeSelectors.length === 0) return trimmedText(el);
+    var clone = el.cloneNode(true);
+    excludeSelectors.forEach(function (selector) {
+      var matches;
+      try {
+        matches = clone.querySelectorAll(selector);
+      }
+      catch {
+        return;
+      }
+      Array.prototype.forEach.call(matches, function (node) {
+        if (node.parentNode) node.parentNode.removeChild(node);
+      });
+    });
+    return (clone.textContent || "").trim();
+  }
+
   function elementSiblings(el) {
     var parent = el.parentElement;
     if (!parent) return [];
@@ -86,6 +107,11 @@
     if (filter.kind === "nth") {
       var index = filter.index < 0 ? candidates.length + filter.index : filter.index;
       return candidates[index] ? [candidates[index]] : [];
+    }
+    if (filter.kind === "exclude") {
+      return candidates.filter(function (el) {
+        return !matchesText(trimmedText(el), filter.match);
+      });
     }
     throw new Error("Unknown filter kind: " + filter.kind);
   }
@@ -194,8 +220,9 @@
   }
 
   // Read a raw string from an element. Returns null for a missing attribute so the caller drops it.
-  function readValue(el, read) {
-    if (!read || read.kind === "text") return trimmedText(el);
+  // `excludeSelectors` strips matching descendants before a `text` read (ignored for attr/background).
+  function readValue(el, read, excludeSelectors) {
+    if (!read || read.kind === "text") return textExcluding(el, excludeSelectors);
     if (read.kind === "attr") {
       var attr = el.getAttribute(read.name);
       return attr == null ? null : attr.trim();
@@ -429,7 +456,7 @@
       });
     var values = [];
     candidates.forEach(function (el) {
-      var raw = readValue(el, read);
+      var raw = readValue(el, read, extract.excludeSelectors);
       if (raw != null) values.push(raw);
     });
 
@@ -465,20 +492,23 @@
   // field alongside `values`; the popup assembles the BookmarkSectionsValue (and assigns ids).
 
   // Read an item's display name: a relative sub-selector's text, or the item's own trimmed text.
-  function readName(el, nameSelector) {
+  // `excludeSelectors` strips matching descendants before reading (same as the value read).
+  function readName(el, nameSelector, excludeSelectors) {
     if (nameSelector) {
       var named = el.querySelector(nameSelector);
-      if (named) return trimmedText(named);
+      if (named) return textExcluding(named, excludeSelectors);
     }
-    return trimmedText(el);
+    return textExcluding(el, excludeSelectors);
   }
 
   // Compose an item's name from multiple child parts (`target.nameParts`): each part resolves a value
   // from a relative selector (or the item element itself), narrows it with its own filters, reads +
   // transforms it, and the non-empty parts are joined by `target.namePartSeparator` (default ""). Falls
   // back to the single-selector `readName` when no parts are configured.
-  function readComposedName(el, target) {
-    if (!target.nameParts || target.nameParts.length === 0) return readName(el, target.itemName);
+  function readComposedName(el, target, excludeSelectors) {
+    if (!target.nameParts || target.nameParts.length === 0) {
+      return readName(el, target.itemName, excludeSelectors);
+    }
     var baseUrl = el.ownerDocument ? el.ownerDocument.baseURI : "";
     var parts = [];
     target.nameParts.forEach(function (part) {
@@ -489,7 +519,7 @@
         candidates = applyFilter(candidates, filter);
       });
       if (candidates.length === 0) return;
-      var raw = readValue(candidates[0], part.read);
+      var raw = readValue(candidates[0], part.read, excludeSelectors);
       if (raw == null) return;
       // `readValue` already trims the raw DOM text; don't re-trim after transforms so intentional
       // affix spacing (e.g. a "] " suffix) survives. Inter-part spacing uses `namePartSeparator`.
@@ -504,7 +534,7 @@
 
   // Run the value pipeline (read + transforms) for one item element, returning its startValue string.
   function readItemValue(el, extract) {
-    var raw = readValue(el, extract.read);
+    var raw = readValue(el, extract.read, extract.excludeSelectors);
     if (raw == null) return "";
     var value = raw;
     var baseUrl = el.ownerDocument ? el.ownerDocument.baseURI : "";
@@ -525,18 +555,31 @@
     return href ? href.trim() : undefined;
   }
 
-  // Build one leaf entry (a flat entry, or a tier-1 group's child) from an item element.
+  // Whether a built entry carries anything worth keeping — a name, a value, a link, or (a section) at
+  // least one surviving child. Guards against emitting empty entries once node exclusion / candidate
+  // filtering strips an item down to nothing.
+  function isNonEmptyEntry(entry) {
+    return !!(entry
+      && (entry.name || entry.startValue || entry.url != null || (entry.children && entry.children.length)));
+  }
+
+  // Build one leaf entry (a flat entry, or a tier-1 group's child) from an item element. Returns null
+  // when the item resolved to nothing (no name, no value, no link) — e.g. after node exclusion stripped
+  // its only text — so callers omit it rather than create an empty entry.
   function buildSectionLeaf(el, target, extract) {
     // A `name`-only entry carries no positional value — just the item's name (+ optional link).
     // With a per-item URL selector on a `url` entry the anchor is the link (carried in `url`), not a
     // positional value; otherwise read the item's own value (href/page number/etc.) into startValue.
     var noValue = target.entryType === "name" || (target.itemUrl && target.entryType === "url");
-    var leaf = {
-      name: readComposedName(el, target),
-      type: target.entryType,
-      startValue: noValue ? "" : readItemValue(el, extract),
-    };
+    var name = readComposedName(el, target, extract.excludeSelectors);
+    var startValue = noValue ? "" : readItemValue(el, extract);
     var url = readItemUrl(el, target);
+    if (!name && !startValue && url == null) return null;
+    var leaf = {
+      name: name,
+      type: target.entryType,
+      startValue: startValue,
+    };
     if (url != null) leaf.url = url;
     return leaf;
   }
@@ -580,7 +623,7 @@
     if (target.entryType === "timestamp") {
       var text = candidateNodes(extract, doc)
         .map(function (el) {
-          return trimmedText(el);
+          return textExcluding(el, extract.excludeSelectors);
         })
         .join("\n");
       return parseTimestampSections(text, target.entryType);
@@ -595,6 +638,7 @@
       var current = null;
       candidateNodes(extract, doc).forEach(function (el) {
         var leaf = buildSectionLeaf(el, target, extract);
+        if (!leaf) return;
         if (matchesText(leaf.name, target.sectionMatch)) {
           leaf.children = [];
           groups.push(leaf);
@@ -607,7 +651,7 @@
           groups.push(leaf);
         }
       });
-      return groups;
+      return groups.filter(isNonEmptyEntry);
     }
 
     // Grouped by a section-header selector on a flat page: the headers and items are interleaved in
@@ -622,7 +666,7 @@
         if (el.matches(target.sectionHeaderSelector)) {
           // A header opens a new section; its name is the matched element's own text.
           currentGroup = {
-            name: trimmedText(el),
+            name: textExcluding(el, extract.excludeSelectors),
             type: target.entryType,
             startValue: "",
             children: [],
@@ -630,13 +674,15 @@
           headerGroups.push(currentGroup);
         }
         else if (currentGroup) {
-          currentGroup.children.push(buildSectionLeaf(el, target, extract));
+          var childLeaf = buildSectionLeaf(el, target, extract);
+          if (childLeaf) currentGroup.children.push(childLeaf);
         }
         else {
-          headerGroups.push(buildSectionLeaf(el, target, extract));
+          var topLeaf = buildSectionLeaf(el, target, extract);
+          if (topLeaf) headerGroups.push(topLeaf);
         }
       });
-      return headerGroups;
+      return headerGroups.filter(isNonEmptyEntry);
     }
 
     // Tiered: a repeated container element carries a header and its own items (the children).
@@ -644,20 +690,24 @@
       return Array.prototype.slice.call(doc.querySelectorAll(target.container)).map(function (group) {
         var items = Array.prototype.slice.call(group.querySelectorAll(extract.selector));
         return {
-          name: target.header ? readName(group, target.header) : "",
+          name: target.header ? readName(group, target.header, extract.excludeSelectors) : "",
           type: target.entryType,
           startValue: "",
-          children: items.map(function (item) {
-            return buildSectionLeaf(item, target, extract);
-          }),
+          children: items
+            .map(function (item) {
+              return buildSectionLeaf(item, target, extract);
+            })
+            .filter(isNonEmptyEntry),
         };
-      });
+      }).filter(isNonEmptyEntry);
     }
 
     // Flat: each matched item is one entry.
-    return candidateNodes(extract, doc).map(function (el) {
-      return buildSectionLeaf(el, target, extract);
-    });
+    return candidateNodes(extract, doc)
+      .map(function (el) {
+        return buildSectionLeaf(el, target, extract);
+      })
+      .filter(isNonEmptyEntry);
   }
 
   function runRules(rules, doc = document) {
