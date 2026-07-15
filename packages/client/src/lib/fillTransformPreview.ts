@@ -146,6 +146,8 @@ export function applyFillTransform(value: string, transform: FillTransform, base
     }
     case "trim":
       return value.trim();
+    case "capitalizeFirst":
+      return value ? value.charAt(0).toUpperCase() + value.slice(1) : value;
     case "affix":
       return (transform.prefix ?? "") + value + (transform.suffix ?? "");
     case "absoluteUrl": {

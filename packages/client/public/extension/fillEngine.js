@@ -374,6 +374,9 @@
     if (transform.kind === "trim") {
       return value.trim();
     }
+    if (transform.kind === "capitalizeFirst") {
+      return value ? value.charAt(0).toUpperCase() + value.slice(1) : value;
+    }
     if (transform.kind === "affix") {
       return (transform.prefix || "") + value + (transform.suffix || "");
     }
@@ -573,13 +576,24 @@
 
   // Read a per-item link's href via the relative `itemUrl` sub-selector, or undefined when unset/absent.
   // Lets the matched item be a container holding separate name and link elements (siblings), rather than
-  // the anchor itself.
+  // the anchor itself. With `target.resolveItemUrl`, a relative href is resolved against the page URL
+  // (guarded like the `absoluteUrl` transform — raw fallback when there's no base or on a parse error).
   function readItemUrl(el, target) {
     if (!target.itemUrl) return undefined;
     var link = el.querySelector(target.itemUrl);
     if (!link) return undefined;
     var href = link.getAttribute("href");
-    return href ? href.trim() : undefined;
+    if (!href) return undefined;
+    var trimmed = href.trim();
+    if (!target.resolveItemUrl) return trimmed;
+    var baseUrl = el.ownerDocument ? el.ownerDocument.baseURI : "";
+    if (!baseUrl) return trimmed;
+    try {
+      return new URL(trimmed, baseUrl).href;
+    }
+    catch {
+      return trimmed;
+    }
   }
 
   // Whether a built entry carries anything worth keeping — a name, a value, a link, or (a section) at

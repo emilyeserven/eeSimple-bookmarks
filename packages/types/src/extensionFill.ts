@@ -142,6 +142,8 @@ export type FillTarget
    *   optionally reads a per-item link's `href` into the entry's `url`, so the matched item can be a
    *   **container** holding a separate name element and link element (siblings) rather than the link
    *   itself; absent = today's behavior (the item element carries the value/link via `extract.read`).
+   *   `resolveItemUrl` (opt-in) resolves that `href` against the page URL (`new URL(href, pageUrl)`),
+   *   turning a relative link ("/c/react/why") into an absolute one; unset = the raw `href` is kept.
    *   When `container` is set the rule is **tiered**: `container` matches the repeated tier-1 group,
    *   `header` (relative) reads the group name, and `extract.selector` matches the group's items.
    *   When `sectionMatch` is set the rule is instead **grouped by item text**: `extract.selector`
@@ -182,6 +184,7 @@ export type FillTarget
                 header?: string;
                 itemName?: string;
                 itemUrl?: string;
+                resolveItemUrl?: boolean;
                 nameParts?: SectionNamePart[];
                 namePartSeparator?: string;
                 sectionMatch?: TextMatch;
@@ -328,6 +331,9 @@ export type FillTransform
       flags?: string;
       replacement: string; }
       | { kind: "trim" }
+  /** Uppercase the first character of the value (e.g. "hello world" → "Hello world"); the rest is
+   * left as-is (not title-cased). No-op on an empty string. */
+      | { kind: "capitalizeFirst" }
   /** Prepend `prefix` and/or append `suffix` literal text to the value (both optional). */
       | { kind: "affix";
         prefix?: string;

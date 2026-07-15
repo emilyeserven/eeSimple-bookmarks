@@ -23,7 +23,7 @@ type TaxonomyName = Extract<FillTarget, { kind: "taxonomy" }>["taxonomy"];
 
 /** The `kind` select plus the variant-specific value control for a rule's {@link FillTarget}. */
 export function FillTargetPicker({
-  target, propertyOptions, propertiesById, onChange, lockedKeys = NO_LOCKS,
+  target, propertyOptions, propertiesById, onChange, lockedKeys = NO_LOCKS, extractSelector = "",
 }: {
   target: FillTarget;
   propertyOptions: ComboboxOption[];
@@ -31,6 +31,8 @@ export function FillTargetPicker({
   onChange: (target: FillTarget) => void;
   /** Options a fill-rule group overrides — rendered read-only here. */
   lockedKeys?: LockedKeys;
+  /** The rule's `extract.selector` — threaded to the sections control for its full-path hints. */
+  extractSelector?: string;
 }) {
   const {
     t,
@@ -86,6 +88,7 @@ export function FillTargetPicker({
         propertiesById={propertiesById}
         onChange={onChange}
         lockedKeys={lockedKeys}
+        extractSelector={extractSelector}
       />
     </div>
   );
@@ -93,13 +96,14 @@ export function FillTargetPicker({
 
 /** The value control for the currently-selected target kind. */
 function FillTargetValue({
-  target, propertyOptions, propertiesById, onChange, lockedKeys,
+  target, propertyOptions, propertiesById, onChange, lockedKeys, extractSelector,
 }: {
   target: FillTarget;
   propertyOptions: ComboboxOption[];
   propertiesById: Map<string, CustomProperty>;
   onChange: (target: FillTarget) => void;
   lockedKeys: LockedKeys;
+  extractSelector: string;
 }) {
   const {
     t,
@@ -189,6 +193,7 @@ function FillTargetValue({
           propertiesById={propertiesById}
           onChange={onChange}
           lockedKeys={lockedKeys}
+          extractSelector={extractSelector}
         />
       );
   }

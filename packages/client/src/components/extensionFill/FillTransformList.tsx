@@ -176,6 +176,7 @@ function FillTransformFields({
     case "duration":
     case "date":
     case "trim":
+    case "capitalizeFirst":
     case "absoluteUrl":
     case "youtubeThumbnail":
       return null;
@@ -325,6 +326,11 @@ function TRANSFORM_KIND_OPTIONS(t: (key: string) => string): KindOption<Transfor
     {
       value: "trim",
       label: t("Trim"),
+    },
+    {
+      value: "capitalizeFirst",
+      label: t("Capitalize first letter"),
+      description: t("Uppercases the first character of the value (e.g. \"hello world\" → \"Hello world\"); the rest is left unchanged."),
     },
     {
       value: "affix",
