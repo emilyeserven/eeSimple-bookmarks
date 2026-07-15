@@ -249,7 +249,7 @@ export const fillTransformSchema = {
   properties: {
     kind: {
       type: "string",
-      enum: ["regex", "number", "duration", "date", "replace", "trim", "affix", "absoluteUrl", "youtubeThumbnail"],
+      enum: ["regex", "number", "duration", "date", "replace", "trim", "capitalizeFirst", "affix", "absoluteUrl", "youtubeThumbnail"],
     },
     pattern: {
       type: "string",
@@ -506,6 +506,10 @@ export const fillTargetSchema = {
     },
     itemUrl: {
       type: "string",
+    },
+    // `sections` target: resolve a relative per-item `href` against the page URL (opt-in).
+    resolveItemUrl: {
+      type: "boolean",
     },
     // `sections` target: compose each item's name from multiple child elements (joined by namePartSeparator).
     nameParts: {

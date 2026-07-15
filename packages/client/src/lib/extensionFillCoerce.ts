@@ -238,6 +238,10 @@ export function coerceFillTransform(kind: FillTransform["kind"], prev: FillTrans
       return {
         kind: "trim",
       };
+    case "capitalizeFirst":
+      return {
+        kind: "capitalizeFirst",
+      };
     case "affix":
       return {
         kind: "affix",

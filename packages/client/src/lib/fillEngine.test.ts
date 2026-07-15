@@ -652,6 +652,13 @@ describe("eesimpleFillEngine.runRules — transforms", () => {
     expect(runOne(rule, html("/books/1")).values).toEqual(["https://x.com/books/1?ref=1"]);
   });
 
+  it("capitalizeFirst — uppercases the first character of the value", () => {
+    const rule = withTransforms([{
+      kind: "capitalizeFirst",
+    }]);
+    expect(runOne(rule, html("hello world")).values).toEqual(["Hello world"]);
+  });
+
   it("absoluteUrl — resolves a relative href against the page's base URL", () => {
     const doc = docFrom(
       "<head><base href=\"https://x.com/list/page\"></head><body><span class=\"v\">/books/1</span></body>",
@@ -1371,6 +1378,78 @@ describe("eesimpleFillEngine.runRules — sections target", () => {
         type: "url",
         startValue: "",
         url: "/b",
+      },
+    ]);
+  });
+
+  it("resolveItemUrl — resolves a relative per-item href against the page's base URL", () => {
+    const html = `
+      <head><base href="https://x.com/c/react/page"></head>
+      <body>
+        <ul>
+          <li class="row"><span class="name">Why React?</span><a class="link" href="/c/react/why">go</a></li>
+          <li class="row"><span class="name">State</span><a class="link" href="state">go</a></li>
+        </ul>
+      </body>
+    `;
+    const rule = {
+      id: "resolve-url",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "url",
+        itemName: ".name",
+        itemUrl: ".link",
+        resolveItemUrl: true,
+      },
+      extract: {
+        selector: ".row",
+      },
+    };
+    expect(runSections(rule, html)).toEqual([
+      {
+        name: "Why React?",
+        type: "url",
+        startValue: "",
+        url: "https://x.com/c/react/why",
+      },
+      {
+        name: "State",
+        type: "url",
+        startValue: "",
+        url: "https://x.com/c/react/state",
+      },
+    ]);
+  });
+
+  it("resolveItemUrl — absent/false keeps the raw relative href (backward compat)", () => {
+    const html = `
+      <head><base href="https://x.com/c/react/page"></head>
+      <body>
+        <ul>
+          <li class="row"><span class="name">Why React?</span><a class="link" href="/c/react/why">go</a></li>
+        </ul>
+      </body>
+    `;
+    const rule = {
+      id: "raw-url",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "url",
+        itemName: ".name",
+        itemUrl: ".link",
+      },
+      extract: {
+        selector: ".row",
+      },
+    };
+    expect(runSections(rule, html)).toEqual([
+      {
+        name: "Why React?",
+        type: "url",
+        startValue: "",
+        url: "/c/react/why",
       },
     ]);
   });

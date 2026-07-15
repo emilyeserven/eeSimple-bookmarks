@@ -243,6 +243,12 @@ function cleanSectionsTarget(
         itemUrl,
       }
       : {}),
+    // Only meaningful alongside an itemUrl; drop a stray flag when no per-item link is read.
+    ...(itemUrl && target.resolveItemUrl
+      ? {
+        resolveItemUrl: true,
+      }
+      : {}),
     ...(nameParts.length > 0
       ? {
         nameParts,
@@ -397,6 +403,10 @@ function cleanTransform(transform: FillTransform): FillTransform | null {
     case "trim":
       return {
         kind: "trim",
+      };
+    case "capitalizeFirst":
+      return {
+        kind: "capitalizeFirst",
       };
     case "affix": {
       // Drop a no-op row that sets neither prefix nor suffix (mirrors blank-regex → null).

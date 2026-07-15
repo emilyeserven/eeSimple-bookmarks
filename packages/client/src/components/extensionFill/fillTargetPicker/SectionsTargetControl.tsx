@@ -2,16 +2,21 @@ import type { LockedKeys } from "./fillTargetShared";
 import type { ComboboxOption } from "../../Combobox";
 import type { CustomProperty, FillTarget, SectionNamePart } from "@eesimple/types";
 
+import { useId } from "react";
+
 import { useTranslation } from "react-i18next";
 
 import { Combobox } from "../../Combobox";
 import { Button } from "../../ui/button";
+import { Checkbox } from "../../ui/checkbox";
 import { Label } from "../../ui/label";
 import { KindSelect, LabeledInput } from "../controls";
 import { FillFilterList } from "../FillFilterList";
 import { FillReadField } from "../FillReadField";
 import { FillTransformList } from "../FillTransformList";
 import { TextMatchEditor } from "../TextMatchEditor";
+
+import { joinSelectorPath } from "@/lib/sectionSelectorPath";
 
 type SectionsTarget = Extract<FillTarget, { kind: "sections" }>;
 type SectionEntryTypeName = SectionsTarget["entryType"];
@@ -56,6 +61,57 @@ function applyGroupingMode(target: SectionsTarget, next: SectionGroupingMode): S
 }
 
 /**
+ * A muted "full path" line shown under a relative selector field: the selector composed with its
+ * ancestor chain (`prefix`), so it's clear what a "within each item" selector resolves to. Renders
+ * nothing when there is no ancestor prefix or the field itself is empty (a field that is already its
+ * own full path needs no hint).
+ */
+export function SelectorPathHint({
+  prefix, selector,
+}: {
+  prefix: string;
+  selector: string | undefined;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const value = selector?.trim();
+  if (!prefix || !value) return null;
+  return (
+    <p className="text-xs text-muted-foreground">
+      {t("Full path")}
+      {": "}
+      <span className="font-mono break-all">{joinSelectorPath(prefix, value)}</span>
+    </p>
+  );
+}
+
+/** "Resolve relative URLs" toggle for a section item link — turns a relative href into an absolute URL. */
+function ResolveItemUrlToggle({
+  checked, onChange, disabled,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  disabled?: boolean;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const id = useId();
+  return (
+    <div className="flex items-center gap-2">
+      <Checkbox
+        id={id}
+        checked={checked}
+        disabled={disabled}
+        onCheckedChange={value => onChange(value === true)}
+      />
+      <Label htmlFor={id}>{t("Resolve relative URLs to absolute")}</Label>
+    </div>
+  );
+}
+
+/**
  * Controls for a `sections` target: pick the sections-typed property, the entry type, and how the
  * page's items are grouped into sections/subsections. The grouping modes are mutually exclusive and
  * each shows only its own fields, so a rule can't silently combine two:
@@ -69,17 +125,21 @@ function applyGroupingMode(target: SectionsTarget, next: SectionGroupingMode): S
  * For `timestamp` the grouping controls are hidden (the selector's text is parsed for `m:ss` lines).
  */
 export function SectionsTarget({
-  target, propertiesById, onChange, lockedKeys,
+  target, propertiesById, onChange, lockedKeys, extractSelector = "",
 }: {
   target: SectionsTarget;
   propertiesById: Map<string, CustomProperty>;
   onChange: (target: FillTarget) => void;
   lockedKeys: LockedKeys;
+  /** The rule's top-level `extract.selector` (matches each item) — used to compose the full-path hints. */
+  extractSelector?: string;
 }) {
   const {
     t,
   } = useTranslation();
   const layoutLocked = lockedKeys.has("sections.layout");
+  // The selector chain that resolves to each repeated item — the base for the "within each item" hints.
+  const itemPath = joinSelectorPath(target.container, extractSelector);
   const sectionsOptions: ComboboxOption[] = [...propertiesById.values()]
     .filter(property => property.type === "sections")
     .map(property => ({
@@ -197,6 +257,10 @@ export function SectionsTarget({
                   })}
                   hint={t("Read within each section container to get its title.")}
                 />
+                <SelectorPathHint
+                  prefix={target.container ?? ""}
+                  selector={target.header}
+                />
               </>
             )}
 
@@ -244,9 +308,14 @@ export function SectionsTarget({
               })}
               hint={t("Read within each item to get its name. Leave blank to use the item's own text, or use \"Name parts\" below to compose it from several elements.")}
             />
+            <SelectorPathHint
+              prefix={itemPath}
+              selector={target.itemName}
+            />
             <SectionNamePartsEditor
               parts={target.nameParts ?? []}
               separator={target.namePartSeparator}
+              itemPath={itemPath}
               disabled={layoutLocked}
               onPartsChange={nameParts => onChange({
                 ...target,
@@ -268,6 +337,22 @@ export function SectionsTarget({
               })}
               hint={t("Optional. Read a per-item link's href. Leave blank for \"Name only\", or to read the value off the item itself via Read/Transform.")}
             />
+            <SelectorPathHint
+              prefix={itemPath}
+              selector={target.itemUrl}
+            />
+            {(target.itemUrl ?? "").trim()
+              ? (
+                <ResolveItemUrlToggle
+                  checked={target.resolveItemUrl ?? false}
+                  disabled={layoutLocked}
+                  onChange={resolveItemUrl => onChange({
+                    ...target,
+                    resolveItemUrl,
+                  })}
+                />
+              )
+              : null}
             <p className="text-xs text-muted-foreground">
               {t("Tip: for classes that end in a rotating hash (e.g. Udemy's \"…__9JCrHq__section-title\"), match a stable substring with an attribute selector like [class*=\"section-title\"] instead of the full class.")}
             </p>
@@ -280,10 +365,11 @@ export function SectionsTarget({
 
 /** One composed-name part: a relative selector plus its own read / filters / transforms. */
 function SectionNamePartRow({
-  part, index, disabled, onChange, onRemove,
+  part, index, itemPath, disabled, onChange, onRemove,
 }: {
   part: SectionNamePart;
   index: number;
+  itemPath: string;
   disabled: boolean;
   onChange: (next: SectionNamePart) => void;
   onRemove: () => void;
@@ -310,7 +396,7 @@ function SectionNamePartRow({
         </Button>
       </div>
       <LabeledInput
-        label={t("Selector (within each item)")}
+        label={t("Name part selector (within each item)")}
         disabled={disabled}
         placeholder={"[class*=\"badge\"]"}
         value={part.selector ?? ""}
@@ -319,6 +405,10 @@ function SectionNamePartRow({
           selector,
         })}
         hint={t("Relative to the item. Leave blank to read the item element itself.")}
+      />
+      <SelectorPathHint
+        prefix={itemPath}
+        selector={part.selector}
       />
       <FillReadField
         read={part.read}
@@ -351,10 +441,11 @@ function SectionNamePartRow({
  * are joined by the separator. When empty, the single "Item name selector" above is used instead.
  */
 function SectionNamePartsEditor({
-  parts, separator, disabled, onPartsChange, onSeparatorChange,
+  parts, separator, itemPath, disabled, onPartsChange, onSeparatorChange,
 }: {
   parts: SectionNamePart[];
   separator: string | undefined;
+  itemPath: string;
   disabled: boolean;
   onPartsChange: (parts: SectionNamePart[]) => void;
   onSeparatorChange: (separator: string) => void;
@@ -373,6 +464,7 @@ function SectionNamePartsEditor({
           key={index}
           part={part}
           index={index}
+          itemPath={itemPath}
           disabled={disabled}
           onChange={next => onPartsChange(parts.map((existing, current) => (current === index ? next : existing)))}
           onRemove={() => onPartsChange(parts.filter((_, current) => current !== index))}

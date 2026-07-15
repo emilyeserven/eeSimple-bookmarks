@@ -198,6 +198,8 @@ export function describeFillTransform(transform: FillTransform): string {
       return `Replace /${transform.pattern}/${transform.flags ?? ""} → "${transform.replacement}"`;
     case "trim":
       return "Trim";
+    case "capitalizeFirst":
+      return "Capitalize first letter";
     case "affix":
       return [
         transform.prefix ? `Prefix "${transform.prefix}"` : "",

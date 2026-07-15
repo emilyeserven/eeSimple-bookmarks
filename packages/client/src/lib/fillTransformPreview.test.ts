@@ -46,6 +46,19 @@ describe("applyFillTransform", () => {
     })).toBe("padded");
   });
 
+  it("capitalizeFirst — uppercases the first character only", () => {
+    expect(applyFillTransform("hello world", {
+      kind: "capitalizeFirst",
+    })).toBe("Hello world");
+    // Empty string passes through; the rest of the value is left as-is (not title-cased).
+    expect(applyFillTransform("", {
+      kind: "capitalizeFirst",
+    })).toBe("");
+    expect(applyFillTransform("iPhone case", {
+      kind: "capitalizeFirst",
+    })).toBe("IPhone case");
+  });
+
   it("affix — prepends prefix and appends suffix (each optional)", () => {
     expect(applyFillTransform("/books/1", {
       kind: "affix",
