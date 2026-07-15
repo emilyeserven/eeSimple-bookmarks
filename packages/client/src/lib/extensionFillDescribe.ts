@@ -174,6 +174,8 @@ export function describeFillFilter(filter: FillFilter): string {
       return `Closest ancestor "${filter.selector}"`;
     case "nth":
       return `Nth match #${filter.index}`;
+    case "exclude":
+      return `Exclude ${describeTextMatch(filter.match)}`;
   }
 }
 

@@ -267,6 +267,14 @@ function RuleDetailList({
           />
         )
         : null}
+      {(rule.extract.excludeSelectors ?? []).length > 0
+        ? (
+          <DetailRow
+            label={t("Exclude selectors")}
+            value={<code className="font-mono text-xs break-all">{(rule.extract.excludeSelectors ?? []).join(", ")}</code>}
+          />
+        )
+        : null}
       {rule.target.kind === "taxonomy" && rule.extract.split
         ? (
           <DetailRow

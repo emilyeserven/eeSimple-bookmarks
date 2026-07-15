@@ -226,6 +226,15 @@ export interface FillExtract {
   /** Applied in order, each narrows candidates. */
   filters?: FillFilter[];
   /**
+   * CSS selectors whose matching **descendants** are removed from each matched element before its
+   * **text** is read — so their text never pollutes the value (e.g. drop a nested "Read more" button
+   * or a price badge inside a description). Selectors are relative to the matched element and applied
+   * to a throwaway clone, so the live page is untouched. Only affects the default `text` read;
+   * `attr` / `backgroundImage` reads and the `meta` source ignore it. Absent/empty = read the full
+   * subtree text (today's behavior).
+   */
+  excludeSelectors?: string[];
+  /**
    * Default trimmed `textContent` (or the `content` attribute for the `meta` source).
    * `backgroundImage` reads the element's **computed `background-image`** and pulls the first
    * `url(…)` out of it — how you grab an image painted via CSS rather than an `<img src>` (pair it
@@ -251,7 +260,10 @@ export type FillFilter
         | { kind: "closest";
           selector: string; }
           | { kind: "nth";
-            index: number; };
+            index: number; }
+  /** Removes candidates whose own trimmed text matches — the inverse of `selfText`. */
+            | { kind: "exclude";
+              match: TextMatch; };
 
 /** Text-matching mode shared by the text-based `FillFilter` variants. */
 export interface TextMatch {

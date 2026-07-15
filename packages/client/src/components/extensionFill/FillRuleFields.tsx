@@ -220,6 +220,21 @@ export function FillRuleFields({
             })}
           />
         )}
+      {/* Node exclusion strips matching descendants before a text read — only meaningful for the
+          default text read on a selector source. */}
+      {rule.extract.source !== "meta" && (rule.extract.read == null || rule.extract.read.kind === "text")
+        ? (
+          <LabeledInput
+            label={t("Exclude selectors")}
+            placeholder=".read-more, .price-badge"
+            value={(rule.extract.excludeSelectors ?? []).join(", ")}
+            onChange={value => patchExtract({
+              excludeSelectors: value.split(",").map(selector => selector.trim()).filter(Boolean),
+            })}
+            hint={t("Comma-separated descendant selectors removed before reading the element's text (e.g. drop a nested \"Read more\" button).")}
+          />
+        )
+        : null}
       {rule.target.kind === "taxonomy"
         ? (
           <LabeledInput

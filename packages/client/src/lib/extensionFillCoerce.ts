@@ -194,6 +194,11 @@ export function coerceFillFilter(kind: FillFilter["kind"], prev: FillFilter): Fi
         kind: "nth",
         index: prev.kind === "nth" ? prev.index : 0,
       };
+    case "exclude":
+      return {
+        kind: "exclude",
+        match,
+      };
   }
 }
 

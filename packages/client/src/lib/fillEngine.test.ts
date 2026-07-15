@@ -256,6 +256,47 @@ describe("eesimpleFillEngine.runRules — filters", () => {
     };
     expect(runOne(rule, LIST_HTML).values).toEqual([]);
   });
+
+  it("exclude — drops candidates whose own text matches (the inverse of selfText)", () => {
+    const rule = {
+      id: "exclude",
+      extract: {
+        selector: ".item",
+        filters: [{
+          kind: "exclude",
+          match: {
+            mode: "contains",
+            value: "Docker",
+          },
+        }],
+      },
+    };
+    expect(runOne(rule, LIST_HTML).values).toEqual(["Kubernetes Up and Running"]);
+  });
+
+  it("exclude — combines with an inclusion filter (keep .author except 'See all')", () => {
+    const html = `
+      <div class="authors">
+        <a class="author">Ada Lovelace</a>
+        <a class="author">Grace Hopper</a>
+        <a class="author">See all</a>
+      </div>
+    `;
+    const rule = {
+      id: "exclude-authors",
+      extract: {
+        selector: ".author",
+        filters: [{
+          kind: "exclude",
+          match: {
+            mode: "equals",
+            value: "See all",
+          },
+        }],
+      },
+    };
+    expect(runOne(rule, html).values).toEqual(["Ada Lovelace", "Grace Hopper"]);
+  });
 });
 
 describe("eesimpleFillEngine.runRules — read", () => {
@@ -300,6 +341,53 @@ describe("eesimpleFillEngine.runRules — read", () => {
       },
     };
     expect(runOne(rule, HTML).values).toEqual(["Learn Docker"]);
+  });
+
+  const DESCRIPTION_HTML = `
+    <div class="desc">
+      A great book about Docker.
+      <button class="read-more">Read more</button>
+      <span class="price">$39.99</span>
+    </div>
+  `;
+
+  it("excludeSelectors — strips matching descendants before a text read", () => {
+    const rule = {
+      id: "desc",
+      extract: {
+        selector: ".desc",
+        excludeSelectors: [".read-more", ".price"],
+      },
+    };
+    expect(runOne(rule, DESCRIPTION_HTML).values).toEqual(["A great book about Docker."]);
+  });
+
+  it("excludeSelectors — does not affect an attr read", () => {
+    const rule = {
+      id: "isbn",
+      extract: {
+        selector: ".link",
+        excludeSelectors: [".anything"],
+        read: {
+          kind: "attr",
+          name: "data-isbn",
+        },
+      },
+    };
+    expect(runOne(rule, HTML).values).toEqual(["9781633438460"]);
+  });
+
+  it("excludeSelectors — a malformed selector is skipped, not a rule error", () => {
+    const rule = {
+      id: "desc",
+      extract: {
+        selector: ".desc",
+        excludeSelectors: ["::not-a-valid-selector", ".read-more", ".price"],
+      },
+    };
+    const result = runOne(rule, DESCRIPTION_HTML);
+    expect(result.error).toBeUndefined();
+    expect(result.values).toEqual(["A great book about Docker."]);
   });
 
   it("backgroundImage — pulls the url out of an inline background-image style", () => {
@@ -960,6 +1048,35 @@ describe("eesimpleFillEngine.runRules — sections target", () => {
         type: "name",
         startValue: "",
       },
+      {
+        name: "Setup",
+        type: "name",
+        startValue: "",
+      },
+    ]);
+  });
+
+  it("omits an item that node exclusion strips down to nothing (no empty section made)", () => {
+    const html = `
+      <ul>
+        <li class="lec"><span class="badge">new</span></li>
+        <li class="lec"><span class="badge">new</span>Setup</li>
+      </ul>
+    `;
+    const rule = {
+      id: "flat-name-excluded",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "name",
+      },
+      extract: {
+        selector: ".lec",
+        excludeSelectors: [".badge"],
+      },
+    };
+    // The first item's only content is the excluded badge → dropped; the second keeps its own text.
+    expect(runSections(rule, html)).toEqual([
       {
         name: "Setup",
         type: "name",

@@ -334,6 +334,11 @@ function cleanFilter(filter: FillFilter): FillFilter | null {
         kind: "nth",
         index: filter.index,
       };
+    case "exclude":
+      return {
+        kind: "exclude",
+        match: cleanTextMatch(filter.match),
+      };
   }
 }
 
@@ -448,6 +453,11 @@ function cleanExtract(extract: FillExtract, isTaxonomy: boolean): FillExtract | 
     .filter((entry): entry is FillTransform => entry !== null);
   const read = cleanRead(extract.read);
   const split = isTaxonomy && extract.split && extract.split.length > 0 ? extract.split : undefined;
+  // Trim each exclude selector and drop blanks; a `meta` source reads `content`, so node stripping
+  // (text-read only) is meaningless there and is omitted.
+  const excludeSelectors = isMeta
+    ? []
+    : (extract.excludeSelectors ?? []).map(selector => selector.trim()).filter(Boolean);
   return {
     ...(isMeta
       ? {
@@ -460,6 +470,11 @@ function cleanExtract(extract: FillExtract, isTaxonomy: boolean): FillExtract | 
     ...(filters.length
       ? {
         filters,
+      }
+      : {}),
+    ...(excludeSelectors.length
+      ? {
+        excludeSelectors,
       }
       : {}),
     // A meta source reads `content` by default; only keep an explicit `attr` override.
