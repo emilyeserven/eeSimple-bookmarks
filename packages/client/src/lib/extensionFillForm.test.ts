@@ -1439,6 +1439,56 @@ describe("sections target", () => {
     })).toBe("Sections · Name only");
   });
 
+  it("emits exhaustive only when set, and appends it to the summary", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "sections",
+        propertyId: "p1",
+        entryType: "name",
+        exhaustive: true,
+      },
+      extract: {
+        selector: ".toc li",
+      },
+    })]);
+    expect(out.target).toEqual({
+      kind: "sections",
+      propertyId: "p1",
+      entryType: "name",
+      exhaustive: true,
+    });
+    expect(describeFillTarget(out.target)).toBe("Sections · Name only · exhaustive");
+  });
+
+  it("omits a false/unset exhaustive flag during normalization", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "sections",
+        propertyId: "p1",
+        entryType: "name",
+        exhaustive: false,
+      },
+      extract: {
+        selector: ".toc li",
+      },
+    })]);
+    expect(out.target).toEqual({
+      kind: "sections",
+      propertyId: "p1",
+      entryType: "name",
+    });
+  });
+
+  it("preserves exhaustive across a same-kind rebuild", () => {
+    const target = {
+      kind: "sections" as const,
+      propertyId: "p1",
+      entryType: "name" as const,
+      exhaustive: true,
+    };
+    expect(coerceFillTarget("sections", target)).toEqual(target);
+  });
+
   it("preserves itemUrl and sectionMatch across a same-kind rebuild", () => {
     const target = {
       kind: "sections" as const,

@@ -120,12 +120,7 @@ export function FillRuleFields({
   }
   const pathMatch = rule.pathMatch ?? newPathMatch();
   return (
-    <div
-      className="
-        grid gap-3
-        sm:grid-cols-2
-      "
-    >
+    <div className="grid gap-3">
       <FillTargetPicker
         target={rule.target}
         propertyOptions={propertyOptions}
@@ -137,7 +132,7 @@ export function FillRuleFields({
       <div
         className="
           grid gap-3
-          sm:col-span-2 sm:grid-cols-2
+          sm:grid-cols-2
         "
       >
         <KindSelect
@@ -259,12 +254,7 @@ export function FillRuleFields({
           />
         )
         : null}
-      <div
-        className="
-          space-y-3
-          sm:col-span-2
-        "
-      >
+      <div className="space-y-3">
         <FillFilterList
           filters={rule.extract.filters ?? []}
           onChange={filters => patchExtract({

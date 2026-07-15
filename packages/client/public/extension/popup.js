@@ -882,7 +882,9 @@ function buildSectionsRow(rule, result, ctx) {
     const map = seedValueMap(state, "sectionsValues", bookmark);
     map.set(property.id, {
       propertyId: property.id,
-      exhaustive: existing ? existing.exhaustive : false,
+      // A rule can declare its scraped list exhaustive (enables sections-derived Progress); otherwise
+      // preserve the stored flag (false for a first fill).
+      exhaustive: rule.target.exhaustive === true ? true : (existing ? existing.exhaustive : false),
       sections: entries,
     });
   };

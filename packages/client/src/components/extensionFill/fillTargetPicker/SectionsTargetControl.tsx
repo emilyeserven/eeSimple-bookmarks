@@ -112,6 +112,39 @@ function ResolveItemUrlToggle({
 }
 
 /**
+ * "Mark filled sections as exhaustive" toggle — flags the written value exhaustive (the scraped list
+ * is the complete set), which enables sections-derived Progress.
+ */
+function MarkExhaustiveToggle({
+  checked, onChange, disabled,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  disabled?: boolean;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const id = useId();
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id={id}
+          checked={checked}
+          disabled={disabled}
+          onCheckedChange={value => onChange(value === true)}
+        />
+        <Label htmlFor={id}>{t("Mark filled sections as exhaustive")}</Label>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {t("The scraped list is the complete set of sections. Enables a linked Progress property to auto-derive its count from the sections' completion.")}
+      </p>
+    </div>
+  );
+}
+
+/**
  * Controls for a `sections` target: pick the sections-typed property, the entry type, and how the
  * page's items are grouped into sections/subsections. The grouping modes are mutually exclusive and
  * each shows only its own fields, so a rule can't silently combine two:
@@ -359,6 +392,14 @@ export function SectionsTarget({
             <SectionsUdemyExample />
           </>
         )}
+      <MarkExhaustiveToggle
+        checked={target.exhaustive ?? false}
+        disabled={layoutLocked}
+        onChange={exhaustive => onChange({
+          ...target,
+          exhaustive,
+        })}
+      />
     </div>
   );
 }

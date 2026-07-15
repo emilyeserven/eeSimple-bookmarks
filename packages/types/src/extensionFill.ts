@@ -176,6 +176,13 @@ export type FillTarget
    * non-sections path): an `exclude` / `excludeSelector` filter drops whole item candidates before each
    * leaf is built, so e.g. an `excludeSelector: ".badge"` removes stray badge rows. (This is distinct
    * from per-`nameParts` `filters`, which only narrow which element a name part reads.)
+   *
+   * **`exhaustive`** (opt-in) — when set, the `BookmarkSectionsValue` written on fill is flagged
+   * `exhaustive: true`, i.e. the scraped list *is* the complete set of sections (a full course
+   * curriculum, an entire ToC). This is the same flag the Sections editor's "Exhaustive" checkbox
+   * sets, and it enables sections-derived Progress (`recomputeDerivedProgress` only counts leaves
+   * when the source Sections value is exhaustive). Unset = the stored value's flag is preserved
+   * (`false` for a first fill), matching today's behavior.
    */
               | { kind: "sections";
                 propertyId: string;
@@ -188,7 +195,8 @@ export type FillTarget
                 nameParts?: SectionNamePart[];
                 namePartSeparator?: string;
                 sectionMatch?: TextMatch;
-                sectionHeaderSelector?: string; };
+                sectionHeaderSelector?: string;
+                exhaustive?: boolean; };
 
 /**
  * Entry types a `sections` fill target can build. `timestamp` is parsed from a text block; `name`
