@@ -1556,6 +1556,108 @@ describe("eesimpleFillEngine.runRules — sections target", () => {
     ]);
   });
 
+  // Regression: `sectionMatch` grouping must key off the item's OWN text, not the composed
+  // `nameParts` display name. Here the section token ("Part") lives only in the `.kind` badge, which
+  // nameParts excludes — so the composed names never contain it. Before the fix, matching the composed
+  // name found no boundaries and the list collapsed flat (no subsections).
+  const NAMEPART_TOC_HTML = `
+    <ul class="toc">
+      <li><a href="/part-1"><span class="kind">Part</span><span class="title">Foundations</span></a></li>
+      <li><a href="/ch-1"><span class="kind">Chapter</span><span class="title">Getting Started</span></a></li>
+      <li><a href="/part-2"><span class="kind">Part</span><span class="title">Advanced</span></a></li>
+      <li><a href="/ch-2"><span class="kind">Chapter</span><span class="title">Runners</span></a></li>
+    </ul>
+  `;
+
+  it("detects subsections via item own-text even when nameParts composes a different display name", () => {
+    const rule = {
+      id: "toc-nameparts",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "url",
+        sectionMatch: {
+          mode: "contains",
+          value: "Part",
+        },
+        nameParts: [{
+          selector: ".title",
+        }],
+      },
+      extract: {
+        selector: ".toc a",
+        read: {
+          kind: "attr",
+          name: "href",
+        },
+      },
+    };
+    expect(runSections(rule, NAMEPART_TOC_HTML)).toEqual([
+      {
+        name: "Foundations", // composed from `.title`, NOT the own-text "PartFoundations"
+        type: "url",
+        startValue: "/part-1",
+        children: [
+          {
+            name: "Getting Started",
+            type: "url",
+            startValue: "/ch-1",
+          },
+        ],
+      },
+      {
+        name: "Advanced",
+        type: "url",
+        startValue: "/part-2",
+        children: [
+          {
+            name: "Runners",
+            type: "url",
+            startValue: "/ch-2",
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("falls back to own text when every namePart resolves empty (item not dropped)", () => {
+    const html = `
+      <ul>
+        <li class="lec"><span class="title">Welcome</span></li>
+        <li class="lec"><span class="title">Setup</span></li>
+      </ul>
+    `;
+    const rule = {
+      id: "namepart-empty-fallback",
+      target: {
+        kind: "sections",
+        propertyId: "p",
+        entryType: "name",
+        // A part selector that matches nothing in these items → parts resolve empty.
+        nameParts: [{
+          selector: ".missing",
+        }],
+      },
+      extract: {
+        selector: ".lec",
+      },
+    };
+    // Before the fix the empty composed name was dropped by the empty-entry guard; now it falls back
+    // to the item's own text.
+    expect(runSections(rule, html)).toEqual([
+      {
+        name: "Welcome",
+        type: "name",
+        startValue: "",
+      },
+      {
+        name: "Setup",
+        type: "name",
+        startValue: "",
+      },
+    ]);
+  });
+
   it("prefers the text match over the container selector when both are set", () => {
     const rule = {
       id: "toc",

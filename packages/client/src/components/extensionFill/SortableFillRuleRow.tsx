@@ -11,7 +11,10 @@ import { useTranslation } from "react-i18next";
 
 import { LabeledInput } from "./controls";
 import { FillRuleFields } from "./FillRuleFields";
+import { RuleJsonEditor } from "./RuleJsonEditor";
+import { RuleTestPanel } from "./RuleTestPanel";
 
+import { CollapsibleFormSection } from "@/components/CollapsibleFormSection";
 import { Button } from "@/components/ui/button";
 import {
   describeFillFilter,
@@ -136,6 +139,23 @@ export function FillRuleCard({
               onChange={onChange}
               lockedKeys={lockedKeys}
             />
+            <CollapsibleFormSection
+              title={t("Test against sample HTML")}
+              description={t("Paste HTML to see exactly what this rule captures — the same engine the extension runs.")}
+              preview={t("Debug what this rule extracts")}
+            >
+              <RuleTestPanel rule={rule} />
+            </CollapsibleFormSection>
+            <CollapsibleFormSection
+              title={t("Edit as JSON")}
+              description={t("Edit the whole rule (filters, transforms, and the sections target) as raw JSON.")}
+              preview={t("View or edit the rule as JSON")}
+            >
+              <RuleJsonEditor
+                rule={rule}
+                onChange={onChange}
+              />
+            </CollapsibleFormSection>
             <div className="flex justify-end">
               <Button
                 type="button"
