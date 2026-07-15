@@ -289,3 +289,43 @@ describe("SectionsPropertyField exclude-from-progress checkboxes", () => {
     expect(next.sections[0].excludeFromProgress).toBe(false);
   });
 });
+
+describe("SectionsPropertyField clear-all button", () => {
+  it("renders no clear-all button when there are no sections", async () => {
+    await renderWithRouter(
+      <SectionsPropertyField
+        property={property}
+        value={emptyValue}
+        onChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByRole("button", {
+      name: /Clear all sections/,
+    })).not.toBeInTheDocument();
+  });
+
+  it("clears every section when confirmed", async () => {
+    const onChange = vi.fn();
+    await renderWithRouter(
+      <SectionsPropertyField
+        property={property}
+        value={tieredValue}
+        onChange={onChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", {
+      name: /Clear all sections/,
+    }));
+    // Confirm inside the dialog (the confirm button is labelled just "Clear all").
+    fireEvent.click(screen.getByRole("button", {
+      name: "Clear all",
+    }));
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    const next = onChange.mock.calls[0][0];
+    expect(next.sections).toEqual([]);
+    expect(next.exhaustive).toBe(false);
+  });
+});

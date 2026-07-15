@@ -684,6 +684,8 @@
   "Clear Plex link": "Clear Plex link",
   "Clear Sort": "Clear Sort",
   "Clear all": "Clear all",
+  "Clear all sections": "Clear all sections",
+  "Clear all {{count}} sections?": "Clear all {{count}} sections?",
   "Clear basket": "Clear basket",
   "Clear filter": "Clear filter",
   "Clear filter search": "Clear filter search",
