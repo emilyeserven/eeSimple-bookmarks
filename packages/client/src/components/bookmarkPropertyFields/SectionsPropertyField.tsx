@@ -4,7 +4,7 @@ import type { CustomProperty, SectionEntry, SectionEntryType } from "@eesimple/t
 import { useState } from "react";
 
 import { SECTION_ENTRY_TYPES, SECTION_ENTRY_TYPE_LABELS } from "@eesimple/types";
-import { BookOpen, Loader2 } from "lucide-react";
+import { BookOpen, Loader2, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { FieldDescription } from "./FieldDescription";
@@ -16,6 +16,16 @@ import { SectionsSummary } from "../SectionsSummary";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -101,6 +111,63 @@ function SectionBulkTypeControl({
         {t("Apply")}
       </Button>
     </div>
+  );
+}
+
+/**
+ * Confirm-gated "Clear all sections" control. Because the property form auto-saves shortly after any
+ * change with no undo, wiping the whole list sits behind a confirm dialog — mirrors {@link PruneEmptyButton}.
+ * Only rendered when there is at least one section to clear.
+ */
+function ClearAllSectionsButton({
+  count, onClear,
+}: {
+  count: number;
+  onClear: () => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const [open, setOpen] = useState(false);
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={setOpen}
+    >
+      <DialogTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+        >
+          <Trash2 className="size-4" />
+          {t("Clear all sections")}
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("Clear all {{count}} sections?", {
+            count,
+          })}
+          </DialogTitle>
+          <DialogDescription>{t("This cannot be undone.")}</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">{t("Cancel")}</Button>
+          </DialogClose>
+          <Button
+            variant="destructive"
+            onClick={() => {
+              onClear();
+              setOpen(false);
+            }}
+          >
+            {t("Clear all")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -254,6 +321,17 @@ export function SectionsPropertyField({
                 : <BookOpen className="size-4" />}
               {t("Import from Kavita")}
             </Button>
+          )
+          : null}
+        {value.sections.length > 0
+          ? (
+            <ClearAllSectionsButton
+              count={value.sections.length}
+              onClear={() => onChange({
+                ...value,
+                sections: [],
+              })}
+            />
           )
           : null}
       </div>
