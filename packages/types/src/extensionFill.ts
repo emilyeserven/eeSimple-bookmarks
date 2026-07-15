@@ -263,7 +263,14 @@ export type FillFilter
             index: number; }
   /** Removes candidates whose own trimmed text matches — the inverse of `selfText`. */
             | { kind: "exclude";
-              match: TextMatch; };
+              match: TextMatch; }
+  /**
+   * Removes candidates that match a CSS selector (`el.matches`) — the structural sibling of `exclude`
+   * (text). Drops a badge/label node picked up alongside the real items (e.g. a `.capitalize` "quiz"
+   * chip beside a lesson name).
+   */
+              | { kind: "excludeSelector";
+                selector: string; };
 
 /** Text-matching mode shared by the text-based `FillFilter` variants. */
 export interface TextMatch {

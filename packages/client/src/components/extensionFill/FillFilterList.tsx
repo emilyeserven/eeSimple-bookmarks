@@ -16,6 +16,7 @@ type FilterKind = FillFilter["kind"];
 type AncestorFilter = Extract<FillFilter, { kind: "ancestorText" }>;
 type ClosestFilter = Extract<FillFilter, { kind: "closest" }>;
 type NthFilter = Extract<FillFilter, { kind: "nth" }>;
+type ExcludeSelectorFilter = Extract<FillFilter, { kind: "excludeSelector" }>;
 
 /** The dynamic list of {@link FillFilter} rows for one rule (add / remove / reorder). */
 export function FillFilterList({
@@ -124,6 +125,13 @@ function FillFilterFields({
           onChange={onChange}
         />
       );
+    case "excludeSelector":
+      return (
+        <ExcludeSelectorFields
+          filter={filter}
+          onChange={onChange}
+        />
+      );
     case "nth":
       return (
         <NthFields
@@ -186,6 +194,28 @@ function ClosestFields({
   );
 }
 
+function ExcludeSelectorFields({
+  filter, onChange,
+}: {
+  filter: ExcludeSelectorFilter;
+  onChange: (filter: FillFilter) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <LabeledInput
+      label={t("Exclude selector")}
+      placeholder=".capitalize"
+      value={filter.selector}
+      onChange={selector => onChange({
+        ...filter,
+        selector,
+      })}
+    />
+  );
+}
+
 function NthFields({
   filter, onChange,
 }: {
@@ -232,6 +262,10 @@ function FILTER_KIND_OPTIONS(t: (key: string) => string): KindOption<FilterKind>
     {
       value: "exclude",
       label: t("Exclude by text"),
+    },
+    {
+      value: "excludeSelector",
+      label: t("Exclude by selector"),
     },
   ];
 }

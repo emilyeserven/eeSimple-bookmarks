@@ -611,6 +611,10 @@ describe("describeFillFilter", () => {
         value: "See all",
       },
     })).toBe("Exclude equals \"See all\"");
+    expect(describeFillFilter({
+      kind: "excludeSelector",
+      selector: ".capitalize",
+    })).toBe("Exclude nodes matching \".capitalize\"");
   });
 });
 
@@ -714,6 +718,28 @@ describe("coerceFillFilter", () => {
         mode: "equals",
         value: "Pages",
       },
+    });
+  });
+
+  it("carries the selector from closest into excludeSelector", () => {
+    const closest = {
+      kind: "closest" as const,
+      selector: ".capitalize",
+    };
+    expect(coerceFillFilter("excludeSelector", closest)).toEqual({
+      kind: "excludeSelector",
+      selector: ".capitalize",
+    });
+    // From a text filter there is no selector to carry → blank.
+    expect(coerceFillFilter("excludeSelector", {
+      kind: "selfText",
+      match: {
+        mode: "equals",
+        value: "x",
+      },
+    })).toEqual({
+      kind: "excludeSelector",
+      selector: "",
     });
   });
 });
@@ -835,6 +861,28 @@ describe("normalizeExtensionFillRules", () => {
         mode: "equals",
         value: "See all",
       },
+    }]);
+  });
+
+  it("keeps an excludeSelector filter and drops one with a blank selector", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      extract: {
+        selector: ".inline-flex > span",
+        filters: [
+          {
+            kind: "excludeSelector",
+            selector: "  .capitalize ",
+          },
+          {
+            kind: "excludeSelector",
+            selector: "   ",
+          },
+        ],
+      },
+    })]);
+    expect(out.extract.filters).toEqual([{
+      kind: "excludeSelector",
+      selector: ".capitalize",
     }]);
   });
 

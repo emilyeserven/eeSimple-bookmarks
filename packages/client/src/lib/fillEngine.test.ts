@@ -297,6 +297,46 @@ describe("eesimpleFillEngine.runRules — filters", () => {
     };
     expect(runOne(rule, html).values).toEqual(["Ada Lovelace", "Grace Hopper"]);
   });
+
+  // A course-sidebar item: a `.capitalize` badge span sits beside the lesson name span.
+  const BADGE_HTML = `
+    <a href="/c/why-typescript-quiz">
+      <span class="inline-flex gap-2 truncate">
+        <span class="capitalize">quiz</span>
+        <span class="truncate">(Quiz) Why TypeScript?</span>
+      </span>
+    </a>
+  `;
+
+  it("excludeSelector — drops candidates matching a CSS selector (the badge node)", () => {
+    const rule = {
+      id: "exclude-selector",
+      extract: {
+        selector: ".inline-flex > span",
+        filters: [{
+          kind: "excludeSelector",
+          selector: ".capitalize",
+        }],
+      },
+    };
+    expect(runOne(rule, BADGE_HTML).values).toEqual(["(Quiz) Why TypeScript?"]);
+  });
+
+  it("excludeSelector — a malformed selector keeps every candidate (no rule error)", () => {
+    const rule = {
+      id: "exclude-selector-bad",
+      extract: {
+        selector: ".item",
+        filters: [{
+          kind: "excludeSelector",
+          selector: "::bogus",
+        }],
+      },
+    };
+    const result = runOne(rule, LIST_HTML);
+    expect(result.error).toBeUndefined();
+    expect(result.values).toEqual(["Learn Docker", "Kubernetes Up and Running", "Docker Deep Dive"]);
+  });
 });
 
 describe("eesimpleFillEngine.runRules — read", () => {

@@ -339,6 +339,13 @@ function cleanFilter(filter: FillFilter): FillFilter | null {
         kind: "exclude",
         match: cleanTextMatch(filter.match),
       };
+    case "excludeSelector":
+      return filter.selector.trim()
+        ? {
+          kind: "excludeSelector",
+          selector: filter.selector.trim(),
+        }
+        : null;
   }
 }
 
