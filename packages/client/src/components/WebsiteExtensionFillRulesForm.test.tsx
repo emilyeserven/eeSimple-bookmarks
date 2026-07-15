@@ -187,6 +187,28 @@ describe("WebsiteExtensionFillRulesForm", () => {
     expect(screen.getByText("YouTube channel · Image (from URL)")).toBeInTheDocument();
   });
 
+  it("runs every rule against pasted HTML on the Debug tab", () => {
+    render(<WebsiteExtensionFillRulesForm website={website} />);
+
+    fireEvent.click(screen.getByRole("button", {
+      name: "Debug",
+    }));
+
+    const htmlInput = screen.getByLabelText("Sample HTML");
+    fireEvent.change(htmlInput, {
+      target: {
+        value: "<div class=\"title\">My Page</div>",
+      },
+    });
+
+    // The "Title text" rule (selector `.title`) captures the pasted text; shown under its label as
+    // the quoted JSON value (distinct from the raw HTML in the textarea).
+    expect(screen.getByText("Title text")).toBeInTheDocument();
+    expect(screen.getByText(/"My Page"/)).toBeInTheDocument();
+    // The "Print length" rule's selector matches nothing here.
+    expect(screen.getByText("No matches captured.")).toBeInTheDocument();
+  });
+
   it("shows the empty state when a site has no rules", () => {
     render(
       <WebsiteExtensionFillRulesForm

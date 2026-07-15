@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { useTranslation } from "react-i18next";
 
+import { ExtensionFillDebugTab } from "./extensionFill/ExtensionFillDebugTab";
 import { ExtensionFillRulesEditor } from "./extensionFill/ExtensionFillRulesEditor";
 import { ExtensionFillGroupsBoard } from "./extensionFill/groups/ExtensionFillGroupsBoard";
 import { WebsiteBuiltInFillRules } from "./extensionFill/WebsiteBuiltInFillRules";
@@ -17,13 +18,14 @@ interface Props {
   website: Website;
 }
 
-type SubTab = "rules" | "groups";
+type SubTab = "rules" | "groups" | "debug";
 
 /**
  * Edit a website's browser-extension "check & fill" extraction rules — a self-contained vertical
- * two-tab rail (mirroring `VerticalTabbedLayout` without routing): **Rules** (the grouped rule list +
- * built-in rules) and **Groups** (manage rule groups + their option overrides). Both share one
- * debounced auto-save via {@link useExtensionFillRulesEditor}.
+ * tab rail (mirroring `VerticalTabbedLayout` without routing): **Rules** (the grouped rule list +
+ * built-in rules), **Groups** (manage rule groups + their option overrides), and **Debug** (paste
+ * sample HTML and see what every rule captures). Rules/Groups share one debounced auto-save via
+ * {@link useExtensionFillRulesEditor}.
  */
 export function WebsiteExtensionFillRulesForm({
   website,
@@ -43,6 +45,10 @@ export function WebsiteExtensionFillRulesForm({
     {
       key: "groups",
       label: t("Groups"),
+    },
+    {
+      key: "debug",
+      label: t("Debug"),
     },
   ];
 
@@ -91,15 +97,22 @@ export function WebsiteExtensionFillRulesForm({
               <WebsiteBuiltInFillRules website={website} />
             </div>
           )
-          : (
-            <ExtensionFillGroupsBoard
-              rules={editor.rules}
-              groups={editor.groups}
-              onRulesChange={editor.changeRules}
-              onGroupsChange={editor.changeGroups}
-              onReplace={editor.replace}
-            />
-          )}
+          : tab === "groups"
+            ? (
+              <ExtensionFillGroupsBoard
+                rules={editor.rules}
+                groups={editor.groups}
+                onRulesChange={editor.changeRules}
+                onGroupsChange={editor.changeGroups}
+                onReplace={editor.replace}
+              />
+            )
+            : (
+              <ExtensionFillDebugTab
+                rules={editor.rules}
+                groups={editor.groups}
+              />
+            )}
       </div>
     </div>
   );

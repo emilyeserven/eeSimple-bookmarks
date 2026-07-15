@@ -540,6 +540,10 @@
       });
       if (value !== "") parts.push(value);
     });
+    // When no part resolved to anything, fall back to the item's own text (via `itemName`) so a
+    // nameParts item is never left nameless — otherwise the empty-name guard would drop it (and any
+    // section it should open).
+    if (parts.length === 0) return readName(el, target.itemName, excludeSelectors);
     return parts.join(target.namePartSeparator != null ? target.namePartSeparator : "");
   }
 
@@ -650,7 +654,10 @@
       candidateNodes(extract, doc).forEach(function (el) {
         var leaf = buildSectionLeaf(el, target, extract);
         if (!leaf) return;
-        if (matchesText(leaf.name, target.sectionMatch)) {
+        // Section boundaries key off the item's OWN text (`itemName`/own-text), NOT the composed
+        // `nameParts` display name — otherwise composing a name silently breaks grouping.
+        var matchName = readName(el, target.itemName, extract.excludeSelectors);
+        if (matchesText(matchName, target.sectionMatch)) {
           leaf.children = [];
           groups.push(leaf);
           current = leaf;
