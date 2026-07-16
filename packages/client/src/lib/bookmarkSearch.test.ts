@@ -533,6 +533,7 @@ describe("bookmarkMatchesSearch", () => {
     kavitaSeriesId: null,
     feedUrl: null,
     hasFillableFields: false,
+    hasAnyFillableField: false,
   };
 
   it("passes when no filters are active", () => {
@@ -932,6 +933,7 @@ describe("bookmarkMatchesSearch", () => {
     kavitaSeriesId: null,
     feedUrl: null,
     hasFillableFields: false,
+    hasAnyFillableField: false,
   };
 
   it("passes the presence filter based on whether any identity field is set", () => {
@@ -1237,23 +1239,55 @@ describe("bookmarkMatchesSearch — exclude mode", () => {
     kavitaSeriesId: null,
     feedUrl: null,
     hasFillableFields: false,
+    hasAnyFillableField: false,
   };
 
   describe("fillable-fields facet", () => {
-    it("matches the presence toggle against the derived hasFillableFields flag", () => {
-      const fillable = {
-        ...base,
-        hasFillableFields: true,
-      };
-      expect(bookmarkMatchesSearch(fillable, {
+    // Has an unfilled fillable field → both flags true.
+    const unfilled = {
+      ...base,
+      hasFillableFields: true,
+      hasAnyFillableField: true,
+    };
+    // Has fillable fields, but they are all already filled → only the broad flag is true.
+    const allFilled = {
+      ...base,
+      hasFillableFields: false,
+      hasAnyFillableField: true,
+    };
+
+    it("matches 'has' (unfilled) against the derived hasFillableFields flag", () => {
+      expect(bookmarkMatchesSearch(unfilled, {
         fillableFieldsPresence: "has",
       })).toBe(true);
+      expect(bookmarkMatchesSearch(allFilled, {
+        fillableFieldsPresence: "has",
+      })).toBe(false);
       expect(bookmarkMatchesSearch(base, {
         fillableFieldsPresence: "has",
       })).toBe(false);
-      expect(bookmarkMatchesSearch(fillable, {
+    });
+
+    it("matches 'fillable' (has fillable fields at all) against hasAnyFillableField", () => {
+      expect(bookmarkMatchesSearch(unfilled, {
+        fillableFieldsPresence: "fillable",
+      })).toBe(true);
+      expect(bookmarkMatchesSearch(allFilled, {
+        fillableFieldsPresence: "fillable",
+      })).toBe(true);
+      expect(bookmarkMatchesSearch(base, {
+        fillableFieldsPresence: "fillable",
+      })).toBe(false);
+    });
+
+    it("matches 'missing' (nothing left to fill) against !hasFillableFields", () => {
+      expect(bookmarkMatchesSearch(unfilled, {
         fillableFieldsPresence: "missing",
       })).toBe(false);
+      // Fillable fields exist but all are filled → nothing to fill, so it still matches "missing".
+      expect(bookmarkMatchesSearch(allFilled, {
+        fillableFieldsPresence: "missing",
+      })).toBe(true);
       expect(bookmarkMatchesSearch(base, {
         fillableFieldsPresence: "missing",
       })).toBe(true);

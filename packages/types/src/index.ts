@@ -1604,6 +1604,14 @@ export interface Bookmark {
    * `fillable-fields` condition leaf. `false` when the bookmark has no website or nothing left to fill.
    */
   hasFillableFields: boolean;
+  /**
+   * Whether the bookmark's linked website has ≥1 extension-fill rule targeting a bookmark field
+   * **regardless of whether that field is currently filled** — i.e. the bookmark has fillable fields
+   * at all. Derived at hydration time via `websiteRulesHaveFillableField`; drives the "Has fillable
+   * fields" option of the search facet. `hasFillableFields` implies `hasAnyFillableField` (an unfilled
+   * field is still a fillable field); the two differ only when every fillable field is already filled.
+   */
+  hasAnyFillableField: boolean;
 }
 
 /** Payload for creating a bookmark. */

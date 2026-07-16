@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import type { BookmarkFillPresence, FillTarget, WebsiteExtensionFillRule } from "./extensionFill.js";
-import { bookmarkFillPresence, websiteRulesCanFill } from "./extensionFill.js";
+import { bookmarkFillPresence, websiteRulesCanFill, websiteRulesHaveFillableField } from "./extensionFill.js";
 import type { Bookmark } from "./index.js";
 
 function rule(target: FillTarget): WebsiteExtensionFillRule {
@@ -136,6 +136,70 @@ test("websiteRulesCanFill returns true when any one rule targets an empty field"
     title: true,
     isbn: false,
   })), true);
+});
+
+test("websiteRulesHaveFillableField returns false for an empty rule list", () => {
+  assert.equal(websiteRulesHaveFillableField([]), false);
+});
+
+test("websiteRulesHaveFillableField flags each bookmark-field kind regardless of fill state", () => {
+  const targets: FillTarget[] = [
+    {
+      kind: "field",
+      field: "isbn",
+    },
+    {
+      kind: "customProperty",
+      propertyId: "p1",
+    },
+    {
+      kind: "sections",
+      propertyId: "s1",
+      entryType: "name",
+    },
+    {
+      kind: "taxonomy",
+      taxonomy: "people",
+    },
+    {
+      kind: "image",
+    },
+  ];
+  for (const target of targets) {
+    // True whether the corresponding field is currently filled or not — presence-independent.
+    assert.equal(websiteRulesHaveFillableField([rule(target)]), true);
+  }
+});
+
+test("websiteRulesHaveFillableField ignores linked-entity targets", () => {
+  const rules = [
+    rule({
+      kind: "taxonomyEntity",
+      association: "website",
+      field: "name",
+    }),
+    rule({
+      kind: "taxonomyDirect",
+      association: "website",
+      resolve: {
+        mode: "url",
+      },
+      field: "name",
+    }),
+  ];
+  assert.equal(websiteRulesHaveFillableField(rules), false);
+});
+
+test("websiteRulesHaveFillableField is true for a filled bookmark-field target that websiteRulesCanFill rejects", () => {
+  const rules = [rule({
+    kind: "field",
+    field: "isbn",
+  })];
+  // The field is already filled: nothing left to fill, but it is still a fillable field.
+  assert.equal(websiteRulesCanFill(rules, presence({
+    isbn: true,
+  })), false);
+  assert.equal(websiteRulesHaveFillableField(rules), true);
 });
 
 test("bookmarkFillPresence derives per-field presence from a hydrated bookmark", () => {

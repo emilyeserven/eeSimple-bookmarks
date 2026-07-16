@@ -29,10 +29,11 @@ export function FilterPill({
     t,
   } = useTranslation();
 
-  const presenceLabels: Record<"has" | "missing" | "exclude", string> = {
+  const presenceLabels: Record<"has" | "missing" | "exclude" | "fillable", string> = {
     has: t("Has"),
     missing: t("Missing"),
     exclude: t("Excluded"),
+    fillable: t("Fillable"),
   };
   const summaryText = summary.count > 0
     ? String(summary.count)

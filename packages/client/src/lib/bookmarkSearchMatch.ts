@@ -30,6 +30,7 @@ type SearchableBookmark = Pick<
   | "isbn"
   | "feedUrl"
   | "hasFillableFields"
+  | "hasAnyFillableField"
 >;
 
 /** A multi-select relationship-type filter passes when empty or the bookmark has a matching edge. */
@@ -130,6 +131,21 @@ export function passesPlaceTypesExclusion(selected: string[] | undefined, keys: 
 export function passesPresence(mode: "has" | "missing" | "exclude" | undefined, present: boolean): boolean {
   if (mode === "has") return present;
   if (mode === "missing") return !present;
+  return true;
+}
+
+/**
+ * Whether a bookmark passes the fillable-fields filter. "fillable" checks the bookmark has fillable
+ * fields at all (filled or not); "has" checks it has an *unfilled* fillable field (something to fill);
+ * "missing" checks it has nothing left to fill. undefined passes everything.
+ */
+function passesFillableFieldsPresence(
+  mode: "has" | "fillable" | "missing" | undefined,
+  bookmark: Pick<SearchableBookmark, "hasFillableFields" | "hasAnyFillableField">,
+): boolean {
+  if (mode === "fillable") return bookmark.hasAnyFillableField;
+  if (mode === "has") return bookmark.hasFillableFields;
+  if (mode === "missing") return !bookmark.hasFillableFields;
   return true;
 }
 
@@ -337,7 +353,7 @@ const BOOKMARK_SEARCH_FACETS: BookmarkSearchFacet[] = [
       || search.feedUrl !== undefined,
   },
   {
-    matches: (bookmark, search) => passesPresence(search.fillableFieldsPresence, bookmark.hasFillableFields),
+    matches: (bookmark, search) => passesFillableFieldsPresence(search.fillableFieldsPresence, bookmark),
     isActive: search => search.fillableFieldsPresence !== undefined,
   },
 ];

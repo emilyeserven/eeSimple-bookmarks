@@ -81,6 +81,11 @@ function validHasMissingPresence(value: unknown): "has" | "missing" | undefined 
   return value === "has" || value === "missing" ? value : undefined;
 }
 
+/** Narrow the fillable-fields filter value to `"has" | "fillable" | "missing"`, or `undefined` if malformed. */
+function validFillableFieldsPresence(value: unknown): "has" | "fillable" | "missing" | undefined {
+  return value === "has" || value === "fillable" || value === "missing" ? value : undefined;
+}
+
 /** Keep a value only if it is a non-empty string. */
 function validString(value: unknown): string | undefined {
   return typeof value === "string" && value.length > 0 ? value : undefined;
@@ -182,7 +187,7 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
     kavitaSeriesId: validNumber(search.kavitaSeriesId),
     isbn: validString(search.isbn),
     feedUrl: validString(search.feedUrl),
-    fillableFieldsPresence: validHasMissingPresence(search.fillableFieldsPresence),
+    fillableFieldsPresence: validFillableFieldsPresence(search.fillableFieldsPresence),
     sort: validSort(search.sort),
   };
 
