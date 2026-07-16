@@ -10,12 +10,14 @@ interface GenResult {
   unique?: boolean;
   matchCount: number;
   matchesAll?: boolean;
+  exact?: boolean;
   container?: string;
 }
 
 interface SelectorPicker {
   buildRobustSelector(el: Element, doc?: Document): GenResult;
   buildCommonSelector(elements: Element[], doc?: Document): GenResult;
+  buildExactSelector(elements: Element[], doc?: Document): GenResult;
   buildRelativeSelector(root: Element, el: Element): GenResult;
   classifyClassToken(token: string): { kind: string;
     token: string;
@@ -149,6 +151,40 @@ describe("buildCommonSelector (generalize / many-match)", () => {
   });
 });
 
+describe("buildExactSelector (list / only-selected)", () => {
+  it("matches exactly the picked elements, not their siblings", () => {
+    const doc = docFrom(`
+      <ul>
+        <li class="item">A</li>
+        <li class="item">B</li>
+        <li class="item">C</li>
+      </ul>
+    `);
+    const items = Array.from(doc.querySelectorAll("li"));
+    const r = picker.buildExactSelector([items[0]!, items[2]!], doc);
+    expect(r.exact).toBe(true);
+    expect(r.matchCount).toBe(2);
+    // Only the two picked (A and C) — NOT the un-picked sibling B (buildCommonSelector would match all 3).
+    expect(Array.from(doc.querySelectorAll(r.selector))).toEqual([items[0], items[2]]);
+  });
+
+  it("de-dupes repeated picks of the same element", () => {
+    const doc = docFrom("<ul><li class=\"item\">A</li><li class=\"item\">B</li></ul>");
+    const items = Array.from(doc.querySelectorAll("li"));
+    const r = picker.buildExactSelector([items[0]!, items[0]!], doc);
+    expect(r.matchCount).toBe(1);
+    expect(doc.querySelector(r.selector)).toBe(items[0]);
+  });
+
+  it("returns the single element's unique selector for one pick", () => {
+    const doc = docFrom("<div><span id=\"x\">1</span></div>");
+    const r = picker.buildExactSelector([doc.getElementById("x")!], doc);
+    expect(r.selector).toBe("#x");
+    expect(r.matchCount).toBe(1);
+    expect(r.exact).toBe(true);
+  });
+});
+
 describe("buildRelativeSelector (item-scoped)", () => {
   const COURSE_HTML = `
     <ul class="curriculum">
@@ -221,7 +257,7 @@ describe("overlay toolbar", () => {
       const listButton = document.querySelector("button[data-mode=\"list\"]");
       expect(listButton).not.toBeNull();
       // Initial (single) mode shows the single-mode prompt, not the list prompt.
-      expect(document.body.textContent).not.toContain("2+ example items");
+      expect(document.body.textContent).not.toContain("each element to include");
 
       listButton!.dispatchEvent(new MouseEvent("click", {
         bubbles: true,
@@ -229,7 +265,7 @@ describe("overlay toolbar", () => {
       }));
 
       // The button's onclick fired → setMode("list") → the list prompt is now shown.
-      expect(document.body.textContent).toContain("2+ example items");
+      expect(document.body.textContent).toContain("each element to include");
     }
     finally {
       picker.teardown();
