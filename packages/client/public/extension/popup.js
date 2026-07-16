@@ -590,7 +590,20 @@ function wireFindSelectorButton(btn, statusEl) {
   btn.onclick = () => void startSelectorPicker(statusEl);
 }
 
-// Two-step injection twin of injectAndRun: load the picker (+ engine, for its value preview), then start it.
+// Pages an extension genuinely can't script into: browser-internal schemes and the Web Store. Used to
+// show the "browser or store page" message ONLY when it's actually true, so a real injection failure on
+// a normal page surfaces its own error instead of being mislabeled.
+function isRestrictedUrl(url) {
+  if (!url) return true;
+  if (/^(chrome|chrome-extension|chrome-untrusted|edge|brave|about|view-source|devtools|data|moz-extension|file):/i.test(url)) {
+    return true;
+  }
+  return /^https:\/\/(chromewebstore\.google\.com|chrome\.google\.com\/webstore)/i.test(url);
+}
+
+// Two-step injection twin of injectAndRun: load the picker (+ engine, for its value preview), then start
+// it. Step 2 guards the global so a "file loaded but didn't define the global" failure is distinct from
+// a "start() threw" one — both surface a real message via startSelectorPicker's catch.
 async function injectPicker(tabId) {
   await chrome.scripting.executeScript({
     target: {
@@ -602,18 +615,30 @@ async function injectPicker(tabId) {
     target: {
       tabId,
     },
-    func: () => globalThis.eesimpleSelectorPicker.start(),
+    func: () => {
+      if (!globalThis.eesimpleSelectorPicker) throw new Error("selectorPicker.js did not load");
+      globalThis.eesimpleSelectorPicker.start();
+    },
   });
 }
 
 async function startSelectorPicker(statusEl) {
   if (currentTab?.id == null) return;
+  // A genuine browser/store page can't be scripted — say so up front (don't attempt + mislabel).
+  if (isRestrictedUrl(currentTab.url)) {
+    if (statusEl) statusEl.textContent = "Can't scan this page (a browser or store page).";
+    return;
+  }
   try {
     await injectPicker(currentTab.id);
   }
-  catch {
-    // Restricted page (chrome://, the store, a PDF viewer, …) — can't inject.
-    if (statusEl) statusEl.textContent = "Can't scan this page (a browser or store page).";
+  catch (err) {
+    // Surface the REAL reason instead of assuming a restricted page (the popup's own console has it too).
+    console.error("[eeSimple] selector picker injection failed:", err);
+    const message = /could not load file/i.test(err?.message ?? "")
+      ? "Extension out of date — reload it at chrome://extensions."
+      : `Couldn't start the picker: ${err?.message ?? err}`;
+    if (statusEl) statusEl.textContent = message;
     return;
   }
   window.close();
