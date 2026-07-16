@@ -71,6 +71,8 @@ const findSelectorSavedBtn = document.getElementById("findSelectorSavedBtn");
 const findSelectorSavedStatus = document.getElementById("findSelectorSavedStatus");
 const findSelectorReviewBtn = document.getElementById("findSelectorReviewBtn");
 const findSelectorReviewStatus = document.getElementById("findSelectorReviewStatus");
+const findSelectorInboxBtn = document.getElementById("findSelectorInboxBtn");
+const findSelectorInboxStatus = document.getElementById("findSelectorInboxStatus");
 const selectorPrefillEl = document.getElementById("selectorPrefill");
 const prefillSummary = document.getElementById("prefillSummary");
 const prefillLabel = document.getElementById("prefillLabel");
@@ -88,9 +90,6 @@ let serverUrl = "";
 let pageTitle = "";
 let closeTimer = null;
 let currentTab = null;
-// The last fill-context fetched — the "Find a selector" flow reads website.{id,slug,extensionFillRules}
-// and properties off it to create + deep-link the draft rule.
-let currentCtx = null;
 // Target specs backing the prefill `<select>` (parallel to its <option>s).
 let prefillSpecs = [];
 
@@ -230,7 +229,6 @@ async function bootFillContext(url, autoSave = true) {
     quickSaveFallback();
     return;
   }
-  currentCtx = ctx;
   // A selector picked on this page (by the injected picker) takes priority — finish creating its rule.
   const pending = await readPendingSelector(url);
   if (pending) {
@@ -348,6 +346,8 @@ function renderInboxSaved(itemId, url, message) {
     moveToBookmarksBtn.classList.add("hidden");
     inboxUndoBtn.classList.add("hidden");
   }
+  // Let the user bootstrap this site's first fill rule straight from the not-saved lander.
+  wireFindSelectorButton(findSelectorInboxBtn, findSelectorInboxStatus);
   show("inboxSaved");
   startCountdown();
 }
@@ -581,11 +581,12 @@ function escapeHtmlPopup(str) {
   }[c]));
 }
 
-// Only offer the button when the website record is known (needed to save the rule + deep-link).
+// Offer the button on any injectable page. A website record isn't required up front — if the site has
+// none, one is created (by domain) when the user actually creates the rule (createDraftRuleAndOpenEditor).
 function wireFindSelectorButton(btn, statusEl) {
   if (!btn) return;
-  const hasWebsite = !!(currentCtx?.website?.id && currentCtx?.website?.slug);
-  btn.classList.toggle("hidden", !hasWebsite);
+  const canScan = currentTab?.id != null && !isRestrictedUrl(currentTab?.url);
+  btn.classList.toggle("hidden", !canScan);
   if (statusEl) statusEl.textContent = "";
   btn.onclick = () => void startSelectorPicker(statusEl);
 }
@@ -624,6 +625,8 @@ async function injectPicker(tabId) {
 
 async function startSelectorPicker(statusEl) {
   if (currentTab?.id == null) return;
+  // Stop the inboxSaved auto-close from firing mid-launch (a harmless no-op on the saved/review screens).
+  cancelCountdown();
   // A genuine browser/store page can't be scripted — say so up front (don't attempt + mislabel).
   if (isRestrictedUrl(currentTab.url)) {
     if (statusEl) statusEl.textContent = "Can't scan this page (a browser or store page).";
@@ -692,13 +695,8 @@ function sameUrlIsh(a, b) {
 
 async function showSelectorPrefill(ctx, pending) {
   prefillError.textContent = "";
-  const website = ctx.website;
-  if (!website?.id || !website?.slug) {
-    // No website record to attach a rule to — drop the pick and route normally.
-    await clearPendingSelector();
-    routeByMode(ctx, pending.url, false);
-    return;
-  }
+  // A website record isn't required here — if ctx.website is absent (page not saved / no record yet),
+  // createDraftRuleAndOpenEditor resolves-or-creates one by domain when the user commits the rule.
   prefillLabel.value = pending.label || "New rule";
   buildPrefillSummary(pending);
   prefillEntryType.classList.toggle("hidden", pending.mode !== "section");
@@ -811,6 +809,27 @@ async function resolveSectionsPropertyId() {
   }
 }
 
+// Look up (or create) the website for a URL so a rule can be attached — returns { id, slug, siteName,
+// extensionFillRules } or null. Used when the current page has no website record yet.
+async function resolveWebsiteForUrl(url) {
+  try {
+    const res = await fetch(`${serverUrl}/api/websites/resolve`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        url,
+      }),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  }
+  catch {
+    return null;
+  }
+}
+
 // Build a schema-clean draft rule (only fields fillTargetSchema allows — additionalProperties:false).
 function buildDraftRule(pending, label, spec) {
   const id = randomId();
@@ -867,10 +886,20 @@ async function createDraftRuleAndOpenEditor(ctx, pending) {
   }
   const label = prefillLabel.value.trim() || "New rule";
   const rule = buildDraftRule(pending, label, spec);
-  const website = ctx.website;
-  const rules = [...(website.extensionFillRules || []), rule];
   prefillCreateBtn.disabled = true;
   prefillCreateBtn.textContent = "Creating…";
+  // Resolve the website to attach the rule to — creating a bare record by domain if this site has none.
+  let website = ctx.website;
+  if (!website?.id || !website?.slug) {
+    website = await resolveWebsiteForUrl(pending.url);
+    if (!website?.id || !website?.slug) {
+      prefillCreateBtn.disabled = false;
+      prefillCreateBtn.textContent = "Create draft rule & open editor";
+      prefillError.textContent = "Couldn't find or create a website for this page.";
+      return;
+    }
+  }
+  const rules = [...(website.extensionFillRules || []), rule];
   try {
     const res = await fetch(`${serverUrl}/api/websites/${website.id}`, {
       method: "PATCH",

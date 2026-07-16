@@ -18,6 +18,7 @@ import {
   listRedirectFailureWebsites,
   listWebsites,
   lookupWebsiteByUrl,
+  resolveOrCreateWebsiteByUrl,
   updateWebsite,
 } from "@/services/websites";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
@@ -26,6 +27,7 @@ import {
   bulkUpdateBody,
   createWebsiteBody,
   lookupQuery,
+  resolveWebsiteBody,
   updateWebsiteBody,
   websiteParams,
 } from "@/routes/websitesSchema";
@@ -36,6 +38,7 @@ import {
   NotFoundError,
   StorageUnconfiguredError,
   UnsupportedImageError,
+  ValidationError,
 } from "@/utils/errors";
 
 /** User-facing messages for the typed grab failures shared by the entity-image auto routes. */
@@ -110,6 +113,28 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
       shortener,
     };
     return result;
+  });
+
+  // Lookup-or-create a website by full URL, returning the id + slug the browser extension needs to
+  // attach a fill rule and deep-link to its editor — so "Find a selector" works on a site the user
+  // hasn't set up yet. Creates a bare record (via the same primitive as bookmark-create) when absent.
+  app.post("/api/websites/resolve", {
+    schema: {
+      tags: ["websites"],
+      body: resolveWebsiteBody,
+    },
+  }, async (req) => {
+    const {
+      url,
+    } = req.body as { url: string };
+    const website = await resolveOrCreateWebsiteByUrl(url);
+    if (!website) throw new ValidationError("Could not resolve a website for that URL");
+    return {
+      id: website.id,
+      slug: website.slug,
+      siteName: website.siteName,
+      extensionFillRules: website.extensionFillRules,
+    };
   });
 
   app.get("/api/websites/redirect-failures", {

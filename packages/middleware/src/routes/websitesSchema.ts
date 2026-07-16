@@ -31,6 +31,19 @@ export const lookupQuery = {
   },
 } as const;
 
+/** Body for `POST /api/websites/resolve` — a lookup-or-create by full URL that returns id + slug. */
+export const resolveWebsiteBody = {
+  type: "object",
+  required: ["url"],
+  additionalProperties: false,
+  properties: {
+    url: {
+      type: "string",
+      minLength: 1,
+    },
+  },
+} as const;
+
 export const shortenedLinksSchema = {
   type: "array",
   items: {
