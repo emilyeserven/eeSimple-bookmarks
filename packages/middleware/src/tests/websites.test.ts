@@ -1,9 +1,16 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { buildApp } from "@/app";
-import { migrateExtensionFillRules, normalizeDomain, stripSiteNameSuffix } from "@/services/websites";
+import { migrateExtensionFillRules, normalizeDomain, resolveOrCreateWebsiteByUrl, stripSiteNameSuffix } from "@/services/websites";
 
 // Pure-helper tests run without a live database, matching the `isValidUrl` style.
+
+test("resolveOrCreateWebsiteByUrl returns null for a host-less URL without opening a transaction", async () => {
+  // A host-less value resolves to no domain, so the lookup-or-create bails before any DB write —
+  // this is what makes POST /api/websites/resolve reply 400 for a bad URL.
+  assert.equal(await resolveOrCreateWebsiteByUrl("not a url"), null);
+  assert.equal(await resolveOrCreateWebsiteByUrl(""), null);
+});
 
 test("normalizeDomain lower-cases the host and strips a leading www.", () => {
   assert.equal(normalizeDomain("https://github.com/foo"), "github.com");

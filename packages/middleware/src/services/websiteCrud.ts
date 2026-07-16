@@ -10,6 +10,7 @@ import { bookmarks, categories, websiteFavicons, websiteTags, websites, websiteY
 import { buildStringMap } from "@/utils/mapUtils";
 import { slugify } from "@/utils/slug";
 import { builtInWebsiteRenamedOrMoved, buildWebsiteScalarPatch, normalizeWebsiteDomain } from "@/services/websiteUpdate";
+import { ensureWebsiteForUrl } from "@/services/websiteScan";
 import {
   BuiltInWebsiteError,
   buildWebsiteTree,
@@ -250,6 +251,25 @@ export async function lookupWebsiteByUrl(
     website,
     shortener: null,
   };
+}
+
+/**
+ * Resolve the website for a URL, creating a bare record for its domain when none exists yet — the
+ * write-enabled counterpart to {@link lookupWebsiteByUrl}. Powers the extension's "Find a selector"
+ * flow, which must attach a fill rule to a website even on a site the user hasn't set up yet. Reuses
+ * the same lookup-or-create primitive (`ensureWebsiteForUrl`) as the bookmark-create path, so it
+ * matches verified shortened links and never duplicates a domain. Returns `null` only when the URL
+ * has no host.
+ */
+export async function resolveOrCreateWebsiteByUrl(url: string): Promise<Website | null> {
+  const {
+    domain, website,
+  } = await lookupWebsiteByUrl(url);
+  if (website) return website;
+  // A host-less URL has nothing to create — bail before opening a transaction.
+  if (!domain) return null;
+  const id = await db.transaction(tx => ensureWebsiteForUrl(tx, url));
+  return id ? getWebsite(id) : null;
 }
 
 /**
