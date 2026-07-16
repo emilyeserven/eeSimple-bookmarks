@@ -274,9 +274,16 @@ export function createFakeDb(tables: FakeTable[]): Record<string, unknown> {
             const added = inserted.filter(row =>
               !rows.some(existing => "slug" in row && existing.slug === row.slug));
             rows.push(...added);
-            return thenable(() => added.map(row => ({
+            const rowsOut = () => added.map(row => ({
               ...row,
-            })));
+            }));
+            // `.onConflictDoNothing()` is awaitable on its own AND chainable to `.returning()`
+            // (`insert().values().onConflictDoNothing().returning()`, as the built-in `ensure*` seeds
+            // use). Both resolve to the rows actually inserted (empty when the slug already existed).
+            return {
+              ...thenable(rowsOut),
+              returning: (_cols?: unknown) => thenable(rowsOut),
+            };
           },
           returning: (_cols?: unknown) => {
             rowsFor(table).push(...inserted);

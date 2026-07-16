@@ -5,6 +5,7 @@ import { customProperties, mediaTypes, propertyMediaTypes } from "@/db/schema";
 import {
   CONTENT_STATUS_SLUG,
   DATE_POSTED_SLUG,
+  FILL_IN_STATUS_SLUG,
   ISBN_SLUG,
   PAGE_RANGE_SLUG,
   PROGRESS_SLUG,
@@ -288,6 +289,76 @@ export async function ensureContentStatusProperty(): Promise<string> {
 
   // Lost a concurrent insert race — re-read the row the other writer created.
   return readPropertyIdBySlug(CONTENT_STATUS_SLUG);
+}
+
+const FILL_IN_STATUS_DEFAULT_ITEMS: ChoicesItem[] = [
+  {
+    label: "Not Started",
+    value: "not-started",
+    isDefault: true,
+  },
+  {
+    label: "In Progress",
+    value: "in-progress",
+  },
+  {
+    label: "Finished",
+    value: "finished",
+  },
+];
+
+/**
+ * Ensure the built-in "Fill-in Status" choices property exists. Idempotent and safe to call at boot
+ * in every environment: a single-select radio choices property available in every category, tracking
+ * how far along the user is in filling the bookmark record in. Seeded with `showInForm: false` so it
+ * surfaces in the Add Bookmark form's Advanced section rather than the main area (mirrors the ISBN
+ * built-in — a built-in that shows on the add form is kept off `BOOKMARK_FORM_DETAIL_SLUGS`).
+ */
+export async function ensureFillInStatusProperty(): Promise<string> {
+  const [existing] = await db
+    .select({
+      id: customProperties.id,
+    })
+    .from(customProperties)
+    .where(eq(customProperties.slug, FILL_IN_STATUS_SLUG));
+  if (existing) {
+    await db
+      .update(customProperties)
+      .set({
+        builtIn: true,
+        enabled: true,
+        allCategories: true,
+      })
+      .where(eq(customProperties.id, existing.id));
+    return existing.id;
+  }
+
+  const [row] = await db
+    .insert(customProperties)
+    .values({
+      name: "Fill-in Status",
+      slug: FILL_IN_STATUS_SLUG,
+      type: "choices",
+      builtIn: true,
+      choicesItems: FILL_IN_STATUS_DEFAULT_ITEMS,
+      choicesDisplay: "radio",
+      choicesMultiple: false,
+      allCategories: true,
+      showInForm: false,
+      hiddenFromForm: false,
+      showInListings: true,
+      allowDefault: true,
+    })
+    .onConflictDoNothing({
+      target: customProperties.slug,
+    })
+    .returning({
+      id: customProperties.id,
+    });
+  if (row) return row.id;
+
+  // Lost a concurrent insert race — re-read the row the other writer created.
+  return readPropertyIdBySlug(FILL_IN_STATUS_SLUG);
 }
 
 /**
