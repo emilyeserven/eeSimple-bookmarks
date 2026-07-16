@@ -1766,3 +1766,29 @@ describe("sections target", () => {
     })).toBe("Sections · Name only · grouped");
   });
 });
+
+describe("svg read mode", () => {
+  it("normalizeExtensionFillRules keeps an svg read (not silently dropped like text)", () => {
+    const [out] = normalizeExtensionFillRules([rule({
+      target: {
+        kind: "image",
+        setMain: true,
+      },
+      extract: {
+        selector: "h1 svg",
+        read: {
+          kind: "svg",
+        },
+      },
+    })]);
+    expect(out.extract.read).toEqual({
+      kind: "svg",
+    });
+  });
+
+  it("describeFillRead summarizes an svg read as Inline SVG", () => {
+    expect(describeFillRead({
+      kind: "svg",
+    })).toBe("Inline SVG");
+  });
+});

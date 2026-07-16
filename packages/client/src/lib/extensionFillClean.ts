@@ -443,8 +443,8 @@ function cleanTransform(transform: FillTransform): FillTransform | null {
 }
 
 /**
- * Keep an `attr` read only when it names an attribute, and a `backgroundImage` read as-is; omit `text`
- * (the default).
+ * Keep an `attr` read only when it names an attribute, and a `backgroundImage` or `svg` read as-is;
+ * omit `text` (the default).
  */
 function cleanRead(read: FillExtract["read"]): FillExtract["read"] | undefined {
   if (read?.kind === "attr" && read.name) {
@@ -455,6 +455,9 @@ function cleanRead(read: FillExtract["read"]): FillExtract["read"] | undefined {
   }
   if (read?.kind === "backgroundImage") return {
     kind: "backgroundImage",
+  };
+  if (read?.kind === "svg") return {
+    kind: "svg",
   };
   return undefined;
 }
