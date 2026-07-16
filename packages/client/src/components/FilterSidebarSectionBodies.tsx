@@ -1,3 +1,4 @@
+import type { ComboboxOption } from "./Combobox";
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Person, Category, GenreMood, MediaType, PlaceType, RelationshipType, SectionEntryType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
@@ -5,6 +6,7 @@ import { SECTION_ENTRY_TYPE_LABELS, SECTION_ENTRY_TYPES } from "@eesimple/types"
 import { Captions, Drama, Globe, Languages, MapPin, MonitorPlay, Share2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { Combobox } from "./Combobox";
 import { FacetChips } from "./FilterFacetControls";
 import { MultiCombobox } from "./MultiCombobox";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
@@ -30,6 +32,7 @@ import {
   withTags,
   withWebsitePresence,
   withWebsites,
+  withFillableFieldsPresence,
   withYouTubeChannelPresence,
   withYouTubeChannels,
 } from "../lib/bookmarkSearch";
@@ -696,5 +699,57 @@ export function SectionsFilterBody({
         )
         : null}
     </>
+  );
+}
+
+/** Sentinel value for the "Any" (no filter) row of the Fillable Fields dropdown. */
+const FILLABLE_ANY = "any";
+
+/**
+ * Fillable-fields filter body: a single-select dropdown distinguishing "Has fillable fields" (targets
+ * a bookmark field, filled or not — `hasAnyFillableField`) from "Has unfilled fillable fields" (an
+ * unfilled target, i.e. something to fill — `hasFillableFields`) and "Nothing to fill" (its negation).
+ * "Any" clears the filter. Shared by the sidebar section and the pill-row popover.
+ */
+export function FillableFieldsFilterBody({
+  search, onSearchChange,
+}: {
+  search: BookmarkSearch;
+  onSearchChange: (next: BookmarkSearch) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+
+  const options: ComboboxOption[] = [
+    {
+      value: FILLABLE_ANY,
+      label: t("Any"),
+    },
+    {
+      value: "fillable",
+      label: t("Has fillable fields"),
+    },
+    {
+      value: "has",
+      label: t("Has unfilled fillable fields"),
+    },
+    {
+      value: "missing",
+      label: t("Nothing to fill"),
+    },
+  ];
+
+  return (
+    <Combobox
+      options={options}
+      value={search.fillableFieldsPresence ?? FILLABLE_ANY}
+      aria-label={t("Filter by fillable fields")}
+      onValueChange={next =>
+        onSearchChange(withFillableFieldsPresence(
+          search,
+          next === undefined || next === FILLABLE_ANY ? undefined : (next as "has" | "fillable" | "missing"),
+        ))}
+    />
   );
 }

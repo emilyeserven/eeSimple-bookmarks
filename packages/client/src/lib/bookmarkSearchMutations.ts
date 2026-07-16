@@ -322,7 +322,7 @@ export function withMediaSourcePresence(
 /** Return a copy of `search` with the fillable-fields-presence filter set or cleared. */
 export function withFillableFieldsPresence(
   search: BookmarkSearch,
-  mode: "has" | "missing" | undefined,
+  mode: "has" | "fillable" | "missing" | undefined,
 ): BookmarkSearch {
   const next = {
     ...search,

@@ -8,6 +8,7 @@ import { CustomPropertyFilters } from "./CustomPropertyFilters";
 import { FacetPresenceToggle } from "./FilterFacetControls";
 import {
   CategoryFilterBody,
+  FillableFieldsFilterBody,
   GenreMoodFilterBody,
   LanguageUsageFilterBody,
   MediaTypeFilterBody,
@@ -28,7 +29,6 @@ import {
   withCategoryPresence,
   withChoicesFilter,
   withDateTimeFilter,
-  withFillableFieldsPresence,
   withGenreMoodPresence,
   withMediaSourcePresence,
   withMediaTypePresence,
@@ -706,8 +706,9 @@ export function MediaSourceFilterSection({
 }
 
 /**
- * Presence-only toggle for bookmarks whose website has an extension-fill rule that could fill a
- * currently-empty bookmark field. No combobox — this is a derived boolean, so just the header row.
+ * Fillable-fields filter: a label over the shared {@link FillableFieldsFilterBody} dropdown, which
+ * distinguishes "Has fillable fields" / "Has unfilled fillable fields" / "Nothing to fill" ("Any"
+ * clears it).
  */
 export function FillableFieldsFilterSection({
   search, onSearchChange,
@@ -720,14 +721,11 @@ export function FillableFieldsFilterSection({
   } = useTranslation();
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="space-y-2">
       <span className="text-sm font-semibold">{t("Fillable fields")}</span>
-      <FacetPresenceToggle
-        value={search.fillableFieldsPresence}
-        onChange={mode => onSearchChange(withFillableFieldsPresence(search, mode === "exclude" ? undefined : mode))}
-        hasLabel={t("Has fillable fields")}
-        missingLabel={t("Nothing to fill")}
-        hideExclude
+      <FillableFieldsFilterBody
+        search={search}
+        onSearchChange={onSearchChange}
       />
     </div>
   );

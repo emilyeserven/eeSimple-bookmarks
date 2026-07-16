@@ -167,6 +167,7 @@ export function makeBookmark(overrides: Partial<Bookmark> = {}): Bookmark {
     createdAt: NOW,
     updatedAt: null,
     hasFillableFields: false,
+    hasAnyFillableField: false,
     ...overrides,
   };
 }

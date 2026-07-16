@@ -86,11 +86,13 @@ export interface BookmarkSearch {
   isbn?: string;
   feedUrl?: string;
   /**
-   * Filter bookmarks by whether their website has an extension-fill rule that could fill a
-   * currently-empty bookmark field (`Bookmark.hasFillableFields`): "has" = something to fill,
-   * "missing" = nothing left to fill.
+   * Filter bookmarks by whether their website has an extension-fill rule targeting a bookmark field:
+   * "fillable" = has fillable fields at all (`Bookmark.hasAnyFillableField`, filled or not),
+   * "has" = has an *unfilled* fillable field / something left to fill (`Bookmark.hasFillableFields`),
+   * "missing" = nothing left to fill (`!Bookmark.hasFillableFields`). "has" keeps its original
+   * meaning so existing URLs / saved filters stay valid.
    */
-  fillableFieldsPresence?: "has" | "missing";
+  fillableFieldsPresence?: "has" | "fillable" | "missing";
   /** Active sort order (primary + optional secondary dimension, or a random shuffle). Absent = server's default `createdAt DESC` order. */
   sort?: BookmarkSort;
 }

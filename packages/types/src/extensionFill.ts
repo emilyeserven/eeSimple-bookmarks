@@ -506,6 +506,36 @@ export function websiteRulesCanFill(
 }
 
 /**
+ * Whether a single fill target points at a BOOKMARK field at all — regardless of whether that field
+ * is currently filled. This is the presence-independent partition mirrored by the `return false` arms
+ * of {@link fillTargetIsEmpty}: `taxonomyEntity`/`taxonomyDirect` write into a linked taxonomy entity
+ * (not the bookmark) and so are never a fillable bookmark field.
+ */
+function fillTargetIsBookmarkField(target: FillTarget): boolean {
+  switch (target.kind) {
+    case "field":
+    case "customProperty":
+    case "sections":
+    case "taxonomy":
+    case "image":
+      return true;
+    case "taxonomyEntity":
+    case "taxonomyDirect":
+      return false;
+  }
+}
+
+/**
+ * Whether ≥1 of a website's extension-fill rules targets a BOOKMARK field — regardless of whether
+ * those fields are currently filled. The presence-independent sibling of {@link websiteRulesCanFill}:
+ * it answers "does this website have fillable fields at all", not "is there something left to fill".
+ * An empty rule list, or one whose only targets are linked-entity kinds, yields `false`.
+ */
+export function websiteRulesHaveFillableField(rules: WebsiteExtensionFillRule[]): boolean {
+  return rules.some(rule => fillTargetIsBookmarkField(rule.target));
+}
+
+/**
  * Build a {@link BookmarkFillPresence} from a fully-hydrated bookmark. A custom property counts as
  * filled when any of its value collections carries it (choices/sections/text require a non-empty
  * value); `year` is present when non-null; scalars and `image` follow their own emptiness.

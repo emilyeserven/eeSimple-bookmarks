@@ -28,7 +28,7 @@ import type {
   InstagramReelArchive,
   WebsiteExtensionFillRule,
 } from "@eesimple/types";
-import { bookmarkFillPresence, websiteRulesCanFill } from "@eesimple/types";
+import { bookmarkFillPresence, websiteRulesCanFill, websiteRulesHaveFillableField } from "@eesimple/types";
 import { type BookmarkRow } from "@/db/schema";
 import { loadLanguageUsages } from "@/services/languageUsages";
 import { loadTaxonomyTermsForOwners } from "@/services/taxonomyAssignments";
@@ -191,9 +191,11 @@ function toBookmark(
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     updatedAt: row.updatedAt instanceof Date ? row.updatedAt.toISOString() : null,
     hasFillableFields: false,
+    hasAnyFillableField: false,
   };
   bookmark.hasFillableFields
     = fillRules.length > 0 && websiteRulesCanFill(fillRules, bookmarkFillPresence(bookmark));
+  bookmark.hasAnyFillableField = fillRules.length > 0 && websiteRulesHaveFillableField(fillRules);
   return bookmark;
 }
 

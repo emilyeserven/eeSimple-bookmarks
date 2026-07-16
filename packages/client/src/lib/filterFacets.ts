@@ -107,8 +107,8 @@ export function facetHasActiveSelection(key: FilterFacetKey, search: BookmarkSea
 export interface FacetSelectionSummary {
   /** How many ids are selected for the facet (0 when only a presence mode is set). */
   count: number;
-  /** The facet's presence mode, when it has one and it's set. */
-  presence?: "has" | "missing" | "exclude";
+  /** The facet's presence mode, when it has one and it's set. ("fillable" is fillable-fields-only.) */
+  presence?: "has" | "missing" | "exclude" | "fillable";
 }
 
 const count = (value: unknown[] | undefined): number => value?.length ?? 0;
@@ -269,7 +269,7 @@ export function facetVisibilityHint(key: FilterFacetKey, t: TFunction): string {
     case "media-source":
       return t("Appears when a bookmark is linked to Plex, Kavita, an ISBN, or an RSS feed.");
     case "fillable-fields":
-      return t("Appears when a bookmark's website has an extension-fill rule that could fill an empty field.");
+      return t("Appears when a bookmark's website has an extension-fill rule targeting a bookmark field.");
   }
 }
 
