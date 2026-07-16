@@ -10,6 +10,7 @@ import fillEngineJsRaw from "../../public/extension/fillEngine.js?raw";
 import manifestJsonRaw from "../../public/extension/manifest.json?raw";
 import popupHtmlRaw from "../../public/extension/popup.html?raw";
 import popupJsRaw from "../../public/extension/popup.js?raw";
+import selectorPickerJsRaw from "../../public/extension/selectorPicker.js?raw";
 import taxonomyFillJsRaw from "../../public/extension/taxonomyFill.js?raw";
 import { notifySuccess } from "../lib/notifications";
 
@@ -43,6 +44,10 @@ const EXTENSION_FILES = [
   {
     file: "fillEngine.js",
     content: fillEngineJsRaw,
+  },
+  {
+    file: "selectorPicker.js",
+    content: selectorPickerJsRaw,
   },
   {
     file: "background.js",
@@ -151,7 +156,11 @@ export function ExtensionSettings() {
           <div className="space-y-2">
             <p className="text-sm font-medium">Extension files</p>
             <p className="text-sm text-muted-foreground">
-              Save all six files into a new folder (e.g.
+              Save all
+              {" "}
+              {EXTENSION_FILES.length}
+              {" "}
+              files into a new folder (e.g.
               {" "}
               <code className="rounded-sm bg-muted px-1 text-xs">eesimple-extension/</code>
               ). Use
@@ -244,7 +253,7 @@ export function ExtensionSettings() {
             "
           >
             <li>
-              Save the six files above into a single folder (download or copy each).
+              Save the {EXTENSION_FILES.length} files above into a single folder (download or copy each).
             </li>
             <li>
               Open
