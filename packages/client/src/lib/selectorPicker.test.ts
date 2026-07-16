@@ -21,6 +21,8 @@ interface SelectorPicker {
     token: string;
     stable?: string; } | null;
   sampleValueFor(selector: string, read: unknown, doc?: Document): string;
+  start(): void;
+  teardown(): void;
 }
 
 const picker = (globalThis as unknown as { eesimpleSelectorPicker: SelectorPicker }).eesimpleSelectorPicker;
@@ -200,5 +202,38 @@ describe("sampleValueFor", () => {
       kind: "attr",
       name: "href",
     }, doc)).toBe("https://example.com/x");
+  });
+});
+
+describe("overlay toolbar", () => {
+  // Regression guard: the toolbar's stopPropagation listener must be BUBBLE-phase, not capture. A
+  // capture-phase listener on the bar halts the click before its own buttons' target-phase onclick
+  // fires, making every toolbar button dead (the "can't click the picker buttons" bug).
+  it("mode-switch buttons respond to clicks", () => {
+    // jsdom lacks document.elementFromPoint; the document-level pick handler calls it. In a real
+    // browser a toolbar click resolves to an element inside the bar, so the handler sees null and
+    // early-returns — stub that so the handler is a no-op (the bug under test is the bar listener).
+    const docWithPoint = document as Document & { elementFromPoint?: (x: number, y: number) => Element | null };
+    const originalElementFromPoint = docWithPoint.elementFromPoint;
+    docWithPoint.elementFromPoint = () => null;
+    picker.start();
+    try {
+      const listButton = document.querySelector("button[data-mode=\"list\"]");
+      expect(listButton).not.toBeNull();
+      // Initial (single) mode shows the single-mode prompt, not the list prompt.
+      expect(document.body.textContent).not.toContain("2+ example items");
+
+      listButton!.dispatchEvent(new MouseEvent("click", {
+        bubbles: true,
+        cancelable: true,
+      }));
+
+      // The button's onclick fired → setMode("list") → the list prompt is now shown.
+      expect(document.body.textContent).toContain("2+ example items");
+    }
+    finally {
+      picker.teardown();
+      docWithPoint.elementFromPoint = originalElementFromPoint;
+    }
   });
 });
