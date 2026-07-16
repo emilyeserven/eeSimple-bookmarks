@@ -57,11 +57,33 @@ const deleteSuccessBtn = document.getElementById("deleteSuccessBtn");
 const deleteSuccessStatus = document.getElementById("deleteSuccessStatus");
 const deleteAppliedBtn = document.getElementById("deleteAppliedBtn");
 const deleteAppliedStatus = document.getElementById("deleteAppliedStatus");
+// Selector-finder ("Find a selector") controls
+const findSelectorSavedBtn = document.getElementById("findSelectorSavedBtn");
+const findSelectorSavedStatus = document.getElementById("findSelectorSavedStatus");
+const findSelectorReviewBtn = document.getElementById("findSelectorReviewBtn");
+const findSelectorReviewStatus = document.getElementById("findSelectorReviewStatus");
+const selectorPrefillEl = document.getElementById("selectorPrefill");
+const prefillSummary = document.getElementById("prefillSummary");
+const prefillLabel = document.getElementById("prefillLabel");
+const prefillTarget = document.getElementById("prefillTarget");
+const prefillEntryType = document.getElementById("prefillEntryType");
+const prefillCreateBtn = document.getElementById("prefillCreateBtn");
+const prefillDiscardBtn = document.getElementById("prefillDiscardBtn");
+const prefillError = document.getElementById("prefillError");
+
+// Handoff key written by selectorPicker.js after a pick (kept in sync with its STORAGE_KEY).
+const SELECTOR_STORAGE_KEY = "eesimple:pendingSelector";
+const SELECTOR_TTL_MS = 15 * 60 * 1000;
 
 let serverUrl = "";
 let pageTitle = "";
 let closeTimer = null;
 let currentTab = null;
+// The last fill-context fetched — the "Find a selector" flow reads website.{id,slug,extensionFillRules}
+// and properties off it to create + deep-link the draft rule.
+let currentCtx = null;
+// Target specs backing the prefill `<select>` (parallel to its <option>s).
+let prefillSpecs = [];
 
 const SCREENS = {
   setup: setupEl,
@@ -72,6 +94,7 @@ const SCREENS = {
   filling: fillFillingEl,
   review: fillReviewEl,
   applied: fillAppliedEl,
+  selectorPrefill: selectorPrefillEl,
 };
 
 // Taxonomy match-or-create resolver + summary helpers, loaded from taxonomyFill.js (a classic
@@ -196,6 +219,13 @@ async function bootFillContext(url, autoSave = true) {
   catch {
     // Fill-context unavailable (old server, network error) — never regress saving.
     quickSaveFallback();
+    return;
+  }
+  currentCtx = ctx;
+  // A selector picked on this page (by the injected picker) takes priority — finish creating its rule.
+  const pending = await readPendingSelector(url);
+  if (pending) {
+    void showSelectorPrefill(ctx, pending);
     return;
   }
   routeByMode(ctx, url, autoSave);
@@ -454,9 +484,320 @@ function gateRules(rules, url) {
 
 function renderSaved(bookmark) {
   savedOpenBtn.onclick = () => openBookmark(bookmark?.id);
+  wireFindSelectorButton(findSelectorSavedBtn, findSelectorSavedStatus);
   wireCaptureButton(captureSavedBtn, captureSavedStatus, bookmark?.id);
   wireDeleteButton(deleteSavedBtn, deleteSavedStatus, bookmark?.id);
   show("saved");
+}
+
+// --- "Find a selector" mode --------------------------------------------
+// The button injects the in-page picker (selectorPicker.js) and closes the popup (an MV3 action
+// popup dies the moment the page takes focus). The picker writes the chosen selector(s) to
+// chrome.storage.local; the next popup open detects it (readPendingSelector) and lands on the
+// prefill screen to create + deep-link the draft rule.
+
+function escapeHtmlPopup(str) {
+  return String(str ?? "").replace(/[&<>"]/g, c => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+  }[c]));
+}
+
+// Only offer the button when the website record is known (needed to save the rule + deep-link).
+function wireFindSelectorButton(btn, statusEl) {
+  if (!btn) return;
+  const hasWebsite = !!(currentCtx?.website?.id && currentCtx?.website?.slug);
+  btn.classList.toggle("hidden", !hasWebsite);
+  if (statusEl) statusEl.textContent = "";
+  btn.onclick = () => void startSelectorPicker(statusEl);
+}
+
+// Two-step injection twin of injectAndRun: load the picker (+ engine, for its value preview), then start it.
+async function injectPicker(tabId) {
+  await chrome.scripting.executeScript({
+    target: {
+      tabId,
+    },
+    files: ["fillEngine.js", "selectorPicker.js"],
+  });
+  await chrome.scripting.executeScript({
+    target: {
+      tabId,
+    },
+    func: () => globalThis.eesimpleSelectorPicker.start(),
+  });
+}
+
+async function startSelectorPicker(statusEl) {
+  if (currentTab?.id == null) return;
+  try {
+    await injectPicker(currentTab.id);
+  }
+  catch {
+    // Restricted page (chrome://, the store, a PDF viewer, …) — can't inject.
+    if (statusEl) statusEl.textContent = "Can't scan this page (a browser or store page).";
+    return;
+  }
+  window.close();
+}
+
+function readPendingSelector(url) {
+  return new Promise((resolve) => {
+    if (!chrome.storage?.local) {
+      resolve(null);
+      return;
+    }
+    chrome.storage.local.get(SELECTOR_STORAGE_KEY, (data) => {
+      const pending = data?.[SELECTOR_STORAGE_KEY];
+      if (!pending || !pending.selector) {
+        resolve(null);
+        return;
+      }
+      if (Date.now() - (pending.ts || 0) > SELECTOR_TTL_MS || !sameUrlIsh(pending.url, url)) {
+        resolve(null);
+        return;
+      }
+      resolve(pending);
+    });
+  });
+}
+
+function clearPendingSelector() {
+  return new Promise((resolve) => {
+    if (!chrome.storage?.local) {
+      resolve();
+      return;
+    }
+    chrome.storage.local.remove(SELECTOR_STORAGE_KEY, () => resolve());
+  });
+}
+
+// Compare origin+path only — the picked-page URL may carry a different hash/query than the tab URL.
+function sameUrlIsh(a, b) {
+  if (!a || !b) return false;
+  const strip = (u) => {
+    try {
+      const parsed = new URL(u);
+      return parsed.origin + parsed.pathname;
+    }
+    catch {
+      return String(u).split("#")[0];
+    }
+  };
+  return strip(a) === strip(b);
+}
+
+async function showSelectorPrefill(ctx, pending) {
+  prefillError.textContent = "";
+  const website = ctx.website;
+  if (!website?.id || !website?.slug) {
+    // No website record to attach a rule to — drop the pick and route normally.
+    await clearPendingSelector();
+    routeByMode(ctx, pending.url, false);
+    return;
+  }
+  prefillLabel.value = pending.label || "New rule";
+  buildPrefillSummary(pending);
+  prefillEntryType.classList.toggle("hidden", pending.mode !== "section");
+
+  prefillSpecs = await buildPrefillTargets(ctx, pending);
+  prefillTarget.innerHTML = "";
+  prefillSpecs.forEach((spec) => {
+    const opt = document.createElement("option");
+    opt.value = spec.value;
+    opt.textContent = spec.label;
+    prefillTarget.appendChild(opt);
+  });
+  const empty = prefillSpecs.length === 0;
+  prefillTarget.disabled = empty;
+  prefillCreateBtn.disabled = empty;
+  if (empty) {
+    prefillError.textContent = pending.mode === "section"
+      ? "Couldn't find the Sections property on the server."
+      : "No target field was available.";
+  }
+
+  prefillCreateBtn.onclick = () => void createDraftRuleAndOpenEditor(ctx, pending);
+  prefillDiscardBtn.onclick = () => void discardPrefill(ctx, pending);
+  show("selectorPrefill");
+}
+
+function buildPrefillSummary(pending) {
+  const rows = [];
+  const row = (label, value) =>
+    `<div><span class="fill-label">${label}:</span> <code>${escapeHtmlPopup(value)}</code></div>`;
+  if (pending.mode === "section") {
+    const s = pending.section || {};
+    rows.push(row("Item", s.itemSelector));
+    if (s.itemName) rows.push(row("Name", s.itemName));
+    if (s.itemUrl) rows.push(row("Link", s.itemUrl));
+    if (s.sectionHeaderSelector) rows.push(row("Header", s.sectionHeaderSelector));
+  }
+  else {
+    rows.push(row("Selector", pending.selector));
+    if (pending.mode === "list") {
+      rows.push(`<div class="fill-note">Matches ${pending.matchCount ?? "?"} elements</div>`);
+    }
+    if (pending.sampleValue) rows.push(`<div class="fill-note">Sample: ${escapeHtmlPopup(pending.sampleValue)}</div>`);
+  }
+  prefillSummary.innerHTML = rows.join("");
+}
+
+// The target `<select>` specs. A `sections` result needs the built-in Sections property id (fetched,
+// since it isn't in ctx.properties unless a sections rule already exists); scalar/list results offer
+// the four `field` targets plus one `customProperty` per referenced property.
+async function buildPrefillTargets(ctx, pending) {
+  if (pending.mode === "section") {
+    const propertyId = await resolveSectionsPropertyId();
+    return propertyId
+      ? [{
+        value: "sections",
+        label: "Sections property",
+        kind: "sections",
+        propertyId,
+      }]
+      : [];
+  }
+  const specs = [
+    {
+      value: "field:title",
+      label: "Field: Title",
+      kind: "field",
+      field: "title",
+    },
+    {
+      value: "field:description",
+      label: "Field: Description",
+      kind: "field",
+      field: "description",
+    },
+    {
+      value: "field:isbn",
+      label: "Field: ISBN",
+      kind: "field",
+      field: "isbn",
+    },
+    {
+      value: "field:year",
+      label: "Field: Year",
+      kind: "field",
+      field: "year",
+    },
+  ];
+  (ctx.properties || []).forEach((prop) => {
+    specs.push({
+      value: `prop:${prop.id}`,
+      label: `Property: ${prop.name}`,
+      kind: "customProperty",
+      propertyId: prop.id,
+    });
+  });
+  return specs;
+}
+
+async function resolveSectionsPropertyId() {
+  try {
+    const res = await fetch(`${serverUrl}/api/custom-properties`);
+    if (!res.ok) return null;
+    const props = await res.json();
+    const sections = (props || []).find(prop => prop.slug === "sections");
+    return sections ? sections.id : null;
+  }
+  catch {
+    return null;
+  }
+}
+
+// Build a schema-clean draft rule (only fields fillTargetSchema allows — additionalProperties:false).
+function buildDraftRule(pending, label, spec) {
+  const id = randomId();
+  if (spec.kind === "sections") {
+    const s = pending.section || {};
+    const target = {
+      kind: "sections",
+      propertyId: spec.propertyId,
+      entryType: prefillEntryType.value || "name",
+    };
+    if (s.container) target.container = s.container;
+    if (s.itemName) target.itemName = s.itemName;
+    if (s.itemUrl) {
+      target.itemUrl = s.itemUrl;
+      target.resolveItemUrl = true;
+    }
+    if (s.sectionHeaderSelector) target.sectionHeaderSelector = s.sectionHeaderSelector;
+    return {
+      id,
+      label,
+      target,
+      extract: {
+        selector: s.itemSelector || pending.selector,
+      },
+    };
+  }
+  const target = spec.kind === "field"
+    ? {
+      kind: "field",
+      field: spec.field,
+    }
+    : {
+      kind: "customProperty",
+      propertyId: spec.propertyId,
+    };
+  const extract = {
+    selector: pending.selector,
+  };
+  if (pending.read?.kind && pending.read.kind !== "text") extract.read = pending.read;
+  return {
+    id,
+    label,
+    target,
+    extract,
+  };
+}
+
+async function createDraftRuleAndOpenEditor(ctx, pending) {
+  prefillError.textContent = "";
+  const spec = prefillSpecs.find(s => s.value === prefillTarget.value);
+  if (!spec) {
+    prefillError.textContent = "Pick where to put the value.";
+    return;
+  }
+  const label = prefillLabel.value.trim() || "New rule";
+  const rule = buildDraftRule(pending, label, spec);
+  const website = ctx.website;
+  const rules = [...(website.extensionFillRules || []), rule];
+  prefillCreateBtn.disabled = true;
+  prefillCreateBtn.textContent = "Creating…";
+  try {
+    const res = await fetch(`${serverUrl}/api/websites/${website.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        extensionFillRules: rules,
+      }),
+    });
+    if (!res.ok) throw new Error(`status ${res.status}`);
+  }
+  catch (err) {
+    prefillCreateBtn.disabled = false;
+    prefillCreateBtn.textContent = "Create draft rule & open editor";
+    prefillError.textContent = `Couldn't save the rule (${err?.message ?? err}).`;
+    return;
+  }
+  await clearPendingSelector();
+  chrome.tabs.create({
+    url: `${serverUrl}/taxonomies/websites/${website.slug}/edit?tab=extension-fill&rule=${rule.id}`,
+  });
+  window.close();
+}
+
+async function discardPrefill(ctx, pending) {
+  await clearPendingSelector();
+  routeByMode(ctx, pending.url, false);
 }
 
 // --- Add form: quick-save-to-inbox or add-as-bookmark ------------------
@@ -2271,6 +2612,7 @@ function renderReview(bookmark, rows, groups) {
   fillReviewOpenBtn.onclick = () => openBookmark(bookmark?.id);
   // A screenshot can be taken here without first applying the pending autofill changes.
   wireCaptureButton(captureReviewBtn, captureReviewStatus, bookmark?.id);
+  wireFindSelectorButton(findSelectorReviewBtn, findSelectorReviewStatus);
   // Selection/apply run off the (unchanged) `rows` array, so grouping the DOM never affects them.
   fillApplyBtn.onclick = () => void applyChanges(rows, bookmark);
   show("review");
