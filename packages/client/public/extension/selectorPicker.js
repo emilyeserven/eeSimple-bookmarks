@@ -383,6 +383,38 @@
     };
   }
 
+  // 2b) EXACT-SET selector for the picked elements ONLY (List mode) — the opposite of the generalizing
+  // `buildCommonSelector`. Unions each element's own unique selector (a CSS selector list, which the
+  // fill engine's `querySelectorAll` supports), so it resolves to exactly the picked nodes and not their
+  // siblings. `exact` is false only when an element fell back to a non-unique selector that over-matches.
+  function buildExactSelector(elements, doc) {
+    var distinct = [];
+    (elements || []).forEach(function (el) {
+      if (el && distinct.indexOf(el) === -1) distinct.push(el);
+    });
+    if (distinct.length === 0) {
+      return {
+        selector: "",
+        matchCount: 0,
+        exact: false,
+      };
+    }
+    doc = doc || distinct[0].ownerDocument || (typeof document !== "undefined" ? document : null);
+    var parts = [];
+    distinct.forEach(function (el) {
+      var one = buildRobustSelector(el, doc).selector;
+      if (one && parts.indexOf(one) === -1) parts.push(one);
+    });
+    var selector = parts.join(", ");
+    var count = selector ? matchCount(selector, doc) : 0;
+    var exact = count === distinct.length && matchesAllElements(selector, distinct, doc);
+    return {
+      selector: selector,
+      matchCount: count,
+      exact: exact,
+    };
+  }
+
   // --- relative (item-scoped) selector ------------------------------------------------------
 
   function relativePath(root, el) {
@@ -704,7 +736,7 @@
 
   function promptForMode() {
     if (ui.state.mode === "single") setStatus("Click an element to capture its selector.");
-    else if (ui.state.mode === "list") setStatus("Click 2+ example items, then \"Use this\".");
+    else if (ui.state.mode === "list") setStatus("Click each element to include, then \"Use this\".");
     else setStatus("Section: click 2+ example ITEMS (rows), then \"Next\".");
   }
 
@@ -772,17 +804,18 @@
   }
 
   function handleListPick(el) {
-    ui.state.picks.push(el);
-    var common = buildCommonSelector(ui.state.picks, document);
+    if (ui.state.picks.indexOf(el) === -1) ui.state.picks.push(el);
+    var exact = buildExactSelector(ui.state.picks, document);
     ui.state.result = {
       mode: "list",
-      selector: common.selector,
-      matchCount: common.matchCount,
+      selector: exact.selector,
+      matchCount: exact.matchCount,
     };
-    var n = highlightMatches(common.selector, document);
-    setStatus("Selector: <code>" + escapeHtml(common.selector) + "</code><br>Matches "
-      + n + " element(s) from " + ui.state.picks.length + " example(s)."
-      + "<br>Click more examples to refine, then \"Use this\".");
+    var n = highlightMatches(exact.selector, document);
+    setStatus("Selector: <code>" + escapeHtml(exact.selector) + "</code><br>Matches "
+      + n + " element(s) — your " + ui.state.picks.length + " selection(s)"
+      + (exact.exact ? "" : " &middot; ⚠ also matches others")
+      + "<br>Click more elements to add, then \"Use this\".");
   }
 
   function handleSectionPick(el) {
@@ -925,6 +958,7 @@
     teardown: teardown,
     buildRobustSelector: buildRobustSelector,
     buildCommonSelector: buildCommonSelector,
+    buildExactSelector: buildExactSelector,
     buildRelativeSelector: buildRelativeSelector,
     classifyClassToken: classifyClassToken,
     sampleValueFor: sampleValueFor,
