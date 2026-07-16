@@ -30,6 +30,9 @@ const inboxSavedError = document.getElementById("inboxSavedError");
 // Fill-mode screens
 const savedStateEl = document.getElementById("savedState");
 const savedOpenBtn = document.getElementById("savedOpenBtn");
+const savedDescription = document.getElementById("savedDescription");
+const saveDescriptionBtn = document.getElementById("saveDescriptionBtn");
+const saveDescriptionStatus = document.getElementById("saveDescriptionStatus");
 const fillFillingEl = document.getElementById("fillFilling");
 const fillFillingTitle = document.getElementById("fillFillingTitle");
 const fillReviewEl = document.getElementById("fillReview");
@@ -484,10 +487,57 @@ function gateRules(rules, url) {
 
 function renderSaved(bookmark) {
   savedOpenBtn.onclick = () => openBookmark(bookmark?.id);
+  wireSaveDescriptionButton(bookmark);
   wireFindSelectorButton(findSelectorSavedBtn, findSelectorSavedStatus);
   wireCaptureButton(captureSavedBtn, captureSavedStatus, bookmark?.id);
   wireDeleteButton(deleteSavedBtn, deleteSavedStatus, bookmark?.id);
   show("saved");
+}
+
+// Prefill the description editor with the bookmark's current value and wire Save. Only offer the
+// editor when we know the bookmark id (needed for the PATCH); otherwise hide it.
+function wireSaveDescriptionButton(bookmark) {
+  const hasBookmark = !!bookmark?.id;
+  savedDescription.classList.toggle("hidden", !hasBookmark);
+  saveDescriptionBtn.classList.toggle("hidden", !hasBookmark);
+  if (!hasBookmark) return;
+  savedDescription.value = bookmark.description ?? "";
+  saveDescriptionBtn.disabled = false;
+  saveDescriptionBtn.textContent = "Save description";
+  saveDescriptionStatus.textContent = "";
+  saveDescriptionBtn.onclick = () => void saveDescription(bookmark, saveDescriptionBtn, saveDescriptionStatus);
+}
+
+// PATCH the bookmark's description. Keeps the popup open (cancel the auto-close) so the user can
+// keep editing; reports success/failure inline without leaving the "already saved" screen.
+async function saveDescription(bookmark, btn, statusEl) {
+  if (!bookmark?.id) return;
+  cancelCountdown();
+  btn.disabled = true;
+  btn.textContent = "Saving…";
+  if (statusEl) statusEl.textContent = "";
+  try {
+    const res = await fetch(`${serverUrl}/api/bookmarks/${bookmark.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        description: savedDescription.value,
+      }),
+    });
+    if (!res.ok) throw new Error(`status ${res.status}`);
+    // Keep the in-memory bookmark in sync so a re-save compares against the latest value.
+    bookmark.description = savedDescription.value;
+    btn.disabled = false;
+    btn.textContent = "Save description";
+    if (statusEl) statusEl.textContent = "Saved.";
+  }
+  catch {
+    btn.disabled = false;
+    btn.textContent = "Save description";
+    if (statusEl) statusEl.textContent = "Couldn't save. Please try again.";
+  }
 }
 
 // --- "Find a selector" mode --------------------------------------------
