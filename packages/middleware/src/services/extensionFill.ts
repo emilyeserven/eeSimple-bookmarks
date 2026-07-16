@@ -155,9 +155,20 @@ export async function getExtensionFillContext(url: string): Promise<ExtensionFil
   // built-in "Chapters" sections property, with no per-site rule setup. Runtime-only (never stored).
   const rules = [...storedRules, ...(await buildYouTubeChaptersRules(url))];
   if (rules.length === 0) {
+    // No fill rules yet — but still surface the matched website (id/slug/empty rules) so the
+    // extension's "Find a selector" flow can create the site's FIRST rule and deep-link to its editor.
     return {
       mode: "bookmark",
       bookmark,
+      ...(website && {
+        website: {
+          id: website.id,
+          slug: website.slug,
+          siteName: website.siteName,
+          extensionFillRules: [],
+          extensionFillRuleGroups: website.extensionFillRuleGroups ?? [],
+        },
+      }),
     };
   }
 
@@ -199,6 +210,7 @@ export async function getExtensionFillContext(url: string): Promise<ExtensionFil
       // youtube.com is a seeded built-in website, so `website` is present for a saved YT video; the
       // fallback only guards a hypothetical missing record (the synthetic rule still needs a shell).
       id: website?.id ?? "youtube-chapters",
+      slug: website?.slug ?? "youtube",
       siteName: website?.siteName ?? "YouTube",
       extensionFillRules: rules,
       extensionFillRuleGroups: website?.extensionFillRuleGroups ?? [],
@@ -273,6 +285,7 @@ async function buildTaxonomyMode(
     mode: "taxonomy",
     website: {
       id: website.id,
+      slug: website.slug,
       siteName: website.siteName,
       extensionFillRules: storedRules,
       extensionFillRuleGroups: website.extensionFillRuleGroups ?? [],

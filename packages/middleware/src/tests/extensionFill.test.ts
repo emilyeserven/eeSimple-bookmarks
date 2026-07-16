@@ -295,7 +295,7 @@ test("mode is 'bookmark' when the URL matches an existing bookmark", async () =>
   assert.equal(result.bookmark?.id, "bm-1");
 });
 
-test("mode is 'bookmark' with no rules/properties/taxonomies when the matched website has no rules", async () => {
+test("mode is 'bookmark' surfacing the matched website (empty rules) when it has no rules", async () => {
   resetFixtures();
   duplicateResult = {
     exactMatch: {
@@ -315,7 +315,11 @@ test("mode is 'bookmark' with no rules/properties/taxonomies when the matched we
   websiteForUrl = makeWebsite([]);
   const result = await getExtensionFillContext("https://example.com/a");
   assert.equal(result.mode, "bookmark");
-  assert.equal(result.website, undefined);
+  // The matched website is surfaced (id/slug/empty rules) so the extension's "Find a selector"
+  // flow can create the site's FIRST rule and deep-link to its editor.
+  assert.equal(result.website?.id, "website-1");
+  assert.equal(result.website?.slug, "example");
+  assert.deepEqual(result.website?.extensionFillRules, []);
   assert.equal(result.properties, undefined);
   assert.equal(result.taxonomies, undefined);
 });

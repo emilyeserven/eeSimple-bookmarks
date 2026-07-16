@@ -178,6 +178,8 @@
   <div id="savedState" class="hidden">
     <p>This page is already saved.</p>
     <button id="savedOpenBtn">Open Bookmark</button>
+    <button id="findSelectorSavedBtn" class="secondary hidden" style="margin-top:6px">Find a selector</button>
+    <div id="findSelectorSavedStatus" class="fill-note"></div>
     <button id="captureSavedBtn" class="secondary hidden" style="margin-top:6px">Capture screenshot</button>
     <div id="captureSavedStatus" class="fill-note"></div>
     <button id="deleteSavedBtn" class="danger hidden" style="margin-top:6px">Delete bookmark</button>
@@ -196,6 +198,8 @@
     <div id="fillRows"></div>
     <button id="fillApplyBtn">Apply</button>
     <button id="fillReviewOpenBtn" class="secondary">Open Bookmark</button>
+    <button id="findSelectorReviewBtn" class="secondary hidden" style="margin-top:6px">Find a selector</button>
+    <div id="findSelectorReviewStatus" class="fill-note"></div>
     <button id="captureReviewBtn" class="secondary hidden" style="margin-top:6px">Capture screenshot</button>
     <div id="captureReviewStatus" class="fill-note"></div>
   </div>
@@ -207,6 +211,22 @@
     <div id="captureAppliedStatus" class="fill-note"></div>
     <button id="deleteAppliedBtn" class="danger hidden" style="margin-top:6px">Delete bookmark</button>
     <div id="deleteAppliedStatus" class="fill-note"></div>
+  </div>
+
+  <div id="selectorPrefill" class="hidden">
+    <p class="fill-title">New extension fill rule</p>
+    <div id="prefillSummary" class="fill-values" style="margin-bottom:6px"></div>
+    <input type="text" id="prefillLabel" placeholder="Rule label">
+    <select id="prefillTarget" style="width:100%;box-sizing:border-box;padding:6px 8px;border:1px solid #ccc;border-radius:4px;font-size:13px;margin:6px 0"></select>
+    <select id="prefillEntryType" class="hidden" style="width:100%;box-sizing:border-box;padding:6px 8px;border:1px solid #ccc;border-radius:4px;font-size:13px;margin:6px 0">
+      <option value="name">Entry type: Name (titled list)</option>
+      <option value="url">Entry type: URL</option>
+      <option value="page">Entry type: Page number</option>
+      <option value="timestamp">Entry type: Timestamp</option>
+    </select>
+    <button id="prefillCreateBtn">Create draft rule &amp; open editor</button>
+    <button id="prefillDiscardBtn" class="danger" style="margin-top:6px">Discard</button>
+    <div id="prefillError" class="fill-note"></div>
   </div>
 
   <div id="progress" class="hidden"><div id="progressBar"></div></div>

@@ -397,6 +397,8 @@ export interface ExtensionFillContext {
   inboxItemId?: string;
   website?: {
     id: string;
+    /** The website's slug — lets the popup deep-link to its Extension Fill editor tab. */
+    slug: string;
     siteName: string;
     extensionFillRules: WebsiteExtensionFillRule[];
     /** Groups over the site's rules, so the popup can render grouped rows under collapsible headers. */
