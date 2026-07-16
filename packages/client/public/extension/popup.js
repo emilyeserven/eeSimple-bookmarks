@@ -33,6 +33,12 @@ const savedOpenBtn = document.getElementById("savedOpenBtn");
 const savedDescription = document.getElementById("savedDescription");
 const saveDescriptionBtn = document.getElementById("saveDescriptionBtn");
 const saveDescriptionStatus = document.getElementById("saveDescriptionStatus");
+const reviewDescription = document.getElementById("reviewDescription");
+const saveReviewDescriptionBtn = document.getElementById("saveReviewDescriptionBtn");
+const saveReviewDescriptionStatus = document.getElementById("saveReviewDescriptionStatus");
+const appliedDescription = document.getElementById("appliedDescription");
+const saveAppliedDescriptionBtn = document.getElementById("saveAppliedDescriptionBtn");
+const saveAppliedDescriptionStatus = document.getElementById("saveAppliedDescriptionStatus");
 const fillFillingEl = document.getElementById("fillFilling");
 const fillFillingTitle = document.getElementById("fillFillingTitle");
 const fillReviewEl = document.getElementById("fillReview");
@@ -487,35 +493,55 @@ function gateRules(rules, url) {
 
 function renderSaved(bookmark) {
   savedOpenBtn.onclick = () => openBookmark(bookmark?.id);
-  wireSaveDescriptionButton(bookmark);
+  wireDescriptionEditor(DESCRIPTION_EDITORS.saved, bookmark);
   wireFindSelectorButton(findSelectorSavedBtn, findSelectorSavedStatus);
   wireCaptureButton(captureSavedBtn, captureSavedStatus, bookmark?.id);
   wireDeleteButton(deleteSavedBtn, deleteSavedStatus, bookmark?.id);
   show("saved");
 }
 
-// Prefill the description editor with the bookmark's current value and wire Save. Only offer the
-// editor when we know the bookmark id (needed for the PATCH); otherwise hide it.
-function wireSaveDescriptionButton(bookmark) {
+// Description editors — one per bookmark-context screen (mirrors the per-screen capture/delete
+// controls). Each lets the user edit the bookmark's description in place and PATCH it.
+const DESCRIPTION_EDITORS = {
+  saved: {
+    field: savedDescription,
+    btn: saveDescriptionBtn,
+    status: saveDescriptionStatus,
+  },
+  review: {
+    field: reviewDescription,
+    btn: saveReviewDescriptionBtn,
+    status: saveReviewDescriptionStatus,
+  },
+  applied: {
+    field: appliedDescription,
+    btn: saveAppliedDescriptionBtn,
+    status: saveAppliedDescriptionStatus,
+  },
+};
+
+// Prefill an editor with the bookmark's current description and wire Save. Only offer it when we know
+// the bookmark id (needed for the PATCH); otherwise hide the controls (e.g. taxonomy mode).
+function wireDescriptionEditor(editor, bookmark) {
   const hasBookmark = !!bookmark?.id;
-  savedDescription.classList.toggle("hidden", !hasBookmark);
-  saveDescriptionBtn.classList.toggle("hidden", !hasBookmark);
+  editor.field.classList.toggle("hidden", !hasBookmark);
+  editor.btn.classList.toggle("hidden", !hasBookmark);
+  editor.status.textContent = "";
   if (!hasBookmark) return;
-  savedDescription.value = bookmark.description ?? "";
-  saveDescriptionBtn.disabled = false;
-  saveDescriptionBtn.textContent = "Save description";
-  saveDescriptionStatus.textContent = "";
-  saveDescriptionBtn.onclick = () => void saveDescription(bookmark, saveDescriptionBtn, saveDescriptionStatus);
+  editor.field.value = bookmark.description ?? "";
+  editor.btn.disabled = false;
+  editor.btn.textContent = "Save description";
+  editor.btn.onclick = () => void saveDescription(bookmark, editor);
 }
 
-// PATCH the bookmark's description. Keeps the popup open (cancel the auto-close) so the user can
-// keep editing; reports success/failure inline without leaving the "already saved" screen.
-async function saveDescription(bookmark, btn, statusEl) {
+// PATCH the bookmark's description. Keeps the popup open (cancel the auto-close) so the user can keep
+// editing; reports success/failure inline without leaving the current screen.
+async function saveDescription(bookmark, editor) {
   if (!bookmark?.id) return;
   cancelCountdown();
-  btn.disabled = true;
-  btn.textContent = "Saving…";
-  if (statusEl) statusEl.textContent = "";
+  editor.btn.disabled = true;
+  editor.btn.textContent = "Saving…";
+  editor.status.textContent = "";
   try {
     const res = await fetch(`${serverUrl}/api/bookmarks/${bookmark.id}`, {
       method: "PATCH",
@@ -523,20 +549,20 @@ async function saveDescription(bookmark, btn, statusEl) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        description: savedDescription.value,
+        description: editor.field.value,
       }),
     });
     if (!res.ok) throw new Error(`status ${res.status}`);
-    // Keep the in-memory bookmark in sync so a re-save compares against the latest value.
-    bookmark.description = savedDescription.value;
-    btn.disabled = false;
-    btn.textContent = "Save description";
-    if (statusEl) statusEl.textContent = "Saved.";
+    // Keep the in-memory bookmark in sync so a re-save (or another screen's editor) sees the latest value.
+    bookmark.description = editor.field.value;
+    editor.btn.disabled = false;
+    editor.btn.textContent = "Save description";
+    editor.status.textContent = "Saved.";
   }
   catch {
-    btn.disabled = false;
-    btn.textContent = "Save description";
-    if (statusEl) statusEl.textContent = "Couldn't save. Please try again.";
+    editor.btn.disabled = false;
+    editor.btn.textContent = "Save description";
+    editor.status.textContent = "Couldn't save. Please try again.";
   }
 }
 
@@ -1194,6 +1220,7 @@ function showReviewError(bookmark, message) {
   fillReviewOpenBtn.classList.toggle("hidden", !bookmark);
   fillReviewOpenBtn.onclick = () => openBookmark(bookmark?.id);
   // A screenshot can still be taken even when the changes couldn't be prepared.
+  wireDescriptionEditor(DESCRIPTION_EDITORS.review, bookmark);
   wireCaptureButton(captureReviewBtn, captureReviewStatus, bookmark?.id);
   show("review");
 }
@@ -2661,6 +2688,7 @@ function renderReview(bookmark, rows, groups) {
   fillReviewOpenBtn.classList.toggle("hidden", !bookmark);
   fillReviewOpenBtn.onclick = () => openBookmark(bookmark?.id);
   // A screenshot can be taken here without first applying the pending autofill changes.
+  wireDescriptionEditor(DESCRIPTION_EDITORS.review, bookmark);
   wireCaptureButton(captureReviewBtn, captureReviewStatus, bookmark?.id);
   wireFindSelectorButton(findSelectorReviewBtn, findSelectorReviewStatus);
   // Selection/apply run off the (unchanged) `rows` array, so grouping the DOM never affects them.
@@ -2939,6 +2967,11 @@ async function applyChanges(rows, bookmark) {
         body: JSON.stringify(patch),
       });
       if (!res.ok) throw new Error(`status ${res.status}`);
+      // Keep the in-memory bookmark's description current so the applied screen's editor prefills the
+      // just-applied value (rather than the pre-apply one) when a description fill row was applied.
+      if (Object.prototype.hasOwnProperty.call(patch, "description")) {
+        bookmark.description = patch.description;
+      }
     }
 
     // Associated-taxonomy PATCHes run after the bookmark PATCH (best-effort): each linked term's
@@ -2989,6 +3022,7 @@ async function applyChanges(rows, bookmark) {
     // No bookmark (taxonomy mode) → nothing to open or screenshot.
     fillAppliedOpenBtn.classList.toggle("hidden", !bookmark);
     fillAppliedOpenBtn.onclick = () => openBookmark(bookmark?.id);
+    wireDescriptionEditor(DESCRIPTION_EDITORS.applied, bookmark);
     wireCaptureButton(captureAppliedBtn, captureAppliedStatus, bookmark?.id);
     wireDeleteButton(deleteAppliedBtn, deleteAppliedStatus, bookmark?.id);
     show("applied");
