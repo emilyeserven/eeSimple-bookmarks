@@ -242,6 +242,28 @@
     return videoId ? "https://img.youtube.com/vi/" + videoId + "/hqdefault.jpg" : null;
   }
 
+  // Serialize a matched inline `<svg>` into a `data:image/svg+xml,…` URI so it can be uploaded as an
+  // image (an inline `<svg>` has no `src`/URL to grab). Uses the element itself when it is an `<svg>`,
+  // else its first descendant `<svg>`. `XMLSerializer` (not `outerHTML`) is used so the emitted markup
+  // carries the `xmlns` a browser needs to render the SVG standalone. Returns null when there's no svg.
+  function svgDataUrl(el) {
+    var svg = el && el.namespaceURI === "http://www.w3.org/2000/svg" && el.localName === "svg"
+      ? el
+      : el && typeof el.querySelector === "function"
+        ? el.querySelector("svg")
+        : null;
+    if (!svg) return null;
+    var markup;
+    try {
+      markup = new XMLSerializer().serializeToString(svg);
+    }
+    catch {
+      return null;
+    }
+    if (!markup) return null;
+    return "data:image/svg+xml," + encodeURIComponent(markup);
+  }
+
   // Read a raw string from an element. Returns null for a missing attribute so the caller drops it.
   // `excludeSelectors` strips matching descendants before a `text` read (ignored for attr/background).
   function readValue(el, read, excludeSelectors) {
@@ -252,6 +274,9 @@
     }
     if (read.kind === "backgroundImage") {
       return backgroundImageValue(el);
+    }
+    if (read.kind === "svg") {
+      return svgDataUrl(el);
     }
     throw new Error("Unknown read kind: " + read.kind);
   }

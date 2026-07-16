@@ -517,6 +517,65 @@ describe("eesimpleFillEngine.runRules — read", () => {
       el.remove();
     }
   });
+
+  it("svg — serializes an inline <svg> the selector matches directly into a data URI", () => {
+    const html = "<h1><svg viewBox=\"0 0 10 5\"><title>logo</title><rect width=\"10\" height=\"5\"/></svg></h1>";
+    const rule = {
+      id: "logo",
+      extract: {
+        selector: "h1 svg",
+        read: {
+          kind: "svg",
+        },
+      },
+    };
+    const {
+      values,
+    } = runOne(rule, html);
+    expect(values).toHaveLength(1);
+    expect(values[0].startsWith("data:image/svg+xml,")).toBe(true);
+    const markup = decodeURIComponent(values[0].slice("data:image/svg+xml,".length));
+    expect(markup).toContain("<svg");
+    // XMLSerializer emits the SVG namespace so the extracted image renders standalone.
+    expect(markup).toContain("http://www.w3.org/2000/svg");
+    expect(markup).toContain("<rect");
+  });
+
+  it("svg — finds a descendant <svg> when the selector matches a container element", () => {
+    const html = "<h1><figure class=\"logo\"><svg viewBox=\"0 0 10 5\"><rect width=\"10\" height=\"5\"/></svg></figure></h1>";
+    const rule = {
+      id: "logo",
+      extract: {
+        selector: ".logo",
+        read: {
+          kind: "svg",
+        },
+      },
+    };
+    const {
+      values,
+    } = runOne(rule, html);
+    expect(values).toHaveLength(1);
+    expect(values[0].startsWith("data:image/svg+xml,")).toBe(true);
+    expect(decodeURIComponent(values[0])).toContain("<rect");
+  });
+
+  it("svg — no <svg> in the matched element drops the candidate (empty, not error)", () => {
+    const html = "<h1 class=\"logo\">react.gg</h1>";
+    const rule = {
+      id: "logo",
+      extract: {
+        selector: ".logo",
+        read: {
+          kind: "svg",
+        },
+      },
+    };
+    expect(runOne(rule, html)).toEqual({
+      ruleId: "logo",
+      values: [],
+    });
+  });
 });
 
 describe("eesimpleFillEngine.runRules — transforms", () => {

@@ -17,14 +17,18 @@ function nextRead(kind: FillRead["kind"], attrName: string): FillRead {
   if (kind === "backgroundImage") return {
     kind: "backgroundImage",
   };
+  if (kind === "svg") return {
+    kind: "svg",
+  };
   return {
     kind: "text",
   };
 }
 
 /**
- * Editor for how a value is read from the matched node: trimmed text (default), an attribute, or the
- * `url(…)` from its computed `background-image` (for grabbing a CSS-painted image).
+ * Editor for how a value is read from the matched node: trimmed text (default), an attribute, the
+ * `url(…)` from its computed `background-image` (a CSS-painted image), or an inline `<svg>` element
+ * serialized to a `data:image/svg+xml` URI (a logo drawn as inline SVG markup).
  */
 export function FillReadField({
   read, onChange,
@@ -54,6 +58,10 @@ export function FillReadField({
           {
             value: "backgroundImage",
             label: t("Background image URL"),
+          },
+          {
+            value: "svg",
+            label: t("Inline SVG"),
           },
         ]}
         onValueChange={next => onChange(nextRead(next, attrName))}

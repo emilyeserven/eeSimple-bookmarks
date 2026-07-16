@@ -46,10 +46,11 @@ function applyTargetChange(
 ): WebsiteExtensionFillRule {
   const grabsImage = target.kind === "image"
     || (target.kind === "taxonomyDirect" && target.field === "image");
-  // Keep an already-image-oriented read (an attribute like `src`, or a CSS `background-image`);
-  // otherwise default to the common `<img>` `src`.
+  // Keep an already-image-oriented read (an attribute like `src`, a CSS `background-image`, or an
+  // inline `<svg>`); otherwise default to the common `<img>` `src`.
   const keepsImageRead = rule.extract.read?.kind === "attr"
-    || rule.extract.read?.kind === "backgroundImage";
+    || rule.extract.read?.kind === "backgroundImage"
+    || rule.extract.read?.kind === "svg";
   if (grabsImage && !keepsImageRead) {
     return {
       ...rule,

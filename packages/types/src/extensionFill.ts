@@ -254,10 +254,13 @@ export interface FillExtract {
    * Default trimmed `textContent` (or the `content` attribute for the `meta` source).
    * `backgroundImage` reads the element's **computed `background-image`** and pulls the first
    * `url(…)` out of it — how you grab an image painted via CSS rather than an `<img src>` (pair it
-   * with an `image` / `taxonomyDirect` image target).
+   * with an `image` / `taxonomyDirect` image target). `svg` serializes the matched **inline `<svg>`
+   * element** (the element itself, or its first descendant `<svg>`) into a `data:image/svg+xml,…`
+   * URI — how you grab a logo drawn as inline SVG markup with no `src` (also pair it with an image
+   * target).
    */
   read?: { kind: "text" } | { kind: "attr";
-    name: string; } | { kind: "backgroundImage" };
+    name: string; } | { kind: "backgroundImage" } | { kind: "svg" };
   /** String transforms applied in order. */
   transform?: FillTransform[];
   /** Taxonomy targets only: split one value into many. */

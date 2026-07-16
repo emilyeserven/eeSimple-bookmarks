@@ -305,7 +305,7 @@ export const fillReadSchema = {
   properties: {
     kind: {
       type: "string",
-      enum: ["text", "attr", "backgroundImage"],
+      enum: ["text", "attr", "backgroundImage", "svg"],
     },
     name: {
       type: "string",

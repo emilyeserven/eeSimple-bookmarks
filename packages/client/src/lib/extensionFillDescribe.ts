@@ -141,10 +141,11 @@ export function describePathMatch(pathMatch: PathMatch): string {
   return `${PATH_MATCH_MODE_LABELS[pathMatch.mode]} "${pathMatch.value}"`;
 }
 
-/** A short summary of how the value is read: an attribute, a CSS background image, or trimmed text. */
+/** A short summary of how the value is read: an attribute, a CSS background image, inline SVG, or trimmed text. */
 export function describeFillRead(read: FillExtract["read"]): string {
   if (read?.kind === "attr" && read.name) return `Attribute: ${read.name}`;
   if (read?.kind === "backgroundImage") return "Background image URL";
+  if (read?.kind === "svg") return "Inline SVG";
   return "Text content";
 }
 
