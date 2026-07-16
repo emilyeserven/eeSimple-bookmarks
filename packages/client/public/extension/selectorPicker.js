@@ -606,9 +606,13 @@
     var bar = box("position:fixed;z-index:2147483647;left:50%;transform:translateX(-50%);bottom:16px;"
       + "max-width:92vw;background:#111827;color:#f9fafb;font:13px/1.4 system-ui,sans-serif;"
       + "padding:10px 12px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,0.4);");
+    // Keep toolbar clicks off the page underneath, but register in the BUBBLE phase (not capture): a
+    // capture-phase stopPropagation on the bar would halt the event before it reached its own buttons'
+    // target-phase `onclick` handlers, making every toolbar button dead. The document-level pick handler
+    // already ignores toolbar clicks (elementFromPoint returns null inside the bar), so bubble is enough.
     bar.addEventListener("click", function (e) {
       e.stopPropagation();
-    }, true);
+    }, false);
 
     var modes = box("display:flex;gap:6px;margin-bottom:8px;");
     ["single", "list", "section"].forEach(function (mode) {
