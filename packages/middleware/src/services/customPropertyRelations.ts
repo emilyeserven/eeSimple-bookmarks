@@ -24,6 +24,12 @@ export const DATE_POSTED_SLUG = "date-posted";
 /** Reserved slug + spec of the built-in "Content Status" choices property, seeded at boot. */
 export const CONTENT_STATUS_SLUG = "content-status";
 
+/**
+ * Reserved slug + spec of the built-in "Fill-in Status" choices property, seeded at boot — tracks how
+ * far along the user is in filling the bookmark record in (Not Started / In Progress / Finished).
+ */
+export const FILL_IN_STATUS_SLUG = "fill-in-status";
+
 /** Reserved slug + spec of the built-in "Progress" itemInItems property, seeded at boot. */
 export const PROGRESS_SLUG = "progress";
 

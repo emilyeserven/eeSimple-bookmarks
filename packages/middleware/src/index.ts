@@ -5,7 +5,7 @@ import { ensureAppSettings, ensureDefaultPlaceTypeLevelGroups } from "@/services
 import { ensureDefaultGroupTypes } from "@/services/groupTypes";
 import { backfillCardDisplaySections, deleteNonDefaultCardDisplayRules, ensureCardDisplayConfig } from "@/services/cardDisplayRules";
 import { ensureDefaultCategory } from "@/services/categories";
-import { ensureContentStatusProperty, ensureDatePostedProperty, ensureIsbnProperty, ensurePageRangeProperty, ensureProgressProperty, ensureRuntimeProperty, ensureSectionsProperty } from "@/services/customProperties";
+import { ensureContentStatusProperty, ensureDatePostedProperty, ensureFillInStatusProperty, ensureIsbnProperty, ensurePageRangeProperty, ensureProgressProperty, ensureRuntimeProperty, ensureSectionsProperty } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
 import { findInvalidEntityLayouts } from "@/services/entityLayouts";
 import { resetStalledImports } from "@/services/imports";
@@ -56,6 +56,7 @@ try {
   await backfillExtensionFillPathMatch();
   await ensureDatePostedProperty();
   await ensureContentStatusProperty();
+  await ensureFillInStatusProperty();
   await ensureBuiltInMediaTypes();
   await ensureBuiltInLanguages();
   await ensureBuiltInLanguageUsageLevels();
