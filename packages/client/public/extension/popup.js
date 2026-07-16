@@ -38,6 +38,8 @@ const fillError = document.getElementById("fillError");
 const fillRows = document.getElementById("fillRows");
 const fillApplyBtn = document.getElementById("fillApplyBtn");
 const fillReviewOpenBtn = document.getElementById("fillReviewOpenBtn");
+const captureReviewBtn = document.getElementById("captureReviewBtn");
+const captureReviewStatus = document.getElementById("captureReviewStatus");
 const fillAppliedEl = document.getElementById("fillApplied");
 const fillAppliedMsg = document.getElementById("fillAppliedMsg");
 const fillAppliedOpenBtn = document.getElementById("fillAppliedOpenBtn");
@@ -800,6 +802,8 @@ function showReviewError(bookmark, message) {
   // No bookmark (taxonomy mode) → nothing to open.
   fillReviewOpenBtn.classList.toggle("hidden", !bookmark);
   fillReviewOpenBtn.onclick = () => openBookmark(bookmark?.id);
+  // A screenshot can still be taken even when the changes couldn't be prepared.
+  wireCaptureButton(captureReviewBtn, captureReviewStatus, bookmark?.id);
   show("review");
 }
 
@@ -2265,6 +2269,8 @@ function renderReview(bookmark, rows, groups) {
   // No bookmark (taxonomy mode) → nothing to open.
   fillReviewOpenBtn.classList.toggle("hidden", !bookmark);
   fillReviewOpenBtn.onclick = () => openBookmark(bookmark?.id);
+  // A screenshot can be taken here without first applying the pending autofill changes.
+  wireCaptureButton(captureReviewBtn, captureReviewStatus, bookmark?.id);
   // Selection/apply run off the (unchanged) `rows` array, so grouping the DOM never affects them.
   fillApplyBtn.onclick = () => void applyChanges(rows, bookmark);
   show("review");
