@@ -255,6 +255,16 @@ test("category matches when the bookmark's category is in the list", () => {
   }, makeInput()), false);
 });
 
+test("a category leaf with a missing categoryIds array never matches (does not throw)", () => {
+  // Legacy/partially-migrated stored condition trees can carry a category leaf without its
+  // `categoryIds` array. It must evaluate to `false` instead of throwing
+  // `Cannot read properties of undefined (reading 'includes')` and crashing the detail page render.
+  const malformed = {
+    type: "category",
+  } as unknown as ConditionNode;
+  assert.equal(evaluateConditions(malformed, makeInput()), false);
+});
+
 test("website matches on normalized host; empty list never matches", () => {
   const input = makeInput({
     url: "https://www.Example.com/path",
