@@ -18,6 +18,7 @@ interface SelectorPicker {
   buildRobustSelector(el: Element, doc?: Document): GenResult;
   buildCommonSelector(elements: Element[], doc?: Document): GenResult;
   buildExactSelector(elements: Element[], doc?: Document): GenResult;
+  buildGeneralSelector(elements: Element[], doc?: Document): GenResult;
   buildRelativeSelector(root: Element, el: Element): GenResult;
   classifyClassToken(token: string): { kind: string;
     token: string;
@@ -182,6 +183,88 @@ describe("buildExactSelector (list / only-selected)", () => {
     expect(r.selector).toBe("#x");
     expect(r.matchCount).toBe(1);
     expect(r.exact).toBe(true);
+  });
+});
+
+describe("buildGeneralSelector (generalize / container-anchored)", () => {
+  it("anchors class-hashed images on a common link path (the Facebook case)", () => {
+    // Facebook-shaped: hashed classes, no id/data-*; the only stable hook is the photo anchor's href.
+    const doc = docFrom(`
+      <div>
+        <a href="/photo/?fbid=1"><img class="x1i10hfl xz74otr"></a>
+        <a href="/photo/?fbid=2"><img class="x1i10hfl xz74otr"></a>
+        <a href="/photo/?fbid=3"><img class="x1i10hfl xz74otr"></a>
+        <a href="/watch/?v=9"><img class="x1i10hfl"></a>
+        <img class="avatar">
+      </div>
+    `);
+    const photoImgs = Array.from(doc.querySelectorAll("a[href^=\"/photo\"] img"));
+    const r = picker.buildGeneralSelector([photoImgs[0]!, photoImgs[1]!], doc);
+    // A general, structural pattern — NOT an aria-label/content union.
+    expect(r.selector).toBe("a[href*=\"/photo\"] img");
+    expect(r.container).toBe("a[href*=\"/photo\"]");
+    expect(r.matchesAll).toBe(true);
+    // Generalizes to every photo image (incl. the un-picked 3rd), excluding the /watch img + bare avatar.
+    expect(Array.from(doc.querySelectorAll(r.selector))).toEqual(photoImgs);
+    expect(photoImgs).toHaveLength(3);
+  });
+
+  it("anchors on a stable ancestor container class when leaf classes are hashed", () => {
+    const doc = docFrom(`
+      <div class="feed">
+        <div class="post"><span class="_a1b2">A</span></div>
+        <div class="post"><span class="_c3d4">B</span></div>
+        <div class="post"><span class="_e5f6">C</span></div>
+        <p class="_z9y8">noise</p>
+      </div>
+    `);
+    const spans = Array.from(doc.querySelectorAll("div.post span"));
+    const r = picker.buildGeneralSelector([spans[0]!, spans[1]!], doc);
+    expect(r.matchesAll).toBe(true);
+    // Anchored on a container class (.post / .feed), not the volatile leaf hash.
+    expect(r.selector).toMatch(/div\.(post|feed) (> )?span/);
+    expect(r.container).toBeTruthy();
+    expect(Array.from(doc.querySelectorAll(r.selector))).toEqual(spans);
+    expect(spans).toHaveLength(3);
+  });
+
+  it("scopes to the modal/dialog container when the picks are inside one", () => {
+    // A photo thumbnail in the feed AND the same photo opened in a role="dialog" modal. Scoping to the
+    // dialog is how "target THIS container" is expressed as a real (fill-time) CSS selector.
+    const doc = docFrom(`
+      <div>
+        <a href="/photo/?fbid=1"><img></a>
+        <div role="dialog" aria-modal="true">
+          <a href="/photo/?fbid=2"><img></a>
+          <a href="/photo/?fbid=3"><img></a>
+        </div>
+      </div>
+    `);
+    const modalImgs = Array.from(doc.querySelectorAll("[role=\"dialog\"] a[href^=\"/photo\"] img"));
+    const r = picker.buildGeneralSelector([modalImgs[0]!, modalImgs[1]!], doc);
+    expect(r.selector).toBe("[role=\"dialog\"] a[href*=\"/photo\"] img");
+    expect(r.container).toBe("[role=\"dialog\"]");
+    expect(r.matchesAll).toBe(true);
+    // Only the two modal photos — NOT the feed thumbnail (fbid=1) outside the dialog.
+    expect(Array.from(doc.querySelectorAll(r.selector))).toEqual(modalImgs);
+    expect(modalImgs).toHaveLength(2);
+  });
+
+  it("drops numeric id segments from an href token, keeping the structural path", () => {
+    const doc = docFrom(`
+      <div>
+        <a href="/groups/42/posts/12345"><img></a>
+        <a href="/groups/42/posts/67890"><img></a>
+      </div>
+    `);
+    const imgs = Array.from(doc.querySelectorAll("a img"));
+    const r = picker.buildGeneralSelector([imgs[0]!, imgs[1]!], doc);
+    expect(r.matchesAll).toBe(true);
+    expect(r.selector).toMatch(/\[href\*="\/(posts|groups)"\]/);
+    // Never keys on a numeric id segment.
+    expect(r.selector).not.toContain("12345");
+    expect(r.selector).not.toContain("67890");
+    expect(r.selector).not.toContain("/42");
   });
 });
 

@@ -736,7 +736,7 @@ function buildPrefillSummary(pending) {
   }
   else {
     rows.push(row("Selector", pending.selector));
-    if (pending.mode === "list") {
+    if (pending.mode === "list" || pending.mode === "generalize") {
       rows.push(`<div class="fill-note">Matches ${pending.matchCount ?? "?"} elements</div>`);
     }
     if (pending.sampleValue) rows.push(`<div class="fill-note">Sample: ${escapeHtmlPopup(pending.sampleValue)}</div>`);
