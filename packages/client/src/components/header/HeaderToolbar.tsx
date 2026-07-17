@@ -116,6 +116,9 @@ export function HeaderToolbar({
   const isMobile = useIsMobile();
   const standalone = actions.filter(a => a.mobile.kind === "standalone");
   const collapsible = actions.filter(a => a.mobile.kind !== "standalone");
+  // An action may opt out of the wide-screen row (desktop === null) while keeping a mobile row —
+  // e.g. add-child folded into the listing Plus dropdown. Drop those so no orphan separator renders.
+  const desktopActions = actions.filter(a => a.desktop != null);
 
   return (
     <div className="-mr-1 ml-auto flex items-center gap-1">
@@ -128,7 +131,7 @@ export function HeaderToolbar({
             ))}
           </>
         )
-        : actions.map((action, i) => (
+        : desktopActions.map((action, i) => (
           <React.Fragment key={action.key}>
             {i > 0 && (
               <Separator
