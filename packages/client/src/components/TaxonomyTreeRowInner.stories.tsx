@@ -77,6 +77,22 @@ export const OpenWithActions: Story = {
   },
 };
 
+/**
+ * Locations-style row: the action cluster collapses into a single "More" (⋯) control that expands the
+ * controls in a popover on hover/tap. The trigger is accented because an action (map-focus) is active.
+ */
+export const CollapsedActionsMenu: Story = {
+  args: {
+    collapseActions: true,
+    isOpen: true,
+    onExpandSubtree: () => {},
+    onToggleFilter: () => {},
+    filtered: true,
+    onToggleVisibility: () => {},
+    onToggleFavorite: () => {},
+  },
+};
+
 /** A built-in leaf node — no expander, "Built-in" badge shown. */
 export const BuiltInLeaf: Story = {
   args: {

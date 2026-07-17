@@ -60,6 +60,9 @@ export function LocationTreeList({
       columns={columns}
       // Touch devices have no hover, so reveal the per-row action buttons unconditionally there.
       alwaysShowActions={isMobile}
+      // Locations rows carry the most actions (edit/info/expand-all/map-focus/eye/star) and lose the
+      // most width to nested indentation, so collapse them into a single hover/tap "More" (⋯) menu.
+      collapseActions
       onExpandSubtree={onExpandMany ? node => onExpandMany(expandableIds([node])) : undefined}
       onToggleFilter={onToggleFilter ? node => onToggleFilter(node.id) : undefined}
       isFiltered={onToggleFilter ? node => filterSet.has(node.id) : undefined}
