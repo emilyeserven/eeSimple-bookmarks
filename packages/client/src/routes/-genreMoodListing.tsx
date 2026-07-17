@@ -6,6 +6,7 @@ import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { useGenreMoodBySlug } from "../hooks/useGenreMoods";
 import { tagsForServerQuery } from "../lib/bookmarkSearch";
+import { subtreeIds } from "../lib/tagTree";
 
 interface Props {
   genreMoodSlug: string;
@@ -52,8 +53,10 @@ export function GenreMoodListing({
     return <p className="text-destructive">{t("Entry not found.")}</p>;
   }
 
+  // Include bookmarks carrying this genre/mood or any of its descendants.
+  const genreMoodIds = new Set(subtreeIds(genreMood));
   const genreMoodBookmarks = (bookmarks ?? []).filter(b =>
-    b.genreMoods?.some(entry => entry.id === genreMood.id));
+    b.genreMoods?.some(entry => genreMoodIds.has(entry.id)));
 
   return (
     <BookmarkSearchView

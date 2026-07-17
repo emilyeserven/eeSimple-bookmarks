@@ -1,14 +1,15 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { TaxonomyTerm } from "@eesimple/types";
+import type { TaxonomyTermNode } from "@eesimple/types";
 
 import { useTranslation } from "react-i18next";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { tagsForServerQuery } from "../lib/bookmarkSearch";
+import { subtreeIds } from "../lib/tagTree";
 
 interface Props {
-  term: TaxonomyTerm;
+  term: TaxonomyTermNode;
   /** Which results view the outer `_hub` strip selected (bookmarks/gallery). */
   activeView: "bookmarks" | "gallery";
   search: BookmarkSearch;
@@ -40,8 +41,10 @@ export function TaxonomyTermListing({
     placeTypes,
   } = useCategoryPageData(tagsForServerQuery(search));
 
+  // Include bookmarks carrying this term or any of its descendants.
+  const termIds = new Set(subtreeIds(term));
   const termBookmarks = (bookmarks ?? []).filter(b =>
-    b.taxonomyTerms?.some(entry => entry.id === term.id));
+    b.taxonomyTerms?.some(entry => termIds.has(entry.id)));
 
   return (
     <BookmarkSearchView
