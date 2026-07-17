@@ -415,6 +415,149 @@
     };
   }
 
+  // --- general (container/href-anchored) selector -------------------------------------------
+
+  // Structural `[href*="/seg"]` fragments from an <a>'s href PATH — the stable hook on class-hashed
+  // sites. Query/hash and scheme+host are stripped; numeric ids and hash-ish segments are dropped, so
+  // `/photo/?fbid=123` -> ['[href*="/photo"]'] and `/posts/12345` -> ['[href*="/posts"]'].
+  function hrefPathTokens(el) {
+    var href = el && el.getAttribute ? el.getAttribute("href") : null;
+    if (!href) return [];
+    var path = href;
+    var q = path.indexOf("?");
+    if (q !== -1) path = path.slice(0, q);
+    var hsh = path.indexOf("#");
+    if (hsh !== -1) path = path.slice(0, hsh);
+    var scheme = path.indexOf("://");
+    if (scheme !== -1) {
+      var afterScheme = path.slice(scheme + 3);
+      var slash = afterScheme.indexOf("/");
+      path = slash === -1 ? "" : afterScheme.slice(slash);
+    }
+    var seen = {};
+    var out = [];
+    path.split("/").forEach(function (seg) {
+      if (!seg || seg.length < 2 || seg.length > 40) return;
+      if (/^\d+$/.test(seg)) return;
+      if (looksHashy(seg)) return;
+      var frag = "[href*=\"/" + seg + "\"]";
+      if (!seen[frag]) {
+        seen[frag] = true;
+        out.push(frag);
+      }
+    });
+    return out;
+  }
+
+  // Structural single-level descriptors of `el`'s ANCESTORS (content-free): each <a> href path token
+  // (`a[href*="/photo"]`) and each classifiable ancestor class (`div.container` / `div[class*="row"]`).
+  function ancestorDescriptors(el) {
+    var out = [];
+    var seen = {};
+    var add = function (d) {
+      if (!seen[d]) {
+        seen[d] = true;
+        out.push(d);
+      }
+    };
+    var anc = el.parentElement;
+    var depth = 0;
+    while (anc && depth < 8) {
+      var atag = tagName(anc);
+      hrefPathTokens(anc).forEach(function (frag) {
+        add(atag + frag);
+      });
+      classFragments(anc).forEach(function (frag) {
+        add(atag + frag);
+      });
+      anc = anc.parentElement;
+      depth++;
+    }
+    return out;
+  }
+
+  // 2c) GENERAL, MANY-MATCH selector for the "Generalize" mode: the most-specific selector that still
+  // matches EVERY picked element, anchored on a common container / link-path shared by all picks. Never
+  // reads content attributes (aria-label/alt/title), so on class-hashed sites like Facebook it yields a
+  // structural pattern (`a[href*="/photo"] img`) instead of a page-specific content union.
+  function buildGeneralSelector(elements, doc) {
+    var distinct = [];
+    (elements || []).forEach(function (el) {
+      if (el && distinct.indexOf(el) === -1) distinct.push(el);
+    });
+    if (distinct.length === 0) {
+      return {
+        selector: "",
+        matchCount: 0,
+        matchesAll: false,
+      };
+    }
+    doc = doc || distinct[0].ownerDocument || (typeof document !== "undefined" ? document : null);
+    var tag = tagName(distinct[0]);
+    var sameTag = distinct.every(function (el) {
+      return tagName(el) === tag;
+    });
+    var commonTag = sameTag ? tag : "*";
+    var selfFrags = commonClassFragments(distinct);
+    var selfSuffix = selfFrags.length ? selfFrags.join("") : "";
+
+    var candidates = [];
+    if (selfFrags.length) candidates.push({
+      selector: commonTag + selfSuffix,
+      href: false,
+    });
+
+    // Ancestor descriptors common to EVERY picked element -> a shared container/link anchor.
+    var sets = distinct.map(ancestorDescriptors);
+    (sets[0] || []).forEach(function (d) {
+      var commonToAll = sets.every(function (set) {
+        return set.indexOf(d) !== -1;
+      });
+      if (!commonToAll) return;
+      var hrefAnchored = d.indexOf("[href*=") !== -1;
+      candidates.push({
+        selector: d + " " + commonTag + selfSuffix,
+        container: d,
+        href: hrefAnchored,
+      });
+      candidates.push({
+        selector: d + " > " + commonTag + selfSuffix,
+        container: d,
+        href: hrefAnchored,
+      });
+    });
+
+    var viable = candidates
+      .map(function (c) {
+        return {
+          selector: c.selector,
+          container: c.container,
+          href: c.href,
+          count: matchCount(c.selector, doc),
+        };
+      })
+      .filter(function (c) {
+        return c.count >= distinct.length && matchesAllElements(c.selector, distinct, doc);
+      });
+    if (viable.length) {
+      viable.sort(function (a, b) {
+        if (a.count !== b.count) return a.count - b.count;
+        if (a.href !== b.href) return a.href ? -1 : 1;
+        return a.selector.length - b.selector.length;
+      });
+      var best = viable[0];
+      var result = {
+        selector: best.selector,
+        matchCount: best.count,
+        matchesAll: true,
+      };
+      if (best.container) result.container = best.container;
+      return result;
+    }
+    // Never do worse than today's class-intersection generalizer.
+    return buildCommonSelector(distinct, doc);
+  }
+
   // --- relative (item-scoped) selector ------------------------------------------------------
 
   function relativePath(root, el) {
@@ -647,9 +790,15 @@
     }, false);
 
     var modes = box("display:flex;gap:6px;margin-bottom:8px;");
-    ["single", "list", "section"].forEach(function (mode) {
+    var MODE_LABELS = {
+      single: "Single",
+      list: "List",
+      section: "Section",
+      generalize: "Generalize",
+    };
+    ["single", "list", "section", "generalize"].forEach(function (mode) {
       var b = document.createElement("button");
-      b.textContent = mode === "single" ? "Single" : mode === "list" ? "List" : "Section";
+      b.textContent = MODE_LABELS[mode];
       b.dataset.mode = mode;
       b.style.cssText = "flex:1;padding:4px 8px;border:0;border-radius:6px;cursor:pointer;"
         + "background:#374151;color:#f9fafb;font:12px system-ui;";
@@ -737,6 +886,9 @@
   function promptForMode() {
     if (ui.state.mode === "single") setStatus("Click an element to capture its selector.");
     else if (ui.state.mode === "list") setStatus("Click each element to include, then \"Use this\".");
+    else if (ui.state.mode === "generalize") {
+      setStatus("Click 1+ example elements; a general pattern matching all similar elements is built.");
+    }
     else setStatus("Section: click 2+ example ITEMS (rows), then \"Next\".");
   }
 
@@ -781,6 +933,10 @@
       handleListPick(el);
       return;
     }
+    if (ui.state.mode === "generalize") {
+      handleGeneralizePick(el);
+      return;
+    }
     handleSectionPick(el);
   }
 
@@ -816,6 +972,26 @@
       + n + " element(s) — your " + ui.state.picks.length + " selection(s)"
       + (exact.exact ? "" : " &middot; ⚠ also matches others")
       + "<br>Click more elements to add, then \"Use this\".");
+  }
+
+  function handleGeneralizePick(el) {
+    if (ui.state.picks.indexOf(el) === -1) ui.state.picks.push(el);
+    var read = defaultRead(el);
+    var general = buildGeneralSelector(ui.state.picks, document);
+    ui.state.read = read;
+    ui.state.result = {
+      mode: "generalize",
+      selector: general.selector,
+      read: read.kind === "text" ? null : read,
+      matchCount: general.matchCount,
+      container: general.container || null,
+      sampleValue: sampleValueFor(general.selector, read, document),
+    };
+    var n = highlightMatches(general.selector, document);
+    setStatus("Selector: <code>" + escapeHtml(general.selector) + "</code><br>Matches "
+      + n + " element(s) — general pattern"
+      + "<br>Sample: " + escapeHtml(ui.state.result.sampleValue || "(empty)")
+      + "<br>Add another example to refine, then \"Use this\".");
   }
 
   function handleSectionPick(el) {
@@ -959,6 +1135,7 @@
     buildRobustSelector: buildRobustSelector,
     buildCommonSelector: buildCommonSelector,
     buildExactSelector: buildExactSelector,
+    buildGeneralSelector: buildGeneralSelector,
     buildRelativeSelector: buildRelativeSelector,
     classifyClassToken: classifyClassToken,
     sampleValueFor: sampleValueFor,
