@@ -20,6 +20,12 @@ function addChildLabel(kind: "tag" | "mediaType" | "taxonomyTerm"): string {
   return i18n.t("New sub-term");
 }
 
+/** Whether the current listing page renders its own Plus create control (which can host add-child). */
+function listingRendersCreate(ctx: ToolbarContext): boolean {
+  const listingPage = ctx.listingPage;
+  return listingPage != null && (listingPage.addBookmark != null || listingPage.createAction != null);
+}
+
 export function addChildAction(ctx: ToolbarContext): ToolbarAction | null {
   if (!ctx.addChild) return null;
   const addChild = ctx.addChild;
@@ -29,7 +35,10 @@ export function addChildAction(ctx: ToolbarContext): ToolbarAction | null {
     : !addChild.parentId;
   return {
     key: "add-child",
-    desktop: <AddChildButton {...addChild} />,
+    // On a listing page the add-child is folded into that page's single Plus dropdown
+    // (see `createListingAction`), so suppress the standalone desktop button to avoid two Plus
+    // buttons. The small-screen More menu keeps it as its own row (its modal outlives the menu).
+    desktop: listingRendersCreate(ctx) ? null : <AddChildButton {...addChild} />,
     mobile: {
       kind: "modal",
       icon: Plus,
@@ -61,6 +70,9 @@ export function createListingAction(ctx: ToolbarContext): ToolbarAction | null {
         addBookmark={addBookmark}
         createAction={createAction}
         createLabel={createLabel}
+        // Fold the hierarchy-taxonomy "New sub-…" create into this single Plus dropdown (desktop).
+        // The mobile More menu keeps it as its own row via `addChildAction`.
+        addChild={ctx.addChild}
       />
     ),
     mobile: {
