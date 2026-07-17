@@ -736,7 +736,7 @@ export function evaluateConditions(
     case "match":
       return evaluateMatch(node, input);
     case "category":
-      return node.categoryIds.includes(input.categoryId);
+      return (node.categoryIds ?? []).includes(input.categoryId);
     case "website":
       return evaluateWebsite(node, input);
     case "tag":

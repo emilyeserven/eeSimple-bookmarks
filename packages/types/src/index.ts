@@ -2821,7 +2821,8 @@ export function propertyAppliesToCategory(
   property: Pick<CustomProperty, "allCategories" | "categoryIds">,
   categoryId: string,
 ): boolean {
-  return property.allCategories || property.categoryIds.length === 0 || property.categoryIds.includes(categoryId);
+  const categoryIds = property.categoryIds ?? [];
+  return property.allCategories || categoryIds.length === 0 || categoryIds.includes(categoryId);
 }
 
 /**
@@ -2834,7 +2835,7 @@ export function propertyAppliesToMediaType(
   mediaTypeId: string | null,
 ): boolean {
   if (!mediaTypeId) return false;
-  return property.allMediaTypes || property.mediaTypeIds.includes(mediaTypeId);
+  return property.allMediaTypes || (property.mediaTypeIds ?? []).includes(mediaTypeId);
 }
 
 /** A number custom property value carried on a bookmark. */
