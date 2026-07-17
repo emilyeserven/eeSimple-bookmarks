@@ -12,6 +12,7 @@
     "build": "pnpm -r run clean && pnpm --filter=@eesimple/types build && pnpm --filter=@eesimple/middleware --filter=@eesimple/client -r build",
     "start": "pnpm --filter=@eesimple/gateway start",
     "test": "pnpm run -r test",
+    "test:client:changed": "pnpm --filter=@eesimple/client exec vitest run --changed origin/main",
     "dev": "docker compose up --wait db && pnpm --filter=@eesimple/middleware run push:dev && concurrently -n \"models,server,ui\" -c \"yellow,blue,green\" \"pnpm --filter=@eesimple/types --stream run dev\" \"pnpm --filter=@eesimple/middleware --stream run dev\" \"pnpm --filter=@eesimple/client --stream run dev\"",
     "lint": "eslint . --cache --cache-location node_modules/.cache/eslint/ --cache-strategy content",
     "lint:fix": "eslint . --fix --cache --cache-location node_modules/.cache/eslint/ --cache-strategy content",

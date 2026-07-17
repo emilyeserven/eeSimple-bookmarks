@@ -28,15 +28,29 @@ jobs:
       - name: Lint
         run: pnpm lint
 
-  test:
+  # Client (Vitest) and server (node --test) suites run as parallel jobs so the middleware/types
+  # runtime stays off the client suite's critical path.
+  test-client:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-pnpm
       - name: Build types
         run: pnpm --filter=@eesimple/types build
-      - name: Test
-        run: pnpm test
+      - name: Test client
+        run: pnpm --filter=@eesimple/client run test
+
+  test-server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-pnpm
+      - name: Build types
+        run: pnpm --filter=@eesimple/types build
+      - name: Test middleware
+        run: pnpm --filter=@eesimple/middleware run test
+      - name: Test types
+        run: pnpm --filter=@eesimple/types run test
 
   i18n:
     runs-on: ubuntu-latest

@@ -12,18 +12,25 @@ description: >-
 
 # What not to test
 
-Every test file costs the CI `test` job time, and most of that cost is **environment setup, not
-assertions**. `pnpm test` runs ~147 s total (client Vitest ~124 s, middleware ~22 s, types ~1 s).
-Of the client's ~124 s, roughly **~86 s is jsdom setup** (~1 s per jsdom component file across ~86
-files); the actual per-test execution is only ~37 s. So the marginal cost of a test file is
-dominated by its **environment**, and a file that asserts nothing new is nearly pure overhead.
+Every test file costs the CI test-job time, and most of that cost is **environment setup and
+module-graph evaluation, not assertions**. Since the 2026-07 three-project isolation split
+(`packages/client/vite.config.ts`: mock-free files run with `isolate: false` in persistent
+workers; only files using `vi.mock`-family/stub APIs pay per-file isolation — see the
+**`vitest-node-environment`** skill), the client Vitest run is roughly **half** its former wall
+time (measured on the same container: ~187 s → ~90 s for 247 files / 2060 tests; middleware ~22 s
+and types ~1 s unchanged). The per-file environment tax now falls mainly on the isolated `mocked`
+project, so the marginal cost of a test file is dominated by **which project it lands in**.
 
-Two rules follow, and this skill records both:
+Three rules follow, and this skill records them:
 
 1. **Every new pure `.test.ts` file must carry the line-1 `// @vitest-environment node` pragma** —
-   see the **`vitest-node-environment`** skill for the decision rule. That is where the speed comes
-   from.
-2. **Do not write the categories of test below** — they add cost and false-failure surface without
+   see the **`vitest-node-environment`** skill for the decision rule.
+2. **Prefer mock-free tests.** A file that calls `vi.mock`/`doMock`/`unmock`/`hoisted`/
+   `stubGlobal`/`stubEnv`/`setSystemTime` is auto-classified into the isolated `mocked` project
+   and pays the full per-file environment + module-graph cost; a mock-free file rides the fast
+   non-isolated path. Don't weaken a test to avoid a mock — but when a pure-helper extraction or
+   dependency injection makes the mock unnecessary, that's now also a suite-speed win.
+3. **Do not write the categories of test below** — they add cost and false-failure surface without
    adding a real regression net.
 
 Once you've decided a test *should* exist, the **`test-structure`** skill covers how to build it —
@@ -128,5 +135,13 @@ play** — the conclusion is recorded here so the analysis isn't repeated:
   refactor whose regression risk outweighs the ~1 s/file saved (that saving is far under the
   container's ~10 s run-to-run timing noise). **Fold these in opportunistically the next time that
   source is touched** — don't do a source refactor purely for test speed.
-- **Bottom line:** test-suite speed now comes from *not writing* the categories above and from the
-  node pragma on genuinely-pure new files — not from churning the existing rendering tests.
+- **Bottom line:** test-suite speed now comes from *not writing* the categories above, from the
+  node pragma on genuinely-pure new files, and from keeping new tests **mock-free where possible**
+  (the three-project isolation split makes a `vi.mock`/stub file the expensive kind) — not from
+  churning the existing rendering tests.
+- **The isolation split (2026-07) is the successor lever, and it has landed.** The `isolate: false`
+  fast path relies on the fresh-world reset at the top of `test-utils/setup.ts` (DOM/storage clear,
+  explicit RTL cleanup, `resetStores.ts`). Don't revert it to a blanket config, and don't put
+  `isolate: false` on the `mocked` project — that exact naive flip was measured at ~84 cross-file
+  failures *and slower* than the isolated baseline (DOM accumulation + the worker-global mock
+  registry that Vitest only resets under isolation).

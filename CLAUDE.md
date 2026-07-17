@@ -16,6 +16,13 @@ tooling and architecture of [course-tracker](https://github.com/emilyeserven/cou
   decision rule, the **`what-not-to-test`** skill for what deliberately has no test at all, and
   the **`test-structure`** skill for how to structure one (the middleware in-memory fake-`db`
   harness, the client `renderWithRouter` + `vi.mock` recipe, and MSW as a story-only tool).
+  The client Vitest config auto-partitions tests into **three projects**: mock-free files run with
+  `isolate: false` in persistent workers (the ~2x suite-speed win), while any file using
+  `vi.mock`-family or global-stub APIs keeps per-file isolation — so **prefer mock-free tests**;
+  the non-isolated path depends on the fresh-world reset in `test-utils/setup.ts` (a new
+  module-level singleton that tests mutate belongs in `test-utils/resetStores.ts`). For the local
+  loop, `pnpm test:client:changed` (and `pnpm verify:changed`) run only tests affected by your
+  diff via `vitest --changed`.
 
 ## Monorepo layout
 
