@@ -228,6 +228,28 @@ describe("buildGeneralSelector (generalize / container-anchored)", () => {
     expect(spans).toHaveLength(3);
   });
 
+  it("scopes to the modal/dialog container when the picks are inside one", () => {
+    // A photo thumbnail in the feed AND the same photo opened in a role="dialog" modal. Scoping to the
+    // dialog is how "target THIS container" is expressed as a real (fill-time) CSS selector.
+    const doc = docFrom(`
+      <div>
+        <a href="/photo/?fbid=1"><img></a>
+        <div role="dialog" aria-modal="true">
+          <a href="/photo/?fbid=2"><img></a>
+          <a href="/photo/?fbid=3"><img></a>
+        </div>
+      </div>
+    `);
+    const modalImgs = Array.from(doc.querySelectorAll("[role=\"dialog\"] a[href^=\"/photo\"] img"));
+    const r = picker.buildGeneralSelector([modalImgs[0]!, modalImgs[1]!], doc);
+    expect(r.selector).toBe("[role=\"dialog\"] a[href*=\"/photo\"] img");
+    expect(r.container).toBe("[role=\"dialog\"]");
+    expect(r.matchesAll).toBe(true);
+    // Only the two modal photos — NOT the feed thumbnail (fbid=1) outside the dialog.
+    expect(Array.from(doc.querySelectorAll(r.selector))).toEqual(modalImgs);
+    expect(modalImgs).toHaveLength(2);
+  });
+
   it("drops numeric id segments from an href token, keeping the structural path", () => {
     const doc = docFrom(`
       <div>

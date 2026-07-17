@@ -476,6 +476,61 @@
     return out;
   }
 
+  // Is `el` an overlay/modal container? A CSS selector can't test computed styles at fill time, so we
+  // detect the overlay HERE (at pick time) — by ARIA (role="dialog" / aria-modal) or a computed
+  // position:fixed — and later anchor on its stable selector hook (`overlayScopeHooks`).
+  function isOverlayLike(el) {
+    if (!el || !el.getAttribute) return false;
+    if (el.getAttribute("role") === "dialog") return true;
+    if (el.getAttribute("aria-modal") === "true") return true;
+    try {
+      var win = el.ownerDocument && el.ownerDocument.defaultView;
+      if (win && typeof win.getComputedStyle === "function" && win.getComputedStyle(el).position === "fixed") {
+        return true;
+      }
+    }
+    catch {
+      // computed styles unavailable (e.g. a detached/parsed document) — fall back to ARIA only.
+    }
+    return false;
+  }
+
+  // Stable, CSS-EXPRESSIBLE hooks that identify each overlay/modal ancestor of `el` — so a generalized
+  // selector can be tightened to "…inside THIS dialog" (e.g. `[role="dialog"] a[href*="/photo"] img`).
+  // Content attributes (aria-label/alt/title) are never used.
+  function overlayScopeHooks(el) {
+    var hooks = [];
+    var seen = {};
+    var add = function (h) {
+      if (h && !seen[h]) {
+        seen[h] = true;
+        hooks.push(h);
+      }
+    };
+    var anc = el.parentElement;
+    var depth = 0;
+    while (anc && depth < 12) {
+      if (isOverlayLike(anc)) {
+        var role = anc.getAttribute("role");
+        if (role && /^[\w-]+$/.test(role)) add("[role=\"" + role + "\"]");
+        if (anc.getAttribute("aria-modal") === "true") add("[aria-modal=\"true\"]");
+        if (anc.id && isValidId(anc.id)) add("#" + cssEscape(anc.id));
+        var frags = classFragments(anc);
+        if (frags.length) add(tagName(anc) + frags.join(""));
+        if (anc.attributes) {
+          Array.prototype.forEach.call(anc.attributes, function (at) {
+            if (at.name.indexOf("data-") === 0 && at.value && at.value.length < 60 && !isRotatingToken(at.value)) {
+              add("[" + at.name + "=" + JSON.stringify(at.value) + "]");
+            }
+          });
+        }
+      }
+      anc = anc.parentElement;
+      depth++;
+    }
+    return hooks;
+  }
+
   // 2c) GENERAL, MANY-MATCH selector for the "Generalize" mode: the most-specific selector that still
   // matches EVERY picked element, anchored on a common container / link-path shared by all picks. Never
   // reads content attributes (aria-label/alt/title), so on class-hashed sites like Facebook it yields a
@@ -527,12 +582,41 @@
       });
     });
 
+    // Overlay/modal scope containers common to EVERY pick — the "target the modal" case. Prefix each
+    // base candidate with the overlay's stable hook so the pattern is scoped to that dialog
+    // (`[role="dialog"] a[href*="/photo"] img`) rather than matching feed thumbnails too. `scoped`
+    // candidates are preferred at equal match count (see the sort below).
+    var scopeSets = distinct.map(overlayScopeHooks);
+    var commonScopes = (scopeSets[0] || []).filter(function (s) {
+      return scopeSets.every(function (set) {
+        return set.indexOf(s) !== -1;
+      });
+    });
+    if (commonScopes.length) {
+      var inners = {};
+      candidates.forEach(function (c) {
+        inners[c.selector] = !!c.href;
+      });
+      inners[commonTag + selfSuffix] = false; // allow a bare "<scope> <tag>" (e.g. [role="dialog"] img)
+      commonScopes.forEach(function (scope) {
+        Object.keys(inners).forEach(function (inner) {
+          candidates.push({
+            selector: scope + " " + inner,
+            container: scope,
+            href: inners[inner],
+            scoped: true,
+          });
+        });
+      });
+    }
+
     var viable = candidates
       .map(function (c) {
         return {
           selector: c.selector,
           container: c.container,
           href: c.href,
+          scoped: !!c.scoped,
           count: matchCount(c.selector, doc),
         };
       })
@@ -542,6 +626,7 @@
     if (viable.length) {
       viable.sort(function (a, b) {
         if (a.count !== b.count) return a.count - b.count;
+        if (a.scoped !== b.scoped) return a.scoped ? -1 : 1;
         if (a.href !== b.href) return a.href ? -1 : 1;
         return a.selector.length - b.selector.length;
       });
@@ -988,8 +1073,11 @@
       sampleValue: sampleValueFor(general.selector, read, document),
     };
     var n = highlightMatches(general.selector, document);
+    var scopeNote = general.container
+      ? " &middot; scoped to <code>" + escapeHtml(general.container) + "</code>"
+      : "";
     setStatus("Selector: <code>" + escapeHtml(general.selector) + "</code><br>Matches "
-      + n + " element(s) — general pattern"
+      + n + " element(s) — general pattern" + scopeNote
       + "<br>Sample: " + escapeHtml(ui.state.result.sampleValue || "(empty)")
       + "<br>Add another example to refine, then \"Use this\".");
   }
