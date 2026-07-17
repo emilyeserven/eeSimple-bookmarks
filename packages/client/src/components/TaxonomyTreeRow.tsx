@@ -66,6 +66,12 @@ interface TaxonomyTreeListProps {
    * instead of hover-revealed — used on touch devices where hover isn't available. Opt-in.
    */
   alwaysShowActions?: boolean;
+  /**
+   * When true, the per-row action buttons collapse into a single "More" (⋯) control that expands on
+   * hover/tap — used by the Locations listing, whose rows carry the most actions and lose the most
+   * width to nested indentation. Opt-in; default keeps the inline cluster.
+   */
+  collapseActions?: boolean;
 }
 
 /** Grid wrapper for a collapsible taxonomy tree. Each root node gets its own RowCard. */
@@ -112,6 +118,7 @@ interface TaxonomyTreeRowProps {
   onToggleFavorite?: (node: TaxonomyTreeNode) => void;
   isFavorite?: (node: TaxonomyTreeNode) => boolean;
   alwaysShowActions?: boolean;
+  collapseActions?: boolean;
 }
 
 /**

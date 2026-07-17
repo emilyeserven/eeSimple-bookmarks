@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, ChevronRight } from "lucide-react";
@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 
 import { SidebarCountBadge } from "./SidebarCountBadge";
 import { useIsMobile } from "../hooks/use-mobile";
+import { useFlyoutHover } from "../hooks/useFlyoutHover";
 
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
@@ -121,30 +122,6 @@ function FlyoutBody({
         : null}
     </>
   );
-}
-
-/** Open/close state with a debounced close, so moving between the trigger and the popover keeps it open. */
-function useFlyoutHover() {
-  const [open, setOpen] = useState(false);
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  function cancelClose() {
-    if (closeTimer.current) {
-      clearTimeout(closeTimer.current);
-      closeTimer.current = null;
-    }
-  }
-  return {
-    open,
-    setOpen,
-    openNow: () => {
-      cancelClose();
-      setOpen(true);
-    },
-    closeSoon: () => {
-      cancelClose();
-      closeTimer.current = setTimeout(() => setOpen(false), 150);
-    },
-  };
 }
 
 /**

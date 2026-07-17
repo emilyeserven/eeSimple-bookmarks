@@ -1,11 +1,14 @@
 import type { TaxonomyTreeNode } from "./TaxonomyTreeRow";
 import type { ReactNode } from "react";
 
-import { ChevronDown, ChevronRight, ChevronsUpDown, Eye, EyeOff, MapPin, Star } from "lucide-react";
+import { ChevronDown, ChevronRight, ChevronsUpDown, Eye, EyeOff, MapPin, MoreHorizontal, Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
+
+import { useFlyoutHover } from "../hooks/useFlyoutHover";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CategoryIcon } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
@@ -234,6 +237,113 @@ function TaxonomyTreeRowFavoriteButton({
   );
 }
 
+interface TaxonomyTreeRowActionsProps {
+  node: TaxonomyTreeNode;
+  hasChildren: boolean;
+  renderEditLink: (node: TaxonomyTreeNode) => ReactNode;
+  renderInfoLink: (node: TaxonomyTreeNode) => ReactNode;
+  onExpandSubtree?: (node: TaxonomyTreeNode) => void;
+  onToggleFilter?: (node: TaxonomyTreeNode) => void;
+  filtered: boolean;
+  onToggleVisibility?: (node: TaxonomyTreeNode) => void;
+  hidden: boolean;
+  onToggleFavorite?: (node: TaxonomyTreeNode) => void;
+  favorite: boolean;
+}
+
+/**
+ * The per-row action controls (edit / info / expand-all / map-focus / visibility / favorite), shared by
+ * both the inline layout and the collapsed "More" menu. `revealClass` drives hover-reveal inline (or is
+ * `opacity-100` inside the menu, where the popover already gates visibility).
+ */
+function TaxonomyTreeRowActions({
+  node, hasChildren, renderEditLink, renderInfoLink, onExpandSubtree, onToggleFilter, filtered,
+  onToggleVisibility, hidden, onToggleFavorite, favorite, revealClass,
+}: TaxonomyTreeRowActionsProps & { revealClass: string }) {
+  return (
+    <>
+      <HoverGhostButton revealClass={revealClass}>{renderEditLink(node)}</HoverGhostButton>
+      <HoverGhostButton revealClass={revealClass}>{renderInfoLink(node)}</HoverGhostButton>
+
+      <TaxonomyTreeRowExpandAllButton
+        node={node}
+        hasChildren={hasChildren}
+        onExpandSubtree={onExpandSubtree}
+        revealClass={revealClass}
+      />
+
+      <TaxonomyTreeRowFilterButton
+        node={node}
+        filtered={filtered}
+        onToggleFilter={onToggleFilter}
+        revealClass={revealClass}
+      />
+
+      <TaxonomyTreeRowVisibilityButton
+        node={node}
+        hidden={hidden}
+        onToggleVisibility={onToggleVisibility}
+        revealClass={revealClass}
+      />
+
+      <TaxonomyTreeRowFavoriteButton
+        node={node}
+        favorite={favorite}
+        onToggleFavorite={onToggleFavorite}
+        revealClass={revealClass}
+      />
+    </>
+  );
+}
+
+/**
+ * Collapsed variant of the row actions: a single "More" (⋯) button that expands the controls in a
+ * popover on hover (and on click/tap, for touch). Frees the horizontal space the inline cluster eats on
+ * deeply-indented rows. The trigger is accented when any contained action is active (map-focused /
+ * hidden / starred), so collapsing doesn't hide that at-a-glance state.
+ */
+function TaxonomyTreeRowActionsMenu(props: TaxonomyTreeRowActionsProps) {
+  const {
+    t,
+  } = useTranslation();
+  const {
+    open, setOpen, openNow, closeSoon,
+  } = useFlyoutHover();
+  const active = props.filtered || props.hidden || props.favorite;
+  return (
+    <Popover
+      open={open}
+      onOpenChange={setOpen}
+    >
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          aria-label={t("More actions")}
+          aria-expanded={open}
+          onMouseEnter={openNow}
+          onMouseLeave={closeSoon}
+          className={cn(active && "text-primary")}
+        >
+          <MoreHorizontal className="size-4" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="end"
+        className="flex w-auto items-center gap-1 p-1"
+        onMouseEnter={openNow}
+        onMouseLeave={closeSoon}
+      >
+        <TaxonomyTreeRowActions
+          {...props}
+          revealClass="opacity-100"
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 interface TaxonomyTreeRowInnerProps {
   node: TaxonomyTreeNode;
   hasChildren: boolean;
@@ -258,13 +368,19 @@ interface TaxonomyTreeRowInnerProps {
    * hover isn't available).
    */
   alwaysShowActions?: boolean;
+  /**
+   * When true, the action buttons collapse into a single "More" (⋯) control that expands on hover/tap,
+   * freeing row width. Opt-in — used by the Locations listing, whose rows carry the most actions and
+   * lose the most width to nested indentation. Default (false) keeps the inline cluster.
+   */
+  collapseActions?: boolean;
 }
 
 /** The single-row content of a taxonomy tree row: icon, expander, name link, badges, hover actions. */
 export function TaxonomyTreeRowInner({
   node, hasChildren, isOpen, onToggle, renderNameLink, renderEditLink, renderInfoLink, renderIcon,
   onExpandSubtree, onToggleFilter, filtered, onToggleVisibility, hidden, onToggleFavorite, favorite,
-  alwaysShowActions,
+  alwaysShowActions, collapseActions,
 }: TaxonomyTreeRowInnerProps) {
   const {
     t,
@@ -297,36 +413,38 @@ export function TaxonomyTreeRowInner({
 
       {node.builtIn ? <Badge variant="outline">{t("Built-in")}</Badge> : null}
 
-      <HoverGhostButton revealClass={revealClass}>{renderEditLink(node)}</HoverGhostButton>
-      <HoverGhostButton revealClass={revealClass}>{renderInfoLink(node)}</HoverGhostButton>
-
-      <TaxonomyTreeRowExpandAllButton
-        node={node}
-        hasChildren={hasChildren}
-        onExpandSubtree={onExpandSubtree}
-        revealClass={revealClass}
-      />
-
-      <TaxonomyTreeRowFilterButton
-        node={node}
-        filtered={filtered}
-        onToggleFilter={onToggleFilter}
-        revealClass={revealClass}
-      />
-
-      <TaxonomyTreeRowVisibilityButton
-        node={node}
-        hidden={hidden}
-        onToggleVisibility={onToggleVisibility}
-        revealClass={revealClass}
-      />
-
-      <TaxonomyTreeRowFavoriteButton
-        node={node}
-        favorite={favorite ?? false}
-        onToggleFavorite={onToggleFavorite}
-        revealClass={revealClass}
-      />
+      {collapseActions
+        ? (
+          <TaxonomyTreeRowActionsMenu
+            node={node}
+            hasChildren={hasChildren}
+            renderEditLink={renderEditLink}
+            renderInfoLink={renderInfoLink}
+            onExpandSubtree={onExpandSubtree}
+            onToggleFilter={onToggleFilter}
+            filtered={filtered}
+            onToggleVisibility={onToggleVisibility}
+            hidden={hidden}
+            onToggleFavorite={onToggleFavorite}
+            favorite={favorite ?? false}
+          />
+        )
+        : (
+          <TaxonomyTreeRowActions
+            node={node}
+            hasChildren={hasChildren}
+            renderEditLink={renderEditLink}
+            renderInfoLink={renderInfoLink}
+            onExpandSubtree={onExpandSubtree}
+            onToggleFilter={onToggleFilter}
+            filtered={filtered}
+            onToggleVisibility={onToggleVisibility}
+            hidden={hidden}
+            onToggleFavorite={onToggleFavorite}
+            favorite={favorite ?? false}
+            revealClass={revealClass}
+          />
+        )}
 
       {node.bookmarkCount != null
         ? <Badge variant="secondary">{node.bookmarkCount}</Badge>
