@@ -11,17 +11,31 @@ description: >-
 
 # Vitest environment: `node` vs jsdom for client tests
 
-The client Vitest config (`packages/client/vite.config.ts`) sets `environment: "jsdom"` globally.
-jsdom setup is the single most expensive part of the suite (~0.8 s per test file before a single
-test runs), so **pure test files opt out** with a per-file pragma as the **very first line**:
+The client Vitest config (`packages/client/vite.config.ts`) partitions test files into **three
+projects** at config load, by scanning each file's source:
+
+- **`node-fast`** — files whose first line is the `// @vitest-environment node` pragma (and that
+  use no isolation-dependent `vi.*` API). Node environment, `isolate: false` (persistent workers).
+- **`dom-fast`** — the remaining mock-free files. jsdom, `isolate: false`.
+- **`mocked`** — any file calling `vi.mock`/`doMock`/`unmock`/`hoisted`/`stubGlobal`/`stubEnv`/
+  `setSystemTime`. jsdom by default (a per-file pragma still wins), full per-file isolation —
+  these APIs mutate worker-global state that Vitest only resets under isolation.
+
+**Pure test files still opt out of jsdom** with the per-file pragma as the **very first line**:
 
 ```ts
 // @vitest-environment node
 ```
 
-This cut the full client run from ~109 s to ~88 s. The pragma is per-file and explicit — there is
-intentionally **no** config-level glob mapping (Vitest 4 removed `environmentMatchGlobs`; a
-`projects` split would hide the decision from the file itself).
+The pragma remains the per-file source of truth for the *environment*; the projects split only
+adds the isolation dimension on top (there is still no config-level env glob mapping — Vitest 4
+removed `environmentMatchGlobs`). Two consequences worth knowing when authoring a test:
+
+- **A mock-free file rides the fast non-isolated path; adding `vi.mock` (or a global stub) moves
+  it to the isolated `mocked` project.** Prefer dependency-free pure tests where possible.
+- The partition is computed at config load — in **watch mode**, adding a `vi.mock` call to a
+  previously mock-free file isn't reclassified until the vitest process restarts (`vitest run`
+  and CI always cold-load the config).
 
 This skill picks the *environment*; once you know it's a client test, the **`test-structure`** skill
 covers *how to build it* (`renderWithRouter` + `vi.mock`, the fake-db harness, MSW for stories), and
@@ -60,10 +74,18 @@ module load).
 
 ## The shared setup stays guarded
 
-`src/test-utils/setup.ts` runs for **both** environments. Its jsdom stubs (Radix pointer-capture,
-`scrollTo`, `matchMedia`, `ResizeObserver`) are wrapped in `if (typeof window !== "undefined")` so
-node-environment files don't crash on `Element`. Keep any new DOM stub **inside that guard**; the
+`src/test-utils/setup.ts` runs for **both** environments, and re-executes per test file even in
+the non-isolated projects. Its jsdom stubs (Radix pointer-capture, `scrollTo`, `matchMedia`,
+`ResizeObserver`) are wrapped in `if (typeof window !== "undefined")` so node-environment files
+don't crash on `Element`. Keep any new DOM stub **inside that guard**; the
 `@testing-library/jest-dom/vitest` import at the top is environment-safe and stays outside it.
+
+The top of that guard is also the **fresh-world reset** the non-isolated projects depend on: it
+empties `document.body`, clears `localStorage`/`sessionStorage`, re-registers RTL's
+`afterEach(cleanup)` (the auto-registration only fires on first module evaluation per worker), and
+resets the module-singleton zustand stores (`test-utils/resetStores.ts`). A new module-level
+singleton that tests mutate belongs in `resetStores.ts` — the symptom of a missing reset is a test
+that passes alone but fails in the full run.
 
 ## Verify, don't guess
 

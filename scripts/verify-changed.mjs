@@ -50,4 +50,13 @@ console.log(`Verifying changed packages: ${[...changed].join(", ")}`);
 run("pnpm --filter=@eesimple/types build");
 run(`pnpm -r ${filters} run typecheck`);
 run("pnpm lint");
-run(`pnpm -r ${filters} run test`);
+for (const name of changed) {
+  if (name === "client") {
+    // File-level narrowing: vitest's module graph runs only the tests that import (directly or
+    // transitively) a changed module, instead of the whole package suite.
+    run(`pnpm --filter=@eesimple/client exec vitest run --changed ${mergeBase}`);
+  }
+  else if (name !== "gateway") { // gateway has no test script
+    run(`pnpm --filter=@eesimple/${name} run test`);
+  }
+}

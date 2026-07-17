@@ -7,6 +7,28 @@ import "../i18n";
 // Pure lib tests opt into the faster `node` environment via a per-file
 // `@vitest-environment node` pragma; skip the DOM stubs when no DOM exists.
 if (typeof window !== "undefined") {
+  // Fresh-world reset. The dom-fast project runs with `isolate: false`, so the jsdom window
+  // and the module graph outlive a single test file: only this setup file (and the test file
+  // itself) re-execute per file. Restore the invariants a fresh environment used to provide.
+  document.body.innerHTML = "";
+  window.localStorage.clear();
+  window.sessionStorage.clear();
+
+  // RTL registers its auto-cleanup afterEach only when its module is first evaluated; with the
+  // module cache reused across files that registration doesn't recur. Register it explicitly
+  // per file (a duplicate cleanup() is a harmless no-op). Lazy import keeps node-pragma files
+  // from paying for react-dom.
+  const {
+    cleanup,
+  } = await import("@testing-library/react");
+  afterEach(cleanup);
+
+  // Module-singleton zustand stores persist across files in a non-isolated worker.
+  const {
+    resetAllStores,
+  } = await import("./resetStores");
+  resetAllStores();
+
   // jsdom lacks a few DOM APIs that Radix UI primitives (Popover/Select) and cmdk
   // rely on. Stub them so component tests can open menus and scroll into view.
   //
