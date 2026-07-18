@@ -15,6 +15,7 @@ import {
   TagPrimaryLanguageEdit,
 } from "../TagGeneralForm";
 import { TagPromoteToTaxonomy } from "../TagPromoteToTaxonomy";
+import { TagReparentTab } from "../TagReparentTab";
 
 import { useDeleteTag, useTagBySlug, useTagTree } from "@/hooks/useTags";
 import { flattenTree } from "@/lib/tagTree";
@@ -43,6 +44,7 @@ type TagFieldKey
     | "promote"
     | "autofillSources"
     | "hierarchy"
+    | "reparent"
     | "autofillRules";
 
 const tagFields = {
@@ -145,6 +147,16 @@ const tagFields = {
     label: i18n.t("Hierarchy"),
     view: TagHierarchyView,
   },
+  reparent: {
+    key: "reparent",
+    label: i18n.t("Reparent"),
+    view: ({
+      entity,
+    }) => <TagReparentTab tag={entity} />,
+    edit: ({
+      entity,
+    }) => <TagReparentTab tag={entity} />,
+  },
   autofillRules: {
     key: "autofillRules",
     label: i18n.t("Autofill Rules"),
@@ -201,6 +213,14 @@ const TAG_DEFAULT_LAYOUT: EntityLayout = {
       sections: [{
         key: "hierarchy",
         fields: ["hierarchy"] satisfies TagFieldKey[],
+      }],
+    },
+    {
+      key: "reparent",
+      label: i18n.t("Reparent"),
+      sections: [{
+        key: "reparent",
+        fields: ["reparent"] satisfies TagFieldKey[],
       }],
     },
     {
@@ -264,6 +284,10 @@ export const tagWorkbench: EntityWorkbench<TagNode> = {
     {
       key: "hierarchy",
       label: i18n.t("Hierarchy"),
+    },
+    {
+      key: "reparent",
+      label: i18n.t("Reparent"),
     },
     {
       key: "autofill",

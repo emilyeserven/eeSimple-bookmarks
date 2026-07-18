@@ -59,13 +59,13 @@ function shape<E extends { id: string }>(
 describe("tag default layout", () => {
   it("renders the view tabs in order (Hierarchy present)", () => {
     expect(shape(tagWorkbench, "view").map(tab => tab.key)).toEqual([
-      "general", "hierarchy", "autofill",
+      "general", "hierarchy", "reparent", "autofill",
     ]);
   });
 
   it("renders the edit tabs in order (Hierarchy dropped, view-only)", () => {
     expect(shape(tagWorkbench, "edit").map(tab => tab.key)).toEqual([
-      "general", "autofill",
+      "general", "reparent", "autofill",
     ]);
   });
 

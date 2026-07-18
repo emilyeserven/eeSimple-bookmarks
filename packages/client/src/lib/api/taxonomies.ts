@@ -70,6 +70,8 @@ import type {
   SocialMediaPlatform,
   Tag,
   TagNode,
+  TagReparentPlanInput,
+  TagReparentResult,
   UpdatePersonInput,
   UpdateCategoryDefaultsInput,
   UpdateCategoryInput,
@@ -140,6 +142,11 @@ export const tagsApi = {
         ids,
         parentId,
       }),
+    }),
+  reparentPlan: (input: TagReparentPlanInput) =>
+    request<TagReparentResult>("/tags/reparent-plan", {
+      method: "POST",
+      body: JSON.stringify(input),
     }),
 };
 
