@@ -3,6 +3,7 @@ import type {
   AdvancedSettings,
   AiAutotagSettings,
   AiSummarizationSettings,
+  TagReparentSettings,
   AutomationSettings,
   BookmarkDetailImageSize,
   BookmarkDetailLayout,
@@ -168,6 +169,11 @@ export const DEFAULT_SCRATCHPAD: ScratchpadSettings = {
 export const DEFAULT_AI_AUTOTAG: AiAutotagSettings = {
   aiAutotagPrompt: "",
   aiAutotagIncludeExistingTags: false,
+};
+
+/** Default tag reparent settings (empty prompt), used when the row/column is absent. */
+export const DEFAULT_TAG_REPARENT: TagReparentSettings = {
+  tagReparentPrompt: "",
 };
 
 /** Default display/detail preferences, used when seeding / when row absent. */

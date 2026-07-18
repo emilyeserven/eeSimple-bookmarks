@@ -830,6 +830,54 @@ export interface AiAutotagApplyResult {
 }
 
 /**
+ * Tag Reparent settings: the reusable prompt template shown at the top of the generated hierarchy-
+ * reparenting prompt. Mirrors {@link AiAutotagSettings}.
+ */
+export interface TagReparentSettings {
+  tagReparentPrompt: string;
+}
+
+/** Payload for replacing the tag reparent settings. */
+export type UpdateTagReparentInput = TagReparentSettings;
+
+/**
+ * A brand-new grouping tag the AI proposes creating while reorganizing a subtree. `tempId` is a
+ * placeholder the AI coins (and echoes in a move's `parentId` to nest existing tags under it);
+ * `parentId` is an **existing** tag id or `null` (root) — a new tag cannot nest under another new
+ * tag in v1, which keeps creation order trivial.
+ */
+export interface TagReparentNewTag {
+  tempId: string;
+  name: string;
+  parentId: string | null;
+}
+
+/**
+ * One proposed move of an existing tag `id` under `parentId` — an existing tag id, `null` (root),
+ * or a `tempId` from the plan's `newTags` (resolved to the created tag's real id at apply time).
+ */
+export interface TagReparentMove {
+  id: string;
+  parentId: string | null;
+}
+
+/** The AI's proposed hierarchy change: grouping tags to create, then existing tags to move. */
+export interface TagReparentPlanInput {
+  newTags: TagReparentNewTag[];
+  moves: TagReparentMove[];
+}
+
+/** Outcome of applying a reparent plan: tags created, tags moved, and ids/temps that resolved to nothing. */
+export interface TagReparentResult {
+  /** Grouping tags newly created from the plan's `newTags`. */
+  created: number;
+  /** Existing tags successfully moved. */
+  moved: number;
+  /** Ids/tempIds in the plan that matched no tag or were rejected (missing target, cycle). */
+  notFound: string[];
+}
+
+/**
  * A media type in the built-in "Media Types" taxonomy (Video, Article, Podcast, …). Classifies what
  * a bookmark is; chosen in the form or auto-set from fetched metadata. Built-ins can't be
  * renamed/deleted; users may add their own.

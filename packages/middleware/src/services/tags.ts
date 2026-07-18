@@ -1,5 +1,5 @@
 import { asc, eq, ne, sql } from "drizzle-orm";
-import type { BulkBookmarkResult, BulkDeleteResult, CreateTagInput, EntityName, SectionEntry, Tag, TagNode, TitleTagCandidate, UpdateTagInput } from "@eesimple/types";
+import type { BulkBookmarkResult, BulkDeleteResult, CreateTagInput, EntityName, SectionEntry, Tag, TagNode, TagReparentPlanInput, TagReparentResult, TitleTagCandidate, UpdateTagInput } from "@eesimple/types";
 import { collectSectionTagIds, matchTagIdsByTitle, titleMatchesTerm } from "@eesimple/types";
 import { db } from "@/db";
 import { bookmarkSectionsValues, bookmarkTags, tags, type TagRow } from "@/db/schema";
@@ -360,4 +360,64 @@ export function bulkReparentTags(
   return bulkApplyEntities(ids, id => updateTag(id, {
     parentId,
   }));
+}
+
+/**
+ * Apply an AI-proposed hierarchy change: create the plan's `newTags` (grouping tags), then move each
+ * of its `moves` under the resolved parent. A move's `parentId` may be an existing tag id, `null`
+ * (root), or a `tempId` from `newTags` — resolved here to the freshly-created tag's id.
+ *
+ * Failures are per-item and non-fatal (mirrors `bulkReparentTags`): a `newTag` whose existing parent
+ * is missing, or a `move` whose target/tempId doesn't resolve or would create a cycle, is recorded in
+ * `notFound` rather than aborting the batch. `createTag`/`updateTag` invalidate the bookmark cache.
+ */
+export async function applyTagReparentPlan(input: TagReparentPlanInput): Promise<TagReparentResult> {
+  const notFound: string[] = [];
+  const tempIdToRealId = new Map<string, string>();
+  let created = 0;
+  let moved = 0;
+
+  const existingIds = new Set((await db.select({
+    id: tags.id,
+  }).from(tags)).map(row => row.id));
+
+  for (const newTag of input.newTags) {
+    const name = newTag.name.trim();
+    // A new grouping tag may only nest under an existing tag or the root (v1), so no tempId chasing.
+    // A blank name or a parent that no longer exists is skipped rather than failing the whole plan.
+    if (!name || (newTag.parentId !== null && !existingIds.has(newTag.parentId))) {
+      notFound.push(newTag.tempId);
+      continue;
+    }
+    const tag = await createTag({
+      name,
+      parentId: newTag.parentId,
+    });
+    tempIdToRealId.set(newTag.tempId, tag.id);
+    existingIds.add(tag.id);
+    created += 1;
+  }
+
+  for (const move of input.moves) {
+    const resolvedParentId = move.parentId === null
+      ? null
+      : tempIdToRealId.get(move.parentId) ?? move.parentId;
+    try {
+      const updated = await updateTag(move.id, {
+        parentId: resolvedParentId,
+      });
+      if (updated) moved += 1;
+      else notFound.push(move.id);
+    }
+    catch {
+      // TagCycleError or any per-item failure — skip this move, keep the batch going.
+      notFound.push(move.id);
+    }
+  }
+
+  return {
+    created,
+    moved,
+    notFound,
+  };
 }

@@ -17,3 +17,4 @@ export * from "./appSettings/locationDisplay";
 export * from "./appSettings/personSourceLabels";
 export * from "./appSettings/scratchpad";
 export * from "./appSettings/sidebarCustomization";
+export * from "./appSettings/tagReparent";

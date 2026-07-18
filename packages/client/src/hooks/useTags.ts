@@ -1,4 +1,4 @@
-import type { CreateTagInput, UpdateTagInput } from "@eesimple/types";
+import type { CreateTagInput, TagReparentPlanInput, UpdateTagInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -103,5 +103,17 @@ export function useBulkReparentTags() {
       invalidate();
       notifyBulkResult(results, "moved");
     },
+  });
+}
+
+/**
+ * Apply an AI-proposed reparent plan (create grouping tags, then move existing tags under their new
+ * parents). The caller supplies the success/error toast so it can describe the created/moved counts.
+ */
+export function useApplyTagReparentPlan() {
+  const invalidate = useTagInvalidation();
+  return useMutation({
+    mutationFn: (input: TagReparentPlanInput) => tagsApi.reparentPlan(input),
+    onSuccess: invalidate,
   });
 }

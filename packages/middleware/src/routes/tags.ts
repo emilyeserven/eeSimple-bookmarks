@@ -1,10 +1,12 @@
 import type { FastifyInstance } from "fastify";
 import type {
   CreateTagInput,
+  TagReparentPlanInput,
   UpdateTagInput,
 } from "@eesimple/types";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import {
+  applyTagReparentPlan,
   bulkDeleteTags,
   bulkReparentTags,
   createTag,
@@ -85,9 +87,66 @@ const bulkReparentBody = {
   },
 } as const;
 
+// Every nested field must be declared: the bodies are `additionalProperties: false`, so AJV's
+// `removeAdditional` would silently strip any undeclared prop (see the add-endpoint skill). `parentId`
+// carries no `format: "uuid"` — a move's parent may be a `tempId` (an arbitrary AI-coined string) or an
+// existing id, and the service resolves/skips unknowns per-item rather than 400-ing the whole plan.
+const reparentPlanBody = {
+  type: "object",
+  required: ["newTags", "moves"],
+  additionalProperties: false,
+  properties: {
+    newTags: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["tempId", "name", "parentId"],
+        additionalProperties: false,
+        properties: {
+          tempId: {
+            type: "string",
+            minLength: 1,
+          },
+          name: {
+            type: "string",
+            minLength: 1,
+          },
+          parentId: {
+            type: ["string", "null"],
+          },
+        },
+      },
+    },
+    moves: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["id", "parentId"],
+        additionalProperties: false,
+        properties: {
+          id: {
+            type: "string",
+            minLength: 1,
+          },
+          parentId: {
+            type: ["string", "null"],
+          },
+        },
+      },
+    },
+  },
+} as const;
+
 /** CRUD routes for the tag taxonomy, mounted under `/api/tags`. */
 export async function tagRoutes(app: FastifyInstance): Promise<void> {
   registerBulkDelete(app, "/api/tags", "tags", bulkDeleteTags);
+
+  app.post("/api/tags/reparent-plan", {
+    schema: {
+      tags: ["tags"],
+      body: reparentPlanBody,
+    },
+  }, async req => applyTagReparentPlan(req.body as TagReparentPlanInput));
 
   app.post("/api/tags/bulk-reparent", {
     schema: {

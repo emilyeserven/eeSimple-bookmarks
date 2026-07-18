@@ -4,15 +4,17 @@ import type {
   AiSummarizationSettings,
   HomepageContentSettings,
   ScratchpadSettings,
+  TagReparentSettings,
   UpdateAiAutotagInput,
   UpdateAiSummarizationInput,
   UpdateHomepageContentInput,
   UpdateScratchpadInput,
+  UpdateTagReparentInput,
 } from "@eesimple/types";
 import { resolveHomepageWidgetOrder } from "@eesimple/types";
 import { db } from "@/db";
 import { appSettings } from "@/db/schema";
-import { asQuickAddDisplay, asWidth, DEFAULT_AI_AUTOTAG, DEFAULT_AI_SUMMARIZATION, DEFAULT_HOMEPAGE_CONTENT, DEFAULT_SCRATCHPAD, DEFAULT_SHORTENER_IGNORE_LIST, ROW_ID } from "./appSettingsShared";
+import { asQuickAddDisplay, asWidth, DEFAULT_AI_AUTOTAG, DEFAULT_AI_SUMMARIZATION, DEFAULT_HOMEPAGE_CONTENT, DEFAULT_SCRATCHPAD, DEFAULT_SHORTENER_IGNORE_LIST, DEFAULT_TAG_REPARENT, ROW_ID } from "./appSettingsShared";
 
 /** Read just the homepage-content settings shown/edited on the homepage settings page. */
 export async function getHomepageContentSettings(): Promise<HomepageContentSettings> {
@@ -170,6 +172,40 @@ export async function updateAiAutotagSettings(
   const next: AiAutotagSettings = {
     aiAutotagPrompt: input.aiAutotagPrompt,
     aiAutotagIncludeExistingTags: input.aiAutotagIncludeExistingTags,
+  };
+  await db
+    .insert(appSettings)
+    .values({
+      id: ROW_ID,
+      ...next,
+    })
+    .onConflictDoUpdate({
+      target: appSettings.id,
+      set: next,
+    });
+  return next;
+}
+
+/** Read the tag reparent prompt (coalescing the nullable column to an empty string). */
+export async function getTagReparentSettings(): Promise<TagReparentSettings> {
+  const [row] = await db
+    .select({
+      tagReparentPrompt: appSettings.tagReparentPrompt,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  if (!row) return DEFAULT_TAG_REPARENT;
+  return {
+    tagReparentPrompt: row.tagReparentPrompt ?? "",
+  };
+}
+
+/** Replace the tag reparent prompt, upserting the singleton. Returns the stored value. */
+export async function updateTagReparentSettings(
+  input: UpdateTagReparentInput,
+): Promise<TagReparentSettings> {
+  const next: TagReparentSettings = {
+    tagReparentPrompt: input.tagReparentPrompt,
   };
   await db
     .insert(appSettings)

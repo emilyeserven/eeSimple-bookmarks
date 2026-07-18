@@ -45,6 +45,7 @@ import type {
   SavedFilter,
   ScratchpadSettings,
   SidebarCustomizationSettings,
+  TagReparentSettings,
   UpdateAdvancedSettingsInput,
   UpdateAiAutotagInput,
   UpdateAiSummarizationInput,
@@ -62,6 +63,7 @@ import type {
   UpdateSavedFilterInput,
   UpdateScratchpadInput,
   UpdateSidebarCustomizationInput,
+  UpdateTagReparentInput,
 } from "@eesimple/types";
 
 import { createCrudApi, request } from "./client";
@@ -195,6 +197,13 @@ export const appSettingsApi = {
     request<AiAutotagSettings>("/app-settings/ai-autotag"),
   updateAiAutotag: (input: UpdateAiAutotagInput) =>
     request<AiAutotagSettings>("/app-settings/ai-autotag", {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  getTagReparent: () =>
+    request<TagReparentSettings>("/app-settings/tag-reparent"),
+  updateTagReparent: (input: UpdateTagReparentInput) =>
+    request<TagReparentSettings>("/app-settings/tag-reparent", {
       method: "PUT",
       body: JSON.stringify(input),
     }),

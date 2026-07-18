@@ -16,6 +16,7 @@ import type {
   UpdatePersonSourceLabelInput,
   UpdateScratchpadInput,
   UpdateSidebarCustomizationInput,
+  UpdateTagReparentInput,
 } from "@eesimple/types";
 import type { FastifyInstance } from "fastify";
 import { getDatabaseTableDetail, getDatabaseUsageReport } from "@/services/databaseUsage";
@@ -58,6 +59,7 @@ import {
   getScratchpadSettings,
   getShortenerIgnoreList,
   getSidebarCustomizationSettings,
+  getTagReparentSettings,
   updateAdvancedSettings,
   updateAiAutotagSettings,
   updateAiSummarizationSettings,
@@ -78,6 +80,7 @@ import {
   updateScratchpadSettings,
   updateShortenerIgnoreList,
   updateSidebarCustomizationSettings,
+  updateTagReparentSettings,
 } from "@/services/appSettings";
 
 /** Global app-settings endpoints, mounted under `/api/app-settings`. */
@@ -414,6 +417,28 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       },
     },
   }, async req => updateAiAutotagSettings(req.body as UpdateAiAutotagInput));
+
+  app.get("/api/app-settings/tag-reparent", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async () => getTagReparentSettings());
+
+  app.put("/api/app-settings/tag-reparent", {
+    schema: {
+      tags: ["app-settings"],
+      body: {
+        type: "object",
+        required: ["tagReparentPrompt"],
+        additionalProperties: false,
+        properties: {
+          tagReparentPrompt: {
+            type: "string",
+          },
+        },
+      },
+    },
+  }, async req => updateTagReparentSettings(req.body as UpdateTagReparentInput));
 
   app.get("/api/app-settings/connectors", {
     schema: {
