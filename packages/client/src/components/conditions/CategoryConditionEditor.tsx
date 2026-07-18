@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { MultiCombobox } from "../MultiCombobox";
 import { useEntityCreateOption } from "../useEntityCreateOption";
 
+import { sortFavoritesFirst } from "@/lib/favoritesOrder";
 import { CategoryIcon } from "@/lib/icons";
 
 interface CategoryConditionEditorProps {
@@ -33,7 +34,7 @@ export function CategoryConditionEditor({
       <MultiCombobox
         aria-label={t("Categories")}
         placeholder={t("Any category")}
-        options={categories.map(category => ({
+        options={sortFavoritesFirst(categories).map(category => ({
           value: category.id,
           label: category.name,
           names: category.names,

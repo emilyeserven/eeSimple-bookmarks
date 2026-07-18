@@ -20,6 +20,7 @@ import { RuleTagsField } from "./RuleTagsField";
 import { useAutofillRuleForm } from "./useAutofillRuleForm";
 import i18n from "../i18n";
 import { NO_CATEGORY } from "../lib/autofillScope";
+import { sortFavoritesFirst } from "../lib/favoritesOrder";
 
 import { Separator } from "@/components/ui/separator";
 
@@ -181,7 +182,7 @@ export function AutofillRuleForm({
                   value: NO_CATEGORY,
                   label: i18n.t("— Leave unchanged —"),
                 },
-                ...categories.map(category => ({
+                ...sortFavoritesFirst(categories).map(category => ({
                   value: category.id,
                   label: category.name,
                   names: category.names,

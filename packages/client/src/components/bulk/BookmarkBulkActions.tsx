@@ -21,6 +21,7 @@ import {
 import { BulkSetPropertyButton } from "./BulkSetPropertyButton";
 
 import { Button } from "@/components/ui/button";
+import { sortFavoritesFirst } from "@/lib/favoritesOrder";
 import { CategoryIcon } from "@/lib/icons";
 
 interface BulkActionProps {
@@ -105,7 +106,7 @@ export function BookmarkBulkActions({
         triggerLabel={t("Set category")}
         title={t("Set category")}
         placeholder={t("Select a category")}
-        options={categories.map(category => ({
+        options={sortFavoritesFirst(categories).map(category => ({
           value: category.id,
           label: category.name,
           names: category.names,

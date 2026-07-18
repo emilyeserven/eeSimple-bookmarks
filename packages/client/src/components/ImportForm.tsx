@@ -7,6 +7,7 @@ import { NewsletterFileField } from "./NewsletterFileField";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useImportForm } from "./useImportForm";
 
+import { sortFavoritesFirst } from "@/lib/favoritesOrder";
 import { CategoryIcon } from "@/lib/icons";
 
 /**
@@ -148,7 +149,7 @@ export function ImportForm({
                 searchPlaceholder={t("Search categories…")}
                 emptyText={t("No categories found.")}
                 createOption={categoryCreate.createOption}
-                options={categories.map(category => ({
+                options={sortFavoritesFirst(categories).map(category => ({
                   value: category.id,
                   label: category.name,
                   names: category.names,

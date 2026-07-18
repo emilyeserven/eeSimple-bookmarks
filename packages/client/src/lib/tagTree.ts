@@ -3,6 +3,7 @@ import type { LocationNode, PreferredLanguage, TagNode } from "@eesimple/types";
 
 import { resolveNameSortKey } from "@eesimple/types";
 
+import { sortFavoritesFirst } from "./favoritesOrder";
 import { buildSearchAlias } from "./searchAlias";
 
 /** A tree node paired with its depth in the tree, for indented flat rendering. */
@@ -83,11 +84,11 @@ export function selectedSubtrees<T extends { id: string;
 /**
  * Convert a TagNode tree into TreeComboboxOption format for use with TreeCombobox/TreeMultiCombobox.
  * `excludeIds` (e.g. a tag's own subtree, so it can't become its own parent) drops a matching node
- * and everything beneath it, since a filtered-out node is never recursed into.
+ * and everything beneath it, since a filtered-out node is never recursed into. Within each sibling
+ * group, user-starred favorites are hoisted to the top (recursively) so starred tags surface first.
  */
 export function tagNodesToOptions(nodes: TagNode[], excludeIds?: Set<string>): TreeComboboxOption[] {
-  return nodes
-    .filter(n => !excludeIds?.has(n.id))
+  return sortFavoritesFirst(nodes.filter(n => !excludeIds?.has(n.id)))
     .map(n => ({
       value: n.id,
       label: n.name,

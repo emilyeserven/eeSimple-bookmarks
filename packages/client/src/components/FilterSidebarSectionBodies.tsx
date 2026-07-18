@@ -38,6 +38,7 @@ import {
 } from "../lib/bookmarkSearch";
 import { useBuiltInName, useLanguageName } from "../lib/builtInName";
 import { mediaTypeNodesToOptions } from "../lib/comboboxOptions";
+import { sortFavoritesFirst } from "../lib/favoritesOrder";
 import { sortLanguagesFavoritesFirst } from "../lib/languageOptions";
 import { buildMediaTypeTree } from "../lib/mediaTypeTree";
 import { tagNodesToOptions } from "../lib/tagTree";
@@ -101,7 +102,7 @@ export function CategoryFilterBody({
   const {
     t,
   } = useTranslation();
-  const categoryOptions = (categories ?? []).map(category => ({
+  const categoryOptions = sortFavoritesFirst(categories ?? []).map(category => ({
     value: category.id,
     label: category.name,
     names: category.names,
