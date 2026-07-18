@@ -18,6 +18,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        # Set to 0 for a faster image build that skips Storybook (/storybook 404s for that build).
+        BUILD_STORYBOOK: ${BUILD_STORYBOOK:-1}
     ports:
       - "${GATEWAY_HOST_PORT:-3000}:3000"
     environment:
