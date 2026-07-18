@@ -115,7 +115,8 @@ export interface EntityListingConfig<E extends { id: string }> {
     allItems: E[];
     selectable?: boolean;
     selected?: boolean;
-    onSelectToggle?: () => void;
+    /** Toggle this row's selection. `shiftKey` requests a range select from the last-clicked anchor. */
+    onSelectToggle?: (shiftKey?: boolean) => void;
     inSelectionMode?: boolean;
   }) => ReactNode;
   /**

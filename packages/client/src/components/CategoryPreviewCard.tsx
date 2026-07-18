@@ -79,7 +79,7 @@ interface CategoryPreviewCardProps {
   /** Row-variant bulk-selection wiring (ignored by `full`). */
   selectable?: boolean;
   selected?: boolean;
-  onSelectToggle?: () => void;
+  onSelectToggle?: (shiftKey?: boolean) => void;
   inSelectionMode?: boolean;
 }
 

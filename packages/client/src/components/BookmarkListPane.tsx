@@ -75,6 +75,7 @@ function BookmarkListContent({
             categoryId={addFormCategoryId}
             isSelected={selection.isSelected}
             onToggleSelect={selection.toggle}
+            onSelectRange={selection.selectRange}
             allSelected={selection.allSelected}
             anySelected={selection.count > 0}
             onToggleAll={onToggleAll}
@@ -88,7 +89,8 @@ function BookmarkListContent({
             pageKey={pageKey}
             selectionMode={selection.mode}
             isSelected={selection.isSelected}
-            onToggleSelect={selection.toggle}
+            onToggleSelect={(id, shiftKey) =>
+              (shiftKey ? selection.selectRange(id) : selection.toggle(id))}
           />
         )}
     </>

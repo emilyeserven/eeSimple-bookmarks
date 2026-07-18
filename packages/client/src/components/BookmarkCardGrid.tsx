@@ -26,7 +26,8 @@ interface BookmarkCardGridProps {
   /** When true, clicking a card selects it (instead of navigating) via an overlay. */
   selectionMode?: boolean;
   isSelected?: (id: string) => boolean;
-  onToggleSelect?: (id: string) => void;
+  /** Toggle a card's selection. `shiftKey` requests a range select from the last-clicked anchor. */
+  onToggleSelect?: (id: string, shiftKey?: boolean) => void;
   /** Optional badge rendered top-left of a card (e.g. a pinned relationship badge); null/undefined = no badge. */
   badgeFor?: (bookmark: Bookmark) => ReactNode;
 }
@@ -132,12 +133,13 @@ export function BookmarkCardGrid({
                     })}
                     aria-pressed={selected}
                     className="absolute inset-0 z-10 cursor-pointer rounded-xl"
-                    onClick={() => onToggleSelect?.(bookmark.id)}
+                    onClick={e => onToggleSelect?.(bookmark.id, e.shiftKey)}
                   />
                   <div className="absolute top-3 left-3 z-20">
+                    {/* `onClick` (not `onCheckedChange`) so shift-click ranges; checked is controlled. */}
                     <Checkbox
                       checked={selected}
-                      onCheckedChange={() => onToggleSelect?.(bookmark.id)}
+                      onClick={e => onToggleSelect?.(bookmark.id, e.shiftKey)}
                     />
                   </div>
                 </>

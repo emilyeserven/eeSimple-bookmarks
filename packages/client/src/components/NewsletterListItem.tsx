@@ -19,7 +19,7 @@ export function NewsletterListItem({
   newsletter: Newsletter;
   selectable?: boolean;
   selected?: boolean;
-  onSelectToggle?: () => void;
+  onSelectToggle?: (shiftKey?: boolean) => void;
   inSelectionMode?: boolean;
 }) {
   const {

@@ -85,7 +85,8 @@ export function AutofillRulesList(props: AutofillRulesListProps) {
                 categories={categories}
                 selectable
                 selected={selection.isSelected(rule.id)}
-                onSelectToggle={() => selection.toggle(rule.id)}
+                onSelectToggle={shiftKey =>
+                  (shiftKey ? selection.selectRange(rule.id) : selection.toggle(rule.id))}
                 inSelectionMode={selection.mode}
               />
             ))}

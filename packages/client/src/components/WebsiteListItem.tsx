@@ -14,7 +14,7 @@ interface WebsiteListItemProps {
   website: Website;
   selectable?: boolean;
   selected?: boolean;
-  onSelectToggle?: () => void;
+  onSelectToggle?: (shiftKey?: boolean) => void;
   inSelectionMode?: boolean;
 }
 

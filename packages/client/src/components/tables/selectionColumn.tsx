@@ -10,6 +10,8 @@ interface SelectionColumnArgs<T> {
   getId: (row: T) => string;
   isSelected: (id: string) => boolean;
   toggle: (id: string) => void;
+  /** Shift-click range select from the last-toggled anchor; falls back to `toggle` when unset. */
+  selectRange?: (id: string) => void;
   allSelected: boolean;
   /** True while ≥1 row is selected — keeps every checkbox visible, not just hovered ones. */
   anySelected: boolean;
@@ -29,6 +31,7 @@ export function selectionColumn<T>({
   getId,
   isSelected,
   toggle,
+  selectRange,
   allSelected,
   anySelected,
   onToggleAll,
@@ -70,10 +73,12 @@ export function selectionColumn<T>({
           data-no-row-click
           className={revealClass(anySelected || selected)}
         >
+          {/* Drive selection off `onClick` (not `onCheckedChange`) so a shift-click can range-select;
+              the checkbox is controlled by `checked`, and keyboard activation fires click too. */}
           <Checkbox
             aria-label={i18n.t("Select row")}
             checked={selected}
-            onCheckedChange={() => toggle(id)}
+            onClick={e => (e.shiftKey && selectRange ? selectRange(id) : toggle(id))}
           />
         </div>
       );
@@ -91,6 +96,7 @@ export function listingSelectionColumn<T>(
     getId,
     isSelected: selection.isSelected,
     toggle: selection.toggle,
+    selectRange: selection.selectRange,
     allSelected: selection.allSelected,
     anySelected: selection.count > 0,
     onToggleAll: () => (selection.allSelected ? selection.clear() : selection.selectAll()),

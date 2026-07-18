@@ -15,6 +15,7 @@ const selection: ListSelection = {
   selectedSet: new Set(["a", "b", "c"]),
   isSelected: id => ["a", "b", "c"].includes(id),
   toggle: () => {},
+  selectRange: () => {},
   selectAll: () => {},
   clear: () => {},
   count: 3,

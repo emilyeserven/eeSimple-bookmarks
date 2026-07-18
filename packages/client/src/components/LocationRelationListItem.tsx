@@ -21,7 +21,7 @@ export function LocationRelationListItem({
   locationRelation: LocationRelation;
   selectable?: boolean;
   selected?: boolean;
-  onSelectToggle?: () => void;
+  onSelectToggle?: (shiftKey?: boolean) => void;
   inSelectionMode?: boolean;
 }) {
   const {

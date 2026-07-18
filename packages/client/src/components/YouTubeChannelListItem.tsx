@@ -16,7 +16,7 @@ interface YouTubeChannelListItemProps {
   channel: YouTubeChannel;
   selectable?: boolean;
   selected?: boolean;
-  onSelectToggle?: () => void;
+  onSelectToggle?: (shiftKey?: boolean) => void;
   inSelectionMode?: boolean;
 }
 

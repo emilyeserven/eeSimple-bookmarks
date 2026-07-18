@@ -26,6 +26,8 @@ interface BookmarkTableViewProps {
   /** Bulk-selection wiring (prepends a left checkbox column when provided). */
   isSelected?: (id: string) => boolean;
   onToggleSelect?: (id: string) => void;
+  /** Shift-click range select from the last-toggled anchor; falls back to `onToggleSelect`. */
+  onSelectRange?: (id: string) => void;
   allSelected?: boolean;
   anySelected?: boolean;
   onToggleAll?: () => void;
@@ -39,6 +41,7 @@ export function BookmarkTableView({
   categoryId,
   isSelected,
   onToggleSelect,
+  onSelectRange,
   allSelected = false,
   anySelected = false,
   onToggleAll,
@@ -59,6 +62,7 @@ export function BookmarkTableView({
         getId: bookmark => bookmark.id,
         isSelected,
         toggle: onToggleSelect,
+        selectRange: onSelectRange,
         allSelected,
         anySelected,
         onToggleAll,

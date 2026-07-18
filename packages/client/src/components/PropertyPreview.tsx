@@ -20,7 +20,7 @@ interface PropertyPreviewProps {
   allProperties: CustomProperty[];
   selectable?: boolean;
   selected?: boolean;
-  onSelectToggle?: () => void;
+  onSelectToggle?: (shiftKey?: boolean) => void;
   /** When true, clicking the card toggles selection instead of navigating. Gate on the listing's selection mode. */
   inSelectionMode?: boolean;
 }
@@ -137,7 +137,7 @@ export function PropertyPreview({
               : t("Select {{name}}", {
                 name: property.name,
               })}
-            onClick={() => onSelectToggle?.()}
+            onClick={e => onSelectToggle?.(e.shiftKey)}
             className="flex flex-col gap-1 p-4 text-left"
           >
             <PropertyPreviewBody

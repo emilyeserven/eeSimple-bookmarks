@@ -45,6 +45,7 @@ const noSelection: ListSelection = {
   selectedSet: new Set<string>(),
   isSelected: () => false,
   toggle: () => {},
+  selectRange: () => {},
   selectAll: () => {},
   clear: () => {},
   count: 0,

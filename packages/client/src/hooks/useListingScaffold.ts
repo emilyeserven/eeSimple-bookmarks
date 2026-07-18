@@ -48,7 +48,10 @@ export function useListingScaffold<E extends { id: string }>(config: EntityListi
   // "Showing X of Y" summary + generic no-match wording when a facet (not a text query) is active.
   const facetActive = config.useExtraFilter != null && filtered.length !== preFacet.length;
 
-  const deletableIds = (config.deletableIds ?? (all => all.map(item => item.id)))(filtered);
+  // Base the selectable set on `sorted` (the rendered order), not `filtered`, so shift-click range
+  // selection covers exactly the items between two rows as the user sees them. Same set either way —
+  // only the order differs — so counts/allSelected are unaffected.
+  const deletableIds = (config.deletableIds ?? (all => all.map(item => item.id)))(sorted);
   const selection = useListSelection(config.pageKey, deletableIds);
   useRegisterBulkSelect(config.pageKey);
   const bulkDelete = config.useBulkDelete ? config.useBulkDelete() : null;

@@ -254,10 +254,13 @@ function TaxonomyTreeRowCheckbox({
     t,
   } = useTranslation();
   if (!selection?.mode) return null;
+  const sel = selection;
   return (
     <Checkbox
-      checked={selection.isSelected(node.id)}
-      onCheckedChange={() => selection.toggle(node.id)}
+      checked={sel.isSelected(node.id)}
+      // Drive off `onClick` (not `onCheckedChange`) so a shift-click ranges over the flattened,
+      // depth-first visible order the tree already hands the hook as `allIds`.
+      onClick={e => (e.shiftKey ? sel.selectRange(node.id) : sel.toggle(node.id))}
       aria-label={t("Select {{name}}", {
         name: node.name,
       })}

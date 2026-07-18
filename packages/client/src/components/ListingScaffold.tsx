@@ -125,7 +125,8 @@ export function ListingScaffold<E extends { id: string }>({
                             allItems: items,
                             selectable: config.isSelectable ? config.isSelectable(entity) : true,
                             selected: selection.isSelected(entity.id),
-                            onSelectToggle: () => selection.toggle(entity.id),
+                            onSelectToggle: shiftKey =>
+                              (shiftKey ? selection.selectRange(entity.id) : selection.toggle(entity.id)),
                             inSelectionMode: selection.mode,
                           })}
                         </Fragment>

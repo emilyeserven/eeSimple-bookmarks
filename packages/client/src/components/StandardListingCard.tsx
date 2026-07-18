@@ -137,7 +137,8 @@ interface StandardListingCardProps {
   /** When true, clicking the card body toggles selection (shown when `inSelectionMode` is true). */
   selectable?: boolean;
   selected?: boolean;
-  onSelectToggle?: () => void;
+  /** Toggle this row's selection. `shiftKey` requests a range select from the last-clicked anchor. */
+  onSelectToggle?: (shiftKey?: boolean) => void;
   /** When true, the card body becomes a click-to-select button (no checkbox). Gate on the listing's selection mode. */
   inSelectionMode?: boolean;
 }
@@ -201,7 +202,7 @@ export function StandardListingCard({
                 : t("Select {{title}}", {
                   title,
                 })}
-              onClick={() => onSelectToggle?.()}
+              onClick={e => onSelectToggle?.(e.shiftKey)}
             >
               {linkChildren}
             </button>

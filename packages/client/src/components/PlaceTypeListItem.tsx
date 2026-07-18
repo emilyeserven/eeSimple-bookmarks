@@ -31,7 +31,7 @@ export function PlaceTypeListItem({
   placeType: PlaceType;
   selectable?: boolean;
   selected?: boolean;
-  onSelectToggle?: () => void;
+  onSelectToggle?: (shiftKey?: boolean) => void;
   inSelectionMode?: boolean;
   /** Whether this place type is currently focused on the listing's map. */
   filtered?: boolean;
