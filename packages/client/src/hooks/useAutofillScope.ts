@@ -156,6 +156,7 @@ export function useAutofillFilterData(): AutofillFilterData {
       options: sortFavoritesFirst(categories).map(category => ({
         value: category.slug,
         label: category.name,
+        isFavorite: category.isFavorite,
       })),
     },
     properties: {
@@ -182,6 +183,7 @@ export function useAutofillFilterData(): AutofillFilterData {
     tags: {
       loading: tagsLoading,
       options: sortFavoritesFirst(tags).map(tag => ({
+        isFavorite: tag.isFavorite,
         value: tag.slug,
         label: tag.name,
       })),

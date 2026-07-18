@@ -3,8 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Combobox } from "./Combobox";
 
 import { useCategories } from "@/hooks/useCategories";
-import { iconComboboxOptions } from "@/lib/comboboxOptions";
-import { sortFavoritesFirst } from "@/lib/favoritesOrder";
+import { categoryComboboxOptions } from "@/lib/comboboxOptions";
 import { useUiStore } from "@/stores/uiStore";
 
 /**
@@ -28,7 +27,7 @@ export function YouTubeChannelListingControls() {
   return (
     <div className="flex items-center gap-2">
       <Combobox
-        options={iconComboboxOptions(sortFavoritesFirst(categories ?? []))}
+        options={categoryComboboxOptions(categories ?? [])}
         value={category ?? undefined}
         onValueChange={value => setCategory(value ?? null)}
         placeholder={t("Filter by category…")}

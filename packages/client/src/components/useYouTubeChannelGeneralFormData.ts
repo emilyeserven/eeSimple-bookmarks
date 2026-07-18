@@ -2,8 +2,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useGroups } from "@/hooks/useGroups";
 import { useTagTree } from "@/hooks/useTags";
 import { useWebsites } from "@/hooks/useWebsites";
-import { iconComboboxOptions } from "@/lib/comboboxOptions";
-import { sortFavoritesFirst } from "@/lib/favoritesOrder";
+import { categoryComboboxOptions } from "@/lib/comboboxOptions";
 
 /**
  * The taxonomy queries the YouTube-channel General form needs, returned with defaults applied and
@@ -25,7 +24,7 @@ export function useYouTubeChannelGeneralFormData() {
   } = useGroups();
 
   return {
-    categoryOptions: iconComboboxOptions(sortFavoritesFirst(categories ?? [])),
+    categoryOptions: categoryComboboxOptions(categories ?? []),
     tagTree: tagTree ?? [],
     websites: websites ?? [],
     groups: groups ?? [],

@@ -9,8 +9,7 @@ import { TagPickerWithCreate } from "./TagPickerWithCreate";
 import { TreeCombobox } from "./TreeCombobox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useBuiltInName } from "../lib/builtInName";
-import { iconComboboxOptions, mediaTypeNodesToOptions } from "../lib/comboboxOptions";
-import { sortFavoritesFirst } from "../lib/favoritesOrder";
+import { categoryComboboxOptions, mediaTypeNodesToOptions } from "../lib/comboboxOptions";
 
 import { Label } from "@/components/ui/label";
 
@@ -32,7 +31,7 @@ export function AutofillCategoryPicker({
       value: NO_CATEGORY,
       label: t("— Leave unchanged —"),
     },
-    ...iconComboboxOptions(sortFavoritesFirst(categories)),
+    ...categoryComboboxOptions(categories),
   ];
 
   return (

@@ -8,8 +8,7 @@ import { LocationPicker } from "./LocationPicker";
 import { MultiCombobox } from "./MultiCombobox";
 import { TreeCombobox } from "./TreeCombobox";
 import { useBuiltInName } from "../lib/builtInName";
-import { iconComboboxOptions, mediaTypeNodesToOptions } from "../lib/comboboxOptions";
-import { sortFavoritesFirst } from "../lib/favoritesOrder";
+import { categoryComboboxOptions, mediaTypeNodesToOptions } from "../lib/comboboxOptions";
 import { buildSearchAlias } from "../lib/searchAlias";
 
 import { Label } from "@/components/ui/label";
@@ -64,7 +63,7 @@ export function ImportItemAdvancedEditFields({
       <div className="space-y-1">
         <Label className="text-xs">{t("Category")}</Label>
         <Combobox
-          options={iconComboboxOptions(sortFavoritesFirst(categories))}
+          options={categoryComboboxOptions(categories)}
           value={categoryId}
           onValueChange={onCategoryChange}
           placeholder={t("No category")}

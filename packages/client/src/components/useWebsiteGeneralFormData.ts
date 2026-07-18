@@ -3,8 +3,7 @@ import { useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { useTagTree } from "@/hooks/useTags";
 import { useYouTubeChannels } from "@/hooks/useYouTubeChannels";
 import { useBuiltInName } from "@/lib/builtInName";
-import { iconComboboxOptions, mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
-import { sortFavoritesFirst } from "@/lib/favoritesOrder";
+import { categoryComboboxOptions, mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
 
 /**
  * The taxonomy queries the website General form needs, returned with defaults applied and combobox
@@ -27,7 +26,7 @@ export function useWebsiteGeneralFormData() {
   const builtInName = useBuiltInName();
 
   return {
-    categoryOptions: iconComboboxOptions(sortFavoritesFirst(categories ?? [])),
+    categoryOptions: categoryComboboxOptions(categories ?? []),
     mediaTypeOptions: mediaTypeNodesToOptions(mediaTypeTree ?? [], builtInName),
     tagTree: tagTree ?? [],
     youtubeChannels: youtubeChannels ?? [],

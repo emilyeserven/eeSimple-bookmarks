@@ -5,6 +5,7 @@ import * as React from "react";
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { FavoriteStar } from "./FavoriteStar";
 import { LocalizedNameLabel } from "./LocalizedNameLabel";
 
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,8 @@ export interface ComboboxOption {
   names?: EntityName[];
   /** Optional element rendered at the inline-start of the option (and the trigger when selected). */
   icon?: React.ReactNode;
+  /** When true a filled star is shown after the label, marking a user-starred (favorite) option. */
+  isFavorite?: boolean;
   /** When true the option is shown but cannot be selected. */
   disabled?: boolean;
 }
@@ -106,6 +109,7 @@ function renderComboOption(
         secondaryLanguage={secondaryLanguage}
         fallbackLanguage={fallbackLanguage}
       />
+      {option.isFavorite && <FavoriteStar />}
       <Check
         className={cn(
           "ml-auto",

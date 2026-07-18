@@ -106,6 +106,7 @@ export function CategoryFilterBody({
     value: category.id,
     label: category.name,
     names: category.names,
+    isFavorite: category.isFavorite,
   }));
   const selectedCategories = search.categories ?? [];
   const allSelected = categoryOptions.length > 0 && selectedCategories.length === categoryOptions.length;

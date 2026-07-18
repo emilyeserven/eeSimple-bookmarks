@@ -96,6 +96,8 @@ export function tagNodesToOptions(nodes: TagNode[], excludeIds?: Set<string>): T
       searchAlias: buildSearchAlias(n.names),
       // Carry the structured names so the secondary-display-language name shows de-emphasized.
       names: n.names,
+      // Mark starred tags so the picker renders a favorite star beside them.
+      isFavorite: n.isFavorite,
       children: tagNodesToOptions(n.children, excludeIds),
     }));
 }

@@ -27,6 +27,8 @@ export interface TreeComboboxOption {
    */
   names?: EntityName[];
   icon?: React.ReactNode;
+  /** When true a filled star is shown after the label, marking a user-starred (favorite) option. */
+  isFavorite?: boolean;
   children?: TreeComboboxOption[];
 }
 
