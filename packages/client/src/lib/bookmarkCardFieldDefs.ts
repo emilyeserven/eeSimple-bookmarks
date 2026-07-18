@@ -64,6 +64,10 @@ export const STANDARD_CARD_FIELDS = [
     label: "Groups",
   },
   {
+    key: "taggedSections",
+    label: "Tagged Sections",
+  },
+  {
     key: "createdAt",
     label: "Date Added",
   },

@@ -1,10 +1,10 @@
 import { asc, eq, ne, sql } from "drizzle-orm";
-import type { BulkDeleteResult, CreateTagInput, EntityName, Tag, TagNode, TitleTagCandidate, UpdateTagInput } from "@eesimple/types";
-import { matchTagIdsByTitle, titleMatchesTerm } from "@eesimple/types";
+import type { BulkBookmarkResult, BulkDeleteResult, CreateTagInput, EntityName, SectionEntry, Tag, TagNode, TitleTagCandidate, UpdateTagInput } from "@eesimple/types";
+import { collectSectionTagIds, matchTagIdsByTitle, titleMatchesTerm } from "@eesimple/types";
 import { db } from "@/db";
-import { bookmarkTags, tags, type TagRow } from "@/db/schema";
+import { bookmarkSectionsValues, bookmarkTags, tags, type TagRow } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
-import { bulkDeleteEntities } from "@/services/bulkDelete";
+import { bulkApplyEntities, bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteTaxonomyAssignmentsForOwner } from "@/services/taxonomyAssignments";
 import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import {
@@ -27,6 +27,8 @@ export interface TagBookmarkCounts {
   subtree: number;
   /** Distinct bookmarks carrying this tag but none of its descendants (the "No Child" bucket). */
   own: number;
+  /** Distinct bookmarks with a sections-property entry/child tagged with this tag or a descendant. */
+  section?: number;
 }
 
 /** Map a DB row (plus optional precomputed counts) to the shared `Tag` wire type. */
@@ -43,6 +45,7 @@ function toTag(row: TagRow, counts?: TagBookmarkCounts, names?: EntityName[]): T
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: counts?.subtree,
     ownBookmarkCount: counts?.own,
+    sectionBookmarkCount: counts?.section,
     editableOnCard: row.editableOnCard,
     excludeFromBackfill: row.excludeFromBackfill,
     isFavorite: row.isFavorite,
@@ -117,6 +120,27 @@ export function computeTagBookmarkCounts(
   })));
 }
 
+/**
+ * Compute each tag's distinct count of bookmarks whose sections-property entries (either tier)
+ * reference the tag or one of its descendants. Section tags live only inside the
+ * `bookmark_sections_values` jsonb (no join table), so the links are derived by walking each row
+ * with the shared `collectSectionTagIds`; dangling ids drop out because
+ * `computeSubtreeBookmarkCounts` only seeds sets for ids present in `all`. Pure — unit-testable.
+ */
+export function computeTagSectionBookmarkCounts(
+  all: { id: string;
+    parentId: string | null; }[],
+  rows: { bookmarkId: string;
+    sections: SectionEntry[]; }[],
+): Map<string, number> {
+  const links = rows.flatMap(row => collectSectionTagIds(row.sections).map(tagId => ({
+    nodeId: tagId,
+    bookmarkId: row.bookmarkId,
+  })));
+  const counts = computeSubtreeBookmarkCounts(all, links);
+  return new Map([...counts].map(([id, count]) => [id, count.subtree]));
+}
+
 /** Existing tag slugs, optionally excluding one tag id (when renaming). */
 async function takenTagSlugs(excludeId?: string): Promise<string[]> {
   const rows = await db
@@ -176,8 +200,27 @@ export async function listTags(): Promise<Tag[]> {
     })
     .from(bookmarkTags);
   const counts = computeTagBookmarkCounts(rows, links);
+  const sectionRows = await db
+    .select({
+      bookmarkId: bookmarkSectionsValues.bookmarkId,
+      sections: bookmarkSectionsValues.sections,
+    })
+    .from(bookmarkSectionsValues);
+  const sectionCounts = computeTagSectionBookmarkCounts(
+    rows,
+    sectionRows.map(row => ({
+      bookmarkId: row.bookmarkId,
+      sections: row.sections as SectionEntry[],
+    })),
+  );
   const namesMap = await loadEntityNames("tag", rows.map(row => row.id));
-  return rows.map(row => toTag(row, counts.get(row.id), namesMap.get(row.id)));
+  return rows.map(row => toTag(row, {
+    ...counts.get(row.id) ?? {
+      subtree: 0,
+      own: 0,
+    },
+    section: sectionCounts.get(row.id),
+  }, namesMap.get(row.id)));
 }
 
 export async function getTagTree(): Promise<TagNode[]> {
@@ -302,4 +345,19 @@ export async function deleteTag(id: string): Promise<boolean> {
  */
 export function bulkDeleteTags(ids: string[]): Promise<BulkDeleteResult[]> {
   return bulkDeleteEntities(ids, deleteTag);
+}
+
+/**
+ * Move many tags under a new parent (`null` = top level), reporting per-item outcomes. Each item
+ * goes through `updateTag`, so the per-item cycle guard applies: moving a tag under itself or one
+ * of its own descendants reports an `error` row with the cycle message rather than failing the
+ * whole batch.
+ */
+export function bulkReparentTags(
+  ids: string[],
+  parentId: string | null,
+): Promise<BulkBookmarkResult[]> {
+  return bulkApplyEntities(ids, id => updateTag(id, {
+    parentId,
+  }));
 }

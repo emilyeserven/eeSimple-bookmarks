@@ -1,4 +1,4 @@
-import type { BulkDeleteResult } from "@eesimple/types";
+import type { BulkBookmarkResult, BulkDeleteResult } from "@eesimple/types";
 
 /**
  * Delete many entities by looping a single-item delete, reporting per-item outcomes without aborting
@@ -35,6 +35,36 @@ export async function bulkDeleteEntities(
           message: err instanceof Error ? err.message : String(err),
         });
       }
+    }
+  }
+  return results;
+}
+
+/**
+ * Apply a single-item update across many entities, reporting per-item outcomes without aborting the
+ * batch — the update sibling of {@link bulkDeleteEntities} (the `bulkUpdateWebsites` loop shape). A
+ * nullish return is `not-found`; a throw is `error` with the message (so per-item guards like the
+ * tag cycle check surface per row instead of failing the whole batch).
+ */
+export async function bulkApplyEntities(
+  ids: string[],
+  applyOne: (id: string) => Promise<unknown>,
+): Promise<BulkBookmarkResult[]> {
+  const results: BulkBookmarkResult[] = [];
+  for (const id of ids) {
+    try {
+      const updated = await applyOne(id);
+      results.push({
+        id,
+        status: updated ? "applied" : "not-found",
+      });
+    }
+    catch (err) {
+      results.push({
+        id,
+        status: "error",
+        message: err instanceof Error ? err.message : String(err),
+      });
     }
   }
   return results;

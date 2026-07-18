@@ -4,6 +4,7 @@ import type { EntityName, Tag } from "@eesimple/types";
 import {
   buildTagTree,
   computeTagBookmarkCounts,
+  computeTagSectionBookmarkCounts,
   matchTagIdsByTitle,
   titleMatchesTerm,
   wouldCreateCycle,
@@ -135,6 +136,55 @@ test("computeTagBookmarkCounts counts subtree (distinct) and own (no-descendant)
     subtree: 1,
     own: 1,
   });
+});
+
+test("computeTagSectionBookmarkCounts aggregates section-tag references up the subtree", () => {
+  const section = (id: string, tagIds?: string[], children?: {
+    id: string;
+    tagIds?: string[];
+  }[]) => ({
+    id,
+    name: id,
+    type: "name" as const,
+    startValue: "",
+    tagIds,
+    children: children?.map(child => ({
+      id: child.id,
+      name: child.id,
+      type: "name" as const,
+      startValue: "",
+      tagIds: child.tagIds,
+    })),
+  });
+  const rows = [
+    // b1 references cli (entry level) — counts toward cli, tools, and dev.
+    {
+      bookmarkId: "b1",
+      sections: [section("s1", ["cli"])],
+    },
+    // b2 references tools via a child entry, plus a dangling deleted-tag id that must be ignored.
+    {
+      bookmarkId: "b2",
+      sections: [section("s2", undefined, [{
+        id: "s2a",
+        tagIds: ["tools", "deleted-tag"],
+      }])],
+    },
+    // b3 references cli twice across two values-rows — deduped to one bookmark.
+    {
+      bookmarkId: "b3",
+      sections: [section("s3", ["cli"])],
+    },
+    {
+      bookmarkId: "b3",
+      sections: [section("s4", ["cli"])],
+    },
+  ];
+  const counts = computeTagSectionBookmarkCounts(flat, rows);
+  assert.equal(counts.get("cli"), 2); // b1 + b3
+  assert.equal(counts.get("tools"), 3); // own b2 + descendant cli's b1/b3
+  assert.equal(counts.get("dev"), 3); // whole subtree
+  assert.equal(counts.get("work"), 0);
 });
 
 // --- auto-tag-from-title automation (re-exported from @eesimple/types; full matrix lives in

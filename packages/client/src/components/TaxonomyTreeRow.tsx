@@ -1,3 +1,4 @@
+import type { ListSelection } from "../lib/useListSelection";
 import type { ReactNode } from "react";
 
 import { useTranslation } from "react-i18next";
@@ -35,6 +36,16 @@ interface TaxonomyTreeListProps {
   renderInfoLink: (node: TaxonomyTreeNode) => ReactNode;
   /** Optional icon override; replaces the default `CategoryIcon` when provided. */
   renderIcon?: (node: TaxonomyTreeNode) => ReactNode;
+  /**
+   * Optional extra badge rendered just before the bookmark-count badge (e.g. the Tags listing's
+   * subtle section-tag count). Return `null` for rows without one. Opt-in.
+   */
+  renderExtraBadge?: (node: TaxonomyTreeNode) => ReactNode;
+  /**
+   * When set, rows show a multi-select checkbox while the page's selection mode is on (the shared
+   * `useListSelection` controller — the same selection the Table view uses). Opt-in (Tags listing).
+   */
+  selection?: ListSelection;
   /**
    * When set, rows with children show a per-row "Expand all" button that expands that node's whole
    * subtree (without collapsing other open branches). Opt-in — omitted on listings that don't want it.
@@ -110,6 +121,8 @@ interface TaxonomyTreeRowProps {
   renderEditLink: (node: TaxonomyTreeNode) => ReactNode;
   renderInfoLink: (node: TaxonomyTreeNode) => ReactNode;
   renderIcon?: (node: TaxonomyTreeNode) => ReactNode;
+  renderExtraBadge?: (node: TaxonomyTreeNode) => ReactNode;
+  selection?: ListSelection;
   onExpandSubtree?: (node: TaxonomyTreeNode) => void;
   onToggleFilter?: (node: TaxonomyTreeNode) => void;
   isFiltered?: (node: TaxonomyTreeNode) => boolean;

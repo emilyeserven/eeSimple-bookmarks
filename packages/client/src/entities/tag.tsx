@@ -3,6 +3,7 @@ import type { EntityPaletteConfig } from "../lib/entityPaletteRegistry";
 import type { EntityRoute } from "../lib/entityRoutes";
 import type { Tag, TagNode, UpdateTagInput } from "@eesimple/types";
 
+import { TagBulkActions } from "../components/bulk/TagBulkActions";
 import { TagTable } from "../components/TagTable";
 import { TagTreeList } from "../components/TagTreeList";
 import { tagWorkbench } from "../components/workbench/tag";
@@ -69,6 +70,14 @@ export function buildTagTreeListingConfig(opts: { onNew: () => void }): EntityTr
     deletableIds: tree => flattenTree(tree).map(f => f.node.id),
     useBulkDelete: useBulkDeleteTags,
     noun: [i18n.t("tag"), i18n.t("tags")],
+    renderBulkActions: ({
+      selectedIds, onDone,
+    }) => (
+      <TagBulkActions
+        selectedIds={selectedIds}
+        onDone={onDone}
+      />
+    ),
     loadingLabel: i18n.t("Loading tags…"),
     entityPlural: i18n.t("tags"),
     emptyMessage: (
@@ -88,13 +97,14 @@ export function buildTagTreeListingConfig(opts: { onNew: () => void }): EntityTr
     ),
     useSortedTree: useNameSortedTree,
     renderTree: ({
-      sortedTree, expanded, onToggle, columns,
+      sortedTree, expanded, onToggle, columns, selection,
     }) => (
       <TagTreeList
         tree={sortedTree}
         expanded={expanded}
         onToggle={onToggle}
         columns={columns}
+        selection={selection}
       />
     ),
     renderTable: ({

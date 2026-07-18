@@ -1,10 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { TagListing } from "./-tagListing";
-import { validateBookmarkSearch } from "../lib/bookmarkSearch";
+import { TagListing, validateTagSearch } from "./-tagListing";
 
 export const Route = createFileRoute("/tags/$tagSlug/_hub/gallery")({
-  validateSearch: validateBookmarkSearch,
+  validateSearch: validateTagSearch,
   component: TagGalleryTab,
 });
 

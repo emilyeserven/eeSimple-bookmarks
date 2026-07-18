@@ -133,6 +133,14 @@ export const peopleApi = {
 export const tagsApi = {
   ...createCrudApi<Tag, CreateTagInput, UpdateTagInput>("tags"),
   tree: () => request<TagNode[]>("/tags/tree"),
+  bulkReparent: (ids: string[], parentId: string | null) =>
+    request<BulkBookmarkResult[]>("/tags/bulk-reparent", {
+      method: "POST",
+      body: JSON.stringify({
+        ids,
+        parentId,
+      }),
+    }),
 };
 
 export const websitesApi = {
