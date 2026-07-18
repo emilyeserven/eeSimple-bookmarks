@@ -19,23 +19,12 @@ import {
   bookmarkNumberValues,
   bookmarks,
   bookmarkTags,
-  tags,
 } from "@/db/schema";
 import { getBookmarkEvaluationData, invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { hydrateBookmarkRows } from "@/services/bookmarkHydration";
 import { byPriorityThenNewest, getAutofillRule, listAutofillRules } from "@/services/autofillRules";
+import { getExcludedFromBackfillTagIds } from "@/services/tags";
 import { recomputeCalculatedValues } from "@/services/bookmarkWrites";
-
-/** Ids of every tag currently flagged `exclude_from_backfill = true`. */
-async function getExcludedFromBackfillTagIds(): Promise<Set<string>> {
-  const rows = await db
-    .select({
-      id: tags.id,
-    })
-    .from(tags)
-    .where(eq(tags.excludeFromBackfill, true));
-  return new Set(rows.map(r => r.id));
-}
 
 /** True when applying the rule would change at least one field on the bookmark. */
 function computeNeedsBackfill(

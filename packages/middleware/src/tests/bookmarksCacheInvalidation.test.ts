@@ -162,6 +162,30 @@ test("backfillTitleTags invalidates the cache once when a title match inserts a 
   assert.equal(invalidateCalls, 1);
 });
 
+test("backfillTitleTags skips tags flagged excludeFromBackfill even when the title matches", async () => {
+  resetFixtures();
+  fakeDb.setRows(schema.bookmarks, [{
+    id: "bm-1",
+    title: "Learning Rust programming",
+  }]);
+  fakeDb.setRows(schema.tags, [
+    {
+      id: "tag-rust",
+      name: "rust",
+      excludeFromBackfill: false,
+    },
+    {
+      id: "tag-programming",
+      name: "programming",
+      excludeFromBackfill: true,
+    },
+  ]);
+  const result = await backfillTitleTags();
+  // Both names match the title, but the excluded "programming" tag is not applied — only "rust".
+  assert.equal(result.tagsApplied, 1);
+  assert.equal(invalidateCalls, 1);
+});
+
 test("updateBookmarkRelationships invalidates the cache unconditionally, even with no relationships left", async () => {
   resetFixtures();
   await updateBookmarkRelationships("bm-1", {

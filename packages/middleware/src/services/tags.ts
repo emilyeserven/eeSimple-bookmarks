@@ -73,6 +73,22 @@ export async function listTagNames(): Promise<TitleTagCandidate[]> {
   }));
 }
 
+/**
+ * Ids of every tag currently flagged `exclude_from_backfill = true`. Such tags are kept out of every
+ * backfill automation (autofill-rule backfill *and* the title-tag backfill), so a common/generic tag
+ * a user has opted out of never gets applied retroactively. Shared by both backfill services so the
+ * exclusion stays consistent.
+ */
+export async function getExcludedFromBackfillTagIds(): Promise<Set<string>> {
+  const rows = await db
+    .select({
+      id: tags.id,
+      excludeFromBackfill: tags.excludeFromBackfill,
+    })
+    .from(tags);
+  return new Set(rows.filter(row => row.excludeFromBackfill).map(row => row.id));
+}
+
 /** Compact `{id, name}` listing of every tag, for client-side match-or-create flows. */
 export async function listTagsCompact(): Promise<{ id: string;
   name: string; }[]> {
