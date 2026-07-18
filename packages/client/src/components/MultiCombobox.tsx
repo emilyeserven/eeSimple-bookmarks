@@ -92,6 +92,7 @@ export function MultiCombobox({
       aria-label={ariaLabel}
       isEmpty={selectedOptions.length === 0}
       triggerLabel={summary}
+      onClear={() => onValuesChange([])}
       searchPlaceholder={searchPlaceholder}
       createOption={createOption}
     >

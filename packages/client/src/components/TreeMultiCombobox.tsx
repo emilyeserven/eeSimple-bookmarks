@@ -159,6 +159,7 @@ export function TreeMultiCombobox({
       aria-label={ariaLabel}
       isEmpty={selectedOptions.length === 0}
       triggerLabel={<span className="wrap-break-word">{summary}</span>}
+      onClear={() => onValuesChange([])}
       shouldFilter={false}
       searchPlaceholder={searchPlaceholder}
       searchValue={searchTerm}
