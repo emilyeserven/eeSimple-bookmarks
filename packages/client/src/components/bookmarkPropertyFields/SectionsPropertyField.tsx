@@ -12,6 +12,7 @@ import { newSectionEntry } from "./sectionEntry";
 import { SectionRow } from "./sectionRow";
 import { SectionCollapseToggle } from "../SectionCollapseToggle";
 import { SectionPasteParser } from "../SectionPasteParser";
+import { SectionsAiImportDialog } from "../SectionsAiImportDialog";
 import { SectionsSummary } from "../SectionsSummary";
 
 import { Button } from "@/components/ui/button";
@@ -172,7 +173,7 @@ function ClearAllSectionsButton({
 }
 
 export function SectionsPropertyField({
-  property, value, onChange, onImport, isImportPending, onAddPeople, defaultTypeHint,
+  property, value, onChange, onImport, isImportPending, onAddPeople, defaultTypeHint, bookmarkTitle,
 }: {
   property: CustomProperty;
   value: { exhaustive: boolean;
@@ -189,6 +190,8 @@ export function SectionsPropertyField({
    * derived from the bookmark's media type (timestamp for video/audio, page for books, …).
    */
   defaultTypeHint?: SectionEntryType;
+  /** Names the book in the AI-import dialog's generated prompt; null/absent = a generic phrasing. */
+  bookmarkTitle?: string | null;
 }) {
   const {
     t,
@@ -323,6 +326,11 @@ export function SectionsPropertyField({
             </Button>
           )
           : null}
+        <SectionsAiImportDialog
+          bookmarkTitle={bookmarkTitle ?? null}
+          allowedTypes={allowedTypes}
+          onApply={onChange}
+        />
         {value.sections.length > 0
           ? (
             <ClearAllSectionsButton

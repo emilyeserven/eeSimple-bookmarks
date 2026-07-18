@@ -6,6 +6,7 @@ import { SECTION_ENTRY_TYPE_LABELS } from "@eesimple/types";
 import { useTranslation } from "react-i18next";
 
 import { newSectionEntry } from "./sectionEntry";
+import { SectionTagsPicker } from "./sectionTagsPicker";
 import { SectionCollapseToggle } from "../SectionCollapseToggle";
 import { SectionsSummary } from "../SectionsSummary";
 
@@ -289,21 +290,30 @@ export function SectionRow({
       >
         <div />
         <div />
-        <ExcludeFromProgressCheckbox
-          id={`sections-exclude-${entry.id}`}
-          entry={entry}
-          // Excluding a section also excludes all its sub-items — only leaves are counted.
-          onToggle={excludeFromProgress => onChange({
-            ...entry,
-            excludeFromProgress,
-            ...(entry.children && {
-              children: entry.children.map(c => ({
-                ...c,
-                excludeFromProgress,
-              })),
-            }),
-          })}
-        />
+        <div className="flex flex-wrap items-center gap-3">
+          <ExcludeFromProgressCheckbox
+            id={`sections-exclude-${entry.id}`}
+            entry={entry}
+            // Excluding a section also excludes all its sub-items — only leaves are counted.
+            onToggle={excludeFromProgress => onChange({
+              ...entry,
+              excludeFromProgress,
+              ...(entry.children && {
+                children: entry.children.map(c => ({
+                  ...c,
+                  excludeFromProgress,
+                })),
+              }),
+            })}
+          />
+          <SectionTagsPicker
+            tagIds={entry.tagIds}
+            onChange={tagIds => onChange({
+              ...entry,
+              tagIds,
+            })}
+          />
+        </div>
         <div />
       </div>
       {hasChildren && collapsed
@@ -373,19 +383,33 @@ export function SectionRow({
               }}
             >
               <div />
-              <ExcludeFromProgressCheckbox
-                id={`sections-exclude-${child.id}`}
-                entry={child}
-                onToggle={excludeFromProgress => onChange({
-                  ...entry,
-                  children: children.map(c => c.id === child.id
-                    ? {
-                      ...c,
-                      excludeFromProgress,
-                    }
-                    : c),
-                })}
-              />
+              <div className="flex flex-wrap items-center gap-3">
+                <ExcludeFromProgressCheckbox
+                  id={`sections-exclude-${child.id}`}
+                  entry={child}
+                  onToggle={excludeFromProgress => onChange({
+                    ...entry,
+                    children: children.map(c => c.id === child.id
+                      ? {
+                        ...c,
+                        excludeFromProgress,
+                      }
+                      : c),
+                  })}
+                />
+                <SectionTagsPicker
+                  tagIds={child.tagIds}
+                  onChange={tagIds => onChange({
+                    ...entry,
+                    children: children.map(c => c.id === child.id
+                      ? {
+                        ...c,
+                        tagIds,
+                      }
+                      : c),
+                  })}
+                />
+              </div>
               <div />
             </div>
           </div>

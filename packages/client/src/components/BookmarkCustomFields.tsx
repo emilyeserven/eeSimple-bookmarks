@@ -284,6 +284,7 @@ function SectionsField({
       isImportPending={property.slug === SECTIONS_SLUG ? isSectionsImportPending : undefined}
       onAddPeople={onAddPeople}
       defaultTypeHint={sectionEntryTypeHint(mediaTypeId ?? bookmark?.mediaType?.id, mediaTypes ?? [])}
+      bookmarkTitle={bookmark?.title ?? null}
     />
   );
 }

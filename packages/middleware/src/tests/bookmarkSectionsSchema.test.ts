@@ -27,7 +27,7 @@ async function echoThroughSchema(payload: unknown): Promise<Record<string, unkno
   return JSON.parse(res.payload) as Record<string, unknown>;
 }
 
-test("sectionsValues round-trips `completed`, `excludeFromProgress`, and `url` on entries and children (not stripped by removeAdditional)", async () => {
+test("sectionsValues round-trips `completed`, `excludeFromProgress`, `url`, and `tagIds` on entries and children (not stripped by removeAdditional)", async () => {
   const sectionsValues = [{
     propertyId: "11111111-1111-1111-1111-111111111111",
     exhaustive: true,
@@ -40,6 +40,7 @@ test("sectionsValues round-trips `completed`, `excludeFromProgress`, and `url` o
       url: "https://example.com/unit-1",
       completed: true,
       excludeFromProgress: true,
+      tagIds: ["22222222-2222-2222-2222-222222222222"],
       children: [{
         id: "s1a",
         name: "1.1",
@@ -48,6 +49,7 @@ test("sectionsValues round-trips `completed`, `excludeFromProgress`, and `url` o
         url: "https://example.com/unit-1-1",
         completed: false,
         excludeFromProgress: false,
+        tagIds: ["22222222-2222-2222-2222-222222222222", "33333333-3333-3333-3333-333333333333"],
       }],
     }],
   }];

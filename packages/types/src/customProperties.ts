@@ -172,6 +172,12 @@ export interface SectionEntry {
    * {@link completed} — since only leaves are actually counted.
    */
   excludeFromProgress?: boolean;
+  /**
+   * Optional tag associations (tag ids) for this section/sub-item, set by the AI-import dialog or the
+   * manual per-row picker — never by extension fill. A deleted tag leaves a dangling id here; display
+   * code skips ids it can't resolve.
+   */
+  tagIds?: string[];
 }
 
 export interface BookmarkSectionsValue {
