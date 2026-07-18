@@ -1345,6 +1345,7 @@ readiness uses `DB_WAIT_TIMEOUT_MS`).
 | `POSTGRES_DB` | docker-compose | DB name (default: `bookmarks`) |
 | `POSTGRES_HOST_PORT` | docker-compose | Host port mapped to the db container's 5432 (default: `5432`). Override to avoid host port collisions on a shared host. |
 | `GATEWAY_HOST_PORT` | docker-compose | Host port mapped to the gateway's 3000 (default: `3000`). |
+| `BUILD_STORYBOOK` | docker-compose (build arg) | Docker **build argument** (default: `1`). Set `0` for a faster image build that skips the memory-heavy Storybook static build; that image 404s `/storybook`. The compose file threads it through as `${BUILD_STORYBOOK:-1}`; on Coolify's Dockerfile build pack set it in the app's build arguments. |
 | `S3_ENDPOINT` | middleware / gateway | Object-storage (Garage/S3) endpoint for bookmark images, e.g. `http://garage:3900`. |
 | `S3_REGION` | middleware / gateway | Object-storage region (default: `garage`; must match `garage.toml`'s `s3_region`). |
 | `S3_BUCKET` | middleware / gateway | Bucket for bookmark images (default: `bookmarks`; auto-created on boot). |

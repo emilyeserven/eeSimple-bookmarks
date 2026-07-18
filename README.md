@@ -209,6 +209,14 @@ the runtime-migrations hook (`dist/db/migrate.js`) and then `drizzle-kit push` �
    proxies the Swagger UI at `/docs` (it's off in production by default). The API is
    unauthenticated, so this makes the full surface publicly explorable; enable it deliberately.
 
+   For a **faster image build**, the `BUILD_STORYBOOK` **build argument** (default `1`) can be set
+   to `0` to skip the Storybook static build — the heaviest step of the image build (~1.5 GB of
+   memory; it re-runs on every client change). An image built with `0` serves the app normally but
+   404s `/storybook` until the next default build. With the Dockerfile build pack, set it in the
+   application's **build arguments**; with the Docker Compose build pack (or a local
+   `docker compose build`), set `BUILD_STORYBOOK=0` as an environment variable — the compose file
+   threads it through as a build arg (`${BUILD_STORYBOOK:-1}`).
+
    URL metadata auto-fill works out of the box with keyless sources (oEmbed, Open Library / Google
    Books, DuckDuckGo icons). Two **optional, default-off** providers can be enabled for harder cases
    by setting their env vars (see `packages/middleware/.env.example`): a Microlink-compatible

@@ -48,16 +48,23 @@ RUN pnpm --filter @eesimple/middleware exec tsc -p tsconfig.build.json --noCheck
 FROM build-types AS build-client
 
 COPY packages/client ./packages/client/
-# Build the SPA, then the Storybook static site. Storybook is an optional /storybook artifact, gated
-# at runtime on DOCS_ENABLED (see server.js, which also tolerates it being absent). The Storybook
-# build is memory-heavy (~1.5 GB) and was repeatedly OOM-killed on modest Coolify build hosts,
-# failing the whole deploy. It is therefore best-effort here — a failure must NOT block the deploy —
-# and `mkdir -p` guarantees the COPY target exists even when the build is skipped. CI builds
-# Storybook on a roomy runner (.github/workflows/ci.yml) to catch real regressions, so masking a
-# failure here does not lose the regression gate.
-RUN pnpm --filter @eesimple/client build \
- && (pnpm --filter @eesimple/client run build-storybook \
-     || echo "::warning:: Storybook build failed; deploying without /storybook (CI gates Storybook regressions)") \
+RUN pnpm --filter @eesimple/client build
+
+# Storybook is an optional /storybook artifact, gated at runtime on DOCS_ENABLED (see server.js,
+# which also tolerates it being absent). Set the BUILD_STORYBOOK build arg to 0 to skip the build
+# entirely for a faster image build (declared between the two RUNs so toggling it never busts the
+# Vite layer's cache). When it does run it is best-effort: the build is memory-heavy (~1.5 GB) and
+# was repeatedly OOM-killed on modest Coolify build hosts, failing the whole deploy — a failure
+# must NOT block the deploy. `mkdir -p` guarantees the COPY target exists even when the build is
+# skipped or fails. CI builds Storybook on a roomy runner (.github/workflows/ci.yml) to catch real
+# regressions, so neither skipping nor masking a failure here loses the regression gate.
+ARG BUILD_STORYBOOK=1
+RUN if [ "$BUILD_STORYBOOK" = "1" ] || [ "$BUILD_STORYBOOK" = "true" ]; then \
+      pnpm --filter @eesimple/client run build-storybook \
+      || echo "::warning:: Storybook build failed; deploying without /storybook (CI gates Storybook regressions)"; \
+    else \
+      echo "Skipping Storybook build (BUILD_STORYBOOK=$BUILD_STORYBOOK)"; \
+    fi \
  && mkdir -p packages/client/storybook-static
 
 
