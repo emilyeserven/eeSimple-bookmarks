@@ -5,6 +5,7 @@ import * as React from "react";
 
 import { Check, ChevronRight } from "lucide-react";
 
+import { FavoriteStar } from "./FavoriteStar";
 import { LocalizedNameLabel } from "./LocalizedNameLabel";
 
 import { Checkbox } from "@/components/ui/checkbox";
@@ -102,7 +103,7 @@ export function renderTreeComboboxRows(
             )
             : <span className="size-4 shrink-0" />}
           {node.icon != null && <span className="shrink-0">{node.icon}</span>}
-          <span className="flex-1 wrap-break-word">
+          <span className="flex flex-1 items-center gap-1 wrap-break-word">
             {node.names && node.names.length > 0
               ? (
                 <LocalizedNameLabel
@@ -120,6 +121,7 @@ export function renderTreeComboboxRows(
                     : null}
                 </>
               )}
+            {node.isFavorite && <FavoriteStar />}
           </span>
           <Check
             className={cn(

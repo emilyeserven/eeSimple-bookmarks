@@ -38,6 +38,7 @@ export function CategoryConditionEditor({
           value: category.id,
           label: category.name,
           names: category.names,
+          isFavorite: category.isFavorite,
           // createElement (not JSX) sidesteps a stylistic-rule conflict on inline multi-prop JSX.
           icon: createElement(CategoryIcon, {
             name: category.icon,

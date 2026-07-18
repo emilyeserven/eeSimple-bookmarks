@@ -153,6 +153,7 @@ export function ImportForm({
                   value: category.id,
                   label: category.name,
                   names: category.names,
+                  isFavorite: category.isFavorite,
                   icon: (
                     <CategoryIcon
                       name={category.icon}

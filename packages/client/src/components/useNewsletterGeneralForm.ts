@@ -13,8 +13,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useMediaTypeTree } from "@/hooks/useMediaTypes";
 import { useTagTree } from "@/hooks/useTags";
 import { useBuiltInName } from "@/lib/builtInName";
-import { iconComboboxOptions, mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
-import { sortFavoritesFirst } from "@/lib/favoritesOrder";
+import { categoryComboboxOptions, mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
 import { useAppForm } from "@/lib/form";
 
 const LABELS: Partial<Record<keyof UpdateNewsletterInput, string>> = {
@@ -116,7 +115,7 @@ export function useNewsletterGeneralForm(newsletter: Newsletter) {
     toggleTag,
     saveCategoryId: (id: string | null) => autoSave.saveField("categoryId", id),
     saveMediaTypeId: (id: string | null) => autoSave.saveField("mediaTypeId", id),
-    categoryOptions: iconComboboxOptions(sortFavoritesFirst(categories ?? [])),
+    categoryOptions: categoryComboboxOptions(categories ?? []),
     mediaTypeOptions: mediaTypeNodesToOptions(mediaTypeTree ?? [], builtInName),
     tagTree: tagTree ?? [],
   };

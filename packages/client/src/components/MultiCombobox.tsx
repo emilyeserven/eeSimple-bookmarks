@@ -5,6 +5,7 @@ import * as React from "react";
 import { Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { FavoriteStar } from "./FavoriteStar";
 import { LocalizedNameLabel, LocalizedNameSummary } from "./LocalizedNameLabel";
 import { MultiComboboxShell } from "./MultiComboboxShell";
 
@@ -120,6 +121,7 @@ export function MultiCombobox({
               secondaryLanguage={secondaryLanguage}
               fallbackLanguage={fallbackLanguage}
             />
+            {option.isFavorite && <FavoriteStar />}
             <Check
               className={cn(
                 "ml-auto",

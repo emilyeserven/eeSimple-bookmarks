@@ -17,8 +17,7 @@ import {
 
 import { useCategories } from "@/hooks/useCategories";
 import { useMediaTypeTree } from "@/hooks/useMediaTypes";
-import { iconComboboxOptions, mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
-import { sortFavoritesFirst } from "@/lib/favoritesOrder";
+import { categoryComboboxOptions, mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
 import { cn } from "@/lib/utils";
 import { useUiStore } from "@/stores/uiStore";
 
@@ -119,7 +118,7 @@ export function WebsiteListingControls() {
           <div className="space-y-1.5">
             <Label className="text-sm font-medium">{t("Category")}</Label>
             <Combobox
-              options={iconComboboxOptions(sortFavoritesFirst(categories ?? []))}
+              options={categoryComboboxOptions(categories ?? [])}
               value={category ?? undefined}
               onValueChange={value => setCategory(value ?? null)}
               placeholder={t("All categories")}

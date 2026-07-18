@@ -1,8 +1,9 @@
 import type { ComboboxOption } from "@/components/Combobox";
 import type { TreeComboboxOption } from "@/components/TreeMultiCombobox";
-import type { EntityName, GenreMoodNode, MediaTypeNode } from "@eesimple/types";
+import type { Category, EntityName, GenreMoodNode, MediaTypeNode } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { sortFavoritesFirst } from "./favoritesOrder";
 import { buildSearchAlias } from "./searchAlias";
 import { flattenTree } from "./tagTree";
 
@@ -14,6 +15,8 @@ export interface IconComboboxOption {
   depth?: number;
   searchAlias?: string;
   names?: EntityName[];
+  /** When true a filled star is shown after the label, marking a user-starred (favorite) option. */
+  isFavorite?: boolean;
   icon: ReactNode;
 }
 
@@ -67,6 +70,31 @@ export function iconComboboxOptions(
     icon: (
       <CategoryIcon
         name={item.icon}
+        className="size-4 shrink-0"
+      />
+    ),
+  }));
+}
+
+/**
+ * Build category combobox options with the user's starred (favorite) categories hoisted to the top
+ * (stable within each partition), each carrying an `isFavorite` marker the combobox renders as a
+ * filled star. Icon + multilingual `names`/`searchAlias` like {@link iconComboboxOptions}. Shared by
+ * every category picker so favorites surface first — and are visually marked — consistently app-wide.
+ */
+export function categoryComboboxOptions(
+  categories: Category[],
+  nameOf: OptionNameFn = verbatimName,
+): IconComboboxOption[] {
+  return sortFavoritesFirst(categories).map(category => ({
+    value: category.id,
+    label: nameOf(category),
+    searchAlias: optionSearchAlias(category),
+    names: category.names,
+    isFavorite: category.isFavorite,
+    icon: (
+      <CategoryIcon
+        name={category.icon}
         className="size-4 shrink-0"
       />
     ),
