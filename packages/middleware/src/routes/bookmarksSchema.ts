@@ -363,6 +363,12 @@ export const createBookmarkBody = {
                 excludeFromProgress: {
                   type: "boolean",
                 },
+                tagIds: {
+                  type: "array",
+                  items: {
+                    type: "string",
+                  },
+                },
                 // Optional second tier — leaf children only (the leaf schema has no `children` key,
                 // so nesting is capped at depth 2).
                 children: {
@@ -396,6 +402,12 @@ export const createBookmarkBody = {
                       },
                       excludeFromProgress: {
                         type: "boolean",
+                      },
+                      tagIds: {
+                        type: "array",
+                        items: {
+                          type: "string",
+                        },
                       },
                     },
                   },

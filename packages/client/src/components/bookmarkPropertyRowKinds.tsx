@@ -19,6 +19,7 @@ import { PropertyQuickFilterLink } from "./PropertyQuickFilterLink";
 import { RatingValue } from "./RatingValue";
 import { SectionCollapseToggle } from "./SectionCollapseToggle";
 import { SectionsSummary } from "./SectionsSummary";
+import { useTags } from "../hooks/useTags";
 import i18n from "../i18n";
 import { sectionEntryLink, sectionEntryPositional } from "../lib/propertyFormat";
 
@@ -267,6 +268,37 @@ function SectionCompletedToggle({
 }
 
 /**
+ * Small secondary chips naming a section entry's associated tags. Resolves names from the cached
+ * tag list and silently skips dangling ids (a deleted tag leaves its id behind in the jsonb).
+ */
+function SectionTagChips({
+  tagIds,
+}: { tagIds: string[] }) {
+  const {
+    data: tags,
+  } = useTags();
+  const names = tagIds
+    .map(id => tags?.find(tag => tag.id === id)?.name)
+    .filter((name): name is string => name !== undefined);
+  if (names.length === 0) return null;
+  return (
+    <span className="ml-2 inline-flex flex-wrap gap-1 align-middle">
+      {names.map(name => (
+        <span
+          key={name}
+          className="
+            rounded-sm bg-secondary px-1.5 py-0.5 text-xs
+            text-secondary-foreground
+          "
+        >
+          {name}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/**
  * One section entry: its name (a link when {@link sectionEntryLink} resolves), the positional value
  * (page range / timestamp) beside it, and — for a tier-1 entry — an indented nested list of its
  * children. Recurses exactly once; the model caps sections at depth 2 (children carry no `children`),
@@ -336,6 +368,9 @@ function SectionEntryItem({
           : <span>{entry.name}</span>}
         {positional
           ? <span className="ml-2 text-muted-foreground">{positional}</span>
+          : null}
+        {entry.tagIds && entry.tagIds.length > 0
+          ? <SectionTagChips tagIds={entry.tagIds} />
           : null}
         {hasChildren && collapsed
           ? (
