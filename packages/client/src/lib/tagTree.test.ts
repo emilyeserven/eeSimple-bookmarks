@@ -3,7 +3,7 @@ import type { TagNode } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
 
-import { countNodes, expandableIds, filterTreeByMatch, findAncestorPath, flattenTree, selectedSubtrees, subtreeIds } from "./tagTree";
+import { countNodes, expandableIds, filterTreeByMatch, findAncestorPath, flattenTree, selectedSubtrees, subtreeIds, tagNodesToOptions } from "./tagTree";
 import { makeTag as tagBase } from "../test-utils/factories";
 
 function makeTag(id: string, slug: string, children: TagNode[] = []): TagNode {
@@ -146,5 +146,29 @@ describe("findAncestorPath", () => {
 
   it("returns null when the slug is absent", () => {
     expect(findAncestorPath(forest, "missing")).toBeNull();
+  });
+});
+
+describe("tagNodesToOptions", () => {
+  const favorite = (id: string, children: TagNode[] = []): TagNode => ({
+    ...makeTag(id, `${id}-slug`, children),
+    isFavorite: true,
+  });
+
+  it("hoists favorite siblings to the top of each level, preserving order otherwise", () => {
+    const child1 = makeTag("c1", "c1-slug");
+    const child2 = favorite("c2");
+    const parent = makeTag("p", "p-slug", [child1, child2]);
+    const t1 = makeTag("t1", "t1-slug");
+    const t2 = favorite("t2");
+
+    const options = tagNodesToOptions([t1, t2, parent]);
+    expect(options.map(o => o.value)).toEqual(["t2", "t1", "p"]);
+    expect(options.find(o => o.value === "p")?.children?.map(c => c.value)).toEqual(["c2", "c1"]);
+  });
+
+  it("drops excluded ids", () => {
+    const options = tagNodesToOptions([a, e], new Set(["a"]));
+    expect(options.map(o => o.value)).toEqual(["e"]);
   });
 });

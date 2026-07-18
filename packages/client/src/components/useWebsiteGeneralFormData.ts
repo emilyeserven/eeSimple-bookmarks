@@ -4,6 +4,7 @@ import { useTagTree } from "@/hooks/useTags";
 import { useYouTubeChannels } from "@/hooks/useYouTubeChannels";
 import { useBuiltInName } from "@/lib/builtInName";
 import { iconComboboxOptions, mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
+import { sortFavoritesFirst } from "@/lib/favoritesOrder";
 
 /**
  * The taxonomy queries the website General form needs, returned with defaults applied and combobox
@@ -26,7 +27,7 @@ export function useWebsiteGeneralFormData() {
   const builtInName = useBuiltInName();
 
   return {
-    categoryOptions: iconComboboxOptions(categories ?? []),
+    categoryOptions: iconComboboxOptions(sortFavoritesFirst(categories ?? [])),
     mediaTypeOptions: mediaTypeNodesToOptions(mediaTypeTree ?? [], builtInName),
     tagTree: tagTree ?? [],
     youtubeChannels: youtubeChannels ?? [],

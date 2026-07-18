@@ -4,6 +4,7 @@ import { Combobox } from "./Combobox";
 
 import { useCategories } from "@/hooks/useCategories";
 import { iconComboboxOptions } from "@/lib/comboboxOptions";
+import { sortFavoritesFirst } from "@/lib/favoritesOrder";
 import { useUiStore } from "@/stores/uiStore";
 
 /**
@@ -27,7 +28,7 @@ export function YouTubeChannelListingControls() {
   return (
     <div className="flex items-center gap-2">
       <Combobox
-        options={iconComboboxOptions(categories ?? [])}
+        options={iconComboboxOptions(sortFavoritesFirst(categories ?? []))}
         value={category ?? undefined}
         onValueChange={value => setCategory(value ?? null)}
         placeholder={t("Filter by category…")}

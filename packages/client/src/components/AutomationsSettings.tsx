@@ -6,6 +6,7 @@ import { Combobox } from "./Combobox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
 import { useAutomationSettingsForm, usePersonSourceLabelSettingsForm } from "../hooks/useAppSettings";
 import { useCategories } from "../hooks/useCategories";
+import { sortFavoritesFirst } from "../lib/favoritesOrder";
 import { CategoryIcon } from "../lib/icons";
 
 import {
@@ -63,7 +64,7 @@ export function AutomationsSettings() {
         <CardContent>
           <Combobox
             aria-label={t("Default category")}
-            options={categories.map(category => ({
+            options={sortFavoritesFirst(categories).map(category => ({
               value: category.id,
               label: category.name,
               names: category.names,

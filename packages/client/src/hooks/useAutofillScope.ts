@@ -7,6 +7,7 @@ import { useTags } from "./useTags";
 import { useWebsites } from "./useWebsites";
 import { useYouTubeChannels } from "./useYouTubeChannels";
 import { NO_CATEGORY } from "../lib/autofillScope";
+import { sortFavoritesFirst } from "../lib/favoritesOrder";
 
 /** The filter props spread onto `AutofillRulesList` — one entity id per active facet. */
 export interface AutofillScopeListProps {
@@ -152,7 +153,7 @@ export function useAutofillFilterData(): AutofillFilterData {
   return {
     categories: {
       loading: categoriesLoading,
-      options: categories.map(category => ({
+      options: sortFavoritesFirst(categories).map(category => ({
         value: category.slug,
         label: category.name,
       })),
@@ -180,7 +181,7 @@ export function useAutofillFilterData(): AutofillFilterData {
     },
     tags: {
       loading: tagsLoading,
-      options: tags.map(tag => ({
+      options: sortFavoritesFirst(tags).map(tag => ({
         value: tag.slug,
         label: tag.name,
       })),

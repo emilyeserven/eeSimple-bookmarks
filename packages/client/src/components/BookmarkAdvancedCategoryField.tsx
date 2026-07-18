@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 
 import { SourceDefaultCheckbox } from "./BookmarkSourceDefaultCheckbox";
 import { useEntityCreateOption } from "./useEntityCreateOption";
+import { sortFavoritesFirst } from "../lib/favoritesOrder";
 
 import { CategoryIcon } from "@/lib/icons";
 
@@ -54,7 +55,7 @@ export function BookmarkAdvancedCategoryField({
                 searchPlaceholder={t("Search categories…")}
                 emptyText={t("No categories found.")}
                 createOption={categoryCreate.createOption}
-                options={categories.map(category => ({
+                options={sortFavoritesFirst(categories).map(category => ({
                   value: category.id,
                   label: category.name,
                   names: category.names,

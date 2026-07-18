@@ -9,6 +9,7 @@ import { usePeople } from "../hooks/usePeople";
 import { useTagTree } from "../hooks/useTags";
 import { useBuiltInName } from "../lib/builtInName";
 import { iconComboboxOptions, mediaTypeNodesToOptions } from "../lib/comboboxOptions";
+import { sortFavoritesFirst } from "../lib/favoritesOrder";
 import { INBOX_PREFILLABLE_TYPES } from "../lib/inboxPreFill";
 import { buildSearchAlias } from "../lib/searchAlias";
 import { flattenTree } from "../lib/tagTree";
@@ -44,7 +45,7 @@ export function useInboxPreFillBox(preFill: InboxPreFillDefaults) {
   );
 
   const builtInName = useBuiltInName();
-  const categoryOptions = iconComboboxOptions(categories);
+  const categoryOptions = iconComboboxOptions(sortFavoritesFirst(categories));
   const mediaTypeOptions = mediaTypeNodesToOptions(mediaTypeTree, builtInName);
   const personOptions = people.map(a => ({
     value: a.id,
