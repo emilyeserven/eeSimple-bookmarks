@@ -1,4 +1,5 @@
 import type { TaxonomyTreeNode } from "./TaxonomyTreeRow";
+import type { ListSelection } from "../lib/useListSelection";
 import type { ReactNode } from "react";
 
 import { ChevronDown, ChevronRight, ChevronsUpDown, Eye, EyeOff, MapPin, MoreHorizontal, Star } from "lucide-react";
@@ -8,6 +9,7 @@ import { useFlyoutHover } from "../hooks/useFlyoutHover";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CategoryIcon } from "@/lib/icons";
 import { cn } from "@/lib/utils";
@@ -237,6 +239,32 @@ function TaxonomyTreeRowFavoriteButton({
   );
 }
 
+/**
+ * Multi-select checkbox, shown only while the page's selection mode is on (the shared Multiselect
+ * toggle) — the same `useListSelection` controller the Table view's selection column uses, so both
+ * views share one selection.
+ */
+function TaxonomyTreeRowCheckbox({
+  node, selection,
+}: {
+  node: TaxonomyTreeNode;
+  selection?: ListSelection;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  if (!selection?.mode) return null;
+  return (
+    <Checkbox
+      checked={selection.isSelected(node.id)}
+      onCheckedChange={() => selection.toggle(node.id)}
+      aria-label={t("Select {{name}}", {
+        name: node.name,
+      })}
+    />
+  );
+}
+
 interface TaxonomyTreeRowActionsProps {
   node: TaxonomyTreeNode;
   hasChildren: boolean;
@@ -353,6 +381,10 @@ interface TaxonomyTreeRowInnerProps {
   renderEditLink: (node: TaxonomyTreeNode) => ReactNode;
   renderInfoLink: (node: TaxonomyTreeNode) => ReactNode;
   renderIcon?: (node: TaxonomyTreeNode) => ReactNode;
+  /** Optional extra badge rendered just before the bookmark-count badge. */
+  renderExtraBadge?: (node: TaxonomyTreeNode) => ReactNode;
+  /** When set, the row shows a multi-select checkbox while the page's selection mode is on. */
+  selection?: ListSelection;
   onExpandSubtree?: (node: TaxonomyTreeNode) => void;
   onToggleFilter?: (node: TaxonomyTreeNode) => void;
   /** Whether this node is currently the map-focus target (highlights its focus button). */
@@ -379,8 +411,8 @@ interface TaxonomyTreeRowInnerProps {
 /** The single-row content of a taxonomy tree row: icon, expander, name link, badges, hover actions. */
 export function TaxonomyTreeRowInner({
   node, hasChildren, isOpen, onToggle, renderNameLink, renderEditLink, renderInfoLink, renderIcon,
-  onExpandSubtree, onToggleFilter, filtered, onToggleVisibility, hidden, onToggleFavorite, favorite,
-  alwaysShowActions, collapseActions,
+  renderExtraBadge, selection, onExpandSubtree, onToggleFilter, filtered, onToggleVisibility, hidden,
+  onToggleFavorite, favorite, alwaysShowActions, collapseActions,
 }: TaxonomyTreeRowInnerProps) {
   const {
     t,
@@ -394,6 +426,10 @@ export function TaxonomyTreeRowInner({
     `;
   return (
     <>
+      <TaxonomyTreeRowCheckbox
+        node={node}
+        selection={selection}
+      />
       {renderIcon
         ? renderIcon(node)
         : (
@@ -445,6 +481,8 @@ export function TaxonomyTreeRowInner({
             revealClass={revealClass}
           />
         )}
+
+      {renderExtraBadge?.(node)}
 
       {node.bookmarkCount != null
         ? <Badge variant="secondary">{node.bookmarkCount}</Badge>

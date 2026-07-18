@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { bulkDeleteEntities } from "@/services/bulkDelete";
+import { bulkApplyEntities, bulkDeleteEntities } from "@/services/bulkDelete";
 
 class BuiltInError extends Error {}
 
@@ -52,4 +52,33 @@ test("bulkDeleteEntities reports an unexpected throw as error without aborting t
   assert.equal(results[0]?.status, "error");
   assert.equal(results[0]?.message, "db exploded");
   assert.equal(results[1]?.status, "deleted");
+});
+
+test("bulkApplyEntities reports applied / not-found / error per item without aborting", async () => {
+  const results = await bulkApplyEntities(
+    ["moved", "missing", "cycle"],
+    async (id) => {
+      if (id === "missing") return null;
+      // Simulates the per-item TagCycleError guard surfacing as an error row.
+      if (id === "cycle") throw new Error("Cannot move a tag under itself or one of its descendants");
+      return {
+        id,
+      };
+    },
+  );
+  assert.deepEqual(results, [
+    {
+      id: "moved",
+      status: "applied",
+    },
+    {
+      id: "missing",
+      status: "not-found",
+    },
+    {
+      id: "cycle",
+      status: "error",
+      message: "Cannot move a tag under itself or one of its descendants",
+    },
+  ]);
 });

@@ -20,6 +20,7 @@ export const STANDARD_CARD_FIELD_KEYS = [
   "locations",
   "people",
   "groups",
+  "taggedSections",
   "createdAt",
   "updatedAt",
   "externalLink",

@@ -1,6 +1,7 @@
 import type { EntityTreeListingConfig } from "../entities/types";
 import type { TreeListingScaffoldState } from "../hooks/useTreeListingScaffold";
 
+import { BulkActionBar } from "./bulk/BulkActionBar";
 import { TaxonomyBulkBar } from "./bulk/TaxonomyBulkBar";
 import { ExpandAllToggle } from "./ExpandAllToggle";
 import { ListingSearchBox } from "./ListingSearchBox";
@@ -47,12 +48,29 @@ export function TreeListingScaffold<N extends { id: string;
         emptyMessage={config.emptyMessage}
       />
 
-      <TaxonomyBulkBar
-        selection={selection}
-        totalSelectable={deletableIds.length}
-        bulkDelete={bulkDelete}
-        noun={config.noun}
-      />
+      {config.renderBulkActions
+        ? (
+          <BulkActionBar
+            count={selection.count}
+            totalSelectable={deletableIds.length}
+            allSelected={selection.allSelected}
+            onSelectAll={selection.selectAll}
+            onClear={selection.clear}
+          >
+            {config.renderBulkActions({
+              selectedIds: selection.selectedIds,
+              onDone: selection.clear,
+            })}
+          </BulkActionBar>
+        )
+        : (
+          <TaxonomyBulkBar
+            selection={selection}
+            totalSelectable={deletableIds.length}
+            bulkDelete={bulkDelete}
+            noun={config.noun}
+          />
+        )}
 
       {sortedTree.length > 0 && viewMode === "table"
         ? (

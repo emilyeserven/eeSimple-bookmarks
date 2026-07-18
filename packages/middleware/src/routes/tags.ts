@@ -6,6 +6,7 @@ import type {
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import {
   bulkDeleteTags,
+  bulkReparentTags,
   createTag,
   deleteTag,
   getTagTree,
@@ -61,9 +62,45 @@ const updateTagBody = {
   },
 } as const;
 
+// `parentId` must be declared AND required here: the body is `additionalProperties: false`, so an
+// undeclared field would be silently stripped by AJV's `removeAdditional` and read as `undefined`
+// (which `updateTag` treats as "no change") — see the add-endpoint skill.
+const bulkReparentBody = {
+  type: "object",
+  required: ["ids", "parentId"],
+  additionalProperties: false,
+  properties: {
+    ids: {
+      type: "array",
+      minItems: 1,
+      items: {
+        type: "string",
+        format: "uuid",
+      },
+    },
+    parentId: {
+      type: ["string", "null"],
+      format: "uuid",
+    },
+  },
+} as const;
+
 /** CRUD routes for the tag taxonomy, mounted under `/api/tags`. */
 export async function tagRoutes(app: FastifyInstance): Promise<void> {
   registerBulkDelete(app, "/api/tags", "tags", bulkDeleteTags);
+
+  app.post("/api/tags/bulk-reparent", {
+    schema: {
+      tags: ["tags"],
+      body: bulkReparentBody,
+    },
+  }, async (req) => {
+    const {
+      ids, parentId,
+    } = req.body as { ids: string[];
+      parentId: string | null; };
+    return bulkReparentTags(ids, parentId);
+  });
 
   app.get("/api/tags", {
     schema: {

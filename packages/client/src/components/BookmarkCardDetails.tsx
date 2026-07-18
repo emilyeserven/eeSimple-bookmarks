@@ -5,12 +5,14 @@ import type { RenderBodySection } from "../lib/cardBodySections";
 import type { Bookmark, CardZoneLayouts, Category, CustomProperty } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { taggedSectionNames } from "@eesimple/types";
 import { useTranslation } from "react-i18next";
 
 import { BookmarkExternalLinkButton, BookmarkMoreMenu } from "./BookmarkCardActions";
 import { badgeNode, ratingStars } from "./bookmarkCardFieldRenders";
 import { describeTaxonomyField } from "./bookmarkCardTaxonomyFields";
 import { BookmarkSecondaryNameField, BookmarkTitleLink, DescriptionOverflowDiv } from "./BookmarkTitleLink";
+import { useSectionTagScope } from "./SectionTagContext";
 import { useBookmarkLinkOutNodes } from "./useBookmarkLinkOutNodes";
 import { useHideWebsiteForYouTube } from "../lib/bookmarkCardFields";
 import { buildBookmarkValueItems } from "../lib/bookmarkCardValues";
@@ -87,6 +89,9 @@ export function BookmarkCardDetails({
   // Listings pass the rule-resolved value explicitly; other surfaces fall back to the Default rule.
   const defaultHideWebsiteForYouTube = useHideWebsiteForYouTube();
   const effectiveHideWebsiteForYouTube = hideWebsiteForYouTube ?? defaultHideWebsiteForYouTube;
+  // Present only on a tag page in `?taggedSections` mode — the "Tagged sections" field's gate.
+  // (Hook stays at component level: `describeField` below is a plain call, not a component.)
+  const sectionTagScope = useSectionTagScope();
 
   // The card header elements, now placeable fields (title link, open-URL button, "More" menu).
   const titleNode = <BookmarkTitleLink bookmark={bookmark} />;
@@ -272,6 +277,32 @@ export function BookmarkCardDetails({
           ),
           t("Download URL"),
         );
+      }
+      case "taggedSections": {
+        // Renders only inside a `?taggedSections` tag page (the provider is the gate) — the names
+        // of this bookmark's section entries carrying the scoped tag (or a descendant).
+        const names = sectionTagScope
+          ? taggedSectionNames(bookmark.sectionsValues, sectionTagScope.tagIds)
+          : [];
+        if (names.length === 0) return null;
+        const chips = (
+          <span className="flex flex-wrap items-center gap-1">
+            {names.map(name => (
+              <Badge
+                key={name}
+                variant="secondary"
+              >
+                {name}
+              </Badge>
+            ))}
+          </span>
+        );
+        return {
+          inline: chips,
+          block: chips,
+          tableName: t("Tagged Sections"),
+          tableValue: chips,
+        };
       }
       default: {
         return describeValueField(key);

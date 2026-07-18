@@ -245,6 +245,7 @@ export function makeTag(overrides: Partial<Tag> = {}): Tag {
     createdAt: NOW,
     bookmarkCount: 0,
     ownBookmarkCount: 0,
+    sectionBookmarkCount: 0,
     editableOnCard: false,
     excludeFromBackfill: false,
     isFavorite: false,

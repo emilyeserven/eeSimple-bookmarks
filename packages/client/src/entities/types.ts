@@ -151,6 +151,14 @@ export interface EntityTreeListingConfig<N extends { id: string;
   useBulkDelete: () => UseMutationResult<BulkDeleteResult[], Error, string[]>;
   /** Singular/plural noun for the bulk-delete confirm copy, e.g. `["tag", "tags"]`. */
   noun: [string, string];
+  /**
+   * Replaces the default `TaxonomyBulkBar` (delete-only) with custom bulk-action content — the tree
+   * mirror of the flat config's slot (e.g. Tags' "Move to parent…" + delete). `TreeListingScaffold`
+   * still renders the shared `BulkActionBar` chrome (count, Select-all, Clear); only the actions
+   * inside it are swapped.
+   */
+  renderBulkActions?: (props: { selectedIds: string[];
+    onDone: () => void; }) => ReactNode;
   loadingLabel: string;
   entityPlural: string;
   emptyMessage: ReactNode;

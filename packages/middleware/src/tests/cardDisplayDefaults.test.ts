@@ -40,3 +40,8 @@ test("defaultFieldZones puts each standard field in its defaultBodyZone and leav
     assert.equal(zones[corner].length, 0);
   }
 });
+
+test("the taggedSections field is registered and lands in the pill zone", () => {
+  assert.ok((STANDARD_CARD_FIELD_KEYS as readonly string[]).includes("taggedSections"));
+  assert.equal(defaultBodyZone("taggedSections"), "card-labels");
+});

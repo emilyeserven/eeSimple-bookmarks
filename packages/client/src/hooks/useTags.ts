@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { useBulkDeleteEntity } from "./useBulkDeleteEntity";
 import { tagsApi } from "../lib/api/taxonomies";
+import { notifyBulkResult } from "../lib/bulkResults";
 import { notifySuccess } from "../lib/notifications";
 import { flattenTree } from "../lib/tagTree";
 
@@ -88,4 +89,19 @@ export function useDeleteTag() {
 
 export function useBulkDeleteTags() {
   return useBulkDeleteEntity(tagsApi.bulkDelete, useTagInvalidation());
+}
+
+/** Move many tags under a new parent (`null` = top level), with the per-item-outcome toast. */
+export function useBulkReparentTags() {
+  const invalidate = useTagInvalidation();
+  return useMutation({
+    mutationFn: ({
+      ids, parentId,
+    }: { ids: string[];
+      parentId: string | null; }) => tagsApi.bulkReparent(ids, parentId),
+    onSuccess: (results) => {
+      invalidate();
+      notifyBulkResult(results, "moved");
+    },
+  });
 }

@@ -50,6 +50,7 @@ export * from "./locations.js";
 export * from "./parseTemplates.js";
 export * from "./podcasts.js";
 export * from "./scanPipeline.js";
+export * from "./sectionTags.js";
 export * from "./translationSources.js";
 export * from "./oembed.js";
 export * from "./placeTypes.js";
@@ -82,6 +83,11 @@ export interface Tag {
    * bucket surfaced as a "No Child" entry. Equals {@link bookmarkCount} for leaf tags.
    */
   ownBookmarkCount?: number;
+  /**
+   * Distinct bookmarks with a sections-property entry (or child entry) whose `tagIds` reference
+   * this tag or one of its descendants (populated by list endpoints).
+   */
+  sectionBookmarkCount?: number;
   /**
    * When `true`, the tag appears as a quick-toggle checkbox in the bookmark card's "More" menu,
    * letting users tag/untag bookmarks inline without opening the full edit page.

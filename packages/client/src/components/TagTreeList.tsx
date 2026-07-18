@@ -1,3 +1,4 @@
+import type { ListSelection } from "../lib/useListSelection";
 import type { TagNode } from "@eesimple/types";
 
 import { Link } from "@tanstack/react-router";
@@ -8,6 +9,8 @@ import { LocalizedNameLabel } from "./LocalizedNameLabel";
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
 import { useFavoriteToggle } from "../hooks/useFavoriteToggle";
 
+import { Badge } from "@/components/ui/badge";
+
 interface TagTreeListProps {
   /** The root tags to render. */
   tree: TagNode[];
@@ -17,6 +20,8 @@ interface TagTreeListProps {
   onToggle: (id: string) => void;
   /** Number of grid columns. */
   columns: number;
+  /** Page-wide multi-select controller (shared with the Table view); rows show checkboxes in mode. */
+  selection?: ListSelection;
 }
 
 /**
@@ -24,7 +29,7 @@ interface TagTreeListProps {
  * Callers own the sort order (the tree scaffold's `useSortedTree` applies the multilingual-name re-sort).
  */
 export function TagTreeList({
-  tree, expanded, onToggle, columns,
+  tree, expanded, onToggle, columns, selection,
 }: TagTreeListProps) {
   const {
     t,
@@ -37,6 +42,32 @@ export function TagTreeList({
       expanded={expanded}
       onToggle={onToggle}
       columns={columns}
+      selection={selection}
+      renderExtraBadge={(node) => {
+        const count = (node as unknown as TagNode).sectionBookmarkCount ?? 0;
+        if (count === 0) return null;
+        return (
+          <Link
+            to="/tags/$tagSlug"
+            params={{
+              tagSlug: node.slug,
+            }}
+            search={{
+              taggedSections: true,
+            }}
+            title={t("Bookmarks with sections tagged {{name}}", {
+              name: node.name,
+            })}
+          >
+            <Badge
+              variant="outline"
+              className="text-muted-foreground"
+            >
+              {count}
+            </Badge>
+          </Link>
+        );
+      }}
       isFavorite={node => Boolean((node as unknown as TagNode).isFavorite)}
       onToggleFavorite={node => favorite.toggle({
         id: node.id,
