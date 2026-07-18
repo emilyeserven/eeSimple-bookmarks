@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { ChevronsUpDown, Plus } from "lucide-react";
+import { ChevronsUpDown, Plus, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,11 @@ interface MultiComboboxShellProps {
   /** Drives the trigger label's muted-text styling (no selection yet). */
   "isEmpty": boolean;
   "triggerLabel": React.ReactNode;
+  /**
+   * When provided (and there's at least one selection, i.e. `!isEmpty`), renders a small "×" button
+   * just before the expand chevron that clears every selected value. Omit to hide the clear affordance.
+   */
+  "onClear"?: () => void;
   /** Omit to use Command's own default (`true`, cmdk's built-in filtering). */
   "shouldFilter"?: boolean;
   "searchPlaceholder"?: string;
@@ -58,6 +63,7 @@ export function MultiComboboxShell({
   "aria-label": ariaLabel,
   isEmpty,
   triggerLabel,
+  onClear,
   shouldFilter,
   searchPlaceholder,
   searchValue,
@@ -92,6 +98,35 @@ export function MultiComboboxShell({
           >
             {triggerLabel}
           </span>
+          {onClear && !isEmpty
+            ? (
+              <span
+                role="button"
+                tabIndex={0}
+                aria-label={t("Clear all")}
+                className="
+                  ml-2 shrink-0 rounded-sm opacity-50
+                  hover:opacity-100
+                  focus-visible:opacity-100 focus-visible:outline-none
+                "
+                onPointerDown={event => event.stopPropagation()}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onClear();
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    onClear();
+                  }
+                }}
+              >
+                <X className="size-4" />
+              </span>
+            )
+            : null}
           <ChevronsUpDown className={chevronClassName} />
         </Button>
       </PopoverTrigger>

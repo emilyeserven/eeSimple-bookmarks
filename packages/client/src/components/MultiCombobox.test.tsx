@@ -54,6 +54,38 @@ describe("MultiCombobox", () => {
     expect(onValuesChange).toHaveBeenCalledWith(["video"]);
   });
 
+  it("clears every selected value via the trigger's clear button", () => {
+    const onValuesChange = vi.fn();
+    render(
+      <MultiCombobox
+        options={options}
+        values={["video", "audio"]}
+        onValuesChange={onValuesChange}
+        aria-label="Media types"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", {
+      name: "Clear all",
+    }));
+    expect(onValuesChange).toHaveBeenCalledWith([]);
+  });
+
+  it("hides the clear button when nothing is selected", () => {
+    render(
+      <MultiCombobox
+        options={options}
+        values={[]}
+        onValuesChange={vi.fn()}
+        aria-label="Media types"
+      />,
+    );
+
+    expect(screen.queryByRole("button", {
+      name: "Clear all",
+    })).not.toBeInTheDocument();
+  });
+
   it("shows an option's secondary name after its label in the dropdown", () => {
     const secondaryNameOptions: ComboboxOption[] = [
       {
