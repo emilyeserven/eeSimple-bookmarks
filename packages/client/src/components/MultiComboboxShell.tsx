@@ -105,7 +105,7 @@ export function MultiComboboxShell({
                 tabIndex={0}
                 aria-label={t("Clear all")}
                 className="
-                  ml-2 shrink-0 rounded-sm opacity-50
+                  ml-auto shrink-0 rounded-sm opacity-50
                   hover:opacity-100
                   focus-visible:opacity-100 focus-visible:outline-none
                 "
