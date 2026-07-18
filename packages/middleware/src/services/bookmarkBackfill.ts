@@ -4,17 +4,20 @@ import { bookmarkLocations, bookmarks, bookmarkTags } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { loadEntityNames } from "@/services/entityNames";
 import { listLocationNames, matchLocationIdsByTitle } from "@/services/locations";
-import { listTagNames, matchTagIdsByTitle } from "@/services/tags";
+import { getExcludedFromBackfillTagIds, listTagNames, matchTagIdsByTitle } from "@/services/tags";
 
 /**
  * Apply the "auto-tag from title" automation to every existing bookmark, additively. Each bookmark's
  * title is matched against all tag names (whole-word, case-insensitive) and the matched tags are
  * inserted without removing any existing tags. Runs on demand regardless of the `autoApplyTitleTags`
  * toggle — that flag only governs the create-time behavior. `ON CONFLICT DO NOTHING ... RETURNING`
- * makes the insert idempotent and reports exactly the links that were newly added.
+ * makes the insert idempotent and reports exactly the links that were newly added. Tags flagged
+ * `excludeFromBackfill` (typically common/generic tags a user doesn't want spuriously title-matched)
+ * are skipped, matching the autofill-rule backfill.
  */
 export async function backfillTitleTags(): Promise<TitleTagBackfillResult> {
-  const allTags = await listTagNames();
+  const [allTags, excludedTagIds] = await Promise.all([listTagNames(), getExcludedFromBackfillTagIds()]);
+  const eligibleTags = allTags.filter(tag => !excludedTagIds.has(tag.id));
   const rows = await db
     .select({
       id: bookmarks.id,
@@ -27,7 +30,7 @@ export async function backfillTitleTags(): Promise<TitleTagBackfillResult> {
     tagId: string; }[] = [];
   for (const row of rows) {
     const titles = [row.title, ...(namesByBid.get(row.id) ?? []).map(n => n.value)];
-    for (const tagId of matchTagIdsByTitle(titles, allTags)) {
+    for (const tagId of matchTagIdsByTitle(titles, eligibleTags)) {
       links.push({
         bookmarkId: row.id,
         tagId,
