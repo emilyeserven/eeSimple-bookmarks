@@ -23,8 +23,10 @@ export type {
 
 // The pure sort engine moved to `@eesimple/types` so the middleware sorts server-side before
 // paginating (`POST /api/bookmarks/search`); the i18n label helpers stay client-side.
+// (`SORTABLE_PROPERTY_TYPES` is imported above for `sortFieldOptions` but deliberately not
+// re-exported — no client consumer reads it from here.)
 export type { TitleSortContext } from "@eesimple/types";
-export { RANDOM_FIELD, SORTABLE_PROPERTY_TYPES, sortBookmarks } from "@eesimple/types";
+export { RANDOM_FIELD, sortBookmarks } from "@eesimple/types";
 
 interface SortFieldOption {
   value: string;
