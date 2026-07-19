@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { BookmarkSectionsValue, SectionEntry } from "@eesimple/types";
-import { collectSectionTagIds, sectionsCarryAnyTag, taggedSectionNames } from "@eesimple/types";
+import {
+  collectSectionTagIds,
+  favoriteSectionCount,
+  favoriteSectionEntries,
+  sectionsCarryAnyTag,
+  taggedSectionNames,
+} from "@eesimple/types";
 
 // Pure-helper tests for the shared section-tag helpers (no database), matching tags.test.ts style.
 
@@ -90,4 +96,56 @@ test("taggedSectionNames dedupes repeated names across values", () => {
     })]),
   ];
   assert.deepEqual(taggedSectionNames(dup, new Set(["t-x"])), ["Chapter 1"]);
+});
+
+const favoriteValues: BookmarkSectionsValue[] = [
+  value([
+    entry({
+      id: "intro",
+      name: "Intro",
+      isFavorite: true,
+    }),
+    entry({
+      id: "hooks",
+      name: "Hooks",
+      children: [
+        entry({
+          id: "use-state",
+          name: "useState",
+          isFavorite: true,
+        }),
+        entry({
+          id: "use-effect",
+          name: "useEffect",
+        }),
+      ],
+    }),
+  ]),
+];
+
+test("favoriteSectionEntries lists starred entries and children in order, with parent context", () => {
+  const refs = favoriteSectionEntries(favoriteValues);
+  assert.deepEqual(refs.map(r => [r.entry.name, r.parentName]), [
+    ["Intro", null],
+    ["useState", "Hooks"],
+  ]);
+});
+
+test("favoriteSectionEntries does not cascade a starred parent to its children", () => {
+  const starredParent = [value([entry({
+    id: "hooks",
+    name: "Hooks",
+    isFavorite: true,
+    children: [entry({
+      id: "use-state",
+      name: "useState",
+    })],
+  })])];
+  assert.deepEqual(favoriteSectionEntries(starredParent).map(r => r.entry.name), ["Hooks"]);
+});
+
+test("favoriteSectionCount counts starred entries and children; empty when none", () => {
+  assert.equal(favoriteSectionCount(favoriteValues), 2);
+  assert.equal(favoriteSectionCount(values), 0);
+  assert.equal(favoriteSectionCount([]), 0);
 });

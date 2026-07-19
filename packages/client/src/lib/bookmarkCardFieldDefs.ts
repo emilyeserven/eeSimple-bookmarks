@@ -68,6 +68,10 @@ export const STANDARD_CARD_FIELDS = [
     label: "Tagged Sections",
   },
   {
+    key: "favoriteSections",
+    label: "Favorite Sections",
+  },
+  {
     key: "createdAt",
     label: "Date Added",
   },

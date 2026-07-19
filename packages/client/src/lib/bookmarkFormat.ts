@@ -1,6 +1,6 @@
 import type { BookmarkBooleanValue, BookmarkSectionsValue, CustomProperty } from "@eesimple/types";
 
-import { setSectionCompleted } from "@eesimple/types";
+import { setSectionCompleted, setSectionFavorite } from "@eesimple/types";
 
 import { formatDateTimeValue } from "./datetime";
 
@@ -146,6 +146,26 @@ export function mergeSectionsCompleted(
     ? {
       ...entry,
       sections: setSectionCompleted(entry.sections, entryId, completed),
+    }
+    : entry));
+}
+
+/**
+ * Return `sectionsValues` with one entry's `isFavorite` flag set inside the value for `propertyId`
+ * (via the shared `setSectionFavorite` — starring is independent, no parent→child cascade). The
+ * whole-array shape feeds straight into a bookmark PATCH, mirroring {@link mergeSectionsCompleted}
+ * for the in-view favorite stars. A missing value for `propertyId` returns the input unchanged.
+ */
+export function mergeSectionsFavorite(
+  values: BookmarkSectionsValue[],
+  propertyId: string,
+  entryId: string,
+  isFavorite: boolean,
+): BookmarkSectionsValue[] {
+  return values.map(entry => (entry.propertyId === propertyId
+    ? {
+      ...entry,
+      sections: setSectionFavorite(entry.sections, entryId, isFavorite),
     }
     : entry));
 }

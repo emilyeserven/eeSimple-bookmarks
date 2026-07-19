@@ -14,6 +14,8 @@ import type { ReactNode } from "react";
 
 import { useState } from "react";
 
+import { Star } from "lucide-react";
+
 import { IsbnLinksPanel } from "./IsbnLinksPanel";
 import { PropertyQuickFilterLink } from "./PropertyQuickFilterLink";
 import { RatingValue } from "./RatingValue";
@@ -267,6 +269,36 @@ function SectionCompletedToggle({
   );
 }
 
+/** Clickable favorite star for a section entry on the view surfaces (save wiring is the caller's). */
+function SectionFavoriteToggle({
+  entry, onToggleFavorite,
+}: {
+  entry: SectionEntry;
+  onToggleFavorite: (entryId: string, isFavorite: boolean) => void;
+}) {
+  const favorite = entry.isFavorite === true;
+  return (
+    <button
+      type="button"
+      className={favorite
+        ? "align-middle text-amber-500"
+        : `
+          align-middle text-muted-foreground
+          hover:text-amber-500
+        `}
+      aria-label={favorite ? i18n.t("Unstar section") : i18n.t("Star section")}
+      aria-pressed={favorite}
+      title={favorite ? i18n.t("Starred") : i18n.t("Star this section")}
+      onClick={() => onToggleFavorite(entry.id, !favorite)}
+    >
+      <Star
+        className="inline size-3.5"
+        fill={favorite ? "currentColor" : "none"}
+      />
+    </button>
+  );
+}
+
 /**
  * Small secondary chips naming a section entry's associated tags. Resolves names from the cached
  * tag list and silently skips dangling ids (a deleted tag leaves its id behind in the jsonb).
@@ -308,10 +340,11 @@ function SectionTagChips({
  * completed entry renders struck through.
  */
 function SectionEntryItem({
-  entry, onToggleCompleted,
+  entry, onToggleCompleted, onToggleFavorite,
 }: {
   entry: SectionEntry;
   onToggleCompleted?: (entryId: string, completed: boolean) => void;
+  onToggleFavorite?: (entryId: string, isFavorite: boolean) => void;
 }) {
   const link = sectionEntryLink(entry);
   const positional = sectionEntryPositional(entry);
@@ -354,6 +387,15 @@ function SectionEntryItem({
           )
           : null}
         {onToggleCompleted ? " " : null}
+        {onToggleFavorite
+          ? (
+            <SectionFavoriteToggle
+              entry={entry}
+              onToggleFavorite={onToggleFavorite}
+            />
+          )
+          : null}
+        {onToggleFavorite ? " " : null}
         {link
           ? (
             <a
@@ -388,6 +430,7 @@ function SectionEntryItem({
                 key={child.id}
                 entry={child}
                 onToggleCompleted={onToggleCompleted}
+                onToggleFavorite={onToggleFavorite}
               />
             ))}
           </ul>
@@ -399,11 +442,13 @@ function SectionEntryItem({
 
 /** A section value's entries as a two-tier list with clickable per-item links, or an empty state. */
 export function SectionEntryList({
-  sections, onToggleCompleted,
+  sections, onToggleCompleted, onToggleFavorite,
 }: {
   sections: SectionEntry[];
   /** When set, each entry renders a clickable done-checkbox that calls back with its id. */
   onToggleCompleted?: (entryId: string, completed: boolean) => void;
+  /** When set, each entry renders a clickable favorite star that calls back with its id. */
+  onToggleFavorite?: (entryId: string, isFavorite: boolean) => void;
 }) {
   const [collapsed, setCollapsed] = useState(false);
   if (sections.length === 0) {
@@ -430,6 +475,7 @@ export function SectionEntryList({
                 key={entry.id}
                 entry={entry}
                 onToggleCompleted={onToggleCompleted}
+                onToggleFavorite={onToggleFavorite}
               />
             ))}
           </ul>
@@ -439,11 +485,13 @@ export function SectionEntryList({
 }
 
 export function SectionsRowCell({
-  row, onToggleCompleted,
+  row, onToggleCompleted, onToggleFavorite,
 }: {
   row: SectionsPropertyRow;
   /** When set, the entries' done-checkboxes are clickable in view (mirrors `onSaveBoolean`). */
   onToggleCompleted?: (propertyId: string, entryId: string, completed: boolean) => void;
+  /** When set, the entries' favorite stars are clickable in view (mirrors `onToggleCompleted`). */
+  onToggleFavorite?: (propertyId: string, entryId: string, isFavorite: boolean) => void;
 }) {
   return (
     <div className="group flex flex-col gap-1">
@@ -459,6 +507,9 @@ export function SectionsRowCell({
           sections={row.sections}
           onToggleCompleted={onToggleCompleted
             ? (entryId, completed) => onToggleCompleted(row.id, entryId, completed)
+            : undefined}
+          onToggleFavorite={onToggleFavorite
+            ? (entryId, isFavorite) => onToggleFavorite(row.id, entryId, isFavorite)
             : undefined}
         />
       </dd>

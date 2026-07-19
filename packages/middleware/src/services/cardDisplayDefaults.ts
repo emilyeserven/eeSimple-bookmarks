@@ -21,6 +21,7 @@ export const STANDARD_CARD_FIELD_KEYS = [
   "people",
   "groups",
   "taggedSections",
+  "favoriteSections",
   "createdAt",
   "updatedAt",
   "externalLink",

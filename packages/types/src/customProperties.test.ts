@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import type { ItemInItemsTextSource, SectionEntry } from "./customProperties.js";
 
-import { countSectionLeaves, resolveItemInItemsTexts, setSectionCompleted } from "./customProperties.js";
+import { countSectionLeaves, resolveItemInItemsTexts, setSectionCompleted, setSectionFavorite } from "./customProperties.js";
 
 function entry(overrides: Partial<SectionEntry> & { id: string }): SectionEntry {
   return {
@@ -161,6 +161,41 @@ test("setSectionCompleted can uncheck a parent, cascading false to children", ()
   const result = setSectionCompleted(sections, "parent", false);
   assert.equal(result[0].completed, false);
   assert.equal(result[0].children?.[0].completed, false);
+});
+
+test("setSectionFavorite on a parent does NOT cascade to children", () => {
+  const sections = [
+    entry({
+      id: "parent",
+      children: [entry({
+        id: "c1",
+      }), entry({
+        id: "c2",
+      })],
+    }),
+  ];
+  const result = setSectionFavorite(sections, "parent", true);
+  assert.equal(result[0].isFavorite, true);
+  assert.deepEqual(result[0].children?.map(c => c.isFavorite), [undefined, undefined]);
+  // Input is untouched (immutable update).
+  assert.equal(sections[0].isFavorite, undefined);
+});
+
+test("setSectionFavorite on a child touches only that child", () => {
+  const sections = [
+    entry({
+      id: "parent",
+      children: [entry({
+        id: "c1",
+      }), entry({
+        id: "c2",
+      })],
+    }),
+  ];
+  const result = setSectionFavorite(sections, "c2", true);
+  assert.equal(result[0].isFavorite, undefined);
+  assert.equal(result[0].children?.[0].isFavorite, undefined);
+  assert.equal(result[0].children?.[1].isFavorite, true);
 });
 
 function textSource(overrides: Partial<ItemInItemsTextSource>): ItemInItemsTextSource {
