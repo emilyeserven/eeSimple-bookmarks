@@ -1,6 +1,8 @@
 import type { FastifyInstance, FastifyReply } from "fastify";
 import type { Readable } from "node:stream";
-import type { BulkBookmarkTagOp, BulkUrlUpdate, CreateBookmarkInput, UpdateBookmarkInput, UpdateBookmarkRelationshipsInput } from "@eesimple/types";
+import type { BulkBookmarkTagOp, BulkUrlUpdate, CreateBookmarkInput, TitleSortContext, UpdateBookmarkInput, UpdateBookmarkRelationshipsInput } from "@eesimple/types";
+import { validateBookmarkSearch, validateBookmarkSearchScope } from "@eesimple/types";
+import { searchBookmarks } from "@/services/bookmarkSearchService";
 import {
   getBookmarkImageRow,
   getBookmarkImageRowById,
@@ -39,6 +41,7 @@ import {
   createBookmarkBody,
   listQuery,
   onHostQuery,
+  searchBookmarksBody,
   updateBookmarkBody,
   urlCheckQuery,
 } from "./bookmarksSchema";
@@ -78,6 +81,30 @@ function registerBookmarkQueryRoutes(app: FastifyInstance): void {
   });
 
   // Static sub-paths are declared before `/:id` so they aren't captured by the param route.
+  app.post("/api/bookmarks/search", {
+    schema: {
+      tags: ["bookmarks"],
+      body: searchBookmarksBody,
+    },
+  }, async (req) => {
+    const body = req.body as {
+      search: Record<string, unknown>;
+      q?: string;
+      offset?: number;
+      limit?: number;
+      scope?: unknown;
+      titleSort?: TitleSortContext;
+    };
+    return searchBookmarks({
+      search: validateBookmarkSearch(body.search),
+      q: body.q,
+      offset: body.offset ?? 0,
+      limit: body.limit ?? 25,
+      scope: validateBookmarkSearchScope(body.scope),
+      titleSort: body.titleSort,
+    });
+  });
+
   app.get("/api/bookmarks/on-host", {
     schema: {
       tags: ["bookmarks"],

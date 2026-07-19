@@ -40,6 +40,46 @@ export const listQuery = {
   },
 } as const;
 
+/**
+ * `POST /api/bookmarks/search` body. The nested `search`/`scope`/`titleSort` objects are
+ * DELIBERATELY schema-free (`type: "object"` with no `properties`): `BookmarkSearch` is a large,
+ * evolving shape, and mirroring its ~35 keys here under `additionalProperties: false` would turn
+ * every future facet into a silent AJV `removeAdditional` drop. The route narrows them instead
+ * with the shared `validateBookmarkSearch` / `validateBookmarkSearchScope` from `@eesimple/types`
+ * — one source of truth with the client. Guarded by `tests/bookmarkSearchSchema.test.ts`; don't
+ * "tighten" the nested objects without reading that test.
+ */
+export const searchBookmarksBody = {
+  type: "object",
+  required: ["search"],
+  additionalProperties: false,
+  properties: {
+    search: {
+      type: "object",
+    },
+    q: {
+      type: "string",
+    },
+    offset: {
+      type: "integer",
+      minimum: 0,
+      default: 0,
+    },
+    limit: {
+      type: "integer",
+      minimum: 1,
+      maximum: 500,
+      default: 25,
+    },
+    scope: {
+      type: "object",
+    },
+    titleSort: {
+      type: "object",
+    },
+  },
+} as const;
+
 export const onHostQuery = {
   type: "object",
   required: ["domain"],
