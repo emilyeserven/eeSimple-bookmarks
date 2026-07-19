@@ -2,6 +2,7 @@ import { desc, inArray } from "drizzle-orm";
 import type {
   Bookmark,
   BookmarkSearch,
+  BookmarkSearchResult,
   BookmarkSearchScope,
   TitleSortContext,
 } from "@eesimple/types";
@@ -30,18 +31,6 @@ export interface BookmarkSearchServiceInput {
   scope?: BookmarkSearchScope;
   /** Title-sort language context — a per-page client preference, so it rides the request. */
   titleSort?: TitleSortContext;
-}
-
-export interface BookmarkSearchServiceResult {
-  /** The requested page, freshly hydrated, in sorted order. */
-  bookmarks: Bookmark[];
-  /** Total matches before slicing (drives the client pager). */
-  total: number;
-  /**
-   * Per-number-property `[min, max]` over the scoped (pre-facet, pre-text) set — the data bounds
-   * the filter sidebar's range sliders fall back to when a property has no configured min/max.
-   */
-  numberBounds: Record<string, [number, number]>;
 }
 
 /**
@@ -123,7 +112,7 @@ function computeNumberBounds(scoped: Bookmark[]): Record<string, [number, number
  */
 export async function searchBookmarks(
   input: BookmarkSearchServiceInput,
-): Promise<BookmarkSearchServiceResult> {
+): Promise<BookmarkSearchResult> {
   const [all, evaluation, properties] = await Promise.all([
     getHydratedBookmarks(),
     getBookmarkEvaluationData(),

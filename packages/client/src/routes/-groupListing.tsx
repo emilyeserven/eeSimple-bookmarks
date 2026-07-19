@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { useGroupBySlug } from "../hooks/useGroups";
-import { tagsForServerQuery } from "../lib/bookmarkSearch";
 
 interface Props {
   groupSlug: string;
@@ -30,9 +29,6 @@ export function GroupListing({
   const {
     categories,
     properties,
-    bookmarks,
-    bookmarksLoading,
-    error,
     tagTree,
     mediaTypes,
     youtubeChannels,
@@ -41,7 +37,7 @@ export function GroupListing({
     people,
     placeTypes,
     genreMoods,
-  } = useCategoryPageData(tagsForServerQuery(search));
+  } = useCategoryPageData();
 
   const {
     group, isLoading: groupLoading,
@@ -54,9 +50,6 @@ export function GroupListing({
   if (!group) {
     return <p className="text-destructive">{t("Group not found.")}</p>;
   }
-
-  const groupBookmarks = (bookmarks ?? []).filter(b =>
-    b.groups?.some(entry => entry.id === group.id));
 
   return (
     <BookmarkSearchView
@@ -72,11 +65,12 @@ export function GroupListing({
       people={people ?? []}
       placeTypes={placeTypes ?? []}
       genreMoods={genreMoods ?? []}
-      bookmarks={groupBookmarks}
+      scope={{
+        kind: "group",
+        id: group.id,
+      }}
       search={search}
       onSearchChange={onSearchChange}
-      isLoading={bookmarksLoading}
-      error={error}
       emptyMessage={t("No bookmarks for this group yet.")}
       noMatchMessage={t("No bookmarks for this group match these filters.")}
     />

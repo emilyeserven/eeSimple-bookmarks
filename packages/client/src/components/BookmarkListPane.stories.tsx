@@ -31,6 +31,12 @@ const meta = {
     bookmarks,
     properties: sampleProperties,
     search: {},
+    total: bookmarks.length,
+    page: 1,
+    totalPages: 1,
+    rangeStart: 1,
+    rangeEnd: bookmarks.length,
+    onPageChange: () => {},
     isLoading: false,
     error: null,
     emptyMessage: "No bookmarks yet.",
@@ -47,6 +53,7 @@ export const Default: Story = {};
 export const Loading: Story = {
   args: {
     bookmarks: [],
+    total: 0,
     isLoading: true,
   },
 };
@@ -54,12 +61,14 @@ export const Loading: Story = {
 export const EmptyNoFilters: Story = {
   args: {
     bookmarks: [],
+    total: 0,
   },
 };
 
 export const ErrorState: Story = {
   args: {
     bookmarks: [],
+    total: 0,
     error: new Error("Failed to load bookmarks."),
   },
 };

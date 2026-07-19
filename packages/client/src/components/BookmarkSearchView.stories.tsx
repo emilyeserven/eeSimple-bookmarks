@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
+import { HttpResponse, delay, http } from "msw";
+
 import { BookmarkSearchView } from "./BookmarkSearchView";
 import {
   apiHandlers,
@@ -11,26 +13,33 @@ import {
   sampleTagTree,
 } from "../test-utils/story-mocks";
 
-const bookmarks = [
-  sampleBookmark,
-  {
-    ...sampleBookmark,
-    id: "bm-search-2",
-    title: "A second saved bookmark",
-  },
-  {
-    ...sampleBookmark,
-    id: "bm-search-3",
-    title: "A third saved bookmark",
-  },
-];
+const searchResult = {
+  bookmarks: [
+    sampleBookmark,
+    {
+      ...sampleBookmark,
+      id: "bm-search-2",
+      title: "A second saved bookmark",
+    },
+    {
+      ...sampleBookmark,
+      id: "bm-search-3",
+      title: "A third saved bookmark",
+    },
+  ],
+  total: 3,
+  numberBounds: {},
+};
 
 const meta = {
   title: "Bookmarks/BookmarkSearchView",
   component: BookmarkSearchView,
   parameters: {
     msw: {
-      handlers: apiHandlers,
+      handlers: [
+        http.post("/api/bookmarks/search", () => HttpResponse.json(searchResult)),
+        ...apiHandlers,
+      ],
     },
   },
   args: {
@@ -41,11 +50,8 @@ const meta = {
     categories: sampleCategories,
     mediaTypes: sampleMediaTypes,
     youtubeChannels: sampleChannels,
-    bookmarks,
     search: {},
     onSearchChange: () => {},
-    isLoading: false,
-    error: null,
     emptyMessage: "No bookmarks yet.",
     noMatchMessage: "No bookmarks match the current filters.",
   },
@@ -58,14 +64,30 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const Empty: Story = {
-  args: {
-    bookmarks: [],
+  parameters: {
+    msw: {
+      handlers: [
+        http.post("/api/bookmarks/search", () => HttpResponse.json({
+          bookmarks: [],
+          total: 0,
+          numberBounds: {},
+        })),
+        ...apiHandlers,
+      ],
+    },
   },
 };
 
 export const Loading: Story = {
-  args: {
-    bookmarks: [],
-    isLoading: true,
+  parameters: {
+    msw: {
+      handlers: [
+        http.post("/api/bookmarks/search", async () => {
+          await delay("infinite");
+          return HttpResponse.json(searchResult);
+        }),
+        ...apiHandlers,
+      ],
+    },
   },
 };

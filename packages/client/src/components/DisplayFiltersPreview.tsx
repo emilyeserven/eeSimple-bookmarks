@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { FilterPillsRow } from "./FilterPillsRow";
 import { RowCard } from "./ui/card";
 import { Input } from "./ui/input";
+import { useBookmarks } from "../hooks/useBookmarks";
 import { useBookmarksPageData } from "../routes/-bookmarksPageData";
 
 /**
@@ -33,8 +34,11 @@ export function DisplayFiltersPreview() {
     people,
     placeTypes,
     genreMoods,
-    bookmarks,
-  } = useBookmarksPageData(undefined);
+  } = useBookmarksPageData();
+  // The preview isn't paginated, so it reads the plain list for the data-driven facet gates.
+  const {
+    data: bookmarks,
+  } = useBookmarks();
 
   return (
     <div className="space-y-2">

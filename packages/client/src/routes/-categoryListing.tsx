@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
-import { tagsForServerQuery } from "../lib/bookmarkSearch";
 
 interface Props {
   categorySlug: string;
@@ -17,7 +16,7 @@ interface Props {
 /**
  * The category-scoped bookmarks listing body, shared by the `_hub.index` / `_hub.gallery` / `_hub.media`
  * routes (each passes its own `activeView`). The entity `<h1>` header lives in the `_hub` layout, so this
- * passes none to `BookmarkSearchView`.
+ * passes none to `BookmarkSearchView`. The category scope evaluates server-side alongside the filters.
  */
 export function CategoryListing({
   categorySlug, activeView, search, onSearchChange,
@@ -29,9 +28,6 @@ export function CategoryListing({
     categories,
     categoriesLoading,
     properties,
-    bookmarks,
-    bookmarksLoading,
-    error,
     tagTree,
     mediaTypes,
     youtubeChannels,
@@ -40,21 +36,17 @@ export function CategoryListing({
     people,
     placeTypes,
     genreMoods,
-  } = useCategoryPageData(tagsForServerQuery(search));
+  } = useCategoryPageData();
 
   const category = (categories ?? []).find(c => c.slug === categorySlug);
 
-  if (categoriesLoading || bookmarksLoading) {
+  if (categoriesLoading) {
     return <p className="text-muted-foreground">{t("Loading…")}</p>;
   }
 
   if (!category) {
     return <p className="text-destructive">{t("Category not found.")}</p>;
   }
-
-  const categoryBookmarks = (bookmarks ?? []).filter(
-    b => b.categoryId === category.id,
-  );
 
   return (
     <BookmarkSearchView
@@ -70,11 +62,12 @@ export function CategoryListing({
       people={people ?? []}
       placeTypes={placeTypes ?? []}
       genreMoods={genreMoods ?? []}
-      bookmarks={categoryBookmarks}
+      scope={{
+        kind: "category",
+        id: category.id,
+      }}
       search={search}
       onSearchChange={onSearchChange}
-      isLoading={bookmarksLoading}
-      error={error}
       emptyMessage={t("No bookmarks in this category yet.")}
       noMatchMessage={t("No bookmarks in this category match these filters.")}
     />

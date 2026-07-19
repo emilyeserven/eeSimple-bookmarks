@@ -7,7 +7,7 @@ import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { useLanguageBySlug } from "../hooks/useLanguages";
 import { useLanguageUsageLevels } from "../hooks/useLanguageUsageLevels";
-import { tagsForServerQuery, validateBookmarkSearch } from "../lib/bookmarkSearch";
+import { validateBookmarkSearch } from "../lib/bookmarkSearch";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -56,9 +56,6 @@ export function LanguageListing({
   } = useLanguageUsageLevels();
   const {
     properties,
-    bookmarks,
-    bookmarksLoading,
-    error,
     tagTree,
     mediaTypes,
     youtubeChannels,
@@ -68,9 +65,9 @@ export function LanguageListing({
     placeTypes,
     categories,
     genreMoods,
-  } = useCategoryPageData(tagsForServerQuery(search));
+  } = useCategoryPageData();
 
-  if (languageLoading || bookmarksLoading) {
+  if (languageLoading) {
     return <p className="text-muted-foreground">{t("Loading…")}</p>;
   }
 
@@ -78,20 +75,12 @@ export function LanguageListing({
     return <p className="text-destructive">{t("Language not found.")}</p>;
   }
 
-  // Bookmarks that involve this language via any usage association.
-  const languageBookmarks = (bookmarks ?? []).filter(
-    b => b.languageUsages.some(u => u.language.id === language.id),
-  );
-
-  // The usage-level facet is a friendly slug in the URL; narrow to bookmarks carrying this
-  // language at that level. Kept out of the shared `search` so the URL param stays canonical.
+  // The usage-level facet is a friendly slug in the URL; the server narrows to bookmarks
+  // carrying this language at that level. Kept out of the shared `search` so the URL param stays
+  // canonical.
   const activeLevel = search.usageLevel
     ? levels.find(l => l.slug === search.usageLevel)
     : undefined;
-  const scopedBookmarks = activeLevel
-    ? languageBookmarks.filter(b =>
-      b.languageUsages.some(u => u.language.id === language.id && u.level.id === activeLevel.id))
-    : languageBookmarks;
 
   return (
     <BookmarkSearchView
@@ -133,15 +122,17 @@ export function LanguageListing({
       people={people ?? []}
       placeTypes={placeTypes ?? []}
       genreMoods={genreMoods ?? []}
-      bookmarks={scopedBookmarks}
+      scope={{
+        kind: "language",
+        languageId: language.id,
+        usageLevelId: activeLevel?.id,
+      }}
       search={search}
       onSearchChange={next =>
         onSearchChange({
           ...next,
           usageLevel: search.usageLevel,
         })}
-      isLoading={bookmarksLoading}
-      error={error}
       emptyMessage={t("No bookmarks in this language yet.")}
       noMatchMessage={t("No bookmarks in this language match these filters.")}
     />

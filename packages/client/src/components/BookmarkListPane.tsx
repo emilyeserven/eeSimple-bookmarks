@@ -13,21 +13,16 @@ import { BookmarkTableView } from "./BookmarkTableView";
 import { BookmarkBulkActions } from "./bulk/BookmarkBulkActions";
 import { BulkActionBar } from "./bulk/BulkActionBar";
 import { navLinkClass, navStripClass } from "./TabbedShell";
-import { useBookmarksPerPage, useDefaultBookmarkSort } from "../hooks/useAppSettings";
 import { useRegisterBulkSelect } from "../hooks/useRegisterBulkSelect";
-import { usePageTitleSort } from "../hooks/useTitleSortContext";
 import { useViewMode } from "../lib/bookmarkColumns";
-import { bookmarkMatchesSearch, hasAnyActiveFilter } from "../lib/bookmarkSearch";
-import { sortBookmarks } from "../lib/bookmarkSort";
-import { useListingPagination } from "../lib/useListingPagination";
+import { hasAnyActiveFilter } from "../lib/bookmarkSearch";
 import { useListSelection } from "../lib/useListSelection";
 import { cn } from "../lib/utils";
-import { useUiStore } from "../stores/uiStore";
 
 interface BookmarkListContentProps {
   pageKey: string;
   columns: number;
-  /** The already filter-matched bookmarks to render (non-empty). */
+  /** The current server page of matching bookmarks (non-empty). */
   visibleBookmarks: Bookmark[];
   properties: CustomProperty[];
   addFormCategoryId?: string;
@@ -95,10 +90,23 @@ function BookmarkListContent({
   );
 }
 
-interface BookmarkListPaneProps {
+/** The server-side pager state threaded from `useBookmarkSearchView` into the pane. */
+interface BookmarkListPager {
+  /** Total matches across all pages (the server's pre-slice count). */
+  total: number;
+  page: number;
+  totalPages: number;
+  /** 1-indexed range of the visible page within the total (0/0 when empty). */
+  rangeStart: number;
+  rangeEnd: number;
+  onPageChange: (page: number) => void;
+}
+
+interface BookmarkListPaneProps extends BookmarkListPager {
   /** Stable listing-page key, used for table column widths and the table view toggle. */
   pageKey: string;
   columns: number;
+  /** The current server page of matching bookmarks. */
   bookmarks: Bookmark[];
   properties: CustomProperty[];
   search: BookmarkSearch;
@@ -121,12 +129,12 @@ interface BookmarkListPaneProps {
   activeView?: ResultsTab;
 }
 
-interface BookmarkListBodyProps {
+interface BookmarkListBodyProps extends BookmarkListPager {
   pageKey: string;
   columns: number;
+  /** The current server page of matching bookmarks. */
   visibleBookmarks: Bookmark[];
   properties: CustomProperty[];
-  search: BookmarkSearch;
   hasActiveFilters: boolean;
   isLoading: boolean;
   error: Error | null;
@@ -136,38 +144,38 @@ interface BookmarkListBodyProps {
 }
 
 /**
- * The bookmarks-tab body: loading/error/empty states, the card-or-table list, and pagination. Split
- * out of {@link BookmarkListPane} so the gallery-tab switch doesn't push the pane over the complexity
- * cap.
+ * The bookmarks-tab body: loading/error/empty states, the card-or-table list, and pagination. The
+ * page slice and total come from the server (`POST /api/bookmarks/search`); this body only renders
+ * them. Split out of {@link BookmarkListPane} so the gallery-tab switch doesn't push the pane over
+ * the complexity cap.
  */
 function BookmarkListBody({
   pageKey,
   columns,
   visibleBookmarks,
   properties,
-  search,
   hasActiveFilters,
   isLoading,
   error,
   emptyMessage,
   noMatchMessage,
   addFormCategoryId,
+  total,
+  page,
+  totalPages,
+  rangeStart,
+  rangeEnd,
+  onPageChange,
 }: BookmarkListBodyProps) {
   const {
     t,
   } = useTranslation();
-  const headerSearchQuery = useUiStore(s => s.headerSearchQuery);
-  const perPage = useBookmarksPerPage();
-  const resetKey = `${pageKey}|${headerSearchQuery}|${JSON.stringify(search)}`;
-  const {
-    page, totalPages, pageItems, total, rangeStart, rangeEnd, setPage,
-  } = useListingPagination(visibleBookmarks, perPage, resetKey);
 
   return (
     <>
       {isLoading ? <p className="text-muted-foreground">{t("Loading bookmarks…")}</p> : null}
       {error ? <p className="text-destructive">{error.message}</p> : null}
-      {!isLoading && visibleBookmarks.length === 0
+      {!isLoading && !error && visibleBookmarks.length === 0
         ? (
           <p className="text-muted-foreground">
             {hasActiveFilters ? noMatchMessage : emptyMessage}
@@ -181,7 +189,7 @@ function BookmarkListBody({
             <BookmarkListContent
               pageKey={pageKey}
               columns={columns}
-              visibleBookmarks={pageItems}
+              visibleBookmarks={visibleBookmarks}
               properties={properties}
               addFormCategoryId={addFormCategoryId}
             />
@@ -191,7 +199,7 @@ function BookmarkListBody({
               rangeStart={rangeStart}
               rangeEnd={rangeEnd}
               total={total}
-              onPageChange={setPage}
+              onPageChange={onPageChange}
             />
           </>
         )
@@ -201,6 +209,38 @@ function BookmarkListBody({
 }
 
 type ResultsTab = "bookmarks" | "gallery";
+
+/**
+ * The gallery-tab body: the image grid over the current server page, with the same pager as the
+ * list below it. Extracted so `BookmarkListPane` stays under the complexity cap.
+ */
+function BookmarkGalleryBody({
+  pageKey, bookmarks, ...pager
+}: BookmarkListPager & {
+  pageKey: string;
+  bookmarks: Bookmark[];
+}) {
+  return (
+    <>
+      <BookmarkImageGallery
+        bookmarks={bookmarks}
+        pageKey={pageKey}
+      />
+      {bookmarks.length > 0
+        ? (
+          <BookmarkPagination
+            page={pager.page}
+            totalPages={pager.totalPages}
+            rangeStart={pager.rangeStart}
+            rangeEnd={pager.rangeEnd}
+            total={pager.total}
+            onPageChange={pager.onPageChange}
+          />
+        )
+        : null}
+    </>
+  );
+}
 
 /**
  * The tab strip above the results — Bookmarks and an optional Gallery. Both share the filter
@@ -255,7 +295,8 @@ function ResultsTabNav({
 
 /**
  * Right column of the search view: the matching bookmarks (grid/table) or an image gallery —
- * switched by the tab strip, both sharing the same filtered set.
+ * switched by the tab strip, both showing the same server page (the gallery pages with the same
+ * pager as the list).
  */
 export function BookmarkListPane({
   pageKey,
@@ -264,6 +305,12 @@ export function BookmarkListPane({
   properties,
   search,
   textSearchActive = false,
+  total,
+  page,
+  totalPages,
+  rangeStart,
+  rangeEnd,
+  onPageChange,
   isLoading,
   error,
   emptyMessage,
@@ -275,10 +322,6 @@ export function BookmarkListPane({
 }: BookmarkListPaneProps) {
   useRegisterBulkSelect(pageKey);
   const [tab, setTab] = useState<ResultsTab>("bookmarks");
-  const titleSort = usePageTitleSort(pageKey);
-  const defaultSort = useDefaultBookmarkSort();
-  const filtered = bookmarks.filter(bookmark => bookmarkMatchesSearch(bookmark, search));
-  const visibleBookmarks = sortBookmarks(filtered, search.sort ?? defaultSort ?? undefined, properties, titleSort);
   const hasActiveFilters = hasAnyActiveFilter(search) || textSearchActive;
   // Controlled (outer `_hub` URL strip) vs. uncontrolled (own `useState` strip on `/bookmarks`).
   const controlled = activeView != null;
@@ -302,9 +345,15 @@ export function BookmarkListPane({
 
       {activeTab === "gallery"
         ? (
-          <BookmarkImageGallery
-            bookmarks={visibleBookmarks}
+          <BookmarkGalleryBody
             pageKey={pageKey}
+            bookmarks={bookmarks}
+            total={total}
+            page={page}
+            totalPages={totalPages}
+            rangeStart={rangeStart}
+            rangeEnd={rangeEnd}
+            onPageChange={onPageChange}
           />
         )
         : null}
@@ -313,15 +362,20 @@ export function BookmarkListPane({
           <BookmarkListBody
             pageKey={pageKey}
             columns={columns}
-            visibleBookmarks={visibleBookmarks}
+            visibleBookmarks={bookmarks}
             properties={properties}
-            search={search}
             hasActiveFilters={hasActiveFilters}
             isLoading={isLoading}
             error={error}
             emptyMessage={emptyMessage}
             noMatchMessage={noMatchMessage}
             addFormCategoryId={addFormCategoryId}
+            total={total}
+            page={page}
+            totalPages={totalPages}
+            rangeStart={rangeStart}
+            rangeEnd={rangeEnd}
+            onPageChange={onPageChange}
           />
         )
         : null}

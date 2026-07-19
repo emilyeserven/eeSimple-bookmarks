@@ -11,8 +11,8 @@ import { sectionsCarryAnyTag } from "./sectionTags.js";
  * Evaluated server-side by `POST /api/bookmarks/search`.
  */
 export type BookmarkSearchScope
-  /** Exact single-value relations. */
-  = | { kind: "category" | "mediaType" | "website" | "youtubeChannel";
+  /** Exact single-value relations (`import` = a newsletter issue's import group). */
+  = | { kind: "category" | "mediaType" | "website" | "youtubeChannel" | "import";
     id: string; }
   /** Multi-value relations, exact-id "any match". */
     | { kind: "person" | "group";
@@ -39,6 +39,7 @@ export type ScopeMatchableBookmark = Pick<
   | "mediaType"
   | "website"
   | "youtubeChannel"
+  | "import"
   | "people"
   | "groups"
   | "genreMoods"
@@ -80,6 +81,8 @@ export function bookmarkMatchesScope(
       return bookmark.website?.id === scope.id;
     case "youtubeChannel":
       return bookmark.youtubeChannel?.id === scope.id;
+    case "import":
+      return bookmark.import?.id === scope.id;
     case "person":
       return bookmark.people.some(entry => entry.id === scope.id);
     case "group":
@@ -114,6 +117,7 @@ const ID_SCOPE_KINDS = [
   "mediaType",
   "website",
   "youtubeChannel",
+  "import",
   "person",
   "group",
   "genreMood",

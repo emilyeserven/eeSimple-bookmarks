@@ -1,11 +1,12 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Person, Bookmark, Category, CustomProperty, GenreMood, MediaType, PlaceType, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Person, BookmarkSearchScope, Category, CustomProperty, GenreMood, MediaType, PlaceType, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 import type { ReactNode } from "react";
 
 import { BookmarkFilterControls } from "./BookmarkFilterControls";
 import { BookmarkListPane } from "./BookmarkListPane";
 import { BookmarkSortPopover } from "./BookmarkSortPopover";
 import { ListingSearchBox } from "./ListingSearchBox";
+import { NumberBoundsProvider } from "./NumberBoundsContext";
 import { useBookmarkSearchView } from "./useBookmarkSearchView";
 
 interface BookmarkSearchViewProps {
@@ -32,12 +33,13 @@ interface BookmarkSearchViewProps {
   placeTypes?: PlaceType[];
   /** Genres & Moods offered as a multi-select filter in the rail. */
   genreMoods?: GenreMood[];
-  /** Bookmarks already narrowed by tag (and category, on category pages). */
-  bookmarks: Bookmark[];
+  /**
+   * The entity-scoped listing's scope (a category/tag/… page), evaluated server-side alongside the
+   * filters and free-text search. Omitted on the main `/bookmarks` page.
+   */
+  scope?: BookmarkSearchScope;
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
-  isLoading: boolean;
-  error: Error | null;
   /** Message shown when there are no bookmarks and no filter is active. */
   emptyMessage: string;
   /** Message shown when a filter is active but nothing matches it. */
@@ -59,10 +61,10 @@ interface BookmarkSearchViewProps {
 }
 
 /**
- * Shared layout for the search pages (Bookmarks and each category): the pinnable search box
- * (search + sort + filter pills, via {@link ListingSearchBox}) above the add form and matching
- * bookmark list. Tag filtering is applied upstream (server-side); this view applies the
- * custom-property filters.
+ * Shared layout for the search pages (Bookmarks and each entity-scoped listing): the pinnable
+ * search box (search + sort + filter pills, via {@link ListingSearchBox}) above the add form and
+ * matching bookmark list. The entity scope, facet filters, free-text search, sort, and pagination
+ * all evaluate server-side (`POST /api/bookmarks/search`); this view renders one page at a time.
  */
 export function BookmarkSearchView({
   header,
@@ -77,11 +79,9 @@ export function BookmarkSearchView({
   people,
   placeTypes,
   genreMoods,
-  bookmarks,
+  scope,
   search,
   onSearchChange,
-  isLoading,
-  error,
   emptyMessage,
   noMatchMessage,
   addFormCategoryId,
@@ -89,9 +89,7 @@ export function BookmarkSearchView({
   showGallery,
   activeView,
 }: BookmarkSearchViewProps) {
-  const {
-    columns, textFilteredBookmarks, textSearchActive,
-  } = useBookmarkSearchView({
+  const view = useBookmarkSearchView({
     pageKey,
     tree,
     properties,
@@ -103,55 +101,63 @@ export function BookmarkSearchView({
     people,
     placeTypes,
     genreMoods,
-    bookmarks,
+    scope,
     search,
     onSearchChange,
     addFormCategoryId,
   });
 
   return (
-    <section className="space-y-8">
-      {header}
+    <NumberBoundsProvider value={view.numberBounds}>
+      <section className="space-y-8">
+        {header}
 
-      <ListingSearchBox
-        sort={<BookmarkSortPopover label />}
-        filters={(
-          <BookmarkFilterControls
-            tree={tree}
-            properties={properties}
-            categories={categories}
-            mediaTypes={mediaTypes}
-            youtubeChannels={youtubeChannels}
-            websites={websites}
-            relationshipTypes={relationshipTypes}
-            people={people}
-            placeTypes={placeTypes}
-            genreMoods={genreMoods}
-            bookmarks={bookmarks}
-            search={search}
-            onSearchChange={onSearchChange}
-          />
-        )}
-      />
-
-      <div className="grid gap-8">
-        <BookmarkListPane
-          pageKey={pageKey}
-          columns={columns}
-          bookmarks={textFilteredBookmarks}
-          properties={properties}
-          search={search}
-          textSearchActive={textSearchActive}
-          isLoading={isLoading}
-          error={error}
-          emptyMessage={emptyMessage}
-          noMatchMessage={noMatchMessage}
-          addFormCategoryId={addFormCategoryId}
-          afterAddForm={afterAddForm}
-          showGallery={showGallery}
-          activeView={activeView}
+        <ListingSearchBox
+          sort={<BookmarkSortPopover label />}
+          filters={(
+            <BookmarkFilterControls
+              tree={tree}
+              properties={properties}
+              categories={categories}
+              mediaTypes={mediaTypes}
+              youtubeChannels={youtubeChannels}
+              websites={websites}
+              relationshipTypes={relationshipTypes}
+              people={people}
+              placeTypes={placeTypes}
+              genreMoods={genreMoods}
+              bookmarks={view.bookmarks}
+              search={search}
+              onSearchChange={onSearchChange}
+            />
+          )}
         />
-      </div>
-    </section>
+
+        <div className="grid gap-8">
+          <BookmarkListPane
+            pageKey={pageKey}
+            columns={view.columns}
+            bookmarks={view.bookmarks}
+            properties={properties}
+            search={search}
+            textSearchActive={view.textSearchActive}
+            total={view.total}
+            page={view.page}
+            totalPages={view.totalPages}
+            rangeStart={view.rangeStart}
+            rangeEnd={view.rangeEnd}
+            onPageChange={view.setPage}
+            isLoading={view.isLoading}
+            error={view.error}
+            emptyMessage={emptyMessage}
+            noMatchMessage={noMatchMessage}
+            addFormCategoryId={addFormCategoryId}
+            afterAddForm={afterAddForm}
+            showGallery={showGallery}
+            activeView={activeView}
+          />
+        </div>
+      </section>
+    </NumberBoundsProvider>
   );
 }

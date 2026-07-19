@@ -1,10 +1,15 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
-import type { Person, Bookmark, Category, CustomProperty, GenreMood, MediaType, PlaceType, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Person, Bookmark, BookmarkSearchScope, Category, CustomProperty, GenreMood, MediaType, PlaceType, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
 import { useEffect } from "react";
 
+import { useBookmarksPerPage, useDefaultBookmarkSort } from "../hooks/useAppSettings";
+import { useBookmarkServerSearch } from "../hooks/useBookmarkServerSearch";
+import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { useSetListingPage } from "../hooks/useListingPage";
+import { usePageTitleSort } from "../hooks/useTitleSortContext";
 import { useBookmarkColumns } from "../lib/bookmarkColumns";
+import { useClampedPageWindow, useServerPagination } from "../lib/useServerPagination";
 import { useUiStore } from "../stores/uiStore";
 
 /** The filter-context payload shared with the sort control + CMD+K palette via the UI store. */
@@ -20,7 +25,8 @@ export interface BookmarkSearchViewData {
   people?: Person[];
   placeTypes?: PlaceType[];
   genreMoods?: GenreMood[];
-  bookmarks: Bookmark[];
+  /** The entity-scoped listing's scope, evaluated server-side; absent on the main Bookmarks page. */
+  scope?: BookmarkSearchScope;
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
   /** When set, the header Add Bookmark modal locks new bookmarks to this category (category pages). */
@@ -30,36 +36,31 @@ export interface BookmarkSearchViewData {
 export interface BookmarkSearchViewState {
   /** Per-page column count for the listing grid. */
   columns: number;
-  /** Bookmarks after applying the header quick-search text filter. */
-  textFilteredBookmarks: Bookmark[];
-  /** True when the header quick-search has a non-empty query. */
+  /** The current server page of matching bookmarks. */
+  bookmarks: Bookmark[];
+  /** Total matches across all pages (drives the pager). */
+  total: number;
+  page: number;
+  totalPages: number;
+  /** 1-indexed range of the visible page within the total (0/0 when empty). */
+  rangeStart: number;
+  rangeEnd: number;
+  setPage: (page: number) => void;
+  /** Server-reported per-property `[min, max]` for the filter sliders. */
+  numberBounds: Record<string, [number, number]> | undefined;
+  /** True when the header quick-search has a non-empty (debounced) query. */
   textSearchActive: boolean;
+  isLoading: boolean;
+  error: Error | null;
 }
 
-/**
- * Owns the hook-dense state orchestration for {@link BookmarkSearchView}: the listing-page
- * registration, header search wiring, the sort filter-context publish/cleanup effect, and the header
- * text filter — leaving the view component a thin render shell.
- */
-export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSearchViewState {
+/** Publishes the filter-context payload the sort control + CMD+K palette read from the UI store. */
+function useBookmarkFilterContext(data: BookmarkSearchViewData, bookmarks: Bookmark[]): void {
   const {
-    pageKey, tree, properties, categories, mediaTypes, youtubeChannels,
-    websites, relationshipTypes, people, placeTypes, genreMoods, bookmarks, search, onSearchChange,
-    addFormCategoryId,
+    tree, properties, categories, mediaTypes, youtubeChannels, websites,
+    relationshipTypes, people, placeTypes, genreMoods, search, onSearchChange,
   } = data;
-
-  useSetListingPage(pageKey, {
-    showsImages: true,
-    hasFilters: true,
-    showsCards: true,
-    hasSort: true,
-    addBookmark: {
-      categoryId: addFormCategoryId,
-    },
-  });
-  const columns = useBookmarkColumns(pageKey);
   const setFilterContext = useUiStore(state => state.setFilterContext);
-  const headerSearchQuery = useUiStore(state => state.headerSearchQuery);
 
   useEffect(() => {
     setFilterContext({
@@ -80,19 +81,69 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
     return () => setFilterContext(null);
     // onSearchChange is a new arrow fn each render from the page; stable deps are the data arrays
   }, [tree, properties, categories, mediaTypes, youtubeChannels, websites, relationshipTypes, people, placeTypes, genreMoods, bookmarks, search, onSearchChange, setFilterContext]);
+}
 
-  const q = headerSearchQuery.trim().toLowerCase();
-  const textFilteredBookmarks = q
-    ? bookmarks.filter(b =>
-      b.title.toLowerCase().includes(q)
-      || b.names.some(name => name.value.toLowerCase().includes(q))
-      || (b.url?.toLowerCase() ?? "").includes(q)
-      || (b.description ?? "").toLowerCase().includes(q))
-    : bookmarks;
+/**
+ * Owns the hook-dense state orchestration for {@link BookmarkSearchView}: the listing-page
+ * registration, the debounced header search, the server-search query (facets + free text + sort +
+ * pagination all evaluate in the middleware — see `POST /api/bookmarks/search`), the page state,
+ * and the filter-context publish/cleanup — leaving the view component a thin render shell.
+ */
+export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSearchViewState {
+  const {
+    pageKey, search, scope, addFormCategoryId,
+  } = data;
+
+  useSetListingPage(pageKey, {
+    showsImages: true,
+    hasFilters: true,
+    showsCards: true,
+    hasSort: true,
+    addBookmark: {
+      categoryId: addFormCategoryId,
+    },
+  });
+  const columns = useBookmarkColumns(pageKey);
+  const headerSearchQuery = useUiStore(state => state.headerSearchQuery);
+  const q = useDebouncedValue(headerSearchQuery.trim().toLowerCase());
+
+  const perPage = useBookmarksPerPage();
+  const defaultSort = useDefaultBookmarkSort();
+  const titleSort = usePageTitleSort(pageKey);
+
+  const serverSearch = {
+    ...search,
+    sort: search.sort ?? defaultSort ?? undefined,
+  };
+  const resetKey = `${pageKey}|${q}|${JSON.stringify(search)}`;
+  const pager = useServerPagination(perPage, resetKey);
+
+  const result = useBookmarkServerSearch({
+    search: serverSearch,
+    q,
+    offset: pager.offset,
+    limit: perPage,
+    scope,
+    titleSort,
+  });
+  const bookmarks = result.bookmarks ?? [];
+  const total = result.total ?? 0;
+  const window = useClampedPageWindow(pager, result.total, perPage);
+
+  useBookmarkFilterContext(data, bookmarks);
 
   return {
     columns,
-    textFilteredBookmarks,
-    textSearchActive: Boolean(q),
+    bookmarks,
+    total,
+    page: window.page,
+    totalPages: window.totalPages,
+    rangeStart: window.rangeStart,
+    rangeEnd: window.rangeStart === 0 ? 0 : window.offset + bookmarks.length,
+    setPage: pager.setPage,
+    numberBounds: result.numberBounds,
+    textSearchActive: q !== "",
+    isLoading: result.isLoading,
+    error: result.error,
   };
 }

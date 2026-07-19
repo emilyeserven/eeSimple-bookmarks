@@ -27,6 +27,7 @@ export * from "./amazon.js";
 export * from "./bookmarkAddForm.js";
 export * from "./bookmarkContentKind.js";
 export * from "./bookmarkSearch.js";
+export * from "./bookmarkSearchApi.js";
 export * from "./bookmarkSearchMatch.js";
 export * from "./bookmarkSearchScope.js";
 export * from "./bookmarkSortEngine.js";

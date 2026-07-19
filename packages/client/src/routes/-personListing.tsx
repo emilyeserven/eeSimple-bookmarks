@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { usePersonBySlug } from "../hooks/usePeople";
-import { tagsForServerQuery } from "../lib/bookmarkSearch";
 
 interface Props {
   personSlug: string;
@@ -30,9 +29,6 @@ export function PersonListing({
   const {
     categories,
     properties,
-    bookmarks,
-    bookmarksLoading,
-    error,
     tagTree,
     mediaTypes,
     youtubeChannels,
@@ -41,7 +37,7 @@ export function PersonListing({
     people,
     placeTypes,
     genreMoods,
-  } = useCategoryPageData(tagsForServerQuery(search));
+  } = useCategoryPageData();
 
   const {
     person, isLoading: personLoading,
@@ -54,9 +50,6 @@ export function PersonListing({
   if (!person) {
     return <p className="text-destructive">{t("Person not found.")}</p>;
   }
-
-  const personBookmarks = (bookmarks ?? []).filter(b =>
-    b.people?.some(entry => entry.id === person.id));
 
   return (
     <BookmarkSearchView
@@ -72,11 +65,12 @@ export function PersonListing({
       people={people ?? []}
       placeTypes={placeTypes ?? []}
       genreMoods={genreMoods ?? []}
-      bookmarks={personBookmarks}
+      scope={{
+        kind: "person",
+        id: person.id,
+      }}
       search={search}
       onSearchChange={onSearchChange}
-      isLoading={bookmarksLoading}
-      error={error}
       emptyMessage={t("No bookmarks credited to this person yet.")}
       noMatchMessage={t("No bookmarks credited to this person match these filters.")}
     />

@@ -5,8 +5,6 @@ import { useTranslation } from "react-i18next";
 
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
-import { tagsForServerQuery } from "../lib/bookmarkSearch";
-import { subtreeIds } from "../lib/tagTree";
 
 interface Props {
   term: TaxonomyTermNode;
@@ -31,20 +29,12 @@ export function TaxonomyTermListing({
   const {
     categories,
     properties,
-    bookmarks,
-    bookmarksLoading,
-    error,
     tagTree,
     youtubeChannels,
     relationshipTypes,
     people,
     placeTypes,
-  } = useCategoryPageData(tagsForServerQuery(search));
-
-  // Include bookmarks carrying this term or any of its descendants.
-  const termIds = new Set(subtreeIds(term));
-  const termBookmarks = (bookmarks ?? []).filter(b =>
-    b.taxonomyTerms?.some(entry => termIds.has(entry.id)));
+  } = useCategoryPageData();
 
   return (
     <BookmarkSearchView
@@ -57,11 +47,12 @@ export function TaxonomyTermListing({
       relationshipTypes={relationshipTypes ?? []}
       people={people ?? []}
       placeTypes={placeTypes ?? []}
-      bookmarks={termBookmarks}
+      scope={{
+        kind: "taxonomyTerm",
+        id: term.id,
+      }}
       search={search}
       onSearchChange={onSearchChange}
-      isLoading={bookmarksLoading}
-      error={error}
       emptyMessage={t("No bookmarks with this term yet.")}
       noMatchMessage={t("No bookmarks with this term match these filters.")}
     />

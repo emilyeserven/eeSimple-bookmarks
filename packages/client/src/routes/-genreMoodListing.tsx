@@ -5,8 +5,6 @@ import { useTranslation } from "react-i18next";
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { useGenreMoodBySlug } from "../hooks/useGenreMoods";
-import { tagsForServerQuery } from "../lib/bookmarkSearch";
-import { subtreeIds } from "../lib/tagTree";
 
 interface Props {
   genreMoodSlug: string;
@@ -31,15 +29,12 @@ export function GenreMoodListing({
   const {
     categories,
     properties,
-    bookmarks,
-    bookmarksLoading,
-    error,
     tagTree,
     youtubeChannels,
     relationshipTypes,
     people,
     placeTypes,
-  } = useCategoryPageData(tagsForServerQuery(search));
+  } = useCategoryPageData();
 
   const {
     genreMood, isLoading: genreMoodLoading,
@@ -53,11 +48,6 @@ export function GenreMoodListing({
     return <p className="text-destructive">{t("Entry not found.")}</p>;
   }
 
-  // Include bookmarks carrying this genre/mood or any of its descendants.
-  const genreMoodIds = new Set(subtreeIds(genreMood));
-  const genreMoodBookmarks = (bookmarks ?? []).filter(b =>
-    b.genreMoods?.some(entry => genreMoodIds.has(entry.id)));
-
   return (
     <BookmarkSearchView
       activeView={activeView}
@@ -69,11 +59,12 @@ export function GenreMoodListing({
       relationshipTypes={relationshipTypes ?? []}
       people={people ?? []}
       placeTypes={placeTypes ?? []}
-      bookmarks={genreMoodBookmarks}
+      scope={{
+        kind: "genreMood",
+        id: genreMood.id,
+      }}
       search={search}
       onSearchChange={onSearchChange}
-      isLoading={bookmarksLoading}
-      error={error}
       emptyMessage={t("No bookmarks with this entry yet.")}
       noMatchMessage={t("No bookmarks with this entry match these filters.")}
     />
