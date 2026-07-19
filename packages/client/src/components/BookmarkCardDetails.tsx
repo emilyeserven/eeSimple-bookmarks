@@ -2,10 +2,10 @@ import type { BookmarkCardMenuControls } from "./BookmarkCardActions";
 import type { FieldRender } from "./bookmarkCardTaxonomyFields";
 import type { ResolvedFieldPlacement } from "../lib/bookmarkCardValues";
 import type { RenderBodySection } from "../lib/cardBodySections";
-import type { Bookmark, CardZoneLayouts, Category, CustomProperty } from "@eesimple/types";
+import type { Bookmark, CardZoneLayouts, Category, CustomProperty, TextMatchField } from "@eesimple/types";
 import type { ReactNode } from "react";
 
-import { favoriteSectionEntries, taggedSectionNames } from "@eesimple/types";
+import { bookmarkTextMatchFields, favoriteSectionEntries, taggedSectionNames } from "@eesimple/types";
 import { Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -20,6 +20,7 @@ import { buildBookmarkValueItems } from "../lib/bookmarkCardValues";
 import { bodySectionsFromZones } from "../lib/cardBodySections";
 import { cardBodyContainerClass, gapClass } from "../lib/cardZoneLayoutClasses";
 import { formatDateTimeValue } from "../lib/datetime";
+import { useUiStore } from "../stores/uiStore";
 
 import { Badge } from "@/components/ui/badge";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
@@ -166,6 +167,16 @@ export function BookmarkCardDetails({
   // Present only on a tag page in `?taggedSections` mode — the "Tagged sections" field's gate.
   // (Hook stays at component level: `describeField` below is a plain call, not a component.)
   const sectionTagScope = useSectionTagScope();
+  // The active header quick-search — the "Match Type" field's gate. Read at component level (same
+  // reason as above); the field self-hides when it's empty or the bookmark matched nothing.
+  const searchQuery = useUiStore(state => state.headerSearchQuery).trim().toLowerCase();
+  const matchFieldLabels: Record<TextMatchField, string> = {
+    title: t("Title"),
+    name: t("Name"),
+    url: t("URL"),
+    description: t("Description"),
+    section: t("Section"),
+  };
 
   // The card header elements, now placeable fields (title link, open-URL button, "More" menu).
   const titleNode = <BookmarkTitleLink bookmark={bookmark} />;
@@ -387,6 +398,30 @@ export function BookmarkCardDetails({
           block: node,
           tableName: t("Favorite Sections"),
           tableValue: node,
+        };
+      }
+      case "matchType": {
+        // Renders only while a header quick-search is active — the field(s) of this bookmark the
+        // query matched (Title / Name / URL / Description / Section). Self-hides otherwise.
+        const matchedFields = bookmarkTextMatchFields(bookmark, searchQuery);
+        if (matchedFields.length === 0) return null;
+        const chips = (
+          <span className="flex flex-wrap items-center gap-1">
+            {matchedFields.map(field => (
+              <Badge
+                key={field}
+                variant="secondary"
+              >
+                {matchFieldLabels[field]}
+              </Badge>
+            ))}
+          </span>
+        );
+        return {
+          inline: chips,
+          block: chips,
+          tableName: t("Match Type"),
+          tableValue: chips,
         };
       }
       default: {

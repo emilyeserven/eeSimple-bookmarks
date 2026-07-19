@@ -1,7 +1,25 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 
-import { resolveServerPage } from "./serverPagination";
+import { fillRowsPageSize, resolveServerPage } from "./serverPagination";
+
+describe("fillRowsPageSize", () => {
+  it("rounds the page size up to a whole multiple of the column count", () => {
+    expect(fillRowsPageSize(25, 3)).toBe(27);
+    expect(fillRowsPageSize(25, 4)).toBe(28);
+    expect(fillRowsPageSize(25, 2)).toBe(26);
+  });
+
+  it("leaves an already-aligned page size unchanged", () => {
+    expect(fillRowsPageSize(25, 5)).toBe(25);
+    expect(fillRowsPageSize(25, 1)).toBe(25);
+  });
+
+  it("leaves the page size untouched when there is no column count (table view)", () => {
+    expect(fillRowsPageSize(25, 0)).toBe(25);
+    expect(fillRowsPageSize(25, -1)).toBe(25);
+  });
+});
 
 describe("resolveServerPage", () => {
   it("computes the window for an in-range page", () => {

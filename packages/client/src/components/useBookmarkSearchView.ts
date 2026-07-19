@@ -8,7 +8,8 @@ import { useBookmarkServerSearch } from "../hooks/useBookmarkServerSearch";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { useSetListingPage } from "../hooks/useListingPage";
 import { usePageTitleSort } from "../hooks/useTitleSortContext";
-import { useBookmarkColumns } from "../lib/bookmarkColumns";
+import { useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
+import { fillRowsPageSize } from "../lib/serverPagination";
 import { useClampedPageWindow, useServerPagination } from "../lib/useServerPagination";
 import { useUiStore } from "../stores/uiStore";
 
@@ -104,6 +105,7 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
     },
   });
   const columns = useBookmarkColumns(pageKey);
+  const viewMode = useViewMode(pageKey);
   const headerSearchQuery = useUiStore(state => state.headerSearchQuery);
   const q = useDebouncedValue(headerSearchQuery.trim().toLowerCase());
 
@@ -111,24 +113,29 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
   const defaultSort = useDefaultBookmarkSort();
   const titleSort = usePageTitleSort(pageKey);
 
+  // In the card/gallery grid, round the page size up to a whole multiple of the column count so the
+  // last row fills (25 @ 3 cols → 27). Table view has no columns, so it keeps the raw page size.
+  const effectivePerPage = viewMode === "table" ? perPage : fillRowsPageSize(perPage, columns);
+
   const serverSearch = {
     ...search,
     sort: search.sort ?? defaultSort ?? undefined,
   };
-  const resetKey = `${pageKey}|${q}|${JSON.stringify(search)}`;
-  const pager = useServerPagination(perPage, resetKey);
+  // `effectivePerPage` is in the reset key so changing the column count (or page size) snaps to page 1.
+  const resetKey = `${pageKey}|${q}|${effectivePerPage}|${JSON.stringify(search)}`;
+  const pager = useServerPagination(effectivePerPage, resetKey);
 
   const result = useBookmarkServerSearch({
     search: serverSearch,
     q,
     offset: pager.offset,
-    limit: perPage,
+    limit: effectivePerPage,
     scope,
     titleSort,
   });
   const bookmarks = result.bookmarks ?? [];
   const total = result.total ?? 0;
-  const window = useClampedPageWindow(pager, result.total, perPage);
+  const window = useClampedPageWindow(pager, result.total, effectivePerPage);
 
   useBookmarkFilterContext(data, bookmarks);
 

@@ -15,6 +15,18 @@ export interface ServerPageWindow {
 }
 
 /**
+ * Round `perPage` up to a whole multiple of `columns` so a grid page fills complete rows (e.g. 25
+ * items at 3 columns → 27 = 9 full rows, instead of a ragged last row of 1). `columns < 1` (or
+ * absent) leaves `perPage` untouched — used for the table view, which has no column count.
+ */
+export function fillRowsPageSize(perPage: number, columns: number): number {
+  const size = Math.max(1, Math.floor(perPage));
+  if (columns < 1) return size;
+  const cols = Math.floor(columns);
+  return Math.ceil(size / cols) * cols;
+}
+
+/**
  * Clamp `page` against a server-reported `total`. While the total is still unknown (first load),
  * the requested page is trusted so the query can fire; once known, an out-of-range page (e.g.
  * after a delete shrank the set) snaps to the last page.

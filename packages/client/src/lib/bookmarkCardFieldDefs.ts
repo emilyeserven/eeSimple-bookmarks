@@ -72,6 +72,10 @@ export const STANDARD_CARD_FIELDS = [
     label: "Favorite Sections",
   },
   {
+    key: "matchType",
+    label: "Match Type",
+  },
+  {
     key: "createdAt",
     label: "Date Added",
   },
