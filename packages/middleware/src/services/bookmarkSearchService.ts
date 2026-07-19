@@ -140,10 +140,11 @@ export async function searchBookmarks(
   // Fresh hydration of just the page: display-only fields (images, screenshots) don't bump the
   // cache version, so the response must not come from the matching cache.
   const pageIds = page.map(bookmark => bookmark.id);
-  const pageRows = pageIds.length > 0
-    ? await db.select().from(bookmarks).where(inArray(bookmarks.id, pageIds))
+  const hydrated = pageIds.length > 0
+    ? await hydrateBookmarkRows(
+      await db.select().from(bookmarks).where(inArray(bookmarks.id, pageIds)),
+    )
     : [];
-  const hydrated = await hydrateBookmarkRows(pageRows);
   const hydratedById = new Map(hydrated.map(bookmark => [bookmark.id, bookmark]));
   const pageBookmarks = pageIds
     .map(id => hydratedById.get(id))
