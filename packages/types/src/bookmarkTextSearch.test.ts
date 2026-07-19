@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import type { TextSearchableBookmark } from "./bookmarkTextSearch.js";
 
-import { bookmarkMatchesText } from "./bookmarkTextSearch.js";
+import { bookmarkMatchesText, bookmarkTextMatchFields } from "./bookmarkTextSearch.js";
 
 function makeSearchable(overrides: Partial<TextSearchableBookmark> = {}): TextSearchableBookmark {
   return {
@@ -115,4 +115,82 @@ test("does not match section start/end values or section urls", () => {
   assert.equal(bookmarkMatchesText(bookmark, "42"), false);
   assert.equal(bookmarkMatchesText(bookmark, "77"), false);
   assert.equal(bookmarkMatchesText(bookmark, "deep-link"), false);
+});
+
+test("bookmarkTextMatchFields reports which fields matched, in priority order", () => {
+  const bookmark = makeSearchable({
+    title: "Seahorse notes",
+    description: "About seahorses and butterflies",
+    sectionsValues: [{
+      propertyId: "p1",
+      exhaustive: false,
+      sections: [{
+        id: "s1",
+        name: "Seahorse chapter",
+        type: "name",
+        startValue: "",
+      }],
+    }],
+  });
+  assert.deepEqual(bookmarkTextMatchFields(bookmark, "seahorse"), ["title", "description", "section"]);
+});
+
+test("bookmarkTextMatchFields matches a child section name as 'section'", () => {
+  const bookmark = makeSearchable({
+    title: "Untitled",
+    url: null,
+    sectionsValues: [{
+      propertyId: "p1",
+      exhaustive: false,
+      sections: [{
+        id: "s1",
+        name: "Part I",
+        type: "name",
+        startValue: "",
+        children: [{
+          id: "s1a",
+          name: "Nested migration chapter",
+          type: "name",
+          startValue: "",
+        }],
+      }],
+    }],
+  });
+  assert.deepEqual(bookmarkTextMatchFields(bookmark, "migration"), ["section"]);
+});
+
+test("bookmarkTextMatchFields returns [] for an empty query and never matches section values", () => {
+  assert.deepEqual(bookmarkTextMatchFields(makeSearchable(), ""), []);
+  const bookmark = makeSearchable({
+    sectionsValues: [{
+      propertyId: "p1",
+      exhaustive: false,
+      sections: [{
+        id: "s1",
+        name: "Intro",
+        type: "page",
+        startValue: "42",
+      }],
+    }],
+  });
+  assert.deepEqual(bookmarkTextMatchFields(bookmark, "42"), []);
+});
+
+test("bookmarkTextMatchFields matches an alternate name as 'name'", () => {
+  const bookmark = makeSearchable({
+    title: "Untitled",
+    url: null,
+    names: [{
+      id: "n1",
+      language: {
+        id: "lang-ja",
+        name: "Japanese",
+        slug: "japanese",
+        isoCode: "ja",
+      },
+      value: "日本語のタイトル",
+      isPrimary: false,
+    }],
+  });
+  assert.deepEqual(bookmarkTextMatchFields(bookmark, "日本語"), ["name"]);
 });

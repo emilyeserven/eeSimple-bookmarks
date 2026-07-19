@@ -181,6 +181,43 @@ export async function backfillCardDisplaySections(): Promise<void> {
 }
 
 /**
+ * Ensure the "Match Type" card field is placed on the Default config for an existing deploy — new
+ * installs already get it via the seed (`defaultFieldZones()` includes the key). "Absent = hidden",
+ * so without this an upgraded deploy would never show the field, even though it only renders while a
+ * search is active. Appends it to the last body section if no section already carries it. Idempotent;
+ * prune once it has run in production (per the `card-field-area` skill's spent-backfill note).
+ */
+export async function backfillMatchTypeCardField(): Promise<void> {
+  const row = await loadDefaultRow();
+  if (!row) return;
+  const sections = row.sections
+    ?? cardDisplayConfigFromFieldZones(
+      row.fieldZones ?? defaultFieldZones(),
+      row.cardZoneLayouts,
+      toImageAttrs(row),
+    ).sections;
+  if (sections.length === 0 || sections.some(section => section.fields.some(field => field.key === "matchType"))) {
+    return;
+  }
+  const lastIndex = sections.length - 1;
+  const next = sections.map((section, index) =>
+    index === lastIndex
+      ? {
+        ...section,
+        fields: [...section.fields, {
+          key: "matchType",
+        }],
+      }
+      : section);
+  await db
+    .update(cardDisplayRules)
+    .set({
+      sections: next,
+    })
+    .where(eq(cardDisplayRules.id, row.id));
+}
+
+/**
  * Remove any non-default card display rules left from the retired multi-rule model. The single-config
  * resolver only ever reads the Default row, so leftover rows are inert; this just tidies them. Idempotent.
  */

@@ -3,7 +3,7 @@ import { buildApp, docsEnabled } from "@/app";
 import { maybeSeed } from "@/db/seed";
 import { ensureAppSettings, ensureDefaultPlaceTypeLevelGroups } from "@/services/appSettings";
 import { ensureDefaultGroupTypes } from "@/services/groupTypes";
-import { backfillCardDisplaySections, deleteNonDefaultCardDisplayRules, ensureCardDisplayConfig } from "@/services/cardDisplayRules";
+import { backfillCardDisplaySections, backfillMatchTypeCardField, deleteNonDefaultCardDisplayRules, ensureCardDisplayConfig } from "@/services/cardDisplayRules";
 import { ensureDefaultCategory } from "@/services/categories";
 import { ensureContentStatusProperty, ensureDatePostedProperty, ensureFillInStatusProperty, ensureIsbnProperty, ensurePageRangeProperty, ensureProgressProperty, ensureRuntimeProperty, ensureSectionsProperty } from "@/services/customProperties";
 import { ensureHomepageFilter } from "@/services/homepageFilter";
@@ -77,6 +77,7 @@ try {
   await ensureHomepageSections();
   await ensureCardDisplayConfig();
   await backfillCardDisplaySections();
+  await backfillMatchTypeCardField();
   await deleteNonDefaultCardDisplayRules();
   // Integrity check (log-only): surface any structurally-invalid stored page layout loudly instead of
   // silently healing it. The rows are kept (not deleted) so the user can inspect/resolve each in
