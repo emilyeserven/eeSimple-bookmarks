@@ -19,7 +19,7 @@ import { BookmarkYouTubeMetadataFields } from "./BookmarkYouTubeMetadataFields";
 import { useAddBookmarkPeopleByNames } from "../hooks/useAddBookmarkPeopleByNames";
 import { useUpdateBookmark } from "../hooks/useBookmarks";
 import { useCustomProperties } from "../hooks/useCustomProperties";
-import { mergeBooleanValue, mergeSectionsCompleted } from "../lib/bookmarkFormat";
+import { mergeBooleanValue, mergeSectionsCompleted, mergeSectionsFavorite } from "../lib/bookmarkFormat";
 
 /** Whether a property is in scope for this bookmark (its own category/media-type gate — the runtime lock). */
 function propertyInScope(property: CustomProperty, bookmark: Bookmark): boolean {
@@ -125,12 +125,22 @@ function BookmarkPropertyViewField({
       },
     });
   }
+  // The favorite twin of `saveSectionCompleted` — starring is independent (no parent→child cascade).
+  function saveSectionFavorite(propertyId: string, entryId: string, isFavorite: boolean) {
+    updateBookmark.mutate({
+      id: bookmark.id,
+      input: {
+        sectionsValues: mergeSectionsFavorite(bookmark.sectionsValues, propertyId, entryId, isFavorite),
+      },
+    });
+  }
   return (
     <BookmarkPropertyRow
       bookmark={bookmark}
       property={property}
       onSaveBoolean={saveBoolean}
       onToggleSectionCompleted={saveSectionCompleted}
+      onToggleSectionFavorite={saveSectionFavorite}
     />
   );
 }

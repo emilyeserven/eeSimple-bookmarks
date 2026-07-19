@@ -3,6 +3,7 @@ import type { SectionEntry, SectionEntryType } from "@eesimple/types";
 import { useState } from "react";
 
 import { SECTION_ENTRY_TYPE_LABELS } from "@eesimple/types";
+import { Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { newSectionEntry } from "./sectionEntry";
@@ -199,6 +200,44 @@ function ExcludeFromProgressCheckbox({
   );
 }
 
+/**
+ * The per-entry "favorite" star toggle, rendered alongside the exclude checkbox and tag picker.
+ * Starring is independent of the completed/exclude cascade — it flips only this entry's own flag.
+ */
+function FavoriteToggle({
+  entry, onToggle,
+}: {
+  entry: SectionEntry;
+  onToggle: (isFavorite: boolean) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const favorite = entry.isFavorite === true;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          className={cn(`
+            text-muted-foreground
+            hover:text-amber-500
+          `, favorite && "text-amber-500")}
+          aria-label={favorite ? t("Unstar section") : t("Star section")}
+          aria-pressed={favorite}
+          onClick={() => onToggle(!favorite)}
+        >
+          <Star
+            className="size-4"
+            fill={favorite ? "currentColor" : "none"}
+          />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent>{favorite ? t("Starred") : t("Star this section")}</TooltipContent>
+    </Tooltip>
+  );
+}
+
 /** A same-size stand-in for {@link CompletedCheckbox}, shown when an entry is excluded from progress. */
 function CompletedCheckboxSpacer() {
   return (
@@ -306,6 +345,13 @@ export function SectionRow({
               }),
             })}
           />
+          <FavoriteToggle
+            entry={entry}
+            onToggle={isFavorite => onChange({
+              ...entry,
+              isFavorite,
+            })}
+          />
           <SectionTagsPicker
             tagIds={entry.tagIds}
             onChange={tagIds => onChange({
@@ -393,6 +439,18 @@ export function SectionRow({
                       ? {
                         ...c,
                         excludeFromProgress,
+                      }
+                      : c),
+                  })}
+                />
+                <FavoriteToggle
+                  entry={child}
+                  onToggle={isFavorite => onChange({
+                    ...entry,
+                    children: children.map(c => c.id === child.id
+                      ? {
+                        ...c,
+                        isFavorite,
                       }
                       : c),
                   })}

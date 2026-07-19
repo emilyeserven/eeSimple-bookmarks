@@ -18,6 +18,8 @@ interface BookmarkPropertySectionsProps {
   onSaveBoolean?: (propertyId: string, value: boolean) => void;
   /** When provided, sections entries render clickable done-checkboxes. */
   onToggleSectionCompleted?: (propertyId: string, entryId: string, completed: boolean) => void;
+  /** When provided, sections entries render clickable favorite stars. */
+  onToggleSectionFavorite?: (propertyId: string, entryId: string, isFavorite: boolean) => void;
 }
 
 /**
@@ -25,7 +27,7 @@ interface BookmarkPropertySectionsProps {
  * nothing when the bookmark has no resolvable property values.
  */
 export function BookmarkPropertySections({
-  bookmark, properties, onSaveBoolean, onToggleSectionCompleted,
+  bookmark, properties, onSaveBoolean, onToggleSectionCompleted, onToggleSectionFavorite,
 }: BookmarkPropertySectionsProps) {
   // The per-card boolean display knobs (show-if-false / colon / value-order / clickable) come from the
   // Default card display rule on non-listing surfaces like this one.
@@ -249,6 +251,9 @@ export function BookmarkPropertySections({
                     sections={row.sections}
                     onToggleCompleted={onToggleSectionCompleted
                       ? (entryId, completed) => onToggleSectionCompleted(row.id, entryId, completed)
+                      : undefined}
+                    onToggleFavorite={onToggleSectionFavorite
+                      ? (entryId, isFavorite) => onToggleSectionFavorite(row.id, entryId, isFavorite)
                       : undefined}
                   />
                 </dd>

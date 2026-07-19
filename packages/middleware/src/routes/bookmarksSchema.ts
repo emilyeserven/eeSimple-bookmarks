@@ -403,6 +403,9 @@ export const createBookmarkBody = {
                 excludeFromProgress: {
                   type: "boolean",
                 },
+                isFavorite: {
+                  type: "boolean",
+                },
                 tagIds: {
                   type: "array",
                   items: {
@@ -441,6 +444,9 @@ export const createBookmarkBody = {
                         type: "boolean",
                       },
                       excludeFromProgress: {
+                        type: "boolean",
+                      },
+                      isFavorite: {
                         type: "boolean",
                       },
                       tagIds: {

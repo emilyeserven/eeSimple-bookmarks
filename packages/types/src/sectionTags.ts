@@ -53,3 +53,42 @@ export function taggedSectionNames(
   }
   return [...names];
 }
+
+/**
+ * A starred section/sub-item, paired with the name of its parent tier-1 section when it is a child
+ * (`null` for a tier-1 entry). Backs both the view-only "Favorite Sections" block and the
+ * favorite-sections card field so the two surfaces share one derivation.
+ */
+export interface FavoriteSectionRef {
+  entry: SectionEntry;
+  parentName: string | null;
+}
+
+/**
+ * Ordered list of every starred (`isFavorite`) entry and child across `values`, in document order.
+ * Favorites are independent — a starred tier-1 entry does NOT imply its children are starred, and
+ * vice-versa (see {@link SectionEntry.isFavorite}).
+ */
+export function favoriteSectionEntries(values: BookmarkSectionsValue[]): FavoriteSectionRef[] {
+  const refs: FavoriteSectionRef[] = [];
+  for (const value of values) {
+    for (const entry of value.sections) {
+      if (entry.isFavorite === true) refs.push({
+        entry,
+        parentName: null,
+      });
+      for (const child of entry.children ?? []) {
+        if (child.isFavorite === true) refs.push({
+          entry: child,
+          parentName: entry.name,
+        });
+      }
+    }
+  }
+  return refs;
+}
+
+/** How many section entries/children across `values` are starred. */
+export function favoriteSectionCount(values: BookmarkSectionsValue[]): number {
+  return favoriteSectionEntries(values).length;
+}

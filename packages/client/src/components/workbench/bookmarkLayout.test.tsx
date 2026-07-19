@@ -57,7 +57,7 @@ describe("bookmark default layout", () => {
         group: undefined,
         sections: [{
           key: "general",
-          fields: ["url", "secondaryUrl", "description", "category", "mediaType", "tags", "locationsBox", "channel", "people", "groups", "genreMoods", "kavitaLink", "plexLink"],
+          fields: ["url", "secondaryUrl", "description", "category", "mediaType", "tags", "locationsBox", "channel", "people", "groups", "genreMoods", "kavitaLink", "plexLink", "favoriteSections"],
         }],
       },
       // The `properties` tab has no static VIEW field (its only static field, `youtubeMetadata`, is

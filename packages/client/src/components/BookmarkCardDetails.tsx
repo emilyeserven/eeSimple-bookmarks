@@ -5,7 +5,8 @@ import type { RenderBodySection } from "../lib/cardBodySections";
 import type { Bookmark, CardZoneLayouts, Category, CustomProperty } from "@eesimple/types";
 import type { ReactNode } from "react";
 
-import { taggedSectionNames } from "@eesimple/types";
+import { favoriteSectionEntries, taggedSectionNames } from "@eesimple/types";
+import { Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { BookmarkExternalLinkButton, BookmarkMoreMenu } from "./BookmarkCardActions";
@@ -21,9 +22,82 @@ import { cardBodyContainerClass, gapClass } from "../lib/cardZoneLayoutClasses";
 import { formatDateTimeValue } from "../lib/datetime";
 
 import { Badge } from "@/components/ui/badge";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
 /** The card header field keys, rendered as a justified header row when co-located in a single zone. */
 const HEADER_FIELD_KEYS = new Set(["title", "externalLink", "more"]);
+
+/**
+ * The "N favorite sections" card badge: a star + count that reveals the starred entry names on hover.
+ * A self-contained component so `describeField` (a plain call, no hooks) can drop it in as a node.
+ * `stopPropagation` on the trigger/content keeps a hover-open click from navigating the card.
+ */
+function FavoriteSectionsCardBadge({
+  bookmark,
+}: {
+  bookmark: Bookmark;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const favorites = favoriteSectionEntries(bookmark.sectionsValues);
+  return (
+    <HoverCard>
+      <HoverCardTrigger asChild>
+        <span
+          className="
+            inline-flex cursor-default items-center gap-1 text-xs
+            text-muted-foreground
+          "
+          onClick={event => event.stopPropagation()}
+        >
+          <Star
+            className="size-3.5 text-amber-500"
+            fill="currentColor"
+            aria-hidden="true"
+          />
+          {t("{{count}} favorite sections", {
+            count: favorites.length,
+          })}
+        </span>
+      </HoverCardTrigger>
+      <HoverCardContent
+        align="start"
+        className="w-64"
+        onClick={event => event.stopPropagation()}
+      >
+        <ul className="space-y-1 text-sm">
+          {favorites.map(({
+            entry, parentName,
+          }) => (
+            <li
+              key={entry.id}
+              className="flex items-baseline gap-1.5"
+            >
+              <Star
+                className="size-3 shrink-0 translate-y-0.5 text-amber-500"
+                fill="currentColor"
+                aria-hidden="true"
+              />
+              <span>
+                {entry.name}
+                {parentName
+                  ? (
+                    <span className="ml-1.5 text-xs text-muted-foreground">
+                      {t("in {{name}}", {
+                        name: parentName,
+                      })}
+                    </span>
+                  )
+                  : null}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </HoverCardContent>
+    </HoverCard>
+  );
+}
 
 /** Field keys routed to the shared taxonomy field renderer. */
 const TAXONOMY_FIELD_KEYS = new Set([
@@ -302,6 +376,17 @@ export function BookmarkCardDetails({
           block: chips,
           tableName: t("Tagged Sections"),
           tableValue: chips,
+        };
+      }
+      case "favoriteSections": {
+        // "N favorite sections", hidden when none; hover reveals the starred entry names.
+        if (favoriteSectionEntries(bookmark.sectionsValues).length === 0) return null;
+        const node = <FavoriteSectionsCardBadge bookmark={bookmark} />;
+        return {
+          inline: node,
+          block: node,
+          tableName: t("Favorite Sections"),
+          tableValue: node,
         };
       }
       default: {

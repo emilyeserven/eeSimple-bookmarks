@@ -5,7 +5,9 @@ import type { MediaSourceMatchGroup } from "../../hooks/useBookmarksSharingMedia
 import type { Bookmark, BookmarkRelationship } from "@eesimple/types";
 import type { ReactNode } from "react";
 
+import { favoriteSectionEntries } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
+import { Star } from "lucide-react";
 
 import { useBookmarkGraph } from "../../hooks/useBookmarkGraph";
 import { useBookmarks } from "../../hooks/useBookmarks";
@@ -16,6 +18,7 @@ import { useLocationTree } from "../../hooks/useLocations";
 import { useRelatedBookmarks } from "../../hooks/useRelatedBookmarks";
 import { buildBookmarkHierarchy } from "../../lib/bookmarkHierarchy";
 import { withMediaSourceMatch } from "../../lib/bookmarkSearch";
+import { sectionEntryLink, sectionEntryPositional } from "../../lib/propertyFormat";
 import { flattenTree } from "../../lib/tagTree";
 import { BookmarkCardGrid } from "../BookmarkCardGrid";
 import { BookmarkCategoryLink } from "../BookmarkCategoryLink";
@@ -460,6 +463,73 @@ export function BookmarkHierarchyView({
               )}
           </li>
         ))}
+      </ul>
+    </LabeledSection>
+  );
+}
+
+/**
+ * A read-only block listing every starred section/sub-item across the bookmark's Sections properties
+ * (see `SectionEntry.isFavorite`). Placeable anywhere via Page Layouts (defaults to the General tab);
+ * returns `null` when the bookmark has no starred entries, so the field self-hides.
+ */
+export function BookmarkFavoriteSectionsView({
+  bookmark,
+}: {
+  bookmark: Bookmark;
+}) {
+  const favorites = favoriteSectionEntries(bookmark.sectionsValues);
+  if (favorites.length === 0) return null;
+  return (
+    <LabeledSection
+      title={i18n.t("Favorite Sections")}
+      description={i18n.t("Sections you've starred across this bookmark.")}
+    >
+      <ul className="space-y-1">
+        {favorites.map(({
+          entry, parentName,
+        }) => {
+          const link = sectionEntryLink(entry);
+          const positional = sectionEntryPositional(entry);
+          return (
+            <li
+              key={entry.id}
+              className="flex items-baseline gap-1.5 text-sm"
+            >
+              <Star
+                className="size-3.5 shrink-0 translate-y-0.5 text-amber-500"
+                fill="currentColor"
+                aria-hidden="true"
+              />
+              <span>
+                {link
+                  ? (
+                    <a
+                      href={link}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-primary underline underline-offset-2"
+                    >
+                      {entry.name || link}
+                    </a>
+                  )
+                  : <span>{entry.name}</span>}
+                {positional
+                  ? <span className="ml-2 text-muted-foreground">{positional}</span>
+                  : null}
+                {parentName
+                  ? (
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      {i18n.t("in {{name}}", {
+                        name: parentName,
+                      })}
+                    </span>
+                  )
+                  : null}
+              </span>
+            </li>
+          );
+        })}
       </ul>
     </LabeledSection>
   );

@@ -178,6 +178,13 @@ export interface SectionEntry {
    * code skips ids it can't resolve.
    */
   tagIds?: string[];
+  /**
+   * Whether the user has starred this section/sub-item as a favorite. Unlike {@link completed}, this
+   * flag does **not** cascade parent→children (see {@link setSectionFavorite}) — each entry is starred
+   * on its own. Starred entries surface in the view-only "Favorite Sections" block and the
+   * favorite-sections card field.
+   */
+  isFavorite?: boolean;
 }
 
 export interface BookmarkSectionsValue {
@@ -241,6 +248,38 @@ export function setSectionCompleted(
           ? {
             ...child,
             completed,
+          }
+          : child)),
+      };
+    }
+    return entry;
+  });
+}
+
+/**
+ * Return a copy of `sections` with the entry `entryId`'s `isFavorite` flag set. Unlike
+ * {@link setSectionCompleted}, this never cascades to children — starring a tier-1 entry leaves its
+ * children untouched, and starring a child touches only that child. Favorites are individual picks.
+ */
+export function setSectionFavorite(
+  sections: SectionEntry[],
+  entryId: string,
+  isFavorite: boolean,
+): SectionEntry[] {
+  return sections.map((entry) => {
+    if (entry.id === entryId) {
+      return {
+        ...entry,
+        isFavorite,
+      };
+    }
+    if (entry.children?.some(child => child.id === entryId)) {
+      return {
+        ...entry,
+        children: entry.children.map(child => (child.id === entryId
+          ? {
+            ...child,
+            isFavorite,
           }
           : child)),
       };

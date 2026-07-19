@@ -6,6 +6,7 @@ import {
   BookmarkChannelDetailView,
   BookmarkCreatedView,
   BookmarkDescriptionDetailView,
+  BookmarkFavoriteSectionsView,
   BookmarkGenreMoodsDetailView,
   BookmarkGraphView,
   BookmarkGroupsDetailView,
@@ -110,6 +111,7 @@ export type BookmarkFieldKey
     | "hierarchy"
     | "mediaSource"
     | "locationsMap"
+    | "favoriteSections"
     | "priority"
     | "createdAt"
     | "debugInfo";
@@ -368,6 +370,13 @@ const bookmarkFields = {
       entity,
     }) => <BookmarkLocationsMapView bookmark={entity} />,
   },
+  favoriteSections: {
+    key: "favoriteSections",
+    label: i18n.t("Favorite Sections"),
+    view: ({
+      entity,
+    }) => <BookmarkFavoriteSectionsView bookmark={entity} />,
+  },
   priority: {
     key: "priority",
     label: i18n.t("Priority"),
@@ -412,7 +421,7 @@ const BOOKMARK_DEFAULT_LAYOUT: EntityLayout = {
       sections: [
         {
           key: "general",
-          fields: ["name", "primaryLanguage", "names", "url", "secondaryUrl", "description", "category", "mediaType", "tags", "locationsBox", "channel", "people", "groups", "genreMoods", "kavitaLink", "plexLink"] satisfies BookmarkFieldKey[],
+          fields: ["name", "primaryLanguage", "names", "url", "secondaryUrl", "description", "category", "mediaType", "tags", "locationsBox", "channel", "people", "groups", "genreMoods", "kavitaLink", "plexLink", "favoriteSections"] satisfies BookmarkFieldKey[],
         },
         {
           key: "advanced",
