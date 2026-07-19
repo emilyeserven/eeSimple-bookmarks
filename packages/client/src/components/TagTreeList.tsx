@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { LocalizedNameLabel } from "./LocalizedNameLabel";
 import { TaxonomyTreeList } from "./TaxonomyTreeRow";
 import { useFavoriteToggle } from "../hooks/useFavoriteToggle";
+import { expandableIds } from "../lib/tagTree";
 
 import { Badge } from "@/components/ui/badge";
 
@@ -18,6 +19,11 @@ interface TagTreeListProps {
   expanded: Set<string>;
   /** Toggle the expanded state of a tag. */
   onToggle: (id: string) => void;
+  /**
+   * Union-expand a node's whole subtree (per-row "Expand all"). Opt-in — omit on surfaces (the
+   * Hierarchy tab, stories) that don't want per-row expand affordances.
+   */
+  onExpandMany?: (ids: string[]) => void;
   /** Number of grid columns. */
   columns: number;
   /** Page-wide multi-select controller (shared with the Table view); rows show checkboxes in mode. */
@@ -29,7 +35,7 @@ interface TagTreeListProps {
  * Callers own the sort order (the tree scaffold's `useSortedTree` applies the multilingual-name re-sort).
  */
 export function TagTreeList({
-  tree, expanded, onToggle, columns, selection,
+  tree, expanded, onToggle, onExpandMany, columns, selection,
 }: TagTreeListProps) {
   const {
     t,
@@ -43,6 +49,7 @@ export function TagTreeList({
       onToggle={onToggle}
       columns={columns}
       selection={selection}
+      onExpandSubtree={onExpandMany ? node => onExpandMany(expandableIds([node])) : undefined}
       renderExtraBadge={(node) => {
         const count = (node as unknown as TagNode).sectionBookmarkCount ?? 0;
         if (count === 0) return null;

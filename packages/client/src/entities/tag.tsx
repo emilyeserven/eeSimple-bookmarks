@@ -97,12 +97,13 @@ export function buildTagTreeListingConfig(opts: { onNew: () => void }): EntityTr
     ),
     useSortedTree: useNameSortedTree,
     renderTree: ({
-      sortedTree, expanded, onToggle, columns, selection,
+      sortedTree, expanded, onToggle, onExpandMany, columns, selection,
     }) => (
       <TagTreeList
         tree={sortedTree}
         expanded={expanded}
         onToggle={onToggle}
+        onExpandMany={onExpandMany}
         columns={columns}
         selection={selection}
       />
