@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { useMediaTypeBySlug } from "../hooks/useMediaTypes";
-import { tagsForServerQuery } from "../lib/bookmarkSearch";
 
 interface Props {
   mediaTypeSlug: string;
@@ -30,16 +29,13 @@ export function MediaTypeListing({
   const {
     categories,
     properties,
-    bookmarks,
-    bookmarksLoading,
-    error,
     tagTree,
     youtubeChannels,
     relationshipTypes,
     people,
     placeTypes,
     genreMoods,
-  } = useCategoryPageData(tagsForServerQuery(search));
+  } = useCategoryPageData();
 
   const {
     mediaType, isLoading: mediaTypeLoading,
@@ -53,9 +49,6 @@ export function MediaTypeListing({
     return <p className="text-destructive">{t("Media type not found.")}</p>;
   }
 
-  // The media-type filter is omitted below since this listing is already scoped to one media type.
-  const mediaTypeBookmarks = (bookmarks ?? []).filter(b => b.mediaType?.id === mediaType.id);
-
   return (
     <BookmarkSearchView
       activeView={activeView}
@@ -68,11 +61,12 @@ export function MediaTypeListing({
       people={people ?? []}
       placeTypes={placeTypes ?? []}
       genreMoods={genreMoods ?? []}
-      bookmarks={mediaTypeBookmarks}
+      scope={{
+        kind: "mediaType",
+        id: mediaType.id,
+      }}
       search={search}
       onSearchChange={onSearchChange}
-      isLoading={bookmarksLoading}
-      error={error}
       emptyMessage={t("No bookmarks of this media type yet.")}
       noMatchMessage={t("No bookmarks of this media type match these filters.")}
     />

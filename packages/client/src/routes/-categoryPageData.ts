@@ -1,4 +1,3 @@
-import { useBookmarks } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useGenreMoods } from "../hooks/useGenreMoods";
@@ -11,19 +10,17 @@ import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 
 /**
- * Bundles the data hooks the category page needs into a single call, keeping the route module's
- * import count down. Behaviour is identical to calling each hook inline.
+ * Bundles the taxonomy-dataset hooks the entity-scoped listing pages need (the filter rail's
+ * options + slug→entity resolution), keeping each route module's import count down. The bookmark
+ * list itself is fetched by `useBookmarkSearchView` via the server-side search endpoint, not here.
  */
-export function useCategoryPageData(tags: string[] | undefined) {
+export function useCategoryPageData() {
   const {
     data: categories, isLoading: categoriesLoading,
   } = useCategories();
   const {
     data: properties,
   } = useCustomProperties();
-  const {
-    data: bookmarks, isLoading: bookmarksLoading, error,
-  } = useBookmarks(tags);
   const {
     data: tagTree,
   } = useTagTree();
@@ -53,9 +50,6 @@ export function useCategoryPageData(tags: string[] | undefined) {
     categories,
     categoriesLoading,
     properties,
-    bookmarks,
-    bookmarksLoading,
-    error,
     tagTree,
     mediaTypes,
     youtubeChannels,

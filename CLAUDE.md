@@ -766,21 +766,38 @@ instead.
   `mergeMatchingAutofillRules` / `urlTitleConditionInput` live in `@eesimple/types`
   (`autofillMerge.ts`) and are the single implementation behind both the client form prefill
   (`lib/autofill.ts`) and server-side creation (`suggestAutofillForBookmark`).
+- **The bookmark listing search is the paginated instance of the same pattern** —
+  `POST /api/bookmarks/search` (`services/bookmarkSearchService.ts` `searchBookmarks`) evaluates the
+  entity **scope** (`bookmarkMatchesScope`), the URL facet filters (`bookmarkMatchesSearch` over the
+  `BOOKMARK_SEARCH_FACETS` table), the free-text quick search (`bookmarkMatchesText` — title/names/
+  url/description/section names), and the sort (`sortBookmarks`) — **all shared `@eesimple/types`
+  functions** — over a per-version **hydrated-bookmark cache**, then slices the page and freshly
+  re-hydrates only the page rows (so display-only writes, which don't bump the cache version, never
+  serve stale data). Every listing surface (the `/bookmarks` page + all entity-scoped listings) goes
+  through `useBookmarkSearchView` → `useBookmarkServerSearch` — the client holds **one page**, not
+  the whole set. The response also carries `total` (the pager) and `numberBounds` (the filter
+  sliders' whole-scope data bounds, read via `NumberBoundsContext`). The body's nested
+  `search`/`scope` objects are deliberately schema-free and narrowed by the shared
+  `validateBookmarkSearch`/`validateBookmarkSearchScope` — see the `removeAdditional` guard test
+  `tests/bookmarkSearchSchema.test.ts` before "tightening" them.
 
 **Sanctioned exceptions that stay client-side** (don't "fix" these by adding endpoints):
 
-- **Interactive, URL-driven filter/search state** — `lib/bookmarkSearch.ts`
-  (`bookmarkMatchesSearch`) and the range sliders / multi-selects it backs. A round-trip per slider
-  drag would hurt; the bookmarks page deliberately fetches the whole set once and filters in memory.
-  `bookmarkMatchesSearch` and `hasAnyActiveFilter` are both thin `.every()`/`.some()` iterations over
-  one `BOOKMARK_SEARCH_FACETS` table — each entry pairs a facet's match predicate with its
-  active-filter check, so adding a facet is one table entry instead of editing both functions'
-  `&&`/`||` chains (see the **`filterable-facet`** skill).
+- **The `BookmarkSearch` type + facet matcher live in `@eesimple/types`, not the client.** The
+  listing filter/search state is still URL-driven, but its evaluation moved **server-side** (the
+  bullet above) — `packages/client/src/lib/bookmarkSearch*.ts` are now re-export shells over
+  `@eesimple/types` (`bookmarkSearch.ts` / `bookmarkSearchMatch.ts` / `bookmarkSortEngine.ts` /
+  `bookmarkTextSearch.ts` / `bookmarkSearchScope.ts`), keeping only the i18n-dependent
+  `summarizeBookmarkSearch` + sort-label helpers client-side. `bookmarkMatchesSearch` and
+  `hasAnyActiveFilter` stay thin `.every()`/`.some()` iterations over one `BOOKMARK_SEARCH_FACETS`
+  table — adding a facet is one table entry (see the **`filterable-facet`** skill), and it works on
+  both sides because there is exactly one implementation.
 - **Presentation formatting** — `lib/bookmarkFormat.ts` (number/boolean/date-time display).
-- **Derivations that are O(n) over data the page already loaded** — slug lookups (`use*BySlug`),
-  facet slider bounds (`effectiveBounds`), and "which rules target this entity"
-  (`lib/autofillRulesFilter.ts`). These are free because the list is already in cache; an endpoint
-  would only duplicate logic.
+- **Derivations that are O(n) over data the page already loaded** — slug lookups (`use*BySlug`)
+  and "which rules target this entity" (`lib/autofillRulesFilter.ts`). These are free because the
+  list is already in cache; an endpoint would only duplicate logic. (Facet slider bounds are the
+  exception that *did* move: `effectiveBounds` now prefers the search response's `numberBounds`,
+  since the client no longer holds the whole set.)
 - **Card Display resolution** — `lib/cardDisplayRules.ts` (`resolveCardDisplay` +
   `useResolveCardDisplay`) evaluates the shared `evaluateConditions` against each rendered bookmark in
   the listing grid (`BookmarkListPane`) to decide that card's **per-section** visibility (each

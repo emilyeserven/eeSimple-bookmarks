@@ -8,8 +8,7 @@ import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { LocationMapSection } from "../components/LocationMapSection";
 import { useLocationBySlug, useLocationTree } from "../hooks/useLocations";
-import { tagsForServerQuery } from "../lib/bookmarkSearch";
-import { findAncestorPath, flattenTree, subtreeIds } from "../lib/tagTree";
+import { findAncestorPath, flattenTree } from "../lib/tagTree";
 
 interface Props {
   locationSlug: string;
@@ -34,16 +33,13 @@ export function LocationListing({
   const {
     categories,
     properties,
-    bookmarks,
-    bookmarksLoading,
-    error,
     tagTree,
     youtubeChannels,
     relationshipTypes,
     people,
     placeTypes,
     genreMoods,
-  } = useCategoryPageData(tagsForServerQuery(search));
+  } = useCategoryPageData();
 
   const {
     location, isLoading: locationLoading,
@@ -59,10 +55,6 @@ export function LocationListing({
   if (!location) {
     return <p className="text-destructive">{t("Location not found.")}</p>;
   }
-
-  // Include bookmarks tagged with this location or any of its descendants.
-  const locationIds = new Set(subtreeIds(location));
-  const locationBookmarks = (bookmarks ?? []).filter(b => b.locations.some(l => locationIds.has(l.id)));
 
   // Ancestor chain (root → parent), stripped of children so only the ancestors themselves plot —
   // otherwise the map would re-plot the whole tree under a root ancestor. Always included, mirroring
@@ -129,11 +121,12 @@ export function LocationListing({
       people={people ?? []}
       placeTypes={placeTypes ?? []}
       genreMoods={genreMoods ?? []}
-      bookmarks={locationBookmarks}
+      scope={{
+        kind: "location",
+        id: location.id,
+      }}
       search={search}
       onSearchChange={onSearchChange}
-      isLoading={bookmarksLoading}
-      error={error}
       emptyMessage={t("No bookmarks for this location yet.")}
       noMatchMessage={t("No bookmarks for this location match these filters.")}
     />

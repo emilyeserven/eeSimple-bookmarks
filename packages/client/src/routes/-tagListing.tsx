@@ -4,10 +4,8 @@ import { X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { useCategoryPageData } from "./-categoryPageData";
-import { filterTagBookmarks } from "./-tagSearch";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { SectionTagProvider } from "../components/SectionTagContext";
-import { tagsForServerQuery } from "../lib/bookmarkSearch";
 import { findAncestorPath, subtreeIds } from "../lib/tagTree";
 
 import { Badge } from "@/components/ui/badge";
@@ -30,7 +28,8 @@ interface Props {
  * passes none to `BookmarkSearchView`. The optional `?taggedSections` mode REPLACES the tag-membership
  * filter with "sections carry this tag" (so the set matches the tags listing's section-count badge, and
  * a bookmark whose chapter is about the tag shows even when the bookmark itself isn't tagged); it rides
- * on `search` so it survives filter changes.
+ * on `search` so it survives filter changes. Both modes evaluate server-side via the `tag` scope
+ * (the server expands the subtree).
  */
 export function TagListing({
   tagSlug, activeView, search, onSearchChange,
@@ -42,9 +41,6 @@ export function TagListing({
   const {
     categories,
     properties,
-    bookmarks,
-    bookmarksLoading,
-    error,
     tagTree,
     mediaTypes,
     youtubeChannels,
@@ -52,13 +48,13 @@ export function TagListing({
     people,
     placeTypes,
     genreMoods,
-  } = useCategoryPageData(tagsForServerQuery(search));
+  } = useCategoryPageData();
 
   const path = tagTree ? findAncestorPath(tagTree, tagSlug) : null;
   const tag = path?.[path.length - 1];
 
   // Still resolving the tag tree — wait before deciding the tag is missing.
-  if (!tagTree && bookmarksLoading) {
+  if (!tagTree) {
     return <p className="text-muted-foreground">{t("Loading tag…")}</p>;
   }
 
@@ -66,9 +62,9 @@ export function TagListing({
     return <p className="text-destructive">{t("Tag not found.")}</p>;
   }
 
-  // This tag plus its descendants — both modes match against the whole subtree.
+  // This tag plus its descendants — used by the section-tag card-field provider below (the
+  // server-side scope resolves the same subtree itself).
   const tagIds = new Set(subtreeIds(tag));
-  const tagBookmarks = filterTagBookmarks(bookmarks ?? [], tagIds, search.taggedSections);
 
   const view = (
     <BookmarkSearchView
@@ -107,15 +103,17 @@ export function TagListing({
       people={people ?? []}
       placeTypes={placeTypes ?? []}
       genreMoods={genreMoods ?? []}
-      bookmarks={tagBookmarks}
+      scope={{
+        kind: "tag",
+        id: tag.id,
+        taggedSections: search.taggedSections,
+      }}
       search={search}
       onSearchChange={next =>
         onSearchChange({
           ...next,
           taggedSections: search.taggedSections,
         })}
-      isLoading={bookmarksLoading}
-      error={error}
       emptyMessage={search.taggedSections
         ? t("No bookmarks with sections tagged with this tag yet.")
         : t("No bookmarks with this tag yet.")}

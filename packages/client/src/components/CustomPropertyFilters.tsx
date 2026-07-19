@@ -9,6 +9,7 @@ import {
   DateTimeFilterControl,
   NumberFilterControl,
 } from "./CustomPropertyFilterControls";
+import { useServerNumberBounds } from "./NumberBoundsContext";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
@@ -65,17 +66,20 @@ function isRangeProperty(property: CustomProperty): boolean {
 function effectiveBounds(
   property: CustomProperty,
   bookmarks: Pick<Bookmark, "numberValues">[],
+  serverBounds?: [number, number],
 ): [number, number] {
   // Rating scales have fixed bounds: 0/1 up to the configured max.
   if (property.type === "ratingScale") {
     return [property.ratingAllowZero ? 0 : 1, property.ratingMax ?? 5];
   }
+  // Server-reported whole-scope bounds beat the loaded page's data range (under server-side
+  // pagination `bookmarks` is only the current page).
   const values = bookmarks
     .flatMap(bookmark => bookmark.numberValues)
     .filter(value => value.propertyId === property.id)
     .map(value => value.value);
-  const dataMin = values.length > 0 ? Math.min(...values) : 0;
-  const dataMax = values.length > 0 ? Math.max(...values) : 100;
+  const dataMin = serverBounds?.[0] ?? (values.length > 0 ? Math.min(...values) : 0);
+  const dataMax = serverBounds?.[1] ?? (values.length > 0 ? Math.max(...values) : 100);
   const min = property.numberMin ?? dataMin;
   const max = property.numberMax ?? dataMax;
   // A slider needs a non-empty range; nudge the max when bounds collapse.
@@ -219,6 +223,7 @@ export function PropertyFilterBody({
   const {
     t,
   } = useTranslation();
+  const serverBounds = useServerNumberBounds(property.id);
   const isFilterActive
     = numberValue !== undefined
       || booleanValue !== undefined
@@ -232,7 +237,7 @@ export function PropertyFilterBody({
         ? (
           <NumberFilterControl
             property={property}
-            bounds={effectiveBounds(property, bookmarks)}
+            bounds={effectiveBounds(property, bookmarks, serverBounds)}
             value={numberValue}
             onChange={onNumberFilterChange}
           />

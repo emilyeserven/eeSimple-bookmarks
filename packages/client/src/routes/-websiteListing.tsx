@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { useWebsiteBySlug } from "../hooks/useWebsites";
-import { tagsForServerQuery } from "../lib/bookmarkSearch";
 
 interface Props {
   websiteSlug: string;
@@ -30,9 +29,6 @@ export function WebsiteListing({
   const {
     categories,
     properties,
-    bookmarks,
-    bookmarksLoading,
-    error,
     tagTree,
     mediaTypes,
     youtubeChannels,
@@ -40,7 +36,7 @@ export function WebsiteListing({
     people,
     placeTypes,
     genreMoods,
-  } = useCategoryPageData(tagsForServerQuery(search));
+  } = useCategoryPageData();
 
   const {
     website, isLoading: websiteLoading,
@@ -53,8 +49,6 @@ export function WebsiteListing({
   if (!website) {
     return <p className="text-destructive">{t("Website not found.")}</p>;
   }
-
-  const websiteBookmarks = (bookmarks ?? []).filter(b => b.website?.id === website.id);
 
   return (
     <BookmarkSearchView
@@ -69,11 +63,12 @@ export function WebsiteListing({
       people={people ?? []}
       placeTypes={placeTypes ?? []}
       genreMoods={genreMoods ?? []}
-      bookmarks={websiteBookmarks}
+      scope={{
+        kind: "website",
+        id: website.id,
+      }}
       search={search}
       onSearchChange={onSearchChange}
-      isLoading={bookmarksLoading}
-      error={error}
       emptyMessage={t("No bookmarks for this website yet.")}
       noMatchMessage={t("No bookmarks for this website match these filters.")}
     />

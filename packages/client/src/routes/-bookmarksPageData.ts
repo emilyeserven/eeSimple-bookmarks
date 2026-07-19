@@ -1,4 +1,3 @@
-import { useBookmarks } from "../hooks/useBookmarks";
 import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useGenreMoods } from "../hooks/useGenreMoods";
@@ -11,13 +10,11 @@ import { useWebsites } from "../hooks/useWebsites";
 import { useYouTubeChannels } from "../hooks/useYouTubeChannels";
 
 /**
- * Bundles the data hooks the Bookmarks page needs into a single call, keeping the route module's
- * import count down. Behaviour is identical to calling each hook inline.
+ * Bundles the taxonomy-dataset hooks the Bookmarks page needs (the filter rail's options), keeping
+ * the route module's import count down. The bookmark list itself is fetched by
+ * `useBookmarkSearchView` via the server-side search endpoint, not here.
  */
-export function useBookmarksPageData(tags: string[] | undefined) {
-  const {
-    data: bookmarks, isLoading, error,
-  } = useBookmarks(tags);
+export function useBookmarksPageData() {
   const {
     data: tagTree,
   } = useTagTree();
@@ -50,9 +47,6 @@ export function useBookmarksPageData(tags: string[] | undefined) {
   } = useGenreMoods();
 
   return {
-    bookmarks,
-    isLoading,
-    error,
     tagTree,
     customProperties,
     categories,

@@ -36,13 +36,10 @@ describe("BookmarkListPane store selectors", () => {
         mediaTypes={[]}
         youtubeChannels={[]}
         websites={[]}
-        bookmarks={[]}
         search={{}}
         onSearchChange={() => {
           // no-op: this render-only test never changes the search
         }}
-        isLoading={false}
-        error={null}
         emptyMessage="No bookmarks yet."
         noMatchMessage="No bookmarks match these filters."
       />,

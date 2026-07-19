@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { useBookmarksPageData } from "./-bookmarksPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
-import { tagsForServerQuery, validateBookmarkSearch } from "../lib/bookmarkSearch";
+import { validateBookmarkSearch } from "../lib/bookmarkSearch";
 
 export const Route = createFileRoute("/bookmarks/")({
   validateSearch: validateBookmarkSearch,
@@ -17,7 +17,6 @@ function BookmarksPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const {
-    bookmarks, isLoading, error,
     tagTree,
     customProperties,
     categories,
@@ -28,7 +27,7 @@ function BookmarksPage() {
     people,
     placeTypes,
     genreMoods,
-  } = useBookmarksPageData(tagsForServerQuery(search));
+  } = useBookmarksPageData();
 
   return (
     <BookmarkSearchView
@@ -44,15 +43,12 @@ function BookmarksPage() {
       people={people ?? []}
       placeTypes={placeTypes ?? []}
       genreMoods={genreMoods ?? []}
-      bookmarks={bookmarks ?? []}
       search={search}
       onSearchChange={next => navigate({
         search: next,
         replace: true,
         resetScroll: false,
       })}
-      isLoading={isLoading}
-      error={error}
       emptyMessage={t("No bookmarks yet.")}
       noMatchMessage={t("No bookmarks match these filters.")}
     />

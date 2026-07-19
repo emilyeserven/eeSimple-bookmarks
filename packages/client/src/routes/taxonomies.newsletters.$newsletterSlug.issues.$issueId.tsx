@@ -9,9 +9,10 @@ import { useTranslation } from "react-i18next";
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { NewsletterIssueBookmarksDialog } from "../components/NewsletterIssueBookmarksDialog";
+import { useBookmarks } from "../hooks/useBookmarks";
 import { useNewsletterIssues } from "../hooks/useImports";
 import { useNewsletterBySlug } from "../hooks/useNewsletters";
-import { tagsForServerQuery, validateBookmarkSearch } from "../lib/bookmarkSearch";
+import { validateBookmarkSearch } from "../lib/bookmarkSearch";
 
 import { Button } from "@/components/ui/button";
 
@@ -34,9 +35,6 @@ function NewsletterIssueBookmarksPage() {
   const {
     categories,
     properties,
-    bookmarks,
-    bookmarksLoading,
-    error,
     tagTree,
     mediaTypes,
     youtubeChannels,
@@ -44,8 +42,13 @@ function NewsletterIssueBookmarksPage() {
     people,
     placeTypes,
     genreMoods,
-  } = useCategoryPageData(tagsForServerQuery(search));
+  } = useCategoryPageData();
 
+  // The full set feeds only the membership-management dialog below; the listing itself is
+  // server-scoped to the issue.
+  const {
+    data: bookmarks,
+  } = useBookmarks();
   const {
     newsletter, isLoading: newsletterLoading,
   } = useNewsletterBySlug(newsletterSlug);
@@ -112,15 +115,16 @@ function NewsletterIssueBookmarksPage() {
         people={people ?? []}
         placeTypes={placeTypes ?? []}
         genreMoods={genreMoods ?? []}
-        bookmarks={issueBookmarks}
+        scope={{
+          kind: "import",
+          id: issueId,
+        }}
         search={search}
         onSearchChange={next => navigate({
           search: next,
           replace: true,
           resetScroll: false,
         })}
-        isLoading={bookmarksLoading}
-        error={error}
         emptyMessage={t("No bookmarks in this issue yet.")}
         noMatchMessage={t("No bookmarks in this issue match these filters.")}
       />

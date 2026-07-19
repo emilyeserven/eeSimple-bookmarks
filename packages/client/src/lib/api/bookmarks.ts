@@ -2,6 +2,8 @@ import type {
   Bookmark,
   BookmarkFileValue,
   BookmarkIdentityCheckInput,
+  BookmarkSearchRequest,
+  BookmarkSearchResult,
   BookmarkImage,
   BookmarkUrlDuplicateResult,
   BookmarkUrlSummary,
@@ -95,6 +97,14 @@ export const bookmarksApi = {
     const qs = params.toString();
     return request<Bookmark[]>(`/bookmarks${qs ? `?${qs}` : ""}`).then(rows => rows.map(normalizeBookmark));
   },
+  search: (input: BookmarkSearchRequest) =>
+    request<BookmarkSearchResult>("/bookmarks/search", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }).then(result => ({
+      ...result,
+      bookmarks: result.bookmarks.map(normalizeBookmark),
+    })),
   get: (id: string) => request<Bookmark>(`/bookmarks/${id}`).then(normalizeBookmark),
   create: (input: CreateBookmarkInput) =>
     request<Bookmark>("/bookmarks", {

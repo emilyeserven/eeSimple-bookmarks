@@ -36,23 +36,28 @@ The full entity-scoped **Autofill Rules tab** (a filtered list of all rules for 
 **out of scope here** — see the **`scope-autofill`** skill. If the entity is a *matching criterion*
 inside a rule's conditions rather than an action target, also see **`add-condition-type`**.
 
-## A. Filter-facet plumbing (multi-select, client-only)
+## A. Filter-facet plumbing (multi-select)
 
 Mirror Media Types / YouTube Channels. The entity must already be a fetched taxonomy with a
 `use<Entity>s()` hook and an `id`/`name` shape, and bookmarks must carry the relation (e.g.
-`bookmark.<entity>`). All edits are in the client.
+`bookmark.<entity>`). The type/validator/matcher edits land in **`@eesimple/types`** (the matcher is
+evaluated **server-side** by `POST /api/bookmarks/search` — see CLAUDE.md → "Data shaping"); the
+`with*` helpers and all UI edits stay in the client. Because the endpoint's `search` body is
+schema-free and narrowed by the shared `validateBookmarkSearch`, a new facet needs **no** Fastify
+schema edit — the two type-package edits below make it work end to end.
 
-### 1. `packages/client/src/lib/bookmarkSearch.ts` — six edits in one file
-- **Interface**: add `<entity>s?: string[]` and `<entity>Presence?: "has" | "missing" | "exclude"`
-  to `BookmarkSearch` (mirror `youtubeChannels` + `youtubeChannelPresence`).
-- **`validateBookmarkSearch`**: validate the id list with `validStringList` **and** the presence
-  mode with `validPresence(search.<entity>Presence)` (copy the `youtubeChannels` /
-  `youtubeChannelPresence` pair).
-- **`bookmarkMatchesSearch`/`hasAnyActiveFilter`**: both are driven by the single
-  `BOOKMARK_SEARCH_FACETS` table (an array of `{ matches, isActive }` entries) — add **one** entry
-  rather than editing the two functions separately. For the common "single id + has/missing/exclude
-  presence" shape (Categories/Media Types/YouTube Channels/Websites all use it), call the
-  `idPresenceFacet` factory instead of hand-writing the ternary:
+### 1. `packages/types/src/bookmarkSearch.ts` + `bookmarkSearchMatch.ts` — shared type/matcher edits
+- **Interface** (`bookmarkSearch.ts`): add `<entity>s?: string[]` and
+  `<entity>Presence?: "has" | "missing" | "exclude"` to `BookmarkSearch` (mirror `youtubeChannels` +
+  `youtubeChannelPresence`).
+- **`validateBookmarkSearch`** (same file): validate the id list with `validStringList` **and** the
+  presence mode with `validPresence(search.<entity>Presence)` (copy the `youtubeChannels` /
+  `youtubeChannelPresence` pair). This is also what makes the value survive the search endpoint.
+- **`bookmarkMatchesSearch`/`hasAnyActiveFilter`** (`bookmarkSearchMatch.ts`): both are driven by
+  the single `BOOKMARK_SEARCH_FACETS` table (an array of `{ matches, isActive }` entries) — add
+  **one** entry rather than editing the two functions separately. For the common "single id +
+  has/missing/exclude presence" shape (Categories/Media Types/YouTube Channels/Websites all use it),
+  call the `idPresenceFacet` factory instead of hand-writing the ternary:
   ```ts
   idPresenceFacet(search => search.<entity>s, search => search.<entity>Presence, bookmark => bookmark.<entity>?.id),
   ```
@@ -62,9 +67,12 @@ Mirror Media Types / YouTube Channels. The entity must already be a fetched taxo
   the `Pick<Bookmark, …>` `SearchableBookmark` param list. A facet with a different shape (not a
   single id) is a plain `BookmarkSearchFacet` object literal instead — see the other entries in the
   table for the pattern (e.g. the multi-valued place-types/genre-moods "any match" facets).
-- **Id helper**: export `with<Entity>s(search, ids): BookmarkSearch` — clear when empty, else set.
-  Copy `withYouTubeChannels`.
-- **Presence helper**: export `with<Entity>Presence(search, mode): BookmarkSearch` — copy
+  Intra-`types` imports need explicit `.js` extensions; rebuild with
+  `pnpm --filter=@eesimple/types build` before the client/middleware typecheck.
+- **Id helper** (`packages/client/src/lib/bookmarkSearchMutations.ts`): export
+  `with<Entity>s(search, ids): BookmarkSearch` — clear when empty, else set. Copy
+  `withYouTubeChannels`.
+- **Presence helper** (same client file): export `with<Entity>Presence(search, mode)` — copy
   `withYouTubeChannelPresence` (setting `"missing"` also clears the id list; `"exclude"` keeps it).
 
 ### 2. `packages/client/src/components/FilterSidebarSections.tsx` — two edits

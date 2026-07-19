@@ -241,6 +241,11 @@ export const apiHandlers = [
   ),
   http.put("/api/custom-properties/:id", () => HttpResponse.json(sampleProperties[0])),
   http.get("/api/bookmarks/homepage", () => HttpResponse.json([sampleBookmark])),
+  http.post("/api/bookmarks/search", () => HttpResponse.json({
+    bookmarks: [sampleBookmark],
+    total: 1,
+    numberBounds: {},
+  })),
   http.post("/api/bookmarks", () => HttpResponse.json(sampleBookmark, {
     status: 201,
   })),

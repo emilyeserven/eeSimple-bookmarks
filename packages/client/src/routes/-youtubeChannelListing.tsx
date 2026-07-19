@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { useYouTubeChannelBySlug } from "../hooks/useYouTubeChannels";
-import { tagsForServerQuery } from "../lib/bookmarkSearch";
 
 interface Props {
   channelSlug: string;
@@ -30,16 +29,13 @@ export function YouTubeChannelListing({
   const {
     categories,
     properties,
-    bookmarks,
-    bookmarksLoading,
-    error,
     tagTree,
     mediaTypes,
     relationshipTypes,
     people,
     placeTypes,
     genreMoods,
-  } = useCategoryPageData(tagsForServerQuery(search));
+  } = useCategoryPageData();
 
   const {
     channel, isLoading: channelLoading,
@@ -53,8 +49,6 @@ export function YouTubeChannelListing({
     return <p className="text-destructive">{t("Channel not found.")}</p>;
   }
 
-  const channelBookmarks = (bookmarks ?? []).filter(b => b.youtubeChannel?.id === channel.id);
-
   return (
     <BookmarkSearchView
       activeView={activeView}
@@ -67,11 +61,12 @@ export function YouTubeChannelListing({
       people={people ?? []}
       placeTypes={placeTypes ?? []}
       genreMoods={genreMoods ?? []}
-      bookmarks={channelBookmarks}
+      scope={{
+        kind: "youtubeChannel",
+        id: channel.id,
+      }}
       search={search}
       onSearchChange={onSearchChange}
-      isLoading={bookmarksLoading}
-      error={error}
       emptyMessage={t("No bookmarks for this channel yet.")}
       noMatchMessage={t("No bookmarks for this channel match these filters.")}
     />
