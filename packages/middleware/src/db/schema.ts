@@ -1407,6 +1407,8 @@ export const customProperties = pgTable("custom_properties", {
   quickFilterRange: real("quick_filter_range"),
   // Free-text description surfaced as a hint where the property's field is rendered.
   description: text("description"),
+  // Optional guidance injected into the bookmark AI-update prompt for this property. Nullable/additive.
+  aiInstructions: text("ai_instructions"),
   // Range-slider bounds for a `number`/`calculate` property; NULL means no bound / derive from data.
   numberMin: real("number_min"),
   numberMax: real("number_max"),

@@ -6,6 +6,7 @@ import type { CustomProperty, EntityLayout } from "@eesimple/types";
 import i18n from "../../i18n";
 import { AutofillRulesList } from "../AutofillRulesList";
 import {
+  PropertyAiInstructionsView,
   PropertyCategoriesContent,
   PropertyCreatedView,
   PropertyDescriptionView,
@@ -16,6 +17,7 @@ import {
 } from "../PropertyDetail";
 import { PropertyEditForm } from "../PropertyEditForm";
 import {
+  PropertyAiInstructionsField,
   PropertyDescriptionField,
   PropertyNameField,
   PropertyStatusField,
@@ -117,6 +119,7 @@ type PropertyFieldKey
     | "type"
     | "status"
     | "description"
+    | "aiInstructions"
     | "created"
     | "options"
     | "categories"
@@ -158,6 +161,16 @@ const propertyFields = {
     edit: ({
       entity,
     }) => <PropertyDescriptionField property={entity} />,
+  },
+  aiInstructions: {
+    key: "aiInstructions",
+    label: i18n.t("AI instructions"),
+    view: ({
+      entity,
+    }) => <PropertyAiInstructionsView property={entity} />,
+    edit: ({
+      entity,
+    }) => <PropertyAiInstructionsField property={entity} />,
   },
   created: {
     key: "created",
@@ -221,7 +234,7 @@ const PROPERTY_DEFAULT_LAYOUT: EntityLayout = {
       label: i18n.t("General"),
       sections: [{
         key: "general",
-        fields: ["name", "type", "status", "description", "created"] satisfies PropertyFieldKey[],
+        fields: ["name", "type", "status", "description", "aiInstructions", "created"] satisfies PropertyFieldKey[],
       }],
     },
     {

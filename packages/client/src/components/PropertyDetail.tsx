@@ -72,6 +72,26 @@ export function PropertyDescriptionView({
   );
 }
 
+/** AI instructions row — the per-property guidance injected into the bookmark AI-update prompt. */
+export function PropertyAiInstructionsView({
+  property,
+}: {
+  property: CustomProperty;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <dl className="space-y-3">
+      <DetailField label={t("AI instructions")}>
+        {property.aiInstructions
+          ? <p className="whitespace-pre-wrap">{property.aiInstructions}</p>
+          : null}
+      </DetailField>
+    </dl>
+  );
+}
+
 /** Created-date row. */
 export function PropertyCreatedView({
   property,

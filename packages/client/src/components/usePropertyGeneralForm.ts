@@ -12,6 +12,7 @@ import { useTranslatedLabel } from "@/hooks/useTranslatedLabel";
 const LABELS: Partial<Record<keyof UpdateCustomPropertyInput, string>> = {
   name: "Name",
   description: "Description",
+  aiInstructions: "AI instructions",
   enabled: "Status",
 };
 
@@ -39,6 +40,7 @@ export function usePropertyGeneralForm(property: CustomProperty) {
     initial: {
       name: property.name,
       description: property.description ?? null,
+      aiInstructions: property.aiInstructions ?? null,
       enabled: property.enabled,
     },
   });
@@ -73,12 +75,19 @@ export function usePropertyGeneralForm(property: CustomProperty) {
     });
   }
 
+  function saveAiInstructions(value: string, valid: boolean): void {
+    autoSave.saveField("aiInstructions", value.trim() || null, {
+      valid,
+    });
+  }
+
   return {
     form,
     typeOptions,
     isBuiltIn: property.builtIn,
     saveName,
     saveDescription,
+    saveAiInstructions,
     saveEnabled: (next: boolean) => autoSave.saveField("enabled", next),
   };
 }

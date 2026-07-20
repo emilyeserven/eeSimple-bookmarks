@@ -70,6 +70,9 @@ const createPropertyBody = {
     description: {
       type: ["string", "null"],
     },
+    aiInstructions: {
+      type: ["string", "null"],
+    },
     numberMin: {
       type: ["number", "null"],
     },
@@ -256,6 +259,7 @@ const updatePropertyBody = {
     dateTimeAllowYearMonth: createPropertyBody.properties.dateTimeAllowYearMonth,
     quickFilterRange: createPropertyBody.properties.quickFilterRange,
     description: createPropertyBody.properties.description,
+    aiInstructions: createPropertyBody.properties.aiInstructions,
     numberMin: createPropertyBody.properties.numberMin,
     numberMax: createPropertyBody.properties.numberMax,
     unitSingular: createPropertyBody.properties.unitSingular,

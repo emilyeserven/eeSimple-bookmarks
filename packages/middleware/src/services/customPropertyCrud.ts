@@ -57,6 +57,7 @@ function toCustomProperty(
     dateTimeAllowYearMonth: row.dateTimeAllowYearMonth ?? false,
     quickFilterRange: row.quickFilterRange ?? null,
     description: row.description,
+    aiInstructions: row.aiInstructions,
     numberMin: row.numberMin,
     numberMax: row.numberMax,
     unitSingular: row.unitSingular,
@@ -229,6 +230,7 @@ export type UpdatePatch = Partial<
     | "dateTimeAllowYearMonth"
     | "quickFilterRange"
     | "description"
+    | "aiInstructions"
     | "numberMin"
     | "numberMax"
     | "unitSingular"
@@ -295,6 +297,7 @@ const COPYABLE_FIELDS = [
   "dateTimeAllowYearMonth",
   "quickFilterRange",
   "description",
+  "aiInstructions",
   "numberMin",
   "numberMax",
   "unitSingular",

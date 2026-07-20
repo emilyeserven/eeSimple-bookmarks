@@ -2650,6 +2650,8 @@ export interface CustomProperty {
   quickFilterRange: number | null;
   /** Free-text description of the property, shown as a hint where its field is rendered, or `null`. */
   description: string | null;
+  /** Optional guidance injected into the bookmark AI-update prompt for this property, or `null`. */
+  aiInstructions: string | null;
   /** Lower bound of a `number`/`calculate` range slider (`null` = no minimum / derive from data). */
   numberMin: number | null;
   /** Upper bound of a `number`/`calculate` range slider (`null` = no maximum / derive from data). */
@@ -2782,6 +2784,8 @@ export interface CreateCustomPropertyInput {
   /** Half-width of the `value ± range` quick-filter window for `number`/`datetime` props (value's own units; seconds for duration/datetime). `null` = exact match. */
   quickFilterRange?: number | null;
   description?: string | null;
+  /** Optional guidance injected into the bookmark AI-update prompt for this property. */
+  aiInstructions?: string | null;
   numberMin?: number | null;
   numberMax?: number | null;
   unitSingular?: string | null;
