@@ -156,9 +156,13 @@ function MarkExhaustiveToggle({
  *   section and the rows after it nest as children (the items come from the top-level Selector, which
  *   must match every row including the section headers).
  * For `timestamp` the grouping controls are hidden (the selector's text is parsed for `m:ss` lines).
+ *
+ * The rule's top-level `extract.selector` (the "Item selector" that matches each repeated item) is
+ * rendered inline here — between the section-level grouping selectors and the within-item name/link
+ * selectors — so the selectors read largest → smallest, rather than in the generic rule fields below.
  */
 export function SectionsTarget({
-  target, propertiesById, onChange, lockedKeys, extractSelector = "",
+  target, propertiesById, onChange, lockedKeys, extractSelector = "", onExtractSelectorChange,
 }: {
   target: SectionsTarget;
   propertiesById: Map<string, CustomProperty>;
@@ -166,6 +170,12 @@ export function SectionsTarget({
   lockedKeys: LockedKeys;
   /** The rule's top-level `extract.selector` (matches each item) — used to compose the full-path hints. */
   extractSelector?: string;
+  /**
+   * Setter for the rule's top-level `extract.selector`. The item selector is rendered here (rather than
+   * in the generic rule fields) so the selectors read largest → smallest: section wrapper → section
+   * title → each repeated item → the item's own name/link.
+   */
+  onExtractSelectorChange: (selector: string) => void;
 }) {
   const {
     t,
@@ -228,14 +238,22 @@ export function SectionsTarget({
       />
       {isTimestamp
         ? (
-          <p className="text-xs text-muted-foreground">
-            {t("Selector should match the element whose text holds the timestamps (e.g. a video description). Each m:ss / h:mm:ss line becomes an entry.")}
-          </p>
+          <>
+            <p className="text-xs text-muted-foreground">
+              {t("Selector should match the element whose text holds the timestamps (e.g. a video description). Each m:ss / h:mm:ss line becomes an entry.")}
+            </p>
+            <LabeledInput
+              label={t("Selector")}
+              placeholder={"[data-purpose=\"description\"]"}
+              value={extractSelector}
+              onChange={onExtractSelectorChange}
+            />
+          </>
         )
         : (
           <>
             <p className="text-xs text-muted-foreground">
-              {t("The \"Selector\" field (below the target) matches each repeated item; the fields here say how those items are grouped into sections and where each item's name comes from.")}
+              {t("The fields below go from the largest grouping to the smallest: how items are grouped into sections, the selector that matches each repeated item, then where each item's name and link come from.")}
             </p>
             <KindSelect<SectionGroupingMode>
               label={t("Grouping")}
@@ -325,11 +343,22 @@ export function SectionsTarget({
                   })}
                 />
                 <p className="text-xs text-muted-foreground">
-                  {t("Items come from the top-level Selector field above — it must match every row, including the section headers (e.g. the \"Part\" rows), so don't restrict it to links. Rows whose name matches here start a new top-level section; the rows after each nest as its children.")}
+                  {t("Items come from the Item selector field below — it must match every row, including the section headers (e.g. the \"Part\" rows), so don't restrict it to links. Rows whose name matches here start a new top-level section; the rows after each nest as its children.")}
                 </p>
               </div>
             )}
 
+            <LabeledInput
+              label={t("Item selector (matches each repeated item)")}
+              placeholder={"[class*=\"course-lecture-title\"]"}
+              value={extractSelector}
+              onChange={onExtractSelectorChange}
+              hint={t("Matches every repeated item (e.g. each course lecture). Tip: for classes that end in a rotating hash, match a stable substring with [class*=\"course-lecture-title\"].")}
+            />
+            <SelectorPathHint
+              prefix={target.container ?? ""}
+              selector={extractSelector}
+            />
             <LabeledInput
               label={t("Item name selector (within each item)")}
               disabled={layoutLocked}
