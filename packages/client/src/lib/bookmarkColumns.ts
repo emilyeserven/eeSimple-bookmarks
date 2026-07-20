@@ -1,4 +1,4 @@
-import type { BookmarkImageVisibility, HomepageSectionImageLayout, ViewMode } from "../stores/uiStore";
+import type { BookmarkImageVisibility, HomepageSectionImageLayout, SectionDisplayMode, ViewMode } from "../stores/uiStore";
 
 import i18n from "../i18n";
 import { useUiStore } from "../stores/uiStore";
@@ -50,7 +50,7 @@ export function bookmarkImageModeLabel(mode: string): string {
   return i18n.t("Custom");
 }
 
-export type { BookmarkImageVisibility, HomepageSectionImageLayout, ViewMode };
+export type { BookmarkImageVisibility, HomepageSectionImageLayout, SectionDisplayMode, ViewMode };
 
 /** Default view mode for a listing page that has no saved preference. */
 export const DEFAULT_VIEW_MODE: ViewMode = "cards";
@@ -58,6 +58,14 @@ export const DEFAULT_VIEW_MODE: ViewMode = "cards";
 /** The chosen view mode for a listing page, falling back to the default (card grid). */
 export function useViewMode(pageKey: string): ViewMode {
   return useUiStore(state => state.viewMode[pageKey] ?? DEFAULT_VIEW_MODE);
+}
+
+/** Default tagged-sections display mode: show both the full card and the Tagged sections chips. */
+export const DEFAULT_SECTION_DISPLAY_MODE: SectionDisplayMode = "both";
+
+/** The chosen tagged-sections display mode for a listing page, falling back to "both". */
+export function useSectionDisplayMode(pageKey: string): SectionDisplayMode {
+  return useUiStore(state => state.sectionDisplayMode[pageKey] ?? DEFAULT_SECTION_DISPLAY_MODE);
 }
 
 /** Default image visibility for a listing page (full card with image shown). */

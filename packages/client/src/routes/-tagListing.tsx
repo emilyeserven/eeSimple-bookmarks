@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useCategoryPageData } from "./-categoryPageData";
 import { BookmarkSearchView } from "../components/BookmarkSearchView";
 import { SectionTagProvider } from "../components/SectionTagContext";
+import { useSectionDisplayMode } from "../lib/bookmarkColumns";
 import { findAncestorPath, subtreeIds } from "../lib/tagTree";
 
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +38,8 @@ export function TagListing({
   const {
     t,
   } = useTranslation();
+
+  const sectionDisplayMode = useSectionDisplayMode(`tag:${tagSlug}`);
 
   const {
     categories,
@@ -128,6 +131,7 @@ export function TagListing({
         value={{
           tagIds,
           tagName: tag.name,
+          mode: sectionDisplayMode,
         }}
       >
         {view}

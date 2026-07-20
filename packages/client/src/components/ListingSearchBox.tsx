@@ -115,6 +115,7 @@ export function ListingSearchBox({
             <ListingDisplayControls
               pageKey={listingPage.key}
               showImageControls={listingPage.showsImages}
+              showSectionDisplayControls={listingPage.showsTaggedSections}
             />
             <div className="flex items-center gap-2">
               {displayRowExtra}

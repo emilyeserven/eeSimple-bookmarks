@@ -1,5 +1,5 @@
-import { ColumnsSelect, ImageAspectSelect, ViewModeToggle } from "./DisplayControlPrimitives";
-import { useBookmarkColumns, useViewMode } from "../lib/bookmarkColumns";
+import { ColumnsSelect, ImageAspectSelect, SectionDisplayToggle, ViewModeToggle } from "./DisplayControlPrimitives";
+import { useBookmarkColumns, useSectionDisplayMode, useViewMode } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
 
 interface ListingDisplayControlsProps {
@@ -9,6 +9,11 @@ interface ListingDisplayControlsProps {
    * listings (a registered listing page with `showsImages`); omitted where cards carry no image.
    */
   showImageControls?: boolean;
+  /**
+   * When true, render the tagged-sections display toggle (only-bookmarks / only-sections / both).
+   * Enabled only on a tag page in `?taggedSections` mode.
+   */
+  showSectionDisplayControls?: boolean;
 }
 
 /**
@@ -21,6 +26,7 @@ interface ListingDisplayControlsProps {
 export function ListingDisplayControls({
   pageKey,
   showImageControls = false,
+  showSectionDisplayControls = false,
 }: ListingDisplayControlsProps) {
   const viewMode = useViewMode(pageKey);
   const setViewMode = useUiStore(state => state.setViewMode);
@@ -29,6 +35,8 @@ export function ListingDisplayControls({
   const imageMode = useUiStore(state => state.bookmarkImageMode[pageKey]);
   const setBookmarkImageMode = useUiStore(state => state.setBookmarkImageMode);
   const clearBookmarkImageMode = useUiStore(state => state.clearBookmarkImageMode);
+  const sectionDisplayMode = useSectionDisplayMode(pageKey);
+  const setSectionDisplayMode = useUiStore(state => state.setSectionDisplayMode);
 
   return (
     <div className="flex flex-row flex-wrap items-center gap-x-6 gap-y-2">
@@ -48,6 +56,12 @@ export function ListingDisplayControls({
           onChange={next => (next === undefined
             ? clearBookmarkImageMode(pageKey)
             : setBookmarkImageMode(pageKey, next))}
+        />
+      )}
+      {showSectionDisplayControls && (
+        <SectionDisplayToggle
+          value={sectionDisplayMode}
+          onChange={mode => setSectionDisplayMode(pageKey, mode)}
         />
       )}
     </div>

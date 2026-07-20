@@ -167,6 +167,9 @@ export function BookmarkCardDetails({
   // Present only on a tag page in `?taggedSections` mode — the "Tagged sections" field's gate.
   // (Hook stays at component level: `describeField` below is a plain call, not a component.)
   const sectionTagScope = useSectionTagScope();
+  // The View Options section-display choice for this listing (default "both"): "bookmarks" hides the
+  // Tagged sections chips, "sections" hides every other field so only the title + chips remain.
+  const sectionDisplayMode = sectionTagScope?.mode ?? "both";
   // The active header quick-search — the "Match Type" field's gate. Read at component level (same
   // reason as above); the field self-hides when it's empty or the bookmark matched nothing.
   const searchQuery = useUiStore(state => state.headerSearchQuery).trim().toLowerCase();
@@ -365,7 +368,9 @@ export function BookmarkCardDetails({
       }
       case "taggedSections": {
         // Renders only inside a `?taggedSections` tag page (the provider is the gate) — the names
-        // of this bookmark's section entries carrying the scoped tag (or a descendant).
+        // of this bookmark's section entries carrying the scoped tag (or a descendant). The
+        // "only bookmarks" View Options mode suppresses the chips entirely.
+        if (sectionDisplayMode === "bookmarks") return null;
         const names = sectionTagScope
           ? taggedSectionNames(bookmark.sectionsValues, sectionTagScope.tagIds)
           : [];
@@ -432,7 +437,15 @@ export function BookmarkCardDetails({
 
   // Listing cards pass explicit dynamic sections; other surfaces derive the legacy fixed four-zone
   // layout from the placements (byte-identical to the pre-refactor render).
-  const sections = bodySections ?? bodySectionsFromZones(placements, cardZoneLayouts);
+  const resolvedSections = bodySections ?? bodySectionsFromZones(placements, cardZoneLayouts);
+  // "Only sections" mode keeps just the title (header context) + Tagged sections chips per section;
+  // `renderSection` already collapses a section whose surviving fields all render null.
+  const sections = sectionDisplayMode === "sections"
+    ? resolvedSections.map(section => ({
+      ...section,
+      fieldKeys: section.fieldKeys.filter(key => key === "title" || key === "taggedSections"),
+    }))
+    : resolvedSections;
 
   function renderSection(section: RenderBodySection): ReactNode {
     const entries = section.fieldKeys
