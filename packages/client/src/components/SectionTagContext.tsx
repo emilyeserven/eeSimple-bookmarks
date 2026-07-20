@@ -6,10 +6,10 @@ import type { ReactNode } from "react";
 import { createContext, useContext } from "react";
 
 /**
- * The active section-tag scope: which tag subtree the surrounding page is filtering bookmark
- * sections by. Provided ONLY by the tag listing while its `?taggedSections` mode is on — the
- * "Tagged sections" card field reads this and renders nowhere else (homepage, /bookmarks, other
- * entity listings), even when placed in the card display config.
+ * The active section-tag scope: which tag subtree the surrounding page resolves bookmark section
+ * tags against. Provided by any tag listing page (the tag's own subtree) — the "Tagged sections"
+ * card field reads this and renders nowhere else (homepage, /bookmarks, other entity listings), even
+ * when placed in the card display config.
  */
 export interface SectionTagScope {
   /** The scoped tag's id plus all descendant ids (the subtree the filter matches against). */
@@ -34,7 +34,7 @@ export function SectionTagProvider({
   return <SectionTagContext.Provider value={value}>{children}</SectionTagContext.Provider>;
 }
 
-/** The active section-tag scope, or `null` outside a `?taggedSections` tag page. */
+/** The active section-tag scope, or `null` outside a tag listing page. */
 export function useSectionTagScope(): SectionTagScope | null {
   return useContext(SectionTagContext);
 }

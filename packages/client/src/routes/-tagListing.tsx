@@ -124,18 +124,18 @@ export function TagListing({
     />
   );
 
-  // The provider gates the "Tagged sections" card field to this page + mode only.
-  return search.taggedSections
-    ? (
-      <SectionTagProvider
-        value={{
-          tagIds,
-          tagName: tag.name,
-          mode: sectionDisplayMode,
-        }}
-      >
-        {view}
-      </SectionTagProvider>
-    )
-    : view;
+  // The provider enables the "Tagged sections" card field + the section-display mode on any tag
+  // listing page (chips resolve against this tag's subtree). The header "Tagged sections" pill above
+  // stays gated on `?taggedSections` — that's the filter indicator, separate from the card provider.
+  return (
+    <SectionTagProvider
+      value={{
+        tagIds,
+        tagName: tag.name,
+        mode: sectionDisplayMode,
+      }}
+    >
+      {view}
+    </SectionTagProvider>
+  );
 }

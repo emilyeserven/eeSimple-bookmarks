@@ -164,8 +164,8 @@ export function BookmarkCardDetails({
   // Listings pass the rule-resolved value explicitly; other surfaces fall back to the Default rule.
   const defaultHideWebsiteForYouTube = useHideWebsiteForYouTube();
   const effectiveHideWebsiteForYouTube = hideWebsiteForYouTube ?? defaultHideWebsiteForYouTube;
-  // Present only on a tag page in `?taggedSections` mode — the "Tagged sections" field's gate.
-  // (Hook stays at component level: `describeField` below is a plain call, not a component.)
+  // Present on any tag listing page — the "Tagged sections" field's gate (scoped to that tag's
+  // subtree). (Hook stays at component level: `describeField` below is a plain call, not a component.)
   const sectionTagScope = useSectionTagScope();
   // The View Options section-display choice for this listing (default "both"): "bookmarks" hides the
   // Tagged sections chips, "sections" hides every other field so only the title + chips remain.
@@ -367,9 +367,9 @@ export function BookmarkCardDetails({
         );
       }
       case "taggedSections": {
-        // Renders only inside a `?taggedSections` tag page (the provider is the gate) — the names
-        // of this bookmark's section entries carrying the scoped tag (or a descendant). The
-        // "only bookmarks" View Options mode suppresses the chips entirely.
+        // Renders on any tag listing page (the provider is the gate) — the names of this bookmark's
+        // section entries carrying the scoped tag (or a descendant). The "only bookmarks" View
+        // Options mode suppresses the chips entirely.
         if (sectionDisplayMode === "bookmarks") return null;
         const names = sectionTagScope
           ? taggedSectionNames(bookmark.sectionsValues, sectionTagScope.tagIds)

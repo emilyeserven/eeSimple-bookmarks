@@ -1,4 +1,4 @@
-import { ColumnsSelect, ImageAspectSelect, SectionDisplayToggle, ViewModeToggle } from "./DisplayControlPrimitives";
+import { ColumnsSelect, ImageAspectSelect, SectionDisplaySelect, ViewModeToggle } from "./DisplayControlPrimitives";
 import { useBookmarkColumns, useSectionDisplayMode, useViewMode } from "../lib/bookmarkColumns";
 import { useUiStore } from "../stores/uiStore";
 
@@ -59,7 +59,7 @@ export function ListingDisplayControls({
         />
       )}
       {showSectionDisplayControls && (
-        <SectionDisplayToggle
+        <SectionDisplaySelect
           value={sectionDisplayMode}
           onChange={mode => setSectionDisplayMode(pageKey, mode)}
         />

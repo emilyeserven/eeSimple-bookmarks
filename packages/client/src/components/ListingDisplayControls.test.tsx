@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ListingDisplayControls } from "./ListingDisplayControls";
@@ -68,7 +68,7 @@ describe("ListingDisplayControls", () => {
     expect(screen.queryByText("Default")).not.toBeInTheDocument();
   });
 
-  it("only shows the Sections display toggle when section controls are enabled", () => {
+  it("only shows the Sections display selector when section controls are enabled", () => {
     const {
       rerender,
     } = render(<ListingDisplayControls pageKey={PAGE} />);
@@ -81,19 +81,23 @@ describe("ListingDisplayControls", () => {
       />,
     );
     expect(screen.getByText("Sections")).toBeInTheDocument();
-    expect(screen.getByText("Only bookmarks")).toBeInTheDocument();
-    expect(screen.getByText("Only sections")).toBeInTheDocument();
+    // Default value ("both") shows as the selected label in the closed dropdown trigger.
     expect(screen.getByText("Sections + bookmarks")).toBeInTheDocument();
   });
 
-  it("persists the chosen section-display mode for the page", () => {
+  it("reflects the stored section-display mode on the selector", () => {
+    useUiStore.setState({
+      sectionDisplayMode: {
+        [PAGE]: "sections",
+      },
+    });
     render(
       <ListingDisplayControls
         pageKey={PAGE}
         showSectionDisplayControls
       />,
     );
-    fireEvent.click(screen.getByText("Only sections"));
-    expect(useUiStore.getState().sectionDisplayMode[PAGE]).toBe("sections");
+    expect(screen.getByText("Only sections")).toBeInTheDocument();
+    expect(screen.queryByText("Sections + bookmarks")).not.toBeInTheDocument();
   });
 });
