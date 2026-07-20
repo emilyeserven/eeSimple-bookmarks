@@ -68,6 +68,27 @@ describe("formatRatingCaption", () => {
       ratingAllowRange: true,
     }), 2, 4)).toBe("2 → 4");
   });
+
+  it("applies the bookmark category's label overrides, falling back per level", () => {
+    const property = rating({
+      ratingAllowRange: true,
+      ratingLabels: {
+        1: "Beginner",
+        3: "Advanced",
+      },
+      ratingCategoryLabels: {
+        "cat-japanese": {
+          1: "N5",
+        },
+      },
+    });
+    // The override wins for its category; other categories keep the base labels.
+    expect(formatRatingCaption(property, 1, null, "cat-japanese")).toBe("N5");
+    expect(formatRatingCaption(property, 1, null, "cat-other")).toBe("Beginner");
+    expect(formatRatingCaption(property, 1, null)).toBe("Beginner");
+    // A range mixes the override with the base fallback per level.
+    expect(formatRatingCaption(property, 1, 3, "cat-japanese")).toBe("N5 → Advanced");
+  });
 });
 
 describe("ratingLevelValues", () => {
@@ -89,6 +110,17 @@ describe("ratingLevelValues", () => {
       ratingMax: 3,
       ratingAllowHalf: true,
     }))).toEqual([1, 1.5, 2, 2.5, 3]);
+  });
+
+  it("supports any whole max, not just 3 or 5", () => {
+    expect(ratingLevelValues(makeCustomProperty({
+      type: "ratingScale",
+      ratingMax: 7,
+    }))).toEqual([1, 2, 3, 4, 5, 6, 7]);
+    expect(ratingLevelValues(makeCustomProperty({
+      type: "ratingScale",
+      ratingMax: 10,
+    }))).toHaveLength(10);
   });
 });
 

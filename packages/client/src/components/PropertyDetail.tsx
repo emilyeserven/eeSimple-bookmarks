@@ -5,6 +5,7 @@ import { CHOICES_DISPLAY_LABELS, resolveItemInItemsTexts } from "@eesimple/types
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
+import { useCategories } from "../hooks/useCategories";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useMediaTypes } from "../hooks/useMediaTypes";
 import { hasPropertyOptions } from "../lib/propertyForm";
@@ -133,6 +134,39 @@ function BooleanOptionsFields({
   );
 }
 
+/**
+ * The per-category label overrides of a ratingScale property, one row per category. Only mounted
+ * when overrides exist (see the caller's guard), so the categories query never runs otherwise.
+ */
+function RatingCategoryLabelsDetailField({
+  property,
+}: PropertyOptionsFieldsProps) {
+  const {
+    t,
+  } = useTranslation();
+  const {
+    data: categories,
+  } = useCategories();
+  const overrides = Object.entries(property.ratingCategoryLabels ?? {});
+  const nameById = new Map((categories ?? []).map(category => [category.id, category.name]));
+  return (
+    <DetailField label={t("Per-category labels")}>
+      <ul className="space-y-1 text-sm">
+        {overrides.map(([categoryId, labels]) => (
+          <li key={categoryId}>
+            {nameById.get(categoryId) ?? t("(deleted category)")}
+            {": "}
+            {Object.entries(labels)
+              .sort(([a], [b]) => Number(a) - Number(b))
+              .map(([level, label]) => `${level}: ${label}`)
+              .join(", ")}
+          </li>
+        ))}
+      </ul>
+    </DetailField>
+  );
+}
+
 /** Rating-scale option fields: scale bounds, half ratings, label, and default allowance. */
 function RatingOptionsFields({
   property,
@@ -165,6 +199,9 @@ function RatingOptionsFields({
             .join(", ")
           : null}
       </DetailField>
+      {property.ratingCategoryLabels && Object.keys(property.ratingCategoryLabels).length > 0
+        ? <RatingCategoryLabelsDetailField property={property} />
+        : null}
       <AllowDefaultField property={property} />
     </>
   );

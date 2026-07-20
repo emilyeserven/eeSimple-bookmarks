@@ -72,7 +72,7 @@ export function BookmarkPropertyColumnCell({
   if (property.type === "ratingScale") {
     const entry = bookmark.numberValues.find(value => value.propertyId === property.id);
     if (!entry) return null;
-    const caption = formatRatingCaption(property, entry.value, entry.valueEnd);
+    const caption = formatRatingCaption(property, entry.value, entry.valueEnd, bookmark.categoryId);
     return (
       <span className="inline-flex items-center gap-1.5">
         <RatingValue

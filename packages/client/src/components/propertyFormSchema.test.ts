@@ -1,7 +1,8 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 
-import { CREATE_DEFAULTS, payloadFromValues, sectionVisibility } from "./propertyFormSchema";
+import { CREATE_DEFAULTS, payloadFromValues, sectionVisibility, valuesFromProperty } from "./propertyFormSchema";
+import { makeCustomProperty } from "../test-utils/factories";
 
 describe("sectionVisibility", () => {
   it("shows every section in the full form (no section)", () => {
@@ -150,6 +151,77 @@ describe("payloadFromValues", () => {
     expect(nonRating.ratingMax).toBeNull();
     expect(nonRating.ratingLabel).toBeNull();
     expect(nonRating.ratingAllowZero).toBeUndefined();
+    expect(nonRating.ratingCategoryLabels).toBeNull();
+  });
+
+  it("accepts any whole ratingMax and clamps out-of-range or invalid input", () => {
+    const max = (ratingMax: string) => payloadFromValues({
+      ...CREATE_DEFAULTS,
+      type: "ratingScale",
+      ratingMax,
+    }).ratingMax;
+    expect(max("7")).toBe(7);
+    expect(max("10")).toBe(10);
+    expect(max("25")).toBe(20);
+    expect(max("1")).toBe(2);
+    expect(max("abc")).toBe(5);
+  });
+
+  it("prunes rating labels above the max (and blank entries) on save", () => {
+    const payload = payloadFromValues({
+      ...CREATE_DEFAULTS,
+      type: "ratingScale",
+      ratingMax: "3",
+      ratingLabels: {
+        1: "Beginner",
+        2: "  ",
+        5: "Stale (max was lowered)",
+      },
+    });
+    expect(payload.ratingLabels).toEqual({
+      1: "Beginner",
+    });
+  });
+
+  it("rebuilds the category-label record from rows, dropping empty rows and stale levels", () => {
+    const payload = payloadFromValues({
+      ...CREATE_DEFAULTS,
+      type: "ratingScale",
+      ratingMax: "5",
+      ratingCategoryLabels: [
+        {
+          categoryId: "cat-japanese",
+          labels: {
+            1: "N5",
+            5: " N1 ",
+            9: "Stale",
+          },
+        },
+        {
+          categoryId: "",
+          labels: {
+            1: "No category picked",
+          },
+        },
+        {
+          categoryId: "cat-empty",
+          labels: {
+            1: "  ",
+          },
+        },
+      ],
+    });
+    expect(payload.ratingCategoryLabels).toEqual({
+      "cat-japanese": {
+        1: "N5",
+        5: "N1",
+      },
+    });
+    // No surviving rows at all → explicit null (clears the stored jsonb).
+    expect(payloadFromValues({
+      ...CREATE_DEFAULTS,
+      type: "ratingScale",
+    }).ratingCategoryLabels).toBeNull();
   });
 
   it("maps the boolean value-formatting preset only for boolean properties", () => {
@@ -169,6 +241,42 @@ describe("payloadFromValues", () => {
       type: "number",
     });
     expect(number.booleanLabelPreset).toBeNull();
+  });
+
+  it("round-trips the category-label record through form rows, keeping dangling categories", () => {
+    const property = makeCustomProperty({
+      type: "ratingScale",
+      ratingMax: 7,
+      ratingCategoryLabels: {
+        "cat-japanese": {
+          1: "N5",
+        },
+        // A since-deleted category's row is kept so the editor can surface it for removal.
+        "cat-deleted": {
+          1: "Old",
+        },
+      },
+    });
+    const values = valuesFromProperty(property);
+    expect(values.ratingMax).toBe("7");
+    expect(values.ratingCategoryLabels).toEqual([
+      {
+        categoryId: "cat-japanese",
+        labels: {
+          1: "N5",
+        },
+      },
+      {
+        categoryId: "cat-deleted",
+        labels: {
+          1: "Old",
+        },
+      },
+    ]);
+    expect(payloadFromValues({
+      ...CREATE_DEFAULTS,
+      ...values,
+    }).ratingCategoryLabels).toEqual(property.ratingCategoryLabels);
   });
 
   it("hardcodes the bookmark-form placement flags for a new property (managed centrally in Settings → Display → Bookmark Add Form)", () => {

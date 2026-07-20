@@ -1,4 +1,5 @@
 import { asc, eq, ne } from "drizzle-orm";
+import { clampRatingMax } from "@eesimple/types";
 import type {
   BulkDeleteResult,
   ChoicesItem,
@@ -89,6 +90,7 @@ function toCustomProperty(
     ratingLabel: row.ratingLabel ?? null,
     ratingAllowRange: row.ratingAllowRange ?? false,
     ratingLabels: (row.ratingLabels as CustomProperty["ratingLabels"]) ?? null,
+    ratingCategoryLabels: (row.ratingCategoryLabels as CustomProperty["ratingCategoryLabels"]) ?? null,
     ratingDisplay: (row.ratingDisplay as CustomProperty["ratingDisplay"]) ?? null,
     ratingRangeIncludeStart: row.ratingRangeIncludeStart ?? false,
     choicesItems: (row.choicesItems as ChoicesItem[] | null) ?? [],
@@ -154,9 +156,9 @@ export async function getCustomProperty(id: string): Promise<CustomProperty | nu
   );
 }
 
-/** Coerce a requested rating max to a supported scale (3 or 5); defaults to 5. */
-function normalizeRatingMax(value: number | null | undefined): 3 | 5 {
-  return value === 3 ? 3 : 5;
+/** Coerce a requested rating max to a supported whole scale (2–20); defaults to 5. */
+function normalizeRatingMax(value: number | null | undefined): number {
+  return clampRatingMax(value);
 }
 
 /**
@@ -187,6 +189,7 @@ export function buildInsertValues(
     ratingLabel: isRating ? (input.ratingLabel ?? null) : null,
     ratingAllowRange: isRating ? (input.ratingAllowRange ?? null) : null,
     ratingLabels: isRating ? (input.ratingLabels ?? null) : null,
+    ratingCategoryLabels: isRating ? (input.ratingCategoryLabels ?? null) : null,
     ratingDisplay: isRating ? (input.ratingDisplay ?? null) : null,
     ratingRangeIncludeStart: isRating ? (input.ratingRangeIncludeStart ?? null) : null,
   };
@@ -258,6 +261,7 @@ export type UpdatePatch = Partial<
     | "ratingLabel"
     | "ratingAllowRange"
     | "ratingLabels"
+    | "ratingCategoryLabels"
     | "ratingDisplay"
     | "ratingRangeIncludeStart"
     | "choicesItems"
@@ -324,6 +328,7 @@ const COPYABLE_FIELDS = [
   "ratingLabel",
   "ratingAllowRange",
   "ratingLabels",
+  "ratingCategoryLabels",
   "ratingDisplay",
   "ratingRangeIncludeStart",
   "choicesItems",

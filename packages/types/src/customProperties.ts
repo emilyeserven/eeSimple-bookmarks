@@ -112,6 +112,54 @@ export const RATING_DISPLAY_LABELS: Record<RatingDisplay, string> = {
   ticks: "Range with tick marks",
 };
 
+/** The lowest configurable top level of a `ratingScale` (a 1–1 scale would be meaningless). */
+export const RATING_MAX_MIN = 2;
+
+/** The highest configurable top level of a `ratingScale` (bounds star/tick rendering width). */
+export const RATING_MAX_LIMIT = 20;
+
+/**
+ * Normalize a stored/submitted `ratingMax` to a usable whole top level: `null`/non-finite → 5 (the
+ * historical default), else rounded and clamped to [{@link RATING_MAX_MIN}, {@link RATING_MAX_LIMIT}].
+ * Shared by the middleware insert path and the client form so both agree on the effective scale.
+ */
+export function clampRatingMax(value: number | null | undefined): number {
+  if (value == null || !Number.isFinite(value)) return 5;
+  return Math.min(RATING_MAX_LIMIT, Math.max(RATING_MAX_MIN, Math.round(value)));
+}
+
+/**
+ * Per-category overrides of a `ratingScale`'s per-level labels, keyed by category id; each entry is
+ * an inner level-keyed label map shaped like `CustomProperty.ratingLabels`. A level absent (or
+ * blank) in an override inherits the base `ratingLabels` entry — so one property can read "N5…N1"
+ * for a Japanese category and "Beginner…Advanced" elsewhere while storing the same numeric levels
+ * (filtering stays unified). Stored as nullable jsonb on `custom_properties`.
+ */
+export type RatingCategoryLabels = Record<string, Record<string, string>>;
+
+/** The rating label fields {@link resolveRatingLevelLabel} reads (structurally satisfied by `CustomProperty`). */
+export interface RatingLabelSource {
+  ratingLabels: Record<string, string> | null;
+  ratingCategoryLabels: RatingCategoryLabels | null;
+}
+
+/**
+ * Resolve a rating level's display label with the priority chain **category override → base label
+ * → `null`**: a non-blank entry in the bookmark's category override wins, else the property's base
+ * `ratingLabels` entry, else `null` (the caller decides the numeric fallback). Omitting
+ * `categoryId` reduces to the base behavior unchanged.
+ */
+export function resolveRatingLevelLabel(
+  property: RatingLabelSource,
+  level: number,
+  categoryId?: string | null,
+): string | null {
+  const key = String(level);
+  const override = categoryId ? property.ratingCategoryLabels?.[categoryId]?.[key] : undefined;
+  const label = override && override.trim() !== "" ? override : property.ratingLabels?.[key];
+  return label && label.trim() !== "" ? label : null;
+}
+
 /**
  * What a `datetime` property captures (and therefore how its value is entered/encoded):
  * - `date` — a calendar date only, stored as `"YYYY-MM-DD"`.

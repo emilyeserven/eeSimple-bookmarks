@@ -5,6 +5,8 @@ import {
   DATE_TIME_FORMATS,
   NUMBER_FORMATS,
   RATING_DISPLAYS,
+  RATING_MAX_LIMIT,
+  RATING_MAX_MIN,
   SECTION_ENTRY_TYPES,
 } from "@eesimple/types";
 import type {
@@ -141,8 +143,9 @@ const createPropertyBody = {
       type: ["string", "null"],
     },
     ratingMax: {
-      type: ["number", "null"],
-      enum: [3, 5, null],
+      type: ["integer", "null"],
+      minimum: RATING_MAX_MIN,
+      maximum: RATING_MAX_LIMIT,
     },
     ratingAllowZero: {
       type: "boolean",
@@ -163,6 +166,15 @@ const createPropertyBody = {
       type: ["object", "null"],
       additionalProperties: {
         type: "string",
+      },
+    },
+    ratingCategoryLabels: {
+      type: ["object", "null"],
+      additionalProperties: {
+        type: "object",
+        additionalProperties: {
+          type: "string",
+        },
       },
     },
     ratingDisplay: {
@@ -287,6 +299,7 @@ const updatePropertyBody = {
     ratingLabel: createPropertyBody.properties.ratingLabel,
     ratingAllowRange: createPropertyBody.properties.ratingAllowRange,
     ratingLabels: createPropertyBody.properties.ratingLabels,
+    ratingCategoryLabels: createPropertyBody.properties.ratingCategoryLabels,
     ratingDisplay: createPropertyBody.properties.ratingDisplay,
     ratingRangeIncludeStart: createPropertyBody.properties.ratingRangeIncludeStart,
     choicesItems: createPropertyBody.properties.choicesItems,

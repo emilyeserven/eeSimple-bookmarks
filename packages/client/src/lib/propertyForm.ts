@@ -28,18 +28,6 @@ export const TYPE_OPTIONS = CUSTOM_PROPERTY_TYPES.map(value => ({
   label: CUSTOM_PROPERTY_TYPE_LABELS[value],
 }));
 
-/** Supported `ratingScale` maxima (1–3 or 1–5 stars). */
-export const RATING_MAX_OPTIONS = [
-  {
-    value: "3",
-    label: i18n.t("1 – 3"),
-  },
-  {
-    value: "5",
-    label: i18n.t("1 – 5"),
-  },
-];
-
 /** `ratingScale` display styles for the Display select. Derived from {@link RATING_DISPLAYS}. */
 export const RATING_DISPLAY_OPTIONS = RATING_DISPLAYS.map(value => ({
   value,
@@ -158,6 +146,8 @@ export function summarizeRatingOptions(values: {
   ratingLabel: string;
   ratingAllowRange?: boolean;
   ratingLabelCount?: number;
+  /** Number of per-category label overrides, appended to the preview when > 0. */
+  ratingCategoryOverrideCount?: number;
   ratingDisplay?: string;
   ratingRangeIncludeStart?: boolean;
 }): string {
@@ -181,6 +171,11 @@ export function summarizeRatingOptions(values: {
   if (values.ratingLabelCount && values.ratingLabelCount > 0) {
     parts.push(i18n.t("{{count}} level labels", {
       count: values.ratingLabelCount,
+    }));
+  }
+  if (values.ratingCategoryOverrideCount && values.ratingCategoryOverrideCount > 0) {
+    parts.push(i18n.t("{{count}} category override", {
+      count: values.ratingCategoryOverrideCount,
     }));
   }
   return parts.join(" · ");

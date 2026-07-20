@@ -8,7 +8,7 @@
 
 import type { BookmarkContentKind } from "./bookmarkContentKind.js";
 import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from "./conditions.js";
-import type { BookmarkSectionsValue, BookmarkTextValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, ItemInItemsMediaTypeTexts, NumberFormat, RatingDisplay, SectionEntryType } from "./customProperties.js";
+import type { BookmarkSectionsValue, BookmarkTextValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, ItemInItemsMediaTypeTexts, NumberFormat, RatingCategoryLabels, RatingDisplay, SectionEntryType } from "./customProperties.js";
 import type { EntityName, UpdateEntityNameEntry } from "./entityNames.js";
 import type { WebsiteExtensionFillRule } from "./extensionFill.js";
 import type { ExtensionFillRuleGroup } from "./extensionFillGroups.js";
@@ -2175,8 +2175,11 @@ export interface ImportApproveResult {
 // `as const` tuples in `./customProperties.ts` (re-exported above) so every zod / JSON-Schema /
 // option-list mirror stays in lockstep — add a variant there, not here.
 
-/** The top of a `ratingScale`: a 1–3 or a 1–5 star scale. */
-export type RatingMax = 3 | 5;
+/**
+ * The top of a `ratingScale` (its highest level). Any whole number in
+ * [`RATING_MAX_MIN`, `RATING_MAX_LIMIT`] (2–20); see `clampRatingMax` in `./customProperties.ts`.
+ */
+export type RatingMax = number;
 
 /**
  * How `true`/`false` values of a boolean property are rendered:
@@ -2670,7 +2673,7 @@ export interface CustomProperty {
   booleanTrueLabel: string | null;
   /** Custom label for a `false` value; only used when `booleanLabelPreset` is `"custom"`. */
   booleanFalseLabel: string | null;
-  /** Top of a `ratingScale` (3 or 5 stars); `null` defaults to 5. Only relevant for `ratingScale`. */
+  /** Top of a `ratingScale` (2–20); `null` defaults to 5. Only relevant for `ratingScale`. */
   ratingMax: RatingMax | null;
   /** When true, a `ratingScale` may be set to 0 (no stars); otherwise the minimum is 1. Defaults to false. */
   ratingAllowZero: boolean;
@@ -2692,6 +2695,12 @@ export interface CustomProperty {
    * as their number). A level absent from the map falls back to its number.
    */
   ratingLabels: Record<string, string> | null;
+  /**
+   * Per-category overrides of {@link ratingLabels}, keyed by category id (see
+   * {@link RatingCategoryLabels}). `null` = no overrides; a level absent/blank in an override
+   * inherits the base label. Only the display changes — stored values stay the shared numbers.
+   */
+  ratingCategoryLabels: RatingCategoryLabels | null;
   /** How a `ratingScale` renders — `"stars"` (glyphs) or `"ticks"` (tick-mark scale); `null` = `"stars"`. */
   ratingDisplay: RatingDisplay | null;
   /**
@@ -2825,7 +2834,7 @@ export interface CreateCustomPropertyInput {
   booleanTrueLabel?: string | null;
   /** Custom label for a `false` value; only used when `booleanLabelPreset` is `"custom"`. */
   booleanFalseLabel?: string | null;
-  /** Top of a `ratingScale` (3 or 5). Defaults to 5. Only relevant for `ratingScale`. */
+  /** Top of a `ratingScale` (2–20). Defaults to 5. Only relevant for `ratingScale`. */
   ratingMax?: RatingMax | null;
   /** When true, a `ratingScale` may be set to 0. Defaults to false. */
   ratingAllowZero?: boolean;
@@ -2839,6 +2848,8 @@ export interface CreateCustomPropertyInput {
   ratingAllowRange?: boolean;
   /** Per-number labels for a `ratingScale`, keyed by the level as a string (`"0".."ratingMax"`). */
   ratingLabels?: Record<string, string> | null;
+  /** Per-category overrides of `ratingLabels`, keyed by category id. `null` = no overrides. */
+  ratingCategoryLabels?: RatingCategoryLabels | null;
   /** How a `ratingScale` renders — `"stars"` or `"ticks"`. Defaults to `"stars"`. */
   ratingDisplay?: RatingDisplay | null;
   /** When true, a `ratingScale` range fills its start level too (inclusive band). Defaults to false. */
