@@ -3,6 +3,7 @@ import type {
   AiAutotagApplyInput,
   AiAutotagApplyResult,
   AiAutotagSettings,
+  AiBulkEditSettings,
   AiSummarizationSettings,
   AiSummaryApplyInput,
   AiSummaryApplyResult,
@@ -49,6 +50,7 @@ import type {
   TagReparentSettings,
   UpdateAdvancedSettingsInput,
   UpdateAiAutotagInput,
+  UpdateAiBulkEditInput,
   UpdateAiSummarizationInput,
   UpdateAutomationInput,
   UpdateBookmarkAddFormInput,
@@ -213,6 +215,13 @@ export const appSettingsApi = {
     request<BookmarkAiUpdateSettings>("/app-settings/bookmark-ai-update"),
   updateBookmarkAiUpdate: (input: UpdateBookmarkAiUpdateInput) =>
     request<BookmarkAiUpdateSettings>("/app-settings/bookmark-ai-update", {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  getAiBulkEdit: () =>
+    request<AiBulkEditSettings>("/app-settings/ai-bulk-edit"),
+  updateAiBulkEdit: (input: UpdateAiBulkEditInput) =>
+    request<AiBulkEditSettings>("/app-settings/ai-bulk-edit", {
       method: "PUT",
       body: JSON.stringify(input),
     }),

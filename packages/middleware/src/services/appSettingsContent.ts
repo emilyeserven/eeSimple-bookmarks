@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import type {
   AiAutotagSettings,
+  AiBulkEditSettings,
   AiSummarizationSettings,
   BookmarkAiUpdateSettings,
   HomepageContentSettings,
@@ -8,6 +9,7 @@ import type {
   TagReparentSettings,
   UpdateAiAutotagInput,
   UpdateAiSummarizationInput,
+  UpdateAiBulkEditInput,
   UpdateBookmarkAiUpdateInput,
   UpdateHomepageContentInput,
   UpdateScratchpadInput,
@@ -16,7 +18,7 @@ import type {
 import { resolveHomepageWidgetOrder } from "@eesimple/types";
 import { db } from "@/db";
 import { appSettings } from "@/db/schema";
-import { asQuickAddDisplay, asWidth, DEFAULT_AI_AUTOTAG, DEFAULT_AI_SUMMARIZATION, DEFAULT_BOOKMARK_AI_UPDATE, DEFAULT_HOMEPAGE_CONTENT, DEFAULT_SCRATCHPAD, DEFAULT_SHORTENER_IGNORE_LIST, DEFAULT_TAG_REPARENT, ROW_ID } from "./appSettingsShared";
+import { asQuickAddDisplay, asWidth, DEFAULT_AI_AUTOTAG, DEFAULT_AI_BULK_EDIT, DEFAULT_AI_SUMMARIZATION, DEFAULT_BOOKMARK_AI_UPDATE, DEFAULT_HOMEPAGE_CONTENT, DEFAULT_SCRATCHPAD, DEFAULT_SHORTENER_IGNORE_LIST, DEFAULT_TAG_REPARENT, ROW_ID } from "./appSettingsShared";
 
 /** Read just the homepage-content settings shown/edited on the homepage settings page. */
 export async function getHomepageContentSettings(): Promise<HomepageContentSettings> {
@@ -242,6 +244,40 @@ export async function updateBookmarkAiUpdateSettings(
 ): Promise<BookmarkAiUpdateSettings> {
   const next: BookmarkAiUpdateSettings = {
     bookmarkAiUpdatePrompt: input.bookmarkAiUpdatePrompt,
+  };
+  await db
+    .insert(appSettings)
+    .values({
+      id: ROW_ID,
+      ...next,
+    })
+    .onConflictDoUpdate({
+      target: appSettings.id,
+      set: next,
+    });
+  return next;
+}
+
+/** Read the AI Bulk Edit prompt template (coalescing the nullable column to an empty string). */
+export async function getAiBulkEditSettings(): Promise<AiBulkEditSettings> {
+  const [row] = await db
+    .select({
+      aiBulkEditPrompt: appSettings.aiBulkEditPrompt,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  if (!row) return DEFAULT_AI_BULK_EDIT;
+  return {
+    aiBulkEditPrompt: row.aiBulkEditPrompt ?? "",
+  };
+}
+
+/** Replace the AI Bulk Edit prompt template, upserting the singleton. Returns the stored value. */
+export async function updateAiBulkEditSettings(
+  input: UpdateAiBulkEditInput,
+): Promise<AiBulkEditSettings> {
+  const next: AiBulkEditSettings = {
+    aiBulkEditPrompt: input.aiBulkEditPrompt,
   };
   await db
     .insert(appSettings)

@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import type {
   AdvancedSettings,
   AiAutotagSettings,
+  AiBulkEditSettings,
   AiSummarizationSettings,
   BookmarkAiUpdateSettings,
   TagReparentSettings,
@@ -180,6 +181,11 @@ export const DEFAULT_TAG_REPARENT: TagReparentSettings = {
 /** Default bookmark AI-update settings (empty prompt template), used when the row/column is absent. */
 export const DEFAULT_BOOKMARK_AI_UPDATE: BookmarkAiUpdateSettings = {
   bookmarkAiUpdatePrompt: "",
+};
+
+/** Default AI Bulk Edit settings (empty prompt template), used when the row/column is absent. */
+export const DEFAULT_AI_BULK_EDIT: AiBulkEditSettings = {
+  aiBulkEditPrompt: "",
 };
 
 /** Default display/detail preferences, used when seeding / when row absent. */

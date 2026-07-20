@@ -20,6 +20,7 @@ import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as BookmarksRouteImport } from './routes/bookmarks'
 import { Route as AutofillRouteImport } from './routes/autofill'
 import { Route as AiSummarizationRouteImport } from './routes/ai-summarization'
+import { Route as AiBulkEditRouteImport } from './routes/ai-bulk-edit'
 import { Route as AiAutotagRouteImport } from './routes/ai-autotag'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TagsIndexRouteImport } from './routes/tags.index'
@@ -324,6 +325,11 @@ const AutofillRoute = AutofillRouteImport.update({
 const AiSummarizationRoute = AiSummarizationRouteImport.update({
   id: '/ai-summarization',
   path: '/ai-summarization',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiBulkEditRoute = AiBulkEditRouteImport.update({
+  id: '/ai-bulk-edit',
+  path: '/ai-bulk-edit',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AiAutotagRoute = AiAutotagRouteImport.update({
@@ -1742,6 +1748,7 @@ const TaxonomiesTaxonomyKeyTermSlugHubGalleryRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai-autotag': typeof AiAutotagRoute
+  '/ai-bulk-edit': typeof AiBulkEditRoute
   '/ai-summarization': typeof AiSummarizationRoute
   '/autofill': typeof AutofillRouteWithChildren
   '/bookmarks': typeof BookmarksRouteWithChildren
@@ -1993,6 +2000,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai-autotag': typeof AiAutotagRoute
+  '/ai-bulk-edit': typeof AiBulkEditRoute
   '/ai-summarization': typeof AiSummarizationRoute
   '/quick-add': typeof QuickAddRoute
   '/autofill/backfill': typeof AutofillBackfillRoute
@@ -2174,6 +2182,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/ai-autotag': typeof AiAutotagRoute
+  '/ai-bulk-edit': typeof AiBulkEditRoute
   '/ai-summarization': typeof AiSummarizationRoute
   '/autofill': typeof AutofillRouteWithChildren
   '/bookmarks': typeof BookmarksRouteWithChildren
@@ -2439,6 +2448,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/ai-autotag'
+    | '/ai-bulk-edit'
     | '/ai-summarization'
     | '/autofill'
     | '/bookmarks'
@@ -2690,6 +2700,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/ai-autotag'
+    | '/ai-bulk-edit'
     | '/ai-summarization'
     | '/quick-add'
     | '/autofill/backfill'
@@ -2870,6 +2881,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/ai-autotag'
+    | '/ai-bulk-edit'
     | '/ai-summarization'
     | '/autofill'
     | '/bookmarks'
@@ -3134,6 +3146,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AiAutotagRoute: typeof AiAutotagRoute
+  AiBulkEditRoute: typeof AiBulkEditRoute
   AiSummarizationRoute: typeof AiSummarizationRoute
   AutofillRoute: typeof AutofillRouteWithChildren
   BookmarksRoute: typeof BookmarksRouteWithChildren
@@ -3240,6 +3253,13 @@ declare module '@tanstack/react-router' {
       path: '/ai-summarization'
       fullPath: '/ai-summarization'
       preLoaderRoute: typeof AiSummarizationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-bulk-edit': {
+      id: '/ai-bulk-edit'
+      path: '/ai-bulk-edit'
+      fullPath: '/ai-bulk-edit'
+      preLoaderRoute: typeof AiBulkEditRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ai-autotag': {
@@ -6493,6 +6513,7 @@ const TaxonomiesYoutubeChannelsRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiAutotagRoute: AiAutotagRoute,
+  AiBulkEditRoute: AiBulkEditRoute,
   AiSummarizationRoute: AiSummarizationRoute,
   AutofillRoute: AutofillRouteWithChildren,
   BookmarksRoute: BookmarksRouteWithChildren,
