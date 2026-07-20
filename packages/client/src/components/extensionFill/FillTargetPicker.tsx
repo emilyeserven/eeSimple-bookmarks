@@ -24,6 +24,7 @@ type TaxonomyName = Extract<FillTarget, { kind: "taxonomy" }>["taxonomy"];
 /** The `kind` select plus the variant-specific value control for a rule's {@link FillTarget}. */
 export function FillTargetPicker({
   target, propertyOptions, propertiesById, onChange, lockedKeys = NO_LOCKS, extractSelector = "",
+  onExtractSelectorChange,
 }: {
   target: FillTarget;
   propertyOptions: ComboboxOption[];
@@ -33,6 +34,8 @@ export function FillTargetPicker({
   lockedKeys?: LockedKeys;
   /** The rule's `extract.selector` — threaded to the sections control for its full-path hints. */
   extractSelector?: string;
+  /** Setter for the rule's `extract.selector` — the sections control renders the item selector inline. */
+  onExtractSelectorChange: (selector: string) => void;
 }) {
   const {
     t,
@@ -89,6 +92,7 @@ export function FillTargetPicker({
         onChange={onChange}
         lockedKeys={lockedKeys}
         extractSelector={extractSelector}
+        onExtractSelectorChange={onExtractSelectorChange}
       />
     </div>
   );
@@ -96,7 +100,7 @@ export function FillTargetPicker({
 
 /** The value control for the currently-selected target kind. */
 function FillTargetValue({
-  target, propertyOptions, propertiesById, onChange, lockedKeys, extractSelector,
+  target, propertyOptions, propertiesById, onChange, lockedKeys, extractSelector, onExtractSelectorChange,
 }: {
   target: FillTarget;
   propertyOptions: ComboboxOption[];
@@ -104,6 +108,7 @@ function FillTargetValue({
   onChange: (target: FillTarget) => void;
   lockedKeys: LockedKeys;
   extractSelector: string;
+  onExtractSelectorChange: (selector: string) => void;
 }) {
   const {
     t,
@@ -194,6 +199,7 @@ function FillTargetValue({
           onChange={onChange}
           lockedKeys={lockedKeys}
           extractSelector={extractSelector}
+          onExtractSelectorChange={onExtractSelectorChange}
         />
       );
   }

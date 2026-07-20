@@ -8,7 +8,6 @@ import { KindSelect, LabeledInput } from "./controls";
 import { FillFilterList } from "./FillFilterList";
 import { FillReadField } from "./FillReadField";
 import { FillTargetPicker } from "./FillTargetPicker";
-import { SelectorPathHint } from "./fillTargetPicker/SectionsTargetControl";
 import { FillTransformList } from "./FillTransformList";
 
 import { newPathMatch } from "@/lib/extensionFillForm";
@@ -129,6 +128,9 @@ export function FillRuleFields({
         onChange={target => onChange(applyTargetChange(rule, target))}
         lockedKeys={lockedKeys}
         extractSelector={rule.extract.selector ?? ""}
+        onExtractSelectorChange={selector => patchExtract({
+          selector,
+        })}
       />
       <div
         className="
@@ -194,29 +196,20 @@ export function FillRuleFields({
             })}
           />
         )
-        : (
-          <div className="space-y-1">
+        : rule.target.kind === "sections"
+          // The sections item selector is rendered inline in the Sections form (largest → smallest order).
+          ? null
+          : (
             <LabeledInput
-              label={rule.target.kind === "sections" ? t("Item selector (matches each repeated item)") : t("Selector")}
+              label={t("Selector")}
               placeholder="._statBlockTitle_1ckth_86 > *"
               value={rule.extract.selector ?? ""}
               onChange={selector => patchExtract({
                 selector,
               })}
-              hint={rule.target.kind === "sections"
-                ? t("Matches every repeated item (e.g. each course lecture). Tip: for classes that end in a rotating hash, match a stable substring with [class*=\"course-lecture-title\"].")
-                : t("Tip: for a class with a rotating hash suffix, match a stable substring with [class*=\"partial-class\"].")}
+              hint={t("Tip: for a class with a rotating hash suffix, match a stable substring with [class*=\"partial-class\"].")}
             />
-            {rule.target.kind === "sections"
-              ? (
-                <SelectorPathHint
-                  prefix={rule.target.container ?? ""}
-                  selector={rule.extract.selector}
-                />
-              )
-              : null}
-          </div>
-        )}
+          )}
       {/* A meta tag always reads its `content` attribute — the read control is selector-only. */}
       {rule.extract.source === "meta"
         ? null
