@@ -263,12 +263,16 @@ export async function getAiBulkEditSettings(): Promise<AiBulkEditSettings> {
   const [row] = await db
     .select({
       aiBulkEditPrompt: appSettings.aiBulkEditPrompt,
+      aiBulkEditExcludedTagIds: appSettings.aiBulkEditExcludedTagIds,
+      aiBulkEditPreferLeafTags: appSettings.aiBulkEditPreferLeafTags,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
   if (!row) return DEFAULT_AI_BULK_EDIT;
   return {
     aiBulkEditPrompt: row.aiBulkEditPrompt ?? "",
+    aiBulkEditExcludedTagIds: row.aiBulkEditExcludedTagIds ?? [],
+    aiBulkEditPreferLeafTags: row.aiBulkEditPreferLeafTags ?? true,
   };
 }
 
@@ -278,6 +282,8 @@ export async function updateAiBulkEditSettings(
 ): Promise<AiBulkEditSettings> {
   const next: AiBulkEditSettings = {
     aiBulkEditPrompt: input.aiBulkEditPrompt,
+    aiBulkEditExcludedTagIds: input.aiBulkEditExcludedTagIds,
+    aiBulkEditPreferLeafTags: input.aiBulkEditPreferLeafTags,
   };
   await db
     .insert(appSettings)

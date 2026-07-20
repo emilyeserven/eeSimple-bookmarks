@@ -864,6 +864,13 @@ export type UpdateBookmarkAiUpdateInput = BookmarkAiUpdateSettings;
  */
 export interface AiBulkEditSettings {
   aiBulkEditPrompt: string;
+  /** Tag ids the AI must not use; removed from the prompt vocabulary and named in a "do NOT use" line. */
+  aiBulkEditExcludedTagIds: string[];
+  /**
+   * When true (the default), parent tags (any tag with sub-tags) are dropped from the vocabulary and
+   * the AI is told to prefer the most specific (leaf) tag.
+   */
+  aiBulkEditPreferLeafTags: boolean;
 }
 
 /** Payload for replacing the AI Bulk Edit settings. */

@@ -9,10 +9,11 @@ import {
   EMPTY_AI_BULK_EDIT_SELECTION,
   parseAiBulkEditText,
   prefixReviewRows,
+  resolveAiBulkEditTagVocabulary,
   resolveBulkTargets,
 } from "./aiBulkEdit";
 import { aiFieldKeyForProperty, listAiBulkUpdatableFields } from "./bookmarkAiUpdate";
-import { makeBookmark, makeCustomProperty } from "../test-utils/factories";
+import { makeBookmark, makeCustomProperty, makeTag } from "../test-utils/factories";
 
 import type { AiBulkEditPromptArgs, AiBulkEditSelection } from "./aiBulkEdit";
 import type { AiUpdateReviewRow } from "./bookmarkAiUpdateReview";
@@ -121,9 +122,32 @@ describe("buildAiBulkEditPrompt", () => {
       categoryNames: ["Dev"],
       mediaTypeNames: [],
       tagNames: [],
+      preferLeafTags: false,
+      excludedTagNames: [],
       ...overrides,
     };
   }
+
+  it("appends the leaf-preference note only when tags are checked", () => {
+    const withoutTags = buildAiBulkEditPrompt(promptArgs({
+      checked: ["title"],
+      preferLeafTags: true,
+    }));
+    expect(withoutTags).not.toContain("prefer the most specific");
+    const withTags = buildAiBulkEditPrompt(promptArgs({
+      checked: ["tags"],
+      preferLeafTags: true,
+    }));
+    expect(withTags).toContain("prefer the most specific (leaf) tag");
+  });
+
+  it("lists excluded tag names in a do-not-use note when tags are checked", () => {
+    const prompt = buildAiBulkEditPrompt(promptArgs({
+      checked: ["tags"],
+      excludedTagNames: ["spam", "misc"],
+    }));
+    expect(prompt).toContain("Do NOT use these tags: spam, misc.");
+  });
 
   it("emits the rules block once and one bracketed block per bookmark", () => {
     const prompt = buildAiBulkEditPrompt(promptArgs());
@@ -189,6 +213,48 @@ describe("buildAiBulkEditPrompt", () => {
 
   it("keeps the soft-warning threshold out of the prompt", () => {
     expect(buildAiBulkEditPrompt(promptArgs())).not.toContain(String(AI_BULK_EDIT_SOFT_WARNING_THRESHOLD));
+  });
+});
+
+describe("resolveAiBulkEditTagVocabulary", () => {
+  const tags = [
+    makeTag({
+      id: "parent",
+      name: "Parent",
+    }),
+    makeTag({
+      id: "leaf-a",
+      name: "Leaf A",
+      parentId: "parent",
+    }),
+    makeTag({
+      id: "leaf-b",
+      name: "Leaf B",
+    }),
+  ];
+
+  it("drops user-excluded tags", () => {
+    const names = resolveAiBulkEditTagVocabulary(tags, {
+      excludedTagIds: ["leaf-b"],
+      preferLeafTags: false,
+    });
+    expect(names).toEqual(["Parent", "Leaf A"]);
+  });
+
+  it("drops parent tags when preferLeafTags is on", () => {
+    const names = resolveAiBulkEditTagVocabulary(tags, {
+      excludedTagIds: [],
+      preferLeafTags: true,
+    });
+    expect(names).toEqual(["Leaf A", "Leaf B"]);
+  });
+
+  it("keeps parent tags when preferLeafTags is off", () => {
+    const names = resolveAiBulkEditTagVocabulary(tags, {
+      excludedTagIds: [],
+      preferLeafTags: false,
+    });
+    expect(names).toEqual(["Parent", "Leaf A", "Leaf B"]);
   });
 });
 

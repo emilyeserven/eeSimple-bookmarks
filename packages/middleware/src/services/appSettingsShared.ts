@@ -186,6 +186,8 @@ export const DEFAULT_BOOKMARK_AI_UPDATE: BookmarkAiUpdateSettings = {
 /** Default AI Bulk Edit settings (empty prompt template), used when the row/column is absent. */
 export const DEFAULT_AI_BULK_EDIT: AiBulkEditSettings = {
   aiBulkEditPrompt: "",
+  aiBulkEditExcludedTagIds: [],
+  aiBulkEditPreferLeafTags: true,
 };
 
 /** Default display/detail preferences, used when seeding / when row absent. */

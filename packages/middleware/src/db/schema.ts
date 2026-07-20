@@ -1924,6 +1924,12 @@ export const appSettings = pgTable("app_settings", {
   // Prompt template for the AI Bulk Edit action page (update checked fields across many bookmarks).
   // Nullable = push-safe additive (null coalesced to "" in the service).
   aiBulkEditPrompt: text("ai_bulk_edit_prompt"),
+  // Tag ids the AI Bulk Edit prompt must not offer to the AI. Nullable jsonb = push-safe additive
+  // (null coalesced to [] in the service).
+  aiBulkEditExcludedTagIds: jsonb("ai_bulk_edit_excluded_tag_ids").$type<string[]>(),
+  // When on (the default), the AI Bulk Edit prompt drops parent tags from the vocabulary and prefers
+  // leaf tags. Nullable = push-safe additive (null coalesced to true in the service).
+  aiBulkEditPreferLeafTags: boolean("ai_bulk_edit_prefer_leaf_tags"),
   // Free-form Markdown note shown in the sidebar footer Scratchpad.
   // Nullable = push-safe additive (null coalesced to "" in the service).
   scratchpadText: text("scratchpad_text"),

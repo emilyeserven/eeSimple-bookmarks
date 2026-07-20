@@ -11,6 +11,8 @@ const AI_BULK_EDIT_KEY = ["app-settings", "ai-bulk-edit"] as const;
 
 const AI_BULK_EDIT_DEFAULTS: AiBulkEditSettings = {
   aiBulkEditPrompt: "",
+  aiBulkEditExcludedTagIds: [],
+  aiBulkEditPreferLeafTags: true,
 };
 
 /** The stored AI Bulk Edit prompt template. */

@@ -20,6 +20,7 @@ import {
   EMPTY_AI_BULK_EDIT_SELECTION,
   parseAiBulkEditText,
   prefixReviewRows,
+  resolveAiBulkEditTagVocabulary,
   resolveBulkTargets,
 } from "../lib/aiBulkEdit";
 import { listAiBulkUpdatableFields } from "../lib/bookmarkAiUpdate";
@@ -58,6 +59,12 @@ export interface AiBulkEditController {
   handleApply: () => void;
   templatePrompt: string;
   setTemplatePrompt: (text: string) => void;
+  /** Tag ids the AI must not use (persisted). */
+  excludedTagIds: string[];
+  setExcludedTagIds: (ids: string[]) => void;
+  /** Whether parent tags are dropped from the vocabulary in favor of leaf tags (persisted). */
+  preferLeafTags: boolean;
+  setPreferLeafTags: (value: boolean) => void;
 }
 
 /** Targets sub-hook: the selection state plus its resolved bookmark list. */
@@ -109,6 +116,10 @@ export function useAiBulkEdit(): AiBulkEditController {
 
   const fields = useMemo(() => listAiBulkUpdatableFields(data.properties), [data.properties]);
   const checked = useMemo(() => [...checkedFields], [checkedFields]);
+  const excludedTagNames = useMemo(() => {
+    const excluded = new Set(form.aiBulkEditExcludedTagIds);
+    return data.tags.filter(tag => excluded.has(tag.id)).map(tag => tag.name);
+  }, [form.aiBulkEditExcludedTagIds, data.tags]);
   const generatedPrompt = useMemo(() => buildAiBulkEditPrompt({
     template: form.aiBulkEditPrompt,
     bookmarks: targets,
@@ -117,8 +128,13 @@ export function useAiBulkEdit(): AiBulkEditController {
     categories: data.categories,
     categoryNames: data.categories.map(category => category.name),
     mediaTypeNames: data.mediaTypes.map(mediaType => mediaType.name),
-    tagNames: data.tags.map(tag => tag.name),
-  }), [form.aiBulkEditPrompt, targets, checked, data]);
+    tagNames: resolveAiBulkEditTagVocabulary(data.tags, {
+      excludedTagIds: form.aiBulkEditExcludedTagIds,
+      preferLeafTags: form.aiBulkEditPreferLeafTags,
+    }),
+    preferLeafTags: form.aiBulkEditPreferLeafTags,
+    excludedTagNames,
+  }), [form, targets, checked, data, excludedTagNames]);
   const parseState = useMemo(
     () => parseAiBulkEditText(applyText, checked, data.properties, new Set(targets.map(bookmark => bookmark.id))),
     [applyText, checked, data.properties, targets],
@@ -220,6 +236,14 @@ export function useAiBulkEdit(): AiBulkEditController {
     templatePrompt: form.aiBulkEditPrompt,
     setTemplatePrompt: text => patchForm({
       aiBulkEditPrompt: text,
+    }),
+    excludedTagIds: form.aiBulkEditExcludedTagIds,
+    setExcludedTagIds: ids => patchForm({
+      aiBulkEditExcludedTagIds: ids,
+    }),
+    preferLeafTags: form.aiBulkEditPreferLeafTags,
+    setPreferLeafTags: value => patchForm({
+      aiBulkEditPreferLeafTags: value,
     }),
   };
 }

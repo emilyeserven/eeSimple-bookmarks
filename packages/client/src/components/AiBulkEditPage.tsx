@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { AiBulkEditTargets } from "./AiBulkEditTargets";
 import { BookmarkAiUpdateReviewList } from "./BookmarkAiUpdateReview";
 import { BookmarkAiUpdateFieldPicker } from "./BookmarkAiUpdateTab";
+import { TagPicker } from "./TagPicker";
 import { useAiBulkEdit } from "../hooks/useAiBulkEdit";
 
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 /**
@@ -51,6 +54,47 @@ export function AiBulkEditPage() {
         </CardHeader>
         <CardContent>
           <BookmarkAiUpdateFieldPicker controller={controller} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("Tag Preferences")}</CardTitle>
+          <CardDescription>
+            {t("Control which tags the AI may suggest. Applies when \"tags\" is one of the fields above.")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-start gap-2">
+            <Checkbox
+              id="ai-bulk-edit-prefer-leaf-tags"
+              className="mt-0.5"
+              checked={controller.preferLeafTags}
+              onCheckedChange={value => controller.setPreferLeafTags(value === true)}
+            />
+            <div className="space-y-1">
+              <Label htmlFor="ai-bulk-edit-prefer-leaf-tags">{t("Prefer leaf tags")}</Label>
+              <p className="text-sm text-muted-foreground">
+                {t("Skip parent tags and ask the AI to use the most specific sub-tag.")}
+              </p>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label>{t("Excluded tags")}</Label>
+            <p className="text-sm text-muted-foreground">
+              {t("These tags are never suggested to the AI.")}
+            </p>
+            <TagPicker
+              tree={controller.data.trees.tagTree ?? []}
+              selectedIds={controller.excludedTagIds}
+              onToggle={(id) => {
+                const next = controller.excludedTagIds.includes(id)
+                  ? controller.excludedTagIds.filter(existing => existing !== id)
+                  : [...controller.excludedTagIds, id];
+                controller.setExcludedTagIds(next);
+              }}
+            />
+          </div>
         </CardContent>
       </Card>
 
