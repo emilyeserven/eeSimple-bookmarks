@@ -26,6 +26,7 @@ import {
 } from "./bookmarkViewFields";
 import { useBookmark } from "../../hooks/useBookmarks";
 import i18n from "../../i18n";
+import { BookmarkAiUpdateTab } from "../BookmarkAiUpdateTab";
 import { BookmarkDetailDebug } from "../BookmarkDetailDebug";
 import { BookmarkGallery } from "../BookmarkGallery";
 import {
@@ -114,7 +115,8 @@ export type BookmarkFieldKey
     | "favoriteSections"
     | "priority"
     | "createdAt"
-    | "debugInfo";
+    | "debugInfo"
+    | "aiUpdate";
 
 const bookmarkFields = {
   name: {
@@ -403,6 +405,15 @@ const bookmarkFields = {
       />
     ),
   },
+  // Edit-only: the copy-prompt / paste-JSON AI field-update workflow. Self-contained (no shared form
+  // provider), so BookmarkEditView needs no gating entry for it.
+  aiUpdate: {
+    key: "aiUpdate",
+    label: i18n.t("AI Update"),
+    edit: ({
+      entity,
+    }) => <BookmarkAiUpdateTab bookmark={entity} />,
+  },
 } satisfies Record<BookmarkFieldKey, WorkbenchField<Bookmark>>;
 
 /**
@@ -478,6 +489,15 @@ const BOOKMARK_DEFAULT_LAYOUT: EntityLayout = {
       sections: [{
         key: "graph",
         fields: ["bookmarkGraph"] satisfies BookmarkFieldKey[],
+      }],
+    },
+    {
+      // Edit-only tab (the field has no view renderer, so the Info/detail surfaces drop it).
+      key: "ai",
+      label: i18n.t("AI"),
+      sections: [{
+        key: "ai",
+        fields: ["aiUpdate"] satisfies BookmarkFieldKey[],
       }],
     },
     {
@@ -563,6 +583,10 @@ export const bookmarkWorkbench: EntityWorkbench<Bookmark> = {
     {
       key: "related",
       label: i18n.t("Related"),
+    },
+    {
+      key: "ai",
+      label: i18n.t("AI"),
     },
     {
       key: "metadata",

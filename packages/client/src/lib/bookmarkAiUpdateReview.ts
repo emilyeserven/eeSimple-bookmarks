@@ -9,6 +9,7 @@
  */
 
 import type {
+  AiNameEntry,
   AiProposalValue,
   AiSectionProposal,
   AiUpdatableFieldKey,
@@ -646,4 +647,13 @@ export function buildAiUpdateApplyPlan(
     buildBookmarkInput,
     namesEntries,
   };
+}
+
+/** Human-readable summary of an apply for the success toast (the describeReparentResult shape). */
+export function describeAiUpdateResult(fieldCount: number, createdCount: number): string {
+  const parts = [`Updated ${fieldCount} field${fieldCount === 1 ? "" : "s"}`];
+  if (createdCount > 0) {
+    parts.push(`created ${createdCount} new ${createdCount === 1 ? "entry" : "entries"}`);
+  }
+  return parts.join(", ");
 }

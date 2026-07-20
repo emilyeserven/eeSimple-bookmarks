@@ -181,6 +181,16 @@ describe("bookmark default layout", () => {
           fields: ["relatedEdit"],
         }],
       },
+      {
+        // The AI field-update tab is edit-only (its one field has no view renderer), so it appears
+        // here and is absent from the view snapshot above.
+        key: "ai",
+        group: undefined,
+        sections: [{
+          key: "ai",
+          fields: ["aiUpdate"],
+        }],
+      },
     ]);
   });
 });
