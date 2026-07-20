@@ -479,11 +479,20 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       tags: ["app-settings"],
       body: {
         type: "object",
-        required: ["aiBulkEditPrompt"],
+        required: ["aiBulkEditPrompt", "aiBulkEditExcludedTagIds", "aiBulkEditPreferLeafTags"],
         additionalProperties: false,
         properties: {
           aiBulkEditPrompt: {
             type: "string",
+          },
+          aiBulkEditExcludedTagIds: {
+            type: "array",
+            items: {
+              type: "string",
+            },
+          },
+          aiBulkEditPreferLeafTags: {
+            type: "boolean",
           },
         },
       },

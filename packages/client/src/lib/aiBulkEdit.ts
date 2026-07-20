@@ -14,7 +14,7 @@ import type {
   AiUpdateProposal,
 } from "./bookmarkAiUpdate";
 import type { AiUpdateCreation, AiUpdateReviewRow } from "./bookmarkAiUpdateReview";
-import type { Bookmark, CustomProperty } from "@eesimple/types";
+import type { Bookmark, CustomProperty, Tag } from "@eesimple/types";
 
 import {
   buildAiUpdateExample,
@@ -128,6 +128,33 @@ export function resolveBulkTargets(
 // Prompt building
 // ---------------------------------------------------------------------------------------------------
 
+/** Options for {@link resolveAiBulkEditTagVocabulary}. */
+export interface AiBulkEditTagVocabularyOptions {
+  /** Tag ids the user never wants suggested — dropped from the vocabulary regardless of leaf status. */
+  excludedTagIds: string[];
+  /** When true, drop parent tags (any tag that is another tag's `parentId`) so only leaf tags remain. */
+  preferLeafTags: boolean;
+}
+
+/**
+ * The tag names offered to the AI in the prompt vocabulary: drop user-excluded tags, and — when
+ * `preferLeafTags` is on — drop any tag that is a parent of another tag, leaving only leaf (most-
+ * specific) tags. Parenthood is derived from the flat `Tag[]` (`parentId`), so no tag tree is needed
+ * and it stays correct while the tree query is still loading. Names keep the input list's order.
+ */
+export function resolveAiBulkEditTagVocabulary(
+  tags: Tag[],
+  options: AiBulkEditTagVocabularyOptions,
+): string[] {
+  const excluded = new Set(options.excludedTagIds);
+  const parentIds = options.preferLeafTags
+    ? new Set(tags.map(tag => tag.parentId).filter((id): id is string => id !== null))
+    : new Set<string>();
+  return tags
+    .filter(tag => !excluded.has(tag.id) && !parentIds.has(tag.id))
+    .map(tag => tag.name);
+}
+
 export interface AiBulkEditPromptArgs {
   /** The stored user template; empty falls back to the single-feature default template. */
   template: string;
@@ -143,6 +170,28 @@ export interface AiBulkEditPromptArgs {
   categoryNames: string[];
   mediaTypeNames: string[];
   tagNames: string[];
+  /** When true, append a note asking the AI to prefer the most specific (leaf) tag. */
+  preferLeafTags: boolean;
+  /** Names of tags the user excluded, listed in a "do NOT use" note (empty = no note). */
+  excludedTagNames: string[];
+}
+
+/**
+ * The tag-guidance note appended after the vocabulary block when the `tags` field is checked: a
+ * leaf-preference reminder (when on) plus an explicit "do NOT use" list of excluded tags. Null when
+ * neither applies, so the block is filtered out of the prompt.
+ */
+function buildTagGuidanceNote(args: AiBulkEditPromptArgs): string | null {
+  if (!args.checked.includes("tags")) return null;
+  const lines: string[] = [];
+  if (args.preferLeafTags) {
+    lines.push("When choosing tags, prefer the most specific (leaf) tag; do NOT use a broad parent "
+      + "tag when one of its sub-tags fits.");
+  }
+  if (args.excludedTagNames.length > 0) {
+    lines.push(`Do NOT use these tags: ${args.excludedTagNames.join(", ")}.`);
+  }
+  return lines.length > 0 ? lines.join("\n") : null;
 }
 
 /** `label: value` context line, omitted (null) when the value is empty. */
@@ -211,6 +260,7 @@ export function buildAiBulkEditPrompt(args: AiBulkEditPromptArgs): string {
     `${template}\n\n${multi}`,
     buildAiUpdateRulesBlock(args.checked, checkedProperties),
     buildAiUpdateVocabularyBlock(args),
+    buildTagGuidanceNote(args),
     ["Bookmarks:", ...blocks].join("\n\n"),
     output,
   ].filter((block): block is string => block !== null).join("\n\n");
