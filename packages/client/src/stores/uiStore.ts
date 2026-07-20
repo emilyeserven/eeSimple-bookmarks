@@ -16,6 +16,13 @@ export type Theme = "light" | "dark" | "system";
 export type HomepageSectionImageLayout = "above" | "side";
 
 /**
+ * How a tag page's `?taggedSections` listing renders each card: the full card plus the Tagged
+ * sections chips (`both`, the default), the full card with the chips suppressed (`bookmarks`), or
+ * only the title + Tagged sections chips with every other field suppressed (`sections`).
+ */
+export type SectionDisplayMode = "both" | "bookmarks" | "sections";
+
+/**
  * UI-pref unions defined once in `@eesimple/types` and re-exported here so existing
  * `../stores/uiStore` importers keep working. `SidebarOpenModifier` and the bookmark-detail sizing
  * unions now drive server-persisted settings but are still re-exported for back-compat —
@@ -92,6 +99,12 @@ interface UiState {
   /** Per-listing view mode ("cards" | "table"), keyed by a stable page key. */
   viewMode: Record<string, ViewMode>;
   setViewMode: (pageKey: string, mode: ViewMode) => void;
+  /**
+   * Per-listing tagged-sections display mode ("both" | "bookmarks" | "sections"), keyed by a stable
+   * page key. Only surfaced/consumed on a tag page in `?taggedSections` mode; absent = "both".
+   */
+  sectionDisplayMode: Record<string, SectionDisplayMode>;
+  setSectionDisplayMode: (pageKey: string, mode: SectionDisplayMode) => void;
   /**
    * Per-listing "sort titles by" language (a language id), keyed by a stable page key. `""`/absent =
    * follow the interface/display language. Overrides which of a bookmark's multilingual names its
@@ -193,6 +206,8 @@ interface UiState {
     hasFilters: boolean;
     hasSort?: boolean;
     showsCards: boolean;
+    /** True only on a tag page in `?taggedSections` mode — gates the section-display toggle. */
+    showsTaggedSections?: boolean;
     createAction?: (event?: ReactMouseEvent) => void;
     /** When set, the header Plus offers "Add bookmark" (with an optional locked category). */
     addBookmark?: { categoryId?: string };
@@ -203,6 +218,7 @@ interface UiState {
     hasFilters: boolean;
     hasSort?: boolean;
     showsCards: boolean;
+    showsTaggedSections?: boolean;
     createAction?: (event?: ReactMouseEvent) => void;
     addBookmark?: { categoryId?: string };
     createLabel?: string; } | null) => void;
@@ -277,6 +293,13 @@ export const useUiStore = create<UiState>()(
       setViewMode: (pageKey, mode) => set(state => ({
         viewMode: {
           ...state.viewMode,
+          [pageKey]: mode,
+        },
+      })),
+      sectionDisplayMode: {},
+      setSectionDisplayMode: (pageKey, mode) => set(state => ({
+        sectionDisplayMode: {
+          ...state.sectionDisplayMode,
           [pageKey]: mode,
         },
       })),
@@ -507,6 +530,7 @@ export const useUiStore = create<UiState>()(
         bookmarkImageVisibility: state.bookmarkImageVisibility,
         bookmarkColumns: state.bookmarkColumns,
         viewMode: state.viewMode,
+        sectionDisplayMode: state.sectionDisplayMode,
         titleSortLanguage: state.titleSortLanguage,
         hiddenCardFields: state.hiddenCardFields,
         selectedDisplayPreset: state.selectedDisplayPreset,

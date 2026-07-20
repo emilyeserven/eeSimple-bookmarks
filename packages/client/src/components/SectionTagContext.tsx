@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- this file pairs the provider component with
    its accessor hook, the same convention as the other *Context.tsx files. */
+import type { SectionDisplayMode } from "../lib/bookmarkColumns";
 import type { ReactNode } from "react";
 
 import { createContext, useContext } from "react";
@@ -15,6 +16,11 @@ export interface SectionTagScope {
   tagIds: ReadonlySet<string>;
   /** The scoped tag's display name (for labels/tooltips). */
   tagName: string;
+  /**
+   * How each card renders: full card + chips ("both"), full card with chips suppressed
+   * ("bookmarks"), or only the title + chips ("sections"). Chosen by the View Options toggle.
+   */
+  mode: SectionDisplayMode;
 }
 
 const SectionTagContext = createContext<SectionTagScope | null>(null);

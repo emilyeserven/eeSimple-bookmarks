@@ -1,4 +1,4 @@
-import type { ViewMode } from "../lib/bookmarkColumns";
+import type { SectionDisplayMode, ViewMode } from "../lib/bookmarkColumns";
 
 import { useTranslation } from "react-i18next";
 
@@ -57,6 +57,58 @@ export function ViewModeToggle({
           "
         >
           {t("Table")}
+        </ToggleGroupItem>
+      </ToggleGroup>
+    </div>
+  );
+}
+
+/**
+ * Tagged-sections display toggle: on a tag page's `?taggedSections` listing, chooses whether each
+ * card shows both the card and its Tagged sections chips, only the card, or only the sections.
+ */
+export function SectionDisplayToggle({
+  value, onChange,
+}: { value: SectionDisplayMode;
+  onChange: (value: SectionDisplayMode) => void; }) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <Label className="text-sm font-medium">{t("Sections")}</Label>
+      <ToggleGroup
+        type="single"
+        size="sm"
+        value={value}
+        className="gap-0 overflow-hidden rounded-md border border-input"
+        onValueChange={(next) => {
+          if (next) onChange(next as SectionDisplayMode);
+        }}
+      >
+        <ToggleGroupItem
+          value="bookmarks"
+          className="
+            rounded-none border-r border-input
+            first:rounded-l-sm
+          "
+        >
+          {t("Only bookmarks")}
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          value="sections"
+          className="rounded-none border-r border-input"
+        >
+          {t("Only sections")}
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          value="both"
+          className="
+            rounded-none
+            last:rounded-r-sm
+          "
+        >
+          {t("Sections + bookmarks")}
         </ToggleGroupItem>
       </ToggleGroup>
     </div>

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ListingDisplayControls } from "./ListingDisplayControls";
@@ -21,6 +21,7 @@ afterEach(() => {
   useUiStore.setState({
     bookmarkImageMode: {},
     viewMode: {},
+    sectionDisplayMode: {},
   });
 });
 
@@ -65,5 +66,34 @@ describe("ListingDisplayControls", () => {
     );
     expect(screen.getByText("Square (1:1)")).toBeInTheDocument();
     expect(screen.queryByText("Default")).not.toBeInTheDocument();
+  });
+
+  it("only shows the Sections display toggle when section controls are enabled", () => {
+    const {
+      rerender,
+    } = render(<ListingDisplayControls pageKey={PAGE} />);
+    expect(screen.queryByText("Sections")).not.toBeInTheDocument();
+
+    rerender(
+      <ListingDisplayControls
+        pageKey={PAGE}
+        showSectionDisplayControls
+      />,
+    );
+    expect(screen.getByText("Sections")).toBeInTheDocument();
+    expect(screen.getByText("Only bookmarks")).toBeInTheDocument();
+    expect(screen.getByText("Only sections")).toBeInTheDocument();
+    expect(screen.getByText("Sections + bookmarks")).toBeInTheDocument();
+  });
+
+  it("persists the chosen section-display mode for the page", () => {
+    render(
+      <ListingDisplayControls
+        pageKey={PAGE}
+        showSectionDisplayControls
+      />,
+    );
+    fireEvent.click(screen.getByText("Only sections"));
+    expect(useUiStore.getState().sectionDisplayMode[PAGE]).toBe("sections");
   });
 });
