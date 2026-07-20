@@ -848,6 +848,17 @@ export interface TagReparentSettings {
 export type UpdateTagReparentInput = TagReparentSettings;
 
 /**
+ * Bookmark AI Update settings: the reusable prompt template shown at the top of the generated
+ * field-update prompt on the bookmark edit AI tab. Mirrors {@link TagReparentSettings}.
+ */
+export interface BookmarkAiUpdateSettings {
+  bookmarkAiUpdatePrompt: string;
+}
+
+/** Payload for replacing the bookmark AI-update settings. */
+export type UpdateBookmarkAiUpdateInput = BookmarkAiUpdateSettings;
+
+/**
  * A brand-new grouping tag the AI proposes creating while reorganizing a subtree. `tempId` is a
  * placeholder the AI coins (and echoes in a move's `parentId` to nest existing tags under it);
  * `parentId` is an **existing** tag id or `null` (root) — a new tag cannot nest under another new
@@ -2653,6 +2664,8 @@ export interface CustomProperty {
   quickFilterRange: number | null;
   /** Free-text description of the property, shown as a hint where its field is rendered, or `null`. */
   description: string | null;
+  /** Optional guidance injected into the bookmark AI-update prompt for this property, or `null`. */
+  aiInstructions: string | null;
   /** Lower bound of a `number`/`calculate` range slider (`null` = no minimum / derive from data). */
   numberMin: number | null;
   /** Upper bound of a `number`/`calculate` range slider (`null` = no maximum / derive from data). */
@@ -2791,6 +2804,8 @@ export interface CreateCustomPropertyInput {
   /** Half-width of the `value ± range` quick-filter window for `number`/`datetime` props (value's own units; seconds for duration/datetime). `null` = exact match. */
   quickFilterRange?: number | null;
   description?: string | null;
+  /** Optional guidance injected into the bookmark AI-update prompt for this property. */
+  aiInstructions?: string | null;
   numberMin?: number | null;
   numberMax?: number | null;
   unitSingular?: string | null;

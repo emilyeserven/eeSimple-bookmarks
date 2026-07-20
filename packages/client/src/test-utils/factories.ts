@@ -54,6 +54,7 @@ export function makeCustomProperty(overrides: Partial<CustomProperty> = {}): Cus
     dateTimeAllowYearMonth: false,
     quickFilterRange: null,
     description: null,
+    aiInstructions: null,
     numberMin: null,
     numberMax: null,
     unitSingular: null,

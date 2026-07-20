@@ -126,12 +126,38 @@ export function PropertyDescriptionField({
   );
 }
 
+/** AI instructions field — auto-saves on blur. Injected into the bookmark AI-update prompt. */
+export function PropertyAiInstructionsField({
+  property,
+}: Props) {
+  const {
+    t,
+  } = useTranslation();
+  const {
+    form, saveAiInstructions,
+  } = usePropertyGeneralForm(property);
+  return (
+    <form.AppField name="aiInstructions">
+      {field => (
+        <field.TextareaField
+          label={t("AI instructions")}
+          debounceSave
+          placeholder={t("Optional — extra guidance included in the bookmark AI-update prompt for this property.")}
+          rows={2}
+          onBlur={() => saveAiInstructions(field.state.value, field.state.meta.errors.length === 0)}
+        />
+      )}
+    </form.AppField>
+  );
+}
+
 /**
- * The General edit tab: name, status, and description. Each field auto-saves (no Save button) — name
- * and description on blur, the active checkbox on change. Type is immutable in edit so it renders
- * disabled. Composed from the same placeable sub-fields the property workbench registry uses, so this
- * whole-form shell (rendered by its Storybook story) stays in lockstep with the layout-driven General
- * tab (Name + Type keep their two-column grid here; the layout seam stacks them per field).
+ * The General edit tab: name, status, description, and AI instructions. Each field auto-saves (no
+ * Save button) — the text fields on blur, the active checkbox on change. Type is immutable in edit so
+ * it renders disabled. Composed from the same placeable sub-fields the property workbench registry
+ * uses, so this whole-form shell (rendered by its Storybook story) stays in lockstep with the
+ * layout-driven General tab (Name + Type keep their two-column grid here; the layout seam stacks
+ * them per field).
  */
 export function PropertyGeneralEditForm({
   property,
@@ -149,6 +175,7 @@ export function PropertyGeneralEditForm({
       </div>
       <PropertyStatusField property={property} />
       <PropertyDescriptionField property={property} />
+      <PropertyAiInstructionsField property={property} />
     </div>
   );
 }

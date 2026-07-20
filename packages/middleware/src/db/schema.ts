@@ -1407,6 +1407,8 @@ export const customProperties = pgTable("custom_properties", {
   quickFilterRange: real("quick_filter_range"),
   // Free-text description surfaced as a hint where the property's field is rendered.
   description: text("description"),
+  // Optional guidance injected into the bookmark AI-update prompt for this property. Nullable/additive.
+  aiInstructions: text("ai_instructions"),
   // Range-slider bounds for a `number`/`calculate` property; NULL means no bound / derive from data.
   numberMin: real("number_min"),
   numberMax: real("number_max"),
@@ -1916,6 +1918,9 @@ export const appSettings = pgTable("app_settings", {
   // Prompt text used to instruct an AI to reorganize (reparent) the tags under a given parent.
   // Nullable = push-safe additive (null coalesced to "" in the service).
   tagReparentPrompt: text("tag_reparent_prompt"),
+  // Prompt template for the bookmark edit AI-update tab (update checked fields via an external AI).
+  // Nullable = push-safe additive (null coalesced to "" in the service).
+  bookmarkAiUpdatePrompt: text("bookmark_ai_update_prompt"),
   // Free-form Markdown note shown in the sidebar footer Scratchpad.
   // Nullable = push-safe additive (null coalesced to "" in the service).
   scratchpadText: text("scratchpad_text"),

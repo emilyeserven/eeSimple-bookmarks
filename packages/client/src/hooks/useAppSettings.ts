@@ -7,6 +7,7 @@ export * from "./appSettings/aiAutotag";
 export * from "./appSettings/aiSummarization";
 export * from "./appSettings/automation";
 export * from "./appSettings/bookmarkAddForm";
+export * from "./appSettings/bookmarkAiUpdate";
 export * from "./appSettings/bookmarkGraph";
 export * from "./appSettings/connectors";
 export * from "./appSettings/databaseUsage";
