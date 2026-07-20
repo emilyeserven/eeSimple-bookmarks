@@ -206,8 +206,8 @@ interface UiState {
     hasFilters: boolean;
     hasSort?: boolean;
     showsCards: boolean;
-    /** True only on a tag page in `?taggedSections` mode — gates the section-display toggle. */
-    showsTaggedSections?: boolean;
+    /** True on a tag listing page — gates the section-display control. */
+    showsSectionDisplay?: boolean;
     createAction?: (event?: ReactMouseEvent) => void;
     /** When set, the header Plus offers "Add bookmark" (with an optional locked category). */
     addBookmark?: { categoryId?: string };
@@ -218,7 +218,7 @@ interface UiState {
     hasFilters: boolean;
     hasSort?: boolean;
     showsCards: boolean;
-    showsTaggedSections?: boolean;
+    showsSectionDisplay?: boolean;
     createAction?: (event?: ReactMouseEvent) => void;
     addBookmark?: { categoryId?: string };
     createLabel?: string; } | null) => void;

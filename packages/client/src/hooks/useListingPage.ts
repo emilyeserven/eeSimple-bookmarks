@@ -17,8 +17,8 @@ export interface ListingPageOptions {
   hasFilters?: boolean;
   showsCards?: boolean;
   hasSort?: boolean;
-  /** True only on a tag page in `?taggedSections` mode — gates the section-display toggle. */
-  showsTaggedSections?: boolean;
+  /** True on a tag listing page — gates the section-display control. */
+  showsSectionDisplay?: boolean;
   createAction?: (event?: ReactMouseEvent) => void;
   addBookmark?: { categoryId?: string };
   createLabel?: string;
@@ -30,7 +30,7 @@ export function useSetListingPage(key: string, options?: ListingPageOptions) {
 
   const {
     showsImages = false, hasFilters = false, showsCards = false, hasSort = false,
-    showsTaggedSections = false, createAction, addBookmark, createLabel,
+    showsSectionDisplay = false, createAction, addBookmark, createLabel,
   } = options ?? {};
 
   // Ref so the stable wrapper always delegates to the latest createAction without re-registering.
@@ -59,7 +59,7 @@ export function useSetListingPage(key: string, options?: ListingPageOptions) {
       hasFilters,
       hasSort,
       showsCards,
-      showsTaggedSections,
+      showsSectionDisplay,
       // Forward the click event so a create handler can branch on the sidebar modifier (e.g. open
       // the right drawer instead of navigating). Handlers that take no args simply ignore it.
       createAction: createAction != null ? (event?: ReactMouseEvent) => createActionRef.current?.(event) : undefined,
@@ -71,5 +71,5 @@ export function useSetListingPage(key: string, options?: ListingPageOptions) {
       createLabel,
     });
     return () => setListingPage(null);
-  }, [key, showsImages, hasFilters, hasSort, showsCards, showsTaggedSections, hasAddBookmark, addBookmarkCategoryId, createLabel, setListingPage]);
+  }, [key, showsImages, hasFilters, hasSort, showsCards, showsSectionDisplay, hasAddBookmark, addBookmarkCategoryId, createLabel, setListingPage]);
 }

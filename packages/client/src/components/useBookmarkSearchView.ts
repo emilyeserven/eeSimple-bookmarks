@@ -95,15 +95,16 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
     pageKey, search, scope, addFormCategoryId,
   } = data;
 
-  // The section-display toggle is meaningful only where the Tagged sections chips render — a tag
-  // page in `?taggedSections` mode.
-  const showsTaggedSections = scope?.kind === "tag" && !!scope.taggedSections;
+  // The section-display control is offered on any tag listing page — the Tagged sections chips
+  // resolve against the tag's subtree there, so the modes are meaningful even outside the
+  // `?taggedSections` filter.
+  const showsSectionDisplay = scope?.kind === "tag";
   useSetListingPage(pageKey, {
     showsImages: true,
     hasFilters: true,
     showsCards: true,
     hasSort: true,
-    showsTaggedSections,
+    showsSectionDisplay,
     addBookmark: {
       categoryId: addFormCategoryId,
     },

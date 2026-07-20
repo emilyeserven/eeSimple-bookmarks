@@ -64,10 +64,10 @@ export function ViewModeToggle({
 }
 
 /**
- * Tagged-sections display toggle: on a tag page's `?taggedSections` listing, chooses whether each
- * card shows both the card and its Tagged sections chips, only the card, or only the sections.
+ * Tagged-sections display selector: on any tag listing page, chooses whether each card shows both
+ * the card and its Tagged sections chips, only the card, or only the sections.
  */
-export function SectionDisplayToggle({
+export function SectionDisplaySelect({
   value, onChange,
 }: { value: SectionDisplayMode;
   onChange: (value: SectionDisplayMode) => void; }) {
@@ -77,40 +77,19 @@ export function SectionDisplayToggle({
   return (
     <div className="flex items-center justify-between gap-4">
       <Label className="text-sm font-medium">{t("Sections")}</Label>
-      <ToggleGroup
-        type="single"
-        size="sm"
+      <Select
         value={value}
-        className="gap-0 overflow-hidden rounded-md border border-input"
-        onValueChange={(next) => {
-          if (next) onChange(next as SectionDisplayMode);
-        }}
+        onValueChange={next => onChange(next as SectionDisplayMode)}
       >
-        <ToggleGroupItem
-          value="bookmarks"
-          className="
-            rounded-none border-r border-input
-            first:rounded-l-sm
-          "
-        >
-          {t("Only bookmarks")}
-        </ToggleGroupItem>
-        <ToggleGroupItem
-          value="sections"
-          className="rounded-none border-r border-input"
-        >
-          {t("Only sections")}
-        </ToggleGroupItem>
-        <ToggleGroupItem
-          value="both"
-          className="
-            rounded-none
-            last:rounded-r-sm
-          "
-        >
-          {t("Sections + bookmarks")}
-        </ToggleGroupItem>
-      </ToggleGroup>
+        <SelectTrigger className="h-8 w-44 text-sm">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="both">{t("Sections + bookmarks")}</SelectItem>
+          <SelectItem value="bookmarks">{t("Only bookmarks")}</SelectItem>
+          <SelectItem value="sections">{t("Only sections")}</SelectItem>
+        </SelectContent>
+      </Select>
     </div>
   );
 }
