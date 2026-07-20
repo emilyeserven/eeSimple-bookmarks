@@ -1921,6 +1921,9 @@ export const appSettings = pgTable("app_settings", {
   // Prompt template for the bookmark edit AI-update tab (update checked fields via an external AI).
   // Nullable = push-safe additive (null coalesced to "" in the service).
   bookmarkAiUpdatePrompt: text("bookmark_ai_update_prompt"),
+  // Prompt template for the AI Bulk Edit action page (update checked fields across many bookmarks).
+  // Nullable = push-safe additive (null coalesced to "" in the service).
+  aiBulkEditPrompt: text("ai_bulk_edit_prompt"),
   // Free-form Markdown note shown in the sidebar footer Scratchpad.
   // Nullable = push-safe additive (null coalesced to "" in the service).
   scratchpadText: text("scratchpad_text"),

@@ -859,6 +859,17 @@ export interface BookmarkAiUpdateSettings {
 export type UpdateBookmarkAiUpdateInput = BookmarkAiUpdateSettings;
 
 /**
+ * AI Bulk Edit settings: the reusable prompt template shown at the top of the generated multi-
+ * bookmark field-update prompt on the AI Bulk Edit action page. Mirrors {@link BookmarkAiUpdateSettings}.
+ */
+export interface AiBulkEditSettings {
+  aiBulkEditPrompt: string;
+}
+
+/** Payload for replacing the AI Bulk Edit settings. */
+export type UpdateAiBulkEditInput = AiBulkEditSettings;
+
+/**
  * A brand-new grouping tag the AI proposes creating while reorganizing a subtree. `tempId` is a
  * placeholder the AI coins (and echoes in a move's `parentId` to nest existing tags under it);
  * `parentId` is an **existing** tag id or `null` (root) — a new tag cannot nest under another new

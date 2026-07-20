@@ -125,6 +125,43 @@ export function listAiUpdatableFields(
   return [...standard, ...relations, ...propertyFields];
 }
 
+/**
+ * The checkable field list for the BULK edit page, where targets span bookmarks with different
+ * categories/media types: same standard/relations groups, but EVERY enabled JSON-typed custom
+ * property is listed with no category/media-type scoping — the category lock is a form-visibility
+ * gate, not a storage gate, so an out-of-scope proposal still applies to a bookmark. Derived
+ * properties stay disabled rows, exactly as in {@link listAiUpdatableFields}.
+ */
+export function listAiBulkUpdatableFields(properties: CustomProperty[]): AiUpdatableField[] {
+  const standard: AiUpdatableField[] = (["title", "description", "names", "year", "isbn", "priority"] as const)
+    .map(key => ({
+      key,
+      label: AI_STANDARD_FIELD_LABELS[key],
+      group: "standard" as const,
+    }));
+  const relations: AiUpdatableField[] = (["category", "mediaType", "tags", "people", "groups"] as const)
+    .map(key => ({
+      key,
+      label: AI_STANDARD_FIELD_LABELS[key],
+      group: "relations" as const,
+    }));
+  const propertyFields: AiUpdatableField[] = properties
+    .filter(propertyIsAiListable)
+    .map((property) => {
+      const disabledReason = propertyDisabledReason(property);
+      return {
+        key: aiFieldKeyForProperty(property.id),
+        label: property.name,
+        group: "properties" as const,
+        property,
+        ...(disabledReason && {
+          disabledReason,
+        }),
+      };
+    });
+  return [...standard, ...relations, ...propertyFields];
+}
+
 // ---------------------------------------------------------------------------------------------------
 // Prompt building
 // ---------------------------------------------------------------------------------------------------
@@ -154,7 +191,7 @@ export interface BookmarkAiUpdatePromptArgs {
 }
 
 /** The stored value of one per-type array for a property, or undefined when the bookmark has none. */
-function propertyCurrentDisplay(property: CustomProperty, bookmark: Bookmark): string {
+export function propertyCurrentDisplay(property: CustomProperty, bookmark: Bookmark): string {
   switch (property.type) {
     case "number":
     case "calculate":
@@ -284,9 +321,12 @@ function propertyRule(property: CustomProperty): string {
   }
 }
 
-/** One `- "key": rule` line per checked field, with the property description/instructions appended. */
-function buildRulesBlock(args: BookmarkAiUpdatePromptArgs, checkedProperties: CustomProperty[]): string {
-  const checked = new Set(args.checked);
+/**
+ * One `- "key": rule` line per checked field, with the property description/instructions appended.
+ * Shared with the bulk-edit prompt (`lib/aiBulkEdit.ts`), which emits the block once for N bookmarks.
+ */
+export function buildAiUpdateRulesBlock(checkedKeys: AiUpdatableFieldKey[], checkedProperties: CustomProperty[]): string {
+  const checked = new Set(checkedKeys);
   const lines: string[] = [];
   if (checked.has("title")) lines.push("- \"title\": string — an improved, accurate title.");
   if (checked.has("description")) lines.push("- \"description\": string — a concise description of the item.");
@@ -311,19 +351,30 @@ function buildRulesBlock(args: BookmarkAiUpdatePromptArgs, checkedProperties: Cu
   return ["Fields to update — include ONLY these keys in your reply:", ...lines].join("\n");
 }
 
-/** The existing-vocabulary block for checked relation fields; null when none apply. */
-function buildVocabularyBlock(args: BookmarkAiUpdatePromptArgs): string | null {
-  const checked = new Set(args.checked);
+/** The vocabulary lists the prompt embeds for checked relation fields. */
+export interface AiUpdateVocabulary {
+  checked: AiUpdatableFieldKey[];
+  categoryNames: string[];
+  mediaTypeNames: string[];
+  tagNames: string[];
+}
+
+/**
+ * The existing-vocabulary block for checked relation fields; null when none apply. Shared with the
+ * bulk-edit prompt, which emits the block once for N bookmarks.
+ */
+export function buildAiUpdateVocabularyBlock(vocab: AiUpdateVocabulary): string | null {
+  const checked = new Set(vocab.checked);
   const lines: string[] = [];
-  if (checked.has("category") && args.categoryNames.length > 0) {
-    lines.push(`- Categories: ${args.categoryNames.join(", ")}`);
+  if (checked.has("category") && vocab.categoryNames.length > 0) {
+    lines.push(`- Categories: ${vocab.categoryNames.join(", ")}`);
   }
-  if (checked.has("mediaType") && args.mediaTypeNames.length > 0) {
-    lines.push(`- Media types: ${args.mediaTypeNames.join(", ")}`);
+  if (checked.has("mediaType") && vocab.mediaTypeNames.length > 0) {
+    lines.push(`- Media types: ${vocab.mediaTypeNames.join(", ")}`);
   }
-  if (checked.has("tags") && args.tagNames.length > 0) {
-    const capped = args.tagNames.slice(0, TAG_VOCAB_LIMIT);
-    const truncated = args.tagNames.length > capped.length ? " (list truncated)" : "";
+  if (checked.has("tags") && vocab.tagNames.length > 0) {
+    const capped = vocab.tagNames.slice(0, TAG_VOCAB_LIMIT);
+    const truncated = vocab.tagNames.length > capped.length ? " (list truncated)" : "";
     lines.push(`- Tags: ${capped.join(", ")}${truncated}`);
   }
   if (lines.length === 0) return null;
@@ -370,9 +421,15 @@ const STANDARD_EXAMPLES: Record<AiStandardFieldKey, unknown> = {
   groups: ["Group Name"],
 };
 
-/** The output example filtered to the checked fields. */
-function buildExample(args: BookmarkAiUpdatePromptArgs, checkedProperties: CustomProperty[]): string {
-  const checked = new Set(args.checked);
+/**
+ * The output example filtered to the checked fields, as a plain object. Exported for the bulk-edit
+ * prompt, which wraps it in `{ "bookmarks": [{ "id": …, … }] }`; the single prompt stringifies it.
+ */
+export function buildAiUpdateExample(
+  checkedKeys: AiUpdatableFieldKey[],
+  checkedProperties: CustomProperty[],
+): Record<string, unknown> {
+  const checked = new Set(checkedKeys);
   const example: Record<string, unknown> = {};
   for (const key of AI_STANDARD_FIELD_KEYS) {
     if (checked.has(key)) example[key] = STANDARD_EXAMPLES[key];
@@ -382,7 +439,20 @@ function buildExample(args: BookmarkAiUpdatePromptArgs, checkedProperties: Custo
       checkedProperties.map(property => [property.slug, exampleValueForProperty(property)]),
     );
   }
-  return JSON.stringify(example, null, 2);
+  return example;
+}
+
+/** The checked custom properties, resolved by id from the `prop:` field keys, in checked order. */
+export function resolveCheckedProperties(
+  checkedKeys: AiUpdatableFieldKey[],
+  properties: CustomProperty[],
+): CustomProperty[] {
+  const byId = new Map(properties.map(property => [property.id, property]));
+  return checkedKeys
+    .map(propertyIdFromAiFieldKey)
+    .filter((id): id is string => id !== null)
+    .map(id => byId.get(id))
+    .filter((property): property is CustomProperty => property !== undefined);
 }
 
 /**
@@ -392,19 +462,15 @@ function buildExample(args: BookmarkAiUpdatePromptArgs, checkedProperties: Custo
  */
 export function buildBookmarkAiUpdatePrompt(args: BookmarkAiUpdatePromptArgs): string {
   const template = args.template.trim() || DEFAULT_BOOKMARK_AI_UPDATE_TEMPLATE;
-  const byId = new Map(args.properties.map(property => [property.id, property]));
-  const checkedProperties = args.checked
-    .map(propertyIdFromAiFieldKey)
-    .filter((id): id is string => id !== null)
-    .map(id => byId.get(id))
-    .filter((property): property is CustomProperty => property !== undefined);
+  const checkedProperties = resolveCheckedProperties(args.checked, args.properties);
+  const example = JSON.stringify(buildAiUpdateExample(args.checked, checkedProperties), null, 2);
   const output = "Respond with ONLY a JSON object — no prose and no code fences. Include ONLY the "
-    + `fields listed above, using exactly this shape:\n${buildExample(args, checkedProperties)}`;
+    + `fields listed above, using exactly this shape:\n${example}`;
   return [
     template,
     buildContextBlock(args, checkedProperties),
-    buildRulesBlock(args, checkedProperties),
-    buildVocabularyBlock(args),
+    buildAiUpdateRulesBlock(args.checked, checkedProperties),
+    buildAiUpdateVocabularyBlock(args),
     output,
   ].filter((block): block is string => block !== null).join("\n\n");
 }
@@ -477,7 +543,7 @@ export type BookmarkAiUpdateParseState
       ignoredKeys: string[]; };
 
 /** Strip a wrapping markdown code fence (```json … ```), a common AI-response drift. */
-function stripCodeFence(text: string): string {
+export function stripCodeFence(text: string): string {
   const fenced = /^```[a-z]*\s*\n([\s\S]*?)\n?```$/i.exec(text);
   return fenced ? fenced[1] : text;
 }
@@ -822,7 +888,23 @@ export function parseBookmarkAiUpdateText(
   if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return {
     kind: "invalid",
   };
-  const root = parsed as Record<string, unknown>;
+  return {
+    kind: "ok",
+    ...parseBookmarkAiUpdateObject(parsed as Record<string, unknown>, checked, properties),
+  };
+}
+
+/**
+ * Parse one already-JSON-parsed reply object's field values against the checked fields — the shared
+ * per-object half of {@link parseBookmarkAiUpdateText}, also consumed per bookmark by the bulk
+ * parser (`lib/aiBulkEdit.ts`), whose reply wraps one such object per bookmark.
+ */
+export function parseBookmarkAiUpdateObject(
+  root: Record<string, unknown>,
+  checked: AiUpdatableFieldKey[],
+  properties: CustomProperty[],
+): { proposals: AiUpdateProposal[];
+  ignoredKeys: string[]; } {
   const checkedSet = new Set(checked);
   const standardKeys = new Set<string>(AI_STANDARD_FIELD_KEYS);
   const proposals: AiUpdateProposal[] = [];
@@ -856,7 +938,6 @@ export function parseBookmarkAiUpdateText(
   }
 
   return {
-    kind: "ok",
     proposals,
     ignoredKeys,
   };
