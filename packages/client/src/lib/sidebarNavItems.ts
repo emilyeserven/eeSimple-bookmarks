@@ -20,6 +20,7 @@ import {
   Tags,
   UserRound,
   Wand2,
+  WandSparkles,
 } from "lucide-react";
 
 import i18n from "../i18n";
@@ -129,6 +130,11 @@ export const actionItems = [
     title: i18n.t("AI Autotag"),
     to: "/ai-autotag",
     icon: Bot,
+  },
+  {
+    title: i18n.t("AI Bulk Edit"),
+    to: "/ai-bulk-edit",
+    icon: WandSparkles,
   },
 ] as const;
 

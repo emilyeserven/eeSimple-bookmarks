@@ -1,4 +1,3 @@
-import type { BookmarkAiUpdateController } from "../hooks/useBookmarkAiUpdate";
 import type { AiUpdatableField, AiUpdatableFieldKey } from "../lib/bookmarkAiUpdate";
 import type { Bookmark } from "@eesimple/types";
 
@@ -69,11 +68,22 @@ function FieldCheckboxRow({
   );
 }
 
-/** The three checkbox groups (Standard / Relations / Custom properties) + select all/none. */
-function BookmarkAiUpdateFieldPicker({
+/** The slice of a controller the field picker needs — satisfied by the single AND bulk controllers. */
+export interface AiUpdateFieldPickerControls {
+  fields: AiUpdatableField[];
+  checkedFields: ReadonlySet<AiUpdatableFieldKey>;
+  toggleField: (key: AiUpdatableFieldKey) => void;
+  setAllFields: (checked: boolean) => void;
+}
+
+/**
+ * The three checkbox groups (Standard / Relations / Custom properties) + select all/none. Shared by
+ * the bookmark edit AI tab and the AI Bulk Edit page.
+ */
+export function BookmarkAiUpdateFieldPicker({
   controller,
 }: {
-  controller: BookmarkAiUpdateController;
+  controller: AiUpdateFieldPickerControls;
 }) {
   const {
     t,
