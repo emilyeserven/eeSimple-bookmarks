@@ -49,7 +49,22 @@ describe("eligibleCustomCardFields", () => {
     }]);
   });
 
-  it("excludes properties hidden from listings, calculate types, or with no category scope", () => {
+  it("includes an unscoped property (no explicit ids) since empty categoryIds means all categories", () => {
+    const prop = property({
+      id: "u",
+      name: "Complexity",
+      type: "ratingScale",
+      showInListings: true,
+      allCategories: false,
+      categoryIds: [],
+    });
+    expect(eligibleCustomCardFields([prop])).toEqual([{
+      key: "u",
+      label: "Complexity",
+    }]);
+  });
+
+  it("excludes properties hidden from listings or calculate types", () => {
     const hidden = property({
       id: "h",
       showInListings: false,
@@ -61,12 +76,6 @@ describe("eligibleCustomCardFields", () => {
       showInListings: true,
       categoryIds: ["c"],
     });
-    const unscoped = property({
-      id: "u",
-      showInListings: true,
-      allCategories: false,
-      categoryIds: [],
-    });
-    expect(eligibleCustomCardFields([hidden, calc, unscoped])).toEqual([]);
+    expect(eligibleCustomCardFields([hidden, calc])).toEqual([]);
   });
 });

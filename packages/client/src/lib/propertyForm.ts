@@ -205,11 +205,14 @@ export function summarizeItemInItemsOptions(values: {
     : sample;
 }
 
-/** One-line summary of the category selection for a collapsed "Categories" preview. */
+/**
+ * One-line summary of the category selection for a collapsed "Categories" preview. An empty selection
+ * means "all categories" (see `propertyAppliesToCategory` in `@eesimple/types`), so it reads the same
+ * as the explicit `allCategories` flag rather than "No categories".
+ */
 export function summarizeCategories(allCategories: boolean, selectedIds: string[]): string {
-  if (allCategories) return i18n.t("All categories");
+  if (allCategories || selectedIds.length === 0) return i18n.t("All categories");
   const count = selectedIds.length;
-  if (count === 0) return i18n.t("No categories");
   return count === 1
     ? i18n.t("{{count}} category", {
       count,

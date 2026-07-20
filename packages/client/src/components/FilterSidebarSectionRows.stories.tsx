@@ -79,7 +79,7 @@ export const Sections: StoryObj<typeof SectionsFilterSection> = {
   },
 };
 
-/** Custom-property filters; with a category filter active, orphaned properties are flagged. */
+/** Custom-property filters for the bookmark search sidebar. */
 export const Properties: StoryObj<typeof PropertiesFilterSection> = {
   render: args => <PropertiesFilterSection {...args} />,
   args: {
@@ -88,6 +88,5 @@ export const Properties: StoryObj<typeof PropertiesFilterSection> = {
     bookmarks: [sampleBookmark],
     search: {},
     onSearchChange: () => {},
-    hasCategoryFilter: true,
   },
 };

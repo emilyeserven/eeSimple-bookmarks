@@ -132,8 +132,11 @@ export function isMultiValueTaxonomyField(key: string): boolean {
 
 /**
  * The custom properties eligible to appear on bookmark cards (and thus in the rule's field zones):
- * shown in listings, not a calculate property, and assigned to at least one category. Returned as
- * `{ key, label }` pairs keyed by property id, ready to merge after {@link STANDARD_CARD_FIELDS}.
+ * shown in listings and not a calculate property. Category scope is intentionally *not* a gate — a
+ * property with no explicit `categoryIds` applies to every category (see `propertyAppliesToCategory`
+ * in `@eesimple/types`), so it is card-eligible like any category-scoped one; the runtime per-card
+ * scope check still limits where a scoped property actually renders. Returned as `{ key, label }`
+ * pairs keyed by property id, ready to merge after {@link STANDARD_CARD_FIELDS}.
  */
 export function eligibleCustomCardFields(
   properties: CustomProperty[],
@@ -142,8 +145,7 @@ export function eligibleCustomCardFields(
   return properties
     .filter(property =>
       property.showInListings
-      && property.type !== "calculate"
-      && (property.allCategories || property.categoryIds.length > 0))
+      && property.type !== "calculate")
     .map(property => ({
       key: property.id,
       label: property.name,
