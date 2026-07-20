@@ -86,6 +86,7 @@ export function makeCustomProperty(overrides: Partial<CustomProperty> = {}): Cus
     ratingLabel: null,
     ratingAllowRange: false,
     ratingLabels: null,
+    ratingCategoryLabels: null,
     ratingDisplay: null,
     ratingRangeIncludeStart: false,
     choicesItems: [],

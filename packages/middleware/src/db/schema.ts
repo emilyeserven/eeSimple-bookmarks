@@ -1454,7 +1454,7 @@ export const customProperties = pgTable("custom_properties", {
   booleanFalseLabel: text("boolean_false_label"),
   // Rating-scale display settings. All nullable (additive, push-safe). Ratings store their value
   // in `bookmark_number_values` like numbers, so only this config is rating-specific.
-  // ratingMax: 3 | 5 (null → 5). ratingAllowZero/Half/ShowLabel: null → false. ratingLabel after stars.
+  // ratingMax: 2–20 (null → 5). ratingAllowZero/Half/ShowLabel: null → false. ratingLabel after stars.
   ratingMax: integer("rating_max"),
   ratingAllowZero: boolean("rating_allow_zero"),
   ratingAllowHalf: boolean("rating_allow_half"),
@@ -1464,6 +1464,9 @@ export const customProperties = pgTable("custom_properties", {
   ratingAllowRange: boolean("rating_allow_range"),
   // Per-number labels for a ratingScale, keyed by level ("0".."ratingMax"). Nullable jsonb → push-safe.
   ratingLabels: jsonb("rating_labels"),
+  // Per-category overrides of ratingLabels, keyed by category id (RatingCategoryLabels in
+  // @eesimple/types). Nullable jsonb → push-safe additive.
+  ratingCategoryLabels: jsonb("rating_category_labels"),
   // How a ratingScale renders: "stars" | "ticks" (null → "stars"). Lone nullable column → push-safe.
   ratingDisplay: text("rating_display"),
   // When true, a ratingScale range fills its start level (inclusive band). Lone nullable → push-safe.

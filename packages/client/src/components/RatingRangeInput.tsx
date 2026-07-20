@@ -23,11 +23,13 @@ const RATING_RANGE_NONE = "__none__";
  * Shared by the bookmark form (`RatingScalePropertyField`) and `renderPropertyScalarInput`.
  */
 export function RatingRangeInput({
-  property, raw, onChange,
+  property, raw, onChange, categoryId,
 }: {
   property: CustomProperty;
   raw: string;
   onChange: (value: string) => void;
+  /** The owning bookmark's category, so the property's per-category level labels apply. */
+  categoryId?: string | null;
 }): ReactElement {
   const {
     t,
@@ -68,7 +70,7 @@ export function RatingRangeInput({
               key={level}
               value={String(level)}
             >
-              {ratingLevelLabel(property, level)}
+              {ratingLevelLabel(property, level, categoryId)}
             </SelectItem>
           ))}
         </SelectContent>
@@ -90,7 +92,7 @@ export function RatingRangeInput({
                 key={level}
                 value={String(level)}
               >
-                {ratingLevelLabel(property, level)}
+                {ratingLevelLabel(property, level, categoryId)}
               </SelectItem>
             ))}
         </SelectContent>

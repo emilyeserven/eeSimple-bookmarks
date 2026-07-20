@@ -182,6 +182,22 @@ describe("summarizeRatingOptions", () => {
       ratingAllowZero: true,
       ratingMax: "3",
     })).toBe("0–3 stars");
+    // Any whole max is supported, not just 3 or 5.
+    expect(summarizeRatingOptions({
+      ...base,
+      ratingMax: "7",
+    })).toBe("1–7 stars");
+  });
+
+  it("appends the category-override count when overrides exist", () => {
+    expect(summarizeRatingOptions({
+      ...base,
+      ratingCategoryOverrideCount: 2,
+    })).toBe("1–5 stars · 2 category override");
+    expect(summarizeRatingOptions({
+      ...base,
+      ratingCategoryOverrideCount: 0,
+    })).toBe("1–5 stars");
   });
 
   it("appends half-step and label notes when enabled", () => {

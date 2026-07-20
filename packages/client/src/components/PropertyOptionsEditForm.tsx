@@ -34,6 +34,7 @@ const LABELS: Partial<Record<OptionsKey, string>> = {
   ratingLabel: i18n.t("Rating label"),
   ratingAllowRange: i18n.t("Allow a range"),
   ratingLabels: i18n.t("Rating labels"),
+  ratingCategoryLabels: i18n.t("Per-category labels"),
   ratingDisplay: i18n.t("Display style"),
   ratingRangeIncludeStart: i18n.t("Include start in range"),
   choicesItems: i18n.t("Choices"),

@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import type { ItemInItemsTextSource, SectionEntry } from "./customProperties.js";
+import type { ItemInItemsTextSource, RatingLabelSource, SectionEntry } from "./customProperties.js";
 
-import { countSectionLeaves, resolveItemInItemsTexts, setSectionCompleted, setSectionFavorite } from "./customProperties.js";
+import { clampRatingMax, countSectionLeaves, resolveItemInItemsTexts, resolveRatingLevelLabel, setSectionCompleted, setSectionFavorite } from "./customProperties.js";
 
 function entry(overrides: Partial<SectionEntry> & { id: string }): SectionEntry {
   return {
@@ -311,4 +311,55 @@ test("resolveItemInItemsTexts: an absent/null per-bookmark override is byte-iden
     resolveItemInItemsTexts(source, "mt-course", {}),
     resolveItemInItemsTexts(source, "mt-course"),
   );
+});
+
+test("clampRatingMax keeps whole in-range values and defaults null/NaN to 5", () => {
+  assert.equal(clampRatingMax(7), 7);
+  assert.equal(clampRatingMax(10), 10);
+  assert.equal(clampRatingMax(null), 5);
+  assert.equal(clampRatingMax(undefined), 5);
+  assert.equal(clampRatingMax(Number.NaN), 5);
+});
+
+test("clampRatingMax rounds fractional values and clamps out-of-range ones", () => {
+  assert.equal(clampRatingMax(4.6), 5);
+  assert.equal(clampRatingMax(1), 2);
+  assert.equal(clampRatingMax(0), 2);
+  assert.equal(clampRatingMax(25), 20);
+});
+
+const ratingSource: RatingLabelSource = {
+  ratingLabels: {
+    1: "Beginner",
+    5: "Advanced",
+  },
+  ratingCategoryLabels: {
+    "cat-japanese": {
+      1: "N5",
+      2: "",
+      5: "N1",
+    },
+  },
+};
+
+test("resolveRatingLevelLabel: a non-blank category override wins over the base label", () => {
+  assert.equal(resolveRatingLevelLabel(ratingSource, 1, "cat-japanese"), "N5");
+  assert.equal(resolveRatingLevelLabel(ratingSource, 5, "cat-japanese"), "N1");
+});
+
+test("resolveRatingLevelLabel: a blank/absent override level inherits the base label", () => {
+  // "2" is blank in the override and unlabelled in the base → null (caller shows the number).
+  assert.equal(resolveRatingLevelLabel(ratingSource, 2, "cat-japanese"), null);
+  // "1" for a category with no override row falls back to the base label.
+  assert.equal(resolveRatingLevelLabel(ratingSource, 1, "cat-other"), "Beginner");
+  assert.equal(resolveRatingLevelLabel(ratingSource, 1, null), "Beginner");
+  assert.equal(resolveRatingLevelLabel(ratingSource, 1), "Beginner");
+});
+
+test("resolveRatingLevelLabel: no override and no base label resolves to null", () => {
+  assert.equal(resolveRatingLevelLabel(ratingSource, 3, "cat-japanese"), null);
+  assert.equal(resolveRatingLevelLabel({
+    ratingLabels: null,
+    ratingCategoryLabels: null,
+  }, 1, "cat-japanese"), null);
 });

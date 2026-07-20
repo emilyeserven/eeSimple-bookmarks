@@ -186,3 +186,50 @@ test("buildInsertValues gates the rating columns on the ratingScale type", () =>
     type: "ratingScale",
   }, "score").ratingMax, 5);
 });
+
+test("buildInsertValues clamps ratingMax to a whole 2–20 scale", () => {
+  const max = (ratingMax: number | null | undefined): unknown =>
+    buildInsertValues({
+      name: "Score",
+      type: "ratingScale",
+      ratingMax,
+    }, "score").ratingMax;
+  // Any whole value in range is kept as-is (no longer limited to 3/5).
+  assert.equal(max(7), 7);
+  assert.equal(max(10), 10);
+  // Out-of-range and fractional values clamp/round; null falls back to the default of 5.
+  assert.equal(max(1), 2);
+  assert.equal(max(25), 20);
+  assert.equal(max(4.6), 5);
+  assert.equal(max(null), 5);
+});
+
+test("rating category label overrides are gated on the ratingScale type and copied on update", () => {
+  const overrides = {
+    "cat-japanese": {
+      1: "N5",
+      5: "N1",
+    },
+  };
+  assert.equal(
+    buildInsertValues({
+      name: "Score",
+      type: "number",
+      ratingCategoryLabels: overrides,
+    }, "score").ratingCategoryLabels,
+    null,
+  );
+  assert.deepEqual(
+    buildInsertValues({
+      name: "Score",
+      type: "ratingScale",
+      ratingCategoryLabels: overrides,
+    }, "score").ratingCategoryLabels,
+    overrides,
+  );
+  assert.deepEqual(buildUpdatePatch({
+    ratingCategoryLabels: overrides,
+  }, undefined), {
+    ratingCategoryLabels: overrides,
+  });
+});

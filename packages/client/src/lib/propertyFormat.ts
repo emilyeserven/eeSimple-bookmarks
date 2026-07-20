@@ -1,6 +1,6 @@
 import type { BookmarkProgressValue, BookmarkSectionsValue, CustomProperty, CustomPropertyType, DateTimeFormat, NumberFormat, SectionEntry } from "@eesimple/types";
 
-import { resolveItemInItemsTexts, SECTION_ENTRY_TYPE_LABELS } from "@eesimple/types";
+import { resolveItemInItemsTexts, resolveRatingLevelLabel, SECTION_ENTRY_TYPE_LABELS } from "@eesimple/types";
 
 import i18n from "../i18n";
 
@@ -111,28 +111,37 @@ export function ratingLevelValues(property: CustomProperty): number[] {
   return levels;
 }
 
-/** The display label for a single rating level: the property's per-number label, else the number. */
-export function ratingLevelLabel(property: CustomProperty, level: number): string {
-  const label = property.ratingLabels?.[String(level)];
-  return label && label.trim() !== "" ? label : String(level);
+/**
+ * The display label for a single rating level: the bookmark's category override, else the
+ * property's per-number label, else the number (see `resolveRatingLevelLabel` in `@eesimple/types`).
+ */
+export function ratingLevelLabel(
+  property: CustomProperty,
+  level: number,
+  categoryId?: string | null,
+): string {
+  return resolveRatingLevelLabel(property, level, categoryId) ?? String(level);
 }
 
 /**
  * A caption for a rating value using the per-number labels: a single label, or `from → to` for a
- * range. Returns `null` when the property has no labels and no range (nothing to add beside the stars).
+ * range. Returns `null` when the property has no labels and no range (nothing to add beside the
+ * stars). Pass the bookmark's `categoryId` so its category label overrides apply.
  */
 export function formatRatingCaption(
   property: CustomProperty,
   value: number,
   valueEnd?: number | null,
+  categoryId?: string | null,
 ): string | null {
   // A range always gets a caption (labels, or the numbers when unlabelled) since the stars alone
   // can't convey "from X to Y".
   const isRange = valueEnd != null && valueEnd !== value;
-  if (isRange) return `${ratingLevelLabel(property, value)} → ${ratingLevelLabel(property, valueEnd)}`;
+  if (isRange) {
+    return `${ratingLevelLabel(property, value, categoryId)} → ${ratingLevelLabel(property, valueEnd, categoryId)}`;
+  }
   // A single value shows a caption only when *that* level is labelled (else the stars suffice).
-  const label = property.ratingLabels?.[String(value)];
-  return label && label.trim() !== "" ? label : null;
+  return resolveRatingLevelLabel(property, value, categoryId);
 }
 
 /** Human labels for what a `datetime` property captures. */

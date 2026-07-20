@@ -1,6 +1,6 @@
 import type { CreateCustomPropertyInput, CustomProperty } from "@eesimple/types";
 
-import { CHOICES_DISPLAY_TYPES, CUSTOM_PROPERTY_TYPES, DATE_TIME_FORMATS, NUMBER_FORMATS, RATING_DISPLAYS, SECTION_ENTRY_TYPES } from "@eesimple/types";
+import { CHOICES_DISPLAY_TYPES, clampRatingMax, CUSTOM_PROPERTY_TYPES, DATE_TIME_FORMATS, NUMBER_FORMATS, RATING_DISPLAYS, RATING_MAX_LIMIT, RATING_MAX_MIN, SECTION_ENTRY_TYPES } from "@eesimple/types";
 import { z } from "zod";
 
 import { useAppForm } from "../lib/form";
@@ -75,7 +75,10 @@ export const propertySchema = z
     booleanLabelPreset: z.enum(["yes-no", "true-false", "enabled-disabled", "icons", "stars", "custom"]),
     booleanTrueLabel: z.string(),
     booleanFalseLabel: z.string(),
-    ratingMax: z.enum(["3", "5"]),
+    ratingMax: z.string().refine((value) => {
+      const n = Number(value.trim());
+      return Number.isInteger(n) && n >= RATING_MAX_MIN && n <= RATING_MAX_LIMIT;
+    }, `Scale must be a whole number between ${RATING_MAX_MIN} and ${RATING_MAX_LIMIT}`),
     ratingAllowZero: z.boolean(),
     ratingAllowHalf: z.boolean(),
     ratingShowLabel: z.boolean(),
@@ -83,6 +86,12 @@ export const propertySchema = z
     ratingAllowRange: z.boolean(),
     // Per-level labels keyed by the level as a string ("0".."ratingMax"); empty/absent = the number.
     ratingLabels: z.record(z.string(), z.string()),
+    // Per-category overrides of the level labels, editable as an array of rows (record-keyed jsonb
+    // on the wire; a blank level inherits the base label above).
+    ratingCategoryLabels: z.array(z.object({
+      categoryId: z.string(),
+      labels: z.record(z.string(), z.string()),
+    })),
     ratingDisplay: z.enum(RATING_DISPLAYS),
     ratingRangeIncludeStart: z.boolean(),
     choicesItems: z.array(z.object({
@@ -165,6 +174,7 @@ export const CREATE_DEFAULTS: PropertyFormValues = {
   ratingLabel: "",
   ratingAllowRange: false,
   ratingLabels: {},
+  ratingCategoryLabels: [],
   ratingDisplay: "stars",
   ratingRangeIncludeStart: false,
   choicesItems: [],
@@ -322,13 +332,23 @@ export function valuesFromProperty(property: CustomProperty): PropertyFormValues
     booleanLabelPreset: property.booleanLabelPreset ?? "yes-no",
     booleanTrueLabel: property.booleanTrueLabel ?? "",
     booleanFalseLabel: property.booleanFalseLabel ?? "",
-    ratingMax: property.ratingMax === 3 ? "3" : "5",
+    ratingMax: String(property.ratingMax ?? 5),
     ratingAllowZero: property.ratingAllowZero,
     ratingAllowHalf: property.ratingAllowHalf,
     ratingShowLabel: property.ratingShowLabel,
     ratingLabel: property.ratingLabel ?? "",
     ratingAllowRange: property.ratingAllowRange,
     ratingLabels: property.ratingLabels ?? {},
+    // Rows for since-deleted categories are kept so the editor can surface them for removal
+    // rather than silently dropping the stored override on the next save.
+    ratingCategoryLabels: Object.entries(property.ratingCategoryLabels ?? {}).map(
+      ([categoryId, labels]) => ({
+        categoryId,
+        labels: {
+          ...labels,
+        },
+      }),
+    ),
     ratingDisplay: property.ratingDisplay ?? "stars",
     ratingRangeIncludeStart: property.ratingRangeIncludeStart,
     choicesItems: property.choicesItems,
@@ -386,28 +406,61 @@ function booleanPayloadFields(values: PropertyFormValues): Pick<
   };
 }
 
-/** Keep only non-empty label entries, so the stored `ratingLabels` map has no blank values. */
-function pruneRatingLabels(labels: Record<string, string>): Record<string, string> | null {
-  const entries = Object.entries(labels).filter(([, label]) => label.trim() !== "");
+/**
+ * Keep only non-empty label entries for levels the scale can actually reach (drops stale keys left
+ * behind when the max was lowered or zero was disallowed), so the stored map has no dead values.
+ */
+function pruneRatingLabels(
+  labels: Record<string, string>,
+  max: number,
+  allowZero: boolean,
+): Record<string, string> | null {
+  const min = allowZero ? 0 : 1;
+  const entries = Object.entries(labels).filter(([level, label]) => {
+    const n = Number(level);
+    return label.trim() !== "" && Number.isFinite(n) && n >= min && n <= max;
+  });
   if (entries.length === 0) return null;
   return Object.fromEntries(entries.map(([level, label]) => [level, label.trim()]));
+}
+
+/**
+ * Rows editable as an array in the form become the category-keyed jsonb; a row with no category or
+ * with every level blank contributes nothing (blank = inherit the base label).
+ */
+function pruneRatingCategoryLabels(
+  rows: PropertyFormValues["ratingCategoryLabels"],
+  max: number,
+  allowZero: boolean,
+): CreateCustomPropertyInput["ratingCategoryLabels"] {
+  const entries = rows
+    .filter(row => row.categoryId !== "")
+    .map(row => [row.categoryId, pruneRatingLabels(row.labels, max, allowZero)] as const)
+    .filter((entry): entry is [string, Record<string, string>] => entry[1] !== null);
+  if (entries.length === 0) return null;
+  return Object.fromEntries(entries);
 }
 
 /** Rating-scale-only fields, nulled out / left `undefined` for every other property type. */
 function ratingPayloadFields(values: PropertyFormValues): Pick<
   CreateCustomPropertyInput,
   "ratingMax" | "ratingAllowZero" | "ratingAllowHalf" | "ratingShowLabel" | "ratingLabel"
-  | "ratingAllowRange" | "ratingLabels" | "ratingDisplay" | "ratingRangeIncludeStart"
+  | "ratingAllowRange" | "ratingLabels" | "ratingCategoryLabels" | "ratingDisplay"
+  | "ratingRangeIncludeStart"
 > {
   const isRating = values.type === "ratingScale";
+  const max = clampRatingMax(Number(values.ratingMax.trim()));
   return {
-    ratingMax: isRating ? (values.ratingMax === "3" ? 3 : 5) : null,
+    ratingMax: isRating ? max : null,
     ratingAllowZero: isRating ? values.ratingAllowZero : undefined,
     ratingAllowHalf: isRating ? values.ratingAllowHalf : undefined,
     ratingShowLabel: isRating ? values.ratingShowLabel : undefined,
     ratingLabel: isRating ? trimOrNull(values.ratingLabel) : null,
     ratingAllowRange: isRating ? values.ratingAllowRange : undefined,
-    ratingLabels: isRating ? pruneRatingLabels(values.ratingLabels) : null,
+    ratingLabels: isRating ? pruneRatingLabels(values.ratingLabels, max, values.ratingAllowZero) : null,
+    ratingCategoryLabels: isRating
+      ? pruneRatingCategoryLabels(values.ratingCategoryLabels, max, values.ratingAllowZero)
+      : null,
     ratingDisplay: isRating ? values.ratingDisplay : null,
     ratingRangeIncludeStart: isRating ? values.ratingRangeIncludeStart : undefined,
   };

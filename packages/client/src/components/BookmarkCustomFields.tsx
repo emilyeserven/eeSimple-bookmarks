@@ -151,6 +151,7 @@ export function CategoryCustomFields({
             key={property.id}
             property={property}
             bookmark={bookmark}
+            categoryId={categoryId}
             mediaTypeId={mediaTypeId}
             {...inputBundle}
           />
@@ -163,6 +164,11 @@ export function CategoryCustomFields({
 export interface CategoryPropertyFieldProps extends CustomPropertyInputBundle {
   property: CustomProperty;
   bookmark: Bookmark | null;
+  /**
+   * The form's selected category (create form). Edit surfaces omit it and the fields that care
+   * fall back to `bookmark.categoryId`. Drives the ratingScale per-category label overrides.
+   */
+  categoryId?: string | null;
   /**
    * The form's selected media type (create form). Edit surfaces omit it and the fields that care
    * fall back to `bookmark.mediaTypeId`. Drives the itemInItems per-media-type text overrides and
@@ -211,13 +217,14 @@ function DateTimeField({
 }
 
 function RatingScaleField({
-  property, numberInputs, onNumberChange,
+  property, bookmark, categoryId, numberInputs, onNumberChange,
 }: CategoryPropertyFieldProps) {
   return (
     <RatingScalePropertyField
       property={property}
       raw={numberInputs[property.id]}
       onChange={value => onNumberChange(property.id, value)}
+      categoryId={categoryId ?? bookmark?.categoryId ?? null}
     />
   );
 }

@@ -378,6 +378,7 @@ function numberValueItem(
   entry: Bookmark["numberValues"][number],
   property: CustomProperty,
   placement: ResolvedFieldPlacement,
+  bookmark: Bookmark,
 ): BookmarkValueItem {
   if (property.type === "ratingScale") {
     return {
@@ -385,7 +386,7 @@ function numberValueItem(
       kind: "rating",
       value: entry.value,
       valueEnd: entry.valueEnd ?? null,
-      caption: formatRatingCaption(property, entry.value, entry.valueEnd),
+      caption: formatRatingCaption(property, entry.value, entry.valueEnd, bookmark.categoryId),
     };
   }
   const value = formatNumber(entry.value, property);
@@ -544,7 +545,7 @@ export function buildBookmarkValueItems(
 
   for (const entry of bookmark.numberValues) {
     const ctx = visible(entry.propertyId);
-    if (ctx) items.push(numberValueItem(entry, ctx.property, ctx.placement));
+    if (ctx) items.push(numberValueItem(entry, ctx.property, ctx.placement, bookmark));
   }
   for (const entry of bookmark.booleanValues) {
     const ctx = visible(entry.propertyId);

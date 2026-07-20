@@ -158,7 +158,7 @@ export function buildBookmarkPropertyRows(
           max: (property.ratingMax ?? 5) as number,
           allowHalf: property.ratingAllowHalf,
           label: property.ratingShowLabel ? (property.ratingLabel ?? undefined) : undefined,
-          caption: formatRatingCaption(property, entry.value, entry.valueEnd),
+          caption: formatRatingCaption(property, entry.value, entry.valueEnd, bookmark.categoryId),
           display: property.ratingDisplay ?? "stars",
           rangeIncludeStart: property.ratingRangeIncludeStart,
           search: buildPropertyQuickSearch(property, entry.value),

@@ -7,11 +7,13 @@ import { RatingValue } from "../RatingValue";
 import { Label } from "@/components/ui/label";
 
 export function RatingScalePropertyField({
-  property, raw, onChange,
+  property, raw, onChange, categoryId,
 }: {
   property: CustomProperty;
   raw: string | undefined;
   onChange: (value: string) => void;
+  /** The owning bookmark's category, so the property's per-category level labels apply. */
+  categoryId?: string | null;
 }) {
   return (
     <div className="space-y-1">
@@ -23,6 +25,7 @@ export function RatingScalePropertyField({
               property={property}
               raw={raw ?? ""}
               onChange={onChange}
+              categoryId={categoryId}
             />
           )
           : (

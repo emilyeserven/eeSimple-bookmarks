@@ -17,7 +17,6 @@ export {
   DATE_TIME_FORMAT_OPTIONS,
   NUMBER_FORMAT_OPTIONS,
   RATING_DISPLAY_OPTIONS,
-  RATING_MAX_OPTIONS,
   summarizeBooleanOptions,
   summarizeCategories,
   summarizeItemInItemsOptions,
