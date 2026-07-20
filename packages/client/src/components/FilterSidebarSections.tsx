@@ -230,7 +230,6 @@ export function FilterSections({
               bookmarks={bookmarks}
               search={search}
               onSearchChange={onSearchChange}
-              hasCategoryFilter={hasCategoryFilter}
               nameFilter={propertyNameFilter}
             />
           ),

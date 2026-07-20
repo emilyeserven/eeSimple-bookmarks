@@ -1,7 +1,7 @@
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { Person, Bookmark, Category, CustomProperty, GenreMood, MediaType, PlaceType, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
 
-import { ChevronDown, TriangleAlert } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { CustomPropertyFilters } from "./CustomPropertyFilters";
@@ -23,7 +23,6 @@ import {
 import { useLanguages } from "../hooks/useLanguages";
 import { useLanguageUsageLevels } from "../hooks/useLanguageUsageLevels";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
-import { Separator } from "./ui/separator";
 import {
   withBooleanFilter,
   withCategoryPresence,
@@ -542,25 +541,20 @@ export function PersonFilterSection({
   );
 }
 
-/** Custom-property filters plus a warning for properties with no category assignment. */
+/** Custom-property filters. */
 export function PropertiesFilterSection({
-  enabledProperties, categories, bookmarks, search, onSearchChange, hasCategoryFilter, nameFilter,
+  enabledProperties, categories, bookmarks, search, onSearchChange, nameFilter,
 }: {
   enabledProperties: CustomProperty[];
   categories?: Category[];
   bookmarks: Pick<Bookmark, "numberValues">[];
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
-  hasCategoryFilter: boolean;
   nameFilter?: string;
 }) {
   const {
     t,
   } = useTranslation();
-  // A property assigned to no category is almost certainly orphaned; flag it as an error.
-  const unassignedProperties = hasCategoryFilter
-    ? enabledProperties.filter(property => property.categoryIds.length === 0)
-    : [];
 
   return (
     <div className="space-y-3">
@@ -607,24 +601,6 @@ export function PropertiesFilterSection({
             ),
           )}
       />
-      {unassignedProperties.length > 0
-        ? (
-          <>
-            <Separator className="my-3" />
-            <div className="space-y-1 text-xs text-muted-foreground">
-              <p className="flex items-center gap-1.5 font-medium">
-                <TriangleAlert className="size-3.5 shrink-0" />
-                {unassignedProperties.length === 1
-                  ? t("1 property isn't assigned to a category")
-                  : t("{{count}} properties aren't assigned to a category", {
-                    count: unassignedProperties.length,
-                  })}
-              </p>
-              <p>{unassignedProperties.map(property => property.name).join(", ")}</p>
-            </div>
-          </>
-        )
-        : null}
     </div>
   );
 }

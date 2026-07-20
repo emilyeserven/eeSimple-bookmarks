@@ -13,8 +13,10 @@ import {
 } from "./propertyFormParts";
 
 /**
- * The "Categories" scope section: choose which categories a property applies to, including the
- * "all categories" flag that opts new categories in. Operates on the shared form instance.
+ * The "Categories" scope section: choose which categories a property applies to. An empty selection
+ * means "all categories" (see `propertyAppliesToCategory` in `@eesimple/types`), so the property is
+ * global by default and needs no explicit "all categories" opt-in — you only scope it by checking
+ * specific categories. Operates on the shared form instance.
  */
 export function PropertyCategoriesSection({
   form,
@@ -36,7 +38,7 @@ export function PropertyCategoriesSection({
   return (
     <CollapsibleFormSection
       title={t("Categories")}
-      description={t("Choose which categories this property applies to.")}
+      description={t("By default this property applies to all categories. Check specific categories to limit it to those.")}
       defaultOpen={mode === "create" || section === "categories"}
       preview={(
         <form.Subscribe
@@ -51,38 +53,21 @@ export function PropertyCategoriesSection({
         </form.Subscribe>
       )}
     >
-      <form.Subscribe selector={state => state.values.allCategories}>
-        {allCategories => (
-          <form.AppField name="categoryIds">
-            {field => (
-              <CategoryCheckboxList
-                categories={categories}
-                selectedIds={field.state.value}
-                allCategories={allCategories}
-                onToggle={(id) => {
-                  if (allCategories) {
-                  // Toggling one category drops the "all categories" flag and falls back to an
-                  // explicit list of every current category except the one just unchecked.
-                    form.setFieldValue("allCategories", false);
-                    field.handleChange(
-                      categories.map(category => category.id).filter(categoryId => categoryId !== id),
-                    );
-                  }
-                  else {
-                    field.handleChange(toggleId(field.state.value, id));
-                  }
-                }}
-                onToggleAll={(selectAll) => {
-                // Select all also means "apply to categories created later" via the flag.
-                  form.setFieldValue("allCategories", selectAll);
-                  field.handleChange(selectAll ? categories.map(category => category.id) : []);
-                }}
-                idPrefix={idPrefix}
-              />
-            )}
-          </form.AppField>
+      <form.AppField name="categoryIds">
+        {field => (
+          <CategoryCheckboxList
+            categories={categories}
+            selectedIds={field.state.value}
+            onToggle={(id) => {
+              // Checking specific categories scopes the property to just those; clear any legacy
+              // "all categories" flag so the explicit selection takes effect (empty selection = all).
+              form.setFieldValue("allCategories", false);
+              field.handleChange(toggleId(field.state.value, id));
+            }}
+            idPrefix={idPrefix}
+          />
         )}
-      </form.Subscribe>
+      </form.AppField>
     </CollapsibleFormSection>
   );
 }

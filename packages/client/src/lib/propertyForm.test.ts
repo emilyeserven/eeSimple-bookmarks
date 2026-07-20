@@ -201,9 +201,10 @@ describe("summarizeRatingOptions", () => {
 });
 
 describe("summarizeCategories / summarizeMediaTypes", () => {
-  it("handles all/none/singular/plural for categories", () => {
+  it("handles all/none/singular/plural for categories (empty means all)", () => {
     expect(summarizeCategories(true, [])).toBe("All categories");
-    expect(summarizeCategories(false, [])).toBe("No categories");
+    // An empty selection now means "all categories", matching propertyAppliesToCategory.
+    expect(summarizeCategories(false, [])).toBe("All categories");
     expect(summarizeCategories(false, ["a"])).toBe("1 category");
     expect(summarizeCategories(false, ["a", "b"])).toBe("2 categories");
   });
