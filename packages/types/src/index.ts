@@ -848,6 +848,17 @@ export interface TagReparentSettings {
 export type UpdateTagReparentInput = TagReparentSettings;
 
 /**
+ * Bookmark AI Update settings: the reusable prompt template shown at the top of the generated
+ * field-update prompt on the bookmark edit AI tab. Mirrors {@link TagReparentSettings}.
+ */
+export interface BookmarkAiUpdateSettings {
+  bookmarkAiUpdatePrompt: string;
+}
+
+/** Payload for replacing the bookmark AI-update settings. */
+export type UpdateBookmarkAiUpdateInput = BookmarkAiUpdateSettings;
+
+/**
  * A brand-new grouping tag the AI proposes creating while reorganizing a subtree. `tempId` is a
  * placeholder the AI coins (and echoes in a move's `parentId` to nest existing tags under it);
  * `parentId` is an **existing** tag id or `null` (root) — a new tag cannot nest under another new

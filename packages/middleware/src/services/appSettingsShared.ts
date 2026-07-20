@@ -3,6 +3,7 @@ import type {
   AdvancedSettings,
   AiAutotagSettings,
   AiSummarizationSettings,
+  BookmarkAiUpdateSettings,
   TagReparentSettings,
   AutomationSettings,
   BookmarkDetailImageSize,
@@ -174,6 +175,11 @@ export const DEFAULT_AI_AUTOTAG: AiAutotagSettings = {
 /** Default tag reparent settings (empty prompt), used when the row/column is absent. */
 export const DEFAULT_TAG_REPARENT: TagReparentSettings = {
   tagReparentPrompt: "",
+};
+
+/** Default bookmark AI-update settings (empty prompt template), used when the row/column is absent. */
+export const DEFAULT_BOOKMARK_AI_UPDATE: BookmarkAiUpdateSettings = {
+  bookmarkAiUpdatePrompt: "",
 };
 
 /** Default display/detail preferences, used when seeding / when row absent. */

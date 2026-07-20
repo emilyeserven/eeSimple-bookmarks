@@ -10,6 +10,7 @@ import type {
   AiUntaggedBookmark,
   AutomationSettings,
   BookmarkAddFormSettings,
+  BookmarkAiUpdateSettings,
   BookmarkGraphSettings,
   CardDisplayConfig,
   CardFieldTemplate,
@@ -51,6 +52,7 @@ import type {
   UpdateAiSummarizationInput,
   UpdateAutomationInput,
   UpdateBookmarkAddFormInput,
+  UpdateBookmarkAiUpdateInput,
   UpdateBookmarkGraphInput,
   UpdateConnectorsSettingsInput,
   UpdateDisplayPreferenceInput,
@@ -204,6 +206,13 @@ export const appSettingsApi = {
     request<TagReparentSettings>("/app-settings/tag-reparent"),
   updateTagReparent: (input: UpdateTagReparentInput) =>
     request<TagReparentSettings>("/app-settings/tag-reparent", {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  getBookmarkAiUpdate: () =>
+    request<BookmarkAiUpdateSettings>("/app-settings/bookmark-ai-update"),
+  updateBookmarkAiUpdate: (input: UpdateBookmarkAiUpdateInput) =>
+    request<BookmarkAiUpdateSettings>("/app-settings/bookmark-ai-update", {
       method: "PUT",
       body: JSON.stringify(input),
     }),

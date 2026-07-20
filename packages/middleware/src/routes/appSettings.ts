@@ -14,6 +14,7 @@ import type {
   UpdateDisplayPreferenceInput,
   UpdateHomepageContentInput,
   UpdatePersonSourceLabelInput,
+  UpdateBookmarkAiUpdateInput,
   UpdateScratchpadInput,
   UpdateSidebarCustomizationInput,
   UpdateTagReparentInput,
@@ -44,6 +45,7 @@ import {
   getAiSummarizationSettings,
   getAutomationSettings,
   getBookmarkAddFormSettings,
+  getBookmarkAiUpdateSettings,
   getBookmarkGraphSettings,
   getConnectorsSettings,
   getCustomStripParams,
@@ -65,6 +67,7 @@ import {
   updateAiSummarizationSettings,
   updateAutomationSettings,
   updateBookmarkAddFormSettings,
+  updateBookmarkAiUpdateSettings,
   updateBookmarkGraphSettings,
   updateConnectorsSettings,
   updateCustomStripParams,
@@ -439,6 +442,28 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       },
     },
   }, async req => updateTagReparentSettings(req.body as UpdateTagReparentInput));
+
+  app.get("/api/app-settings/bookmark-ai-update", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async () => getBookmarkAiUpdateSettings());
+
+  app.put("/api/app-settings/bookmark-ai-update", {
+    schema: {
+      tags: ["app-settings"],
+      body: {
+        type: "object",
+        required: ["bookmarkAiUpdatePrompt"],
+        additionalProperties: false,
+        properties: {
+          bookmarkAiUpdatePrompt: {
+            type: "string",
+          },
+        },
+      },
+    },
+  }, async req => updateBookmarkAiUpdateSettings(req.body as UpdateBookmarkAiUpdateInput));
 
   app.get("/api/app-settings/connectors", {
     schema: {

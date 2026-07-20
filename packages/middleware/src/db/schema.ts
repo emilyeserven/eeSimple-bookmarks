@@ -1915,6 +1915,9 @@ export const appSettings = pgTable("app_settings", {
   // Prompt text used to instruct an AI to reorganize (reparent) the tags under a given parent.
   // Nullable = push-safe additive (null coalesced to "" in the service).
   tagReparentPrompt: text("tag_reparent_prompt"),
+  // Prompt template for the bookmark edit AI-update tab (update checked fields via an external AI).
+  // Nullable = push-safe additive (null coalesced to "" in the service).
+  bookmarkAiUpdatePrompt: text("bookmark_ai_update_prompt"),
   // Free-form Markdown note shown in the sidebar footer Scratchpad.
   // Nullable = push-safe additive (null coalesced to "" in the service).
   scratchpadText: text("scratchpad_text"),
