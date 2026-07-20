@@ -79,7 +79,10 @@ export function useDeleteTag() {
     t,
   } = useTranslation();
   return useMutation({
-    mutationFn: (id: string) => tagsApi.remove(id),
+    mutationFn: ({
+      id, reassignTo,
+    }: { id: string;
+      reassignTo?: string; }) => tagsApi.remove(id, reassignTo),
     onSuccess: () => {
       invalidate();
       notifySuccess(t("Tag deleted"));

@@ -134,6 +134,16 @@ export const peopleApi = {
 
 export const tagsApi = {
   ...createCrudApi<Tag, CreateTagInput, UpdateTagInput>("tags"),
+  // Override the generic remove so deletion can optionally reassign the tag's (and its subtree's)
+  // bookmark memberships + section tag references to another tag (via the `reassignTo` query param)
+  // instead of dropping / orphaning them.
+  remove: (id: string, reassignTo?: string) =>
+    request<undefined>(
+      `/tags/${id}${reassignTo ? `?reassignTo=${encodeURIComponent(reassignTo)}` : ""}`,
+      {
+        method: "DELETE",
+      },
+    ),
   tree: () => request<TagNode[]>("/tags/tree"),
   bulkReparent: (ids: string[], parentId: string | null) =>
     request<BulkBookmarkResult[]>("/tags/bulk-reparent", {

@@ -24,6 +24,68 @@ function entryCarriesAnyTag(entry: SectionEntry, tagIds: ReadonlySet<string>): b
   return (entry.tagIds ?? []).some(id => tagIds.has(id));
 }
 
+/**
+ * Rewrite one entry's `tagIds`, replacing every id in `fromIds` with `toId` and deduping the result
+ * (so an entry already carrying `toId` never ends up with a duplicate). Returns the same array
+ * reference when nothing changes, so callers can skip untouched rows.
+ */
+function reassignEntryTagIds(
+  tagIds: string[] | undefined,
+  fromIds: ReadonlySet<string>,
+  toId: string,
+): string[] | undefined {
+  if (!tagIds || !tagIds.some(id => fromIds.has(id))) return tagIds;
+  const next: string[] = [];
+  const seen = new Set<string>();
+  for (const id of tagIds) {
+    const mapped = fromIds.has(id) ? toId : id;
+    if (seen.has(mapped)) continue;
+    seen.add(mapped);
+    next.push(mapped);
+  }
+  return next;
+}
+
+/**
+ * Reassign section tags: across every entry and child (the depth-2 model), replace any `tagIds`
+ * member in `fromIds` with `toId`, deduping. The write counterpart to {@link collectSectionTagIds} —
+ * used when a tag (and its subtree) is deleted with a reassignment target so the sections that
+ * referenced it point at the replacement instead of leaving a dangling id. Entries/children with no
+ * affected tag keep their exact references; the array is returned unchanged when nothing matched.
+ */
+export function reassignSectionTagIds(
+  sections: SectionEntry[],
+  fromIds: ReadonlySet<string>,
+  toId: string,
+): SectionEntry[] {
+  let sectionsChanged = false;
+  const nextSections = sections.map((entry) => {
+    const nextTagIds = reassignEntryTagIds(entry.tagIds, fromIds, toId);
+    let childrenChanged = false;
+    const nextChildren = entry.children?.map((child) => {
+      const childTagIds = reassignEntryTagIds(child.tagIds, fromIds, toId);
+      if (childTagIds === child.tagIds) return child;
+      childrenChanged = true;
+      return {
+        ...child,
+        tagIds: childTagIds,
+      };
+    });
+    if (nextTagIds === entry.tagIds && !childrenChanged) return entry;
+    sectionsChanged = true;
+    return {
+      ...entry,
+      tagIds: nextTagIds,
+      ...(nextChildren
+        ? {
+          children: nextChildren,
+        }
+        : {}),
+    };
+  });
+  return sectionsChanged ? nextSections : sections;
+}
+
 /** Whether any section entry or child across `values` carries one of `tagIds`. */
 export function sectionsCarryAnyTag(
   values: BookmarkSectionsValue[],

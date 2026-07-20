@@ -3,6 +3,7 @@ import type { EntityLayout, TagNode } from "@eesimple/types";
 
 import i18n from "../../i18n";
 import { AutofillRulesList } from "../AutofillRulesList";
+import { TagDeleteAffordance } from "../DeleteTagDialog";
 import { EntityAutofillSources } from "../EntityAutofillSources";
 import { TagHierarchyView, TagParentEditView, TagStatsView } from "./tagViews";
 import { EntityNamesTabView, PrimaryLanguageTabView } from "../entityNames/EntityNamesTab";
@@ -261,7 +262,9 @@ export const tagWorkbench: EntityWorkbench<TagNode> = {
     return {
       isPending: mutation.isPending,
       error: mutation.isError ? mutation.error.message : null,
-      run: (id, onDeleted) => mutation.mutate(id, {
+      run: (id, onDeleted) => mutation.mutate({
+        id,
+      }, {
         onSuccess: onDeleted,
       }),
     };
@@ -269,6 +272,15 @@ export const tagWorkbench: EntityWorkbench<TagNode> = {
   notFound: i18n.t("Tag not found."),
   navAriaLabel: i18n.t("Tag sections"),
   listingPath: "/tags",
+  // Deleting a tag offers reassigning its (and its sub-tags') bookmarks + sections to another tag.
+  renderDeleteAffordance: ({
+    entity, onDeleted,
+  }) => (
+    <TagDeleteAffordance
+      entity={entity}
+      onDeleted={onDeleted}
+    />
+  ),
   getSlug: tag => tag.slug,
   layoutKind: "tag",
   fields: tagFields,

@@ -28,6 +28,17 @@ const tagParams = {
   },
 } as const;
 
+const deleteTagQuery = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    reassignTo: {
+      type: "string",
+      format: "uuid",
+    },
+  },
+} as const;
+
 const createTagBody = {
   type: "object",
   required: ["name"],
@@ -202,12 +213,16 @@ export async function tagRoutes(app: FastifyInstance): Promise<void> {
     schema: {
       tags: ["tags"],
       params: tagParams,
+      querystring: deleteTagQuery,
     },
   }, async (req, reply) => {
     const {
       id,
     } = req.params as { id: string };
-    const deleted = await deleteTag(id);
+    const {
+      reassignTo,
+    } = req.query as { reassignTo?: string };
+    const deleted = await deleteTag(id, reassignTo);
     if (!deleted) throw new NotFoundError("Tag");
     return reply.code(204).send();
   });
