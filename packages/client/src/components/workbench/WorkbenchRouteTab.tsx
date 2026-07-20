@@ -1,5 +1,6 @@
 import type { EntityWorkbench, WorkbenchDelete, WorkbenchMode } from "./types";
 import type { EntityLayout } from "@eesimple/types";
+import type { ReactNode } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
@@ -24,14 +25,19 @@ interface Props<E extends { id: string }> {
   layout?: EntityLayout;
 }
 
-/** The bottom "Danger zone" delete for a General edit tab. Navigates to the listing on success. */
+/**
+ * The bottom "Danger zone" delete for a General edit tab. Navigates to the listing on success. When
+ * the descriptor supplies a custom `affordance` (e.g. Tags' reassign-on-delete dialog), it renders in
+ * place of the plain button; otherwise the button fires `del.run`.
+ */
 function DangerZone({
-  del, entityId, entityName, onDeleted,
+  del, entityId, entityName, onDeleted, affordance,
 }: {
   del: WorkbenchDelete;
   entityId: string;
   entityName: string;
   onDeleted: () => void;
+  affordance?: ReactNode;
 }) {
   const {
     t,
@@ -45,21 +51,23 @@ function DangerZone({
         })}
       </p>
       <div className="mt-3">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="
-            border-destructive/50 text-destructive
-            hover:bg-destructive/10 hover:text-destructive
-          "
-          disabled={del.isPending}
-          onClick={() => del.run(entityId, onDeleted)}
-        >
-          {del.isPending ? t("Deleting…") : t("Delete")}
-        </Button>
+        {affordance ?? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="
+              border-destructive/50 text-destructive
+              hover:bg-destructive/10 hover:text-destructive
+            "
+            disabled={del.isPending}
+            onClick={() => del.run(entityId, onDeleted)}
+          >
+            {del.isPending ? t("Deleting…") : t("Delete")}
+          </Button>
+        )}
       </div>
-      {del.error ? <p className="mt-2 text-sm text-destructive">{del.error}</p> : null}
+      {!affordance && del.error ? <p className="mt-2 text-sm text-destructive">{del.error}</p> : null}
     </div>
   );
 }
@@ -121,6 +129,12 @@ export function WorkbenchRouteTab<E extends { id: string }>({
                 entityName={workbench.name(resolved)}
                 onDeleted={() => void navigate({
                   to: listingPath,
+                })}
+                affordance={workbench.renderDeleteAffordance?.({
+                  entity: resolved,
+                  onDeleted: () => void navigate({
+                    to: listingPath,
+                  }),
                 })}
               />
             )

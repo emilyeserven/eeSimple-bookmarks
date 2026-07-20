@@ -1,6 +1,6 @@
-import { asc, eq, ne, sql } from "drizzle-orm";
+import { and, asc, eq, ne, sql } from "drizzle-orm";
 import type { BulkBookmarkResult, BulkDeleteResult, CreateTagInput, EntityName, SectionEntry, Tag, TagNode, TagReparentPlanInput, TagReparentResult, TitleTagCandidate, UpdateTagInput } from "@eesimple/types";
-import { collectSectionTagIds, matchTagIdsByTitle, titleMatchesTerm } from "@eesimple/types";
+import { collectSectionTagIds, matchTagIdsByTitle, reassignSectionTagIds, titleMatchesTerm } from "@eesimple/types";
 import { db } from "@/db";
 import { bookmarkSectionsValues, bookmarkTags, tags, type TagRow } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
@@ -18,6 +18,13 @@ import { slugify, uniqueSlug } from "@/utils/slug";
 export class TagCycleError extends AppError {
   constructor() {
     super("Cannot move a tag under itself or one of its descendants", "cycle", 400);
+  }
+}
+
+/** Thrown when a delete's `reassignTo` target is missing or is the tag (or a descendant) being deleted. */
+export class InvalidTagReassignError extends AppError {
+  constructor(message = "Invalid reassignment target") {
+    super(message, "invalidReassignTarget", 400);
   }
 }
 
@@ -324,19 +331,110 @@ export async function updateTag(id: string, input: UpdateTagInput): Promise<Tag 
   return row ? toTag(row) : null;
 }
 
-export async function deleteTag(id: string): Promise<boolean> {
-  // FK cascade removes descendant tags and any bookmark_tags link rows.
-  const rows = await db.delete(tags).where(eq(tags.id, id)).returning({
-    id: tags.id,
-  });
-  // Cascade removes descendant tags and bookmark_tags links — both feed condition matching.
-  if (rows.length > 0) {
-    // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
-    await deleteTaxonomyAssignmentsForOwner("tag", id);
-    await deleteEntityNamesForOwner("tag", id);
-    invalidateBookmarkCache();
+/**
+ * Move every bookmark tagged with any tag in `subtree` onto `reassignToId`, deduping. Deleting a tag
+ * cascades away its own and its descendants' `bookmark_tags` links, so we reassign the whole subtree
+ * (the tag being deleted plus its descendants) up front: gather the affected bookmarks, drop the
+ * subtree link rows explicitly, then insert one target link per affected bookmark that doesn't already
+ * carry it (the `(bookmarkId, tagId)` PK forbids a duplicate).
+ */
+async function reassignSubtreeBookmarkTags(subtree: Set<string>, reassignToId: string): Promise<void> {
+  const alreadyTargetRows = await db
+    .select({
+      bookmarkId: bookmarkTags.bookmarkId,
+    })
+    .from(bookmarkTags)
+    .where(eq(bookmarkTags.tagId, reassignToId));
+  const alreadyTarget = new Set(alreadyTargetRows.map(row => row.bookmarkId));
+
+  const affected = new Set<string>();
+  for (const tagId of subtree) {
+    const rows = await db
+      .select({
+        bookmarkId: bookmarkTags.bookmarkId,
+      })
+      .from(bookmarkTags)
+      .where(eq(bookmarkTags.tagId, tagId));
+    for (const row of rows) affected.add(row.bookmarkId);
+    await db.delete(bookmarkTags).where(eq(bookmarkTags.tagId, tagId));
   }
-  return rows.length > 0;
+
+  const toInsert = [...affected]
+    .filter(bookmarkId => !alreadyTarget.has(bookmarkId))
+    .map(bookmarkId => ({
+      bookmarkId,
+      tagId: reassignToId,
+    }));
+  if (toInsert.length > 0) await db.insert(bookmarkTags).values(toInsert);
+}
+
+/**
+ * Rewrite every `bookmark_sections_values.sections` jsonb that references a tag in `subtree`, pointing
+ * those `SectionEntry.tagIds` at `reassignToId` instead (the write counterpart to the dangling-id read
+ * behavior). No FK backs the jsonb, so this must run explicitly — only rows that actually change are
+ * updated.
+ */
+async function reassignSubtreeSectionTags(subtree: Set<string>, reassignToId: string): Promise<void> {
+  const rows = await db.select().from(bookmarkSectionsValues);
+  for (const row of rows) {
+    const sections = (row.sections ?? []) as SectionEntry[];
+    if (!collectSectionTagIds(sections).some(tagId => subtree.has(tagId))) continue;
+    const next = reassignSectionTagIds(sections, subtree, reassignToId);
+    if (next === sections) continue;
+    await db
+      .update(bookmarkSectionsValues)
+      .set({
+        sections: next,
+      })
+      .where(and(
+        eq(bookmarkSectionsValues.bookmarkId, row.bookmarkId),
+        eq(bookmarkSectionsValues.propertyId, row.propertyId),
+      ));
+  }
+}
+
+/**
+ * Reassign the deleted tag's (and its descendants') bookmark + section references to `reassignToId`
+ * before the delete cascade removes them. Throws {@link InvalidTagReassignError} when the target is the
+ * tag itself, a descendant (about to be cascade-deleted), or missing.
+ */
+async function reassignTagReferences(rootId: string, reassignToId: string): Promise<void> {
+  if (reassignToId === rootId) throw new InvalidTagReassignError();
+  const allTags = await db
+    .select({
+      id: tags.id,
+      parentId: tags.parentId,
+    })
+    .from(tags);
+  const subtree = collectParentTreeSubtreeIds(allTags, rootId);
+  if (subtree.has(reassignToId)) throw new InvalidTagReassignError();
+  if (!allTags.some(tag => tag.id === reassignToId)) {
+    throw new InvalidTagReassignError("Reassignment target not found");
+  }
+
+  await reassignSubtreeBookmarkTags(subtree, reassignToId);
+  await reassignSubtreeSectionTags(subtree, reassignToId);
+}
+
+/**
+ * Delete a tag. Returns false when not found. FK cascade removes descendant tags and any
+ * `bookmark_tags` links. When `reassignToId` is given, the deleted tag's (and its descendants')
+ * bookmark memberships and section tag references are moved onto the target first, instead of being
+ * cascade-dropped / left dangling.
+ */
+export async function deleteTag(id: string, reassignToId?: string): Promise<boolean> {
+  const [existing] = await db.select().from(tags).where(eq(tags.id, id));
+  if (!existing) return false;
+
+  if (reassignToId !== undefined) await reassignTagReferences(id, reassignToId);
+
+  await db.delete(tags).where(eq(tags.id, id));
+  // Cascade removes descendant tags and bookmark_tags links — both feed condition matching.
+  // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
+  await deleteTaxonomyAssignmentsForOwner("tag", id);
+  await deleteEntityNamesForOwner("tag", id);
+  invalidateBookmarkCache();
+  return true;
 }
 
 /**

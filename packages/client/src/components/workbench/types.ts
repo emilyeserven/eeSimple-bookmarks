@@ -113,6 +113,15 @@ export interface EntityWorkbench<E extends { id: string }> {
    * should not get the main-pane danger zone (autofill, card-display-rules, saved-filters, …).
    */
   listingPath?: LinkProps["to"];
+  /**
+   * Optional custom delete affordance for the General edit tab's "Danger zone". When set, it renders
+   * **inside** the danger-zone box in place of the plain delete button — used by entities whose delete
+   * offers extra choices (e.g. Tags, which offer reassigning bookmarks + sections to another tag). Must
+   * return a JSX *element* (its own component owns any hooks); `onDeleted` navigates to `listingPath`.
+   * Omit to keep the default `useDelete().run` button.
+   */
+  renderDeleteAffordance?: (props: { entity: E;
+    onDeleted: () => void; }) => ReactNode;
   tabs: WorkbenchTab<E>[];
   /**
    * **Opt-in to the layout editor (#1106).** When set together with {@link fields} and
