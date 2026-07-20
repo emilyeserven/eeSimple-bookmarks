@@ -8,7 +8,9 @@ import { MultiCombobox } from "./MultiCombobox";
 import { TagPicker } from "./TagPicker";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
 import { AI_BULK_EDIT_SOFT_WARNING_THRESHOLD } from "../lib/aiBulkEdit";
+import { useBasketStore } from "../stores/basketStore";
 
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { categoryComboboxOptions, genreMoodTreeComboboxOptions, mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
 
@@ -52,12 +54,21 @@ export function AiBulkEditTargets({
   const {
     data, selection, setSelectionField, targets,
   } = controller;
+  const basketIds = useBasketStore(s => s.bookmarkIds);
   const pick = (key: keyof AiBulkEditSelection) => (values: string[]) => setSelectionField(key, values);
   const bookmarkOptions: ComboboxOption[] = data.bookmarks.map(bookmark => ({
     value: bookmark.id,
     label: bookmark.title,
     names: bookmark.names,
   }));
+  // Only basket ids that still resolve to a loaded bookmark, so the individual-picker chips stay
+  // meaningful (a basketed-then-deleted bookmark simply drops out).
+  const loadedIds = new Set(data.bookmarks.map(bookmark => bookmark.id));
+  const basketTargetIds = basketIds.filter(id => loadedIds.has(id));
+
+  function addBasketToSelection(): void {
+    setSelectionField("bookmarkIds", [...new Set([...selection.bookmarkIds, ...basketTargetIds])]);
+  }
   const websiteOptions: ComboboxOption[] = data.websites.map(website => ({
     value: website.id,
     label: website.siteName,
@@ -72,6 +83,22 @@ export function AiBulkEditTargets({
           placeholder={t("Select bookmarks…")}
           searchPlaceholder={t("Search bookmarks…")}
         />
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={basketTargetIds.length === 0}
+            onClick={addBasketToSelection}
+          >
+            {t("Use Basket ({{count}})", {
+              count: basketTargetIds.length,
+            })}
+          </Button>
+          <span className="text-xs text-muted-foreground">
+            {t("Add the bookmarks currently in your Tab Basket.")}
+          </span>
+        </div>
       </PickerField>
       <div
         className="
