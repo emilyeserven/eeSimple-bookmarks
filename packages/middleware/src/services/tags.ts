@@ -1,6 +1,6 @@
 import { and, asc, eq, ne, sql } from "drizzle-orm";
 import type { BulkBookmarkResult, BulkDeleteResult, CreateTagInput, EntityName, SectionEntry, Tag, TagNode, TagReparentPlanInput, TagReparentResult, TitleTagCandidate, UpdateTagInput } from "@eesimple/types";
-import { collectSectionTagIds, matchTagIdsByTitle, reassignSectionTagIds, titleMatchesTerm } from "@eesimple/types";
+import { collectSectionTagIds, matchTagIdsByTitle, reassignSectionTagIds, removeSectionTagIds, titleMatchesTerm } from "@eesimple/types";
 import { db } from "@/db";
 import { bookmarkSectionsValues, bookmarkTags, tags, type TagRow } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
@@ -433,6 +433,47 @@ export async function deleteTag(id: string, reassignToId?: string): Promise<bool
   // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
   await deleteTaxonomyAssignmentsForOwner("tag", id);
   await deleteEntityNamesForOwner("tag", id);
+  invalidateBookmarkCache();
+  return true;
+}
+
+/**
+ * Rewrite every `bookmark_sections_values.sections` jsonb that references a tag in `tagIds`, dropping
+ * those `SectionEntry.tagIds` members (the removal counterpart to {@link reassignSubtreeSectionTags}).
+ * No FK backs the jsonb, so this must run explicitly — only rows that actually change are updated.
+ */
+async function removeSectionTagReferences(tagIds: Set<string>): Promise<void> {
+  const rows = await db.select().from(bookmarkSectionsValues);
+  for (const row of rows) {
+    const sections = (row.sections ?? []) as SectionEntry[];
+    if (!collectSectionTagIds(sections).some(tagId => tagIds.has(tagId))) continue;
+    const next = removeSectionTagIds(sections, tagIds);
+    if (next === sections) continue;
+    await db
+      .update(bookmarkSectionsValues)
+      .set({
+        sections: next,
+      })
+      .where(and(
+        eq(bookmarkSectionsValues.bookmarkId, row.bookmarkId),
+        eq(bookmarkSectionsValues.propertyId, row.propertyId),
+      ));
+  }
+}
+
+/**
+ * Remove all of a tag's own bookmark associations without deleting the tag: drop the `bookmark_tags`
+ * links for this tag only (its descendants and their links are untouched) and strip its id from every
+ * bookmark's Sections-property jsonb. Returns false when the tag doesn't exist. This is the escape
+ * hatch for a non-leaf tag, which can't be delete-and-recreated to clear its links without cascading
+ * away its child subtree.
+ */
+export async function removeTagBookmarkAssociations(id: string): Promise<boolean> {
+  const [existing] = await db.select().from(tags).where(eq(tags.id, id));
+  if (!existing) return false;
+
+  await db.delete(bookmarkTags).where(eq(bookmarkTags.tagId, id));
+  await removeSectionTagReferences(new Set([id]));
   invalidateBookmarkCache();
   return true;
 }

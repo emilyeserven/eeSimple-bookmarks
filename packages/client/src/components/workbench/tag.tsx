@@ -8,6 +8,7 @@ import { EntityAutofillSources } from "../EntityAutofillSources";
 import { TagHierarchyView, TagParentEditView, TagStatsView } from "./tagViews";
 import { EntityNamesTabView, PrimaryLanguageTabView } from "../entityNames/EntityNamesTab";
 import { GenreMoodAssignmentSection } from "../GenreMoodAssignmentSection";
+import { TagClearAssociations } from "../TagClearAssociations";
 import {
   TagDescriptionField,
   TagNameField,
@@ -43,6 +44,7 @@ type TagFieldKey
     | "options"
     | "genreMoods"
     | "promote"
+    | "clearAssociations"
     | "autofillSources"
     | "hierarchy"
     | "reparent"
@@ -129,6 +131,16 @@ const tagFields = {
       entity,
     }) => <TagPromoteToTaxonomy tagId={entity.id} />,
   },
+  clearAssociations: {
+    key: "clearAssociations",
+    label: i18n.t("Remove all bookmark associations"),
+    // Only a non-leaf tag needs this — a leaf tag can be cleared by delete-and-recreate, but a
+    // non-leaf can't be deleted without cascading away its child subtree.
+    showIf: entity => (entity.children?.length ?? 0) > 0,
+    edit: ({
+      entity,
+    }) => <TagClearAssociations tagId={entity.id} />,
+  },
   autofillSources: {
     key: "autofillSources",
     label: i18n.t("Autofill sources"),
@@ -204,6 +216,7 @@ const TAG_DEFAULT_LAYOUT: EntityLayout = {
           "options",
           "genreMoods",
           "promote",
+          "clearAssociations",
           "autofillSources",
         ] satisfies TagFieldKey[],
       }],

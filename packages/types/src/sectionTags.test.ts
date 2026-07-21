@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import type { SectionEntry } from "./customProperties.js";
 
-import { reassignSectionTagIds } from "./sectionTags.js";
+import { reassignSectionTagIds, removeSectionTagIds } from "./sectionTags.js";
 
 /** A minimal tier-1 section entry with optional tags/children. */
 function entry(
@@ -76,4 +76,45 @@ test("reassignSectionTagIds handles a mix of entry- and child-tier matches", () 
   assert.deepEqual(result[0]?.tagIds, ["to"]);
   assert.deepEqual(result[0]?.children?.[0]?.tagIds, ["keep"]);
   assert.deepEqual(result[0]?.children?.[1]?.tagIds, ["to"]);
+});
+
+test("removeSectionTagIds drops an entry's tag id, keeping the others", () => {
+  const sections = [entry("s1", ["drop", "keep"])];
+  const result = removeSectionTagIds(sections, new Set(["drop"]));
+  assert.deepEqual(result[0]?.tagIds, ["keep"]);
+});
+
+test("removeSectionTagIds drops a child's tag id", () => {
+  const sections = [entry("s1", undefined, [entry("c1", ["drop", "keep"])])];
+  const result = removeSectionTagIds(sections, new Set(["drop"]));
+  assert.deepEqual(result[0]?.children?.[0]?.tagIds, ["keep"]);
+});
+
+test("removeSectionTagIds leaves an entry with an empty tagIds array when all are removed", () => {
+  const sections = [entry("s1", ["drop"])];
+  const result = removeSectionTagIds(sections, new Set(["drop"]));
+  assert.deepEqual(result[0]?.tagIds, []);
+});
+
+test("removeSectionTagIds returns the same array reference when nothing matches", () => {
+  const sections = [entry("s1", ["keep"]), entry("s2")];
+  const result = removeSectionTagIds(sections, new Set(["drop"]));
+  assert.equal(result, sections);
+});
+
+test("removeSectionTagIds leaves untouched entries at their exact reference", () => {
+  const sections = [entry("s1", ["drop"]), entry("s2", ["keep"])];
+  const result = removeSectionTagIds(sections, new Set(["drop"]));
+  assert.deepEqual(result[0]?.tagIds, []);
+  assert.equal(result[1], sections[1]);
+});
+
+test("removeSectionTagIds handles a mix of entry- and child-tier matches", () => {
+  const sections = [
+    entry("s1", ["drop"], [entry("c1", ["keep"]), entry("c2", ["drop", "keep"])]),
+  ];
+  const result = removeSectionTagIds(sections, new Set(["drop"]));
+  assert.deepEqual(result[0]?.tagIds, []);
+  assert.equal(result[0]?.children?.[0], sections[0]?.children?.[0]);
+  assert.deepEqual(result[0]?.children?.[1]?.tagIds, ["keep"]);
 });

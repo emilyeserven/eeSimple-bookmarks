@@ -144,6 +144,12 @@ export const tagsApi = {
         method: "DELETE",
       },
     ),
+  // Remove all of this tag's own bookmark associations (its `bookmark_tags` links + its id in
+  // bookmarks' Sections jsonb) without deleting the tag — the escape hatch for a non-leaf tag.
+  clearAssociations: (id: string) =>
+    request<undefined>(`/tags/${id}/associations`, {
+      method: "DELETE",
+    }),
   tree: () => request<TagNode[]>("/tags/tree"),
   bulkReparent: (ids: string[], parentId: string | null) =>
     request<BulkBookmarkResult[]>("/tags/bulk-reparent", {
