@@ -299,15 +299,12 @@ function quickFilterRangeFromValues(values: PropertyFormValues): number | null {
   return null;
 }
 
-/** Map a saved property to editable form values (null bounds become the "disabled" state). */
-export function valuesFromProperty(property: CustomProperty): PropertyFormValues {
+/** Number-field form values (null bounds become the "disabled" state), split out to keep the mapper flat. */
+function numberValuesFromProperty(property: CustomProperty): Pick<
+  PropertyFormValues,
+  "numberMin" | "numberMax" | "disableMin" | "disableMax" | "unitSingular" | "unitPlural" | "valuePrefix" | "zeroLabel" | "maxLabel" | "numberFormat"
+> {
   return {
-    name: property.name,
-    type: property.type,
-    dateTimeFormat: property.dateTimeFormat ?? "date",
-    dateTimeAllowYearMonth: property.dateTimeAllowYearMonth ?? false,
-    description: property.description ?? "",
-    aiInstructions: property.aiInstructions ?? "",
     numberMin: property.numberMin === null ? "0" : String(property.numberMin),
     numberMax: property.numberMax === null ? "100" : String(property.numberMax),
     disableMin: property.numberMin === null,
@@ -318,23 +315,15 @@ export function valuesFromProperty(property: CustomProperty): PropertyFormValues
     zeroLabel: property.zeroLabel ?? "",
     maxLabel: property.maxLabel ?? "",
     numberFormat: property.numberFormat ?? "plain",
-    ...quickFilterRangeToFields(property),
-    operandIds: property.operandPropertyIds,
-    categoryIds: property.categoryIds,
-    allCategories: property.allCategories,
-    mediaTypeIds: property.mediaTypeIds,
-    allMediaTypes: property.allMediaTypes,
-    showInListings: property.showInListings,
-    showInGallery: property.showInGallery,
-    showInDetails: property.showInDetails,
-    editableOnCard: property.editableOnCard,
-    editableViaCmdk: property.editableViaCmdk,
-    enabledInInbox: property.enabledInInbox,
-    enabled: property.enabled,
-    allowDefault: property.allowDefault ?? true,
-    booleanLabelPreset: property.booleanLabelPreset ?? "yes-no",
-    booleanTrueLabel: property.booleanTrueLabel ?? "",
-    booleanFalseLabel: property.booleanFalseLabel ?? "",
+  };
+}
+
+/** Rating-field form values, split out to keep the mapper flat. */
+function ratingValuesFromProperty(property: CustomProperty): Pick<
+  PropertyFormValues,
+  "ratingMax" | "ratingAllowZero" | "ratingAllowHalf" | "ratingShowLabel" | "ratingLabel" | "ratingAllowRange" | "ratingLabels" | "ratingCategoryLabels" | "ratingDisplay" | "ratingRangeIncludeStart"
+> {
+  return {
     ratingMax: String(property.ratingMax ?? 5),
     ratingAllowZero: property.ratingAllowZero,
     ratingAllowHalf: property.ratingAllowHalf,
@@ -354,9 +343,15 @@ export function valuesFromProperty(property: CustomProperty): PropertyFormValues
     ),
     ratingDisplay: property.ratingDisplay ?? "stars",
     ratingRangeIncludeStart: property.ratingRangeIncludeStart,
-    choicesItems: property.choicesItems,
-    choicesDisplay: property.choicesDisplay ?? "radio",
-    choicesMultiple: property.choicesMultiple,
+  };
+}
+
+/** Progress (itemInItems) + sections form values, split out to keep the mapper flat. */
+function progressValuesFromProperty(property: CustomProperty): Pick<
+  PropertyFormValues,
+  "itemInItemsBeforeText" | "itemInItemsBetweenText" | "itemInItemsAfterText" | "itemInItemsMediaTypeTexts" | "itemInItemsSourcePropertyId" | "sectionsDefaultType" | "sectionsAllowedTypes" | "sectionsTiered"
+> {
+  return {
     itemInItemsBeforeText: property.itemInItemsBeforeText ?? "",
     itemInItemsBetweenText: property.itemInItemsBetweenText ?? " of ",
     itemInItemsAfterText: property.itemInItemsAfterText ?? "",
@@ -372,6 +367,41 @@ export function valuesFromProperty(property: CustomProperty): PropertyFormValues
     sectionsDefaultType: property.sectionsDefaultType ?? null,
     sectionsAllowedTypes: property.sectionsAllowedTypes ?? [],
     sectionsTiered: property.sectionsTiered ?? false,
+  };
+}
+
+/** Map a saved property to editable form values (null bounds become the "disabled" state). */
+export function valuesFromProperty(property: CustomProperty): PropertyFormValues {
+  return {
+    name: property.name,
+    type: property.type,
+    dateTimeFormat: property.dateTimeFormat ?? "date",
+    dateTimeAllowYearMonth: property.dateTimeAllowYearMonth ?? false,
+    description: property.description ?? "",
+    aiInstructions: property.aiInstructions ?? "",
+    ...numberValuesFromProperty(property),
+    ...quickFilterRangeToFields(property),
+    operandIds: property.operandPropertyIds,
+    categoryIds: property.categoryIds,
+    allCategories: property.allCategories,
+    mediaTypeIds: property.mediaTypeIds,
+    allMediaTypes: property.allMediaTypes,
+    showInListings: property.showInListings,
+    showInGallery: property.showInGallery,
+    showInDetails: property.showInDetails,
+    editableOnCard: property.editableOnCard,
+    editableViaCmdk: property.editableViaCmdk,
+    enabledInInbox: property.enabledInInbox,
+    enabled: property.enabled,
+    allowDefault: property.allowDefault ?? true,
+    booleanLabelPreset: property.booleanLabelPreset ?? "yes-no",
+    booleanTrueLabel: property.booleanTrueLabel ?? "",
+    booleanFalseLabel: property.booleanFalseLabel ?? "",
+    ...ratingValuesFromProperty(property),
+    choicesItems: property.choicesItems,
+    choicesDisplay: property.choicesDisplay ?? "radio",
+    choicesMultiple: property.choicesMultiple,
+    ...progressValuesFromProperty(property),
   };
 }
 

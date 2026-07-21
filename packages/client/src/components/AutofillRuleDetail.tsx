@@ -27,6 +27,15 @@ const OPERATOR_VERBS: Record<ConditionMatchOperator, string> = {
   domain: "domain is",
 };
 
+/**
+ * Pick the singular or "one of (N)" phrasing for a count-based condition arm. Flattening this
+ * out of the switch keeps the nested ternaries from inflating `describeConditionNode`'s complexity;
+ * both `i18n.t` keys stay literal so the extraction tooling still sees them.
+ */
+function oneOfCount(count: number, singular: string, plural: string): string {
+  return count === 1 ? singular : plural;
+}
+
 function describeConditionNode(
   node: ConditionNode,
   categories: Category[],
@@ -83,35 +92,45 @@ function describeConditionNode(
       });
     }
     case "youtube-channel":
-      return node.channelIds.length === 1
-        ? i18n.t("YouTube channel is (1)")
-        : i18n.t("YouTube channel is one of ({{count}})", {
+      return oneOfCount(
+        node.channelIds.length,
+        i18n.t("YouTube channel is (1)"),
+        i18n.t("YouTube channel is one of ({{count}})", {
           count: node.channelIds.length,
-        });
+        }),
+      );
     case "media-type":
-      return node.mediaTypeIds.length === 1
-        ? i18n.t("media type is (1)")
-        : i18n.t("media type is one of ({{count}})", {
+      return oneOfCount(
+        node.mediaTypeIds.length,
+        i18n.t("media type is (1)"),
+        i18n.t("media type is one of ({{count}})", {
           count: node.mediaTypeIds.length,
-        });
+        }),
+      );
     case "genre-mood":
-      return node.genreMoodIds.length === 1
-        ? i18n.t("Genres & Moods is (1)")
-        : i18n.t("Genres & Moods is one of ({{count}})", {
+      return oneOfCount(
+        node.genreMoodIds.length,
+        i18n.t("Genres & Moods is (1)"),
+        i18n.t("Genres & Moods is one of ({{count}})", {
           count: node.genreMoodIds.length,
-        });
+        }),
+      );
     case "taxonomy":
-      return node.termIds.length === 1
-        ? i18n.t("taxonomy term is (1)")
-        : i18n.t("taxonomy term is one of ({{count}})", {
+      return oneOfCount(
+        node.termIds.length,
+        i18n.t("taxonomy term is (1)"),
+        i18n.t("taxonomy term is one of ({{count}})", {
           count: node.termIds.length,
-        });
+        }),
+      );
     case "relationship-type":
-      return node.relationshipTypeIds.length === 1
-        ? i18n.t("has a relationship of type (1)")
-        : i18n.t("has a relationship of one of ({{count}})", {
+      return oneOfCount(
+        node.relationshipTypeIds.length,
+        i18n.t("has a relationship of type (1)"),
+        i18n.t("has a relationship of one of ({{count}})", {
           count: node.relationshipTypeIds.length,
-        });
+        }),
+      );
     case "language-usage":
       return i18n.t("has a language usage ({{languageCount}} language / {{levelCount}} level)", {
         languageCount: node.languageIds.length,

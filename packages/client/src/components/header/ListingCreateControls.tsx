@@ -43,6 +43,89 @@ function addChildDisabled(addChild: NonNullable<AddChild>): boolean {
     : !addChild.parentId;
 }
 
+interface CreateOptionProps extends ListingCreateOptions {
+  childLabel: string;
+  childDisabled: boolean;
+  onChildOpen: () => void;
+}
+
+/** Single-option header control: a plain Plus button, preserving today's single-button behavior. */
+function SingleCreateButton({
+  addBookmark, createAction, createLabel, addChild, childLabel, childDisabled, onChildOpen,
+}: CreateOptionProps) {
+  const {
+    t,
+  } = useTranslation();
+  const openAddBookmarkModal = useUiStore(state => state.openAddBookmarkModal);
+  const hasBookmark = addBookmark != null;
+  const hasCreate = createAction != null;
+  const ariaLabel = hasBookmark ? t("Add bookmark") : hasCreate ? createLabel ?? t("New") : childLabel;
+  const onClick = hasBookmark
+    ? () => openAddBookmarkModal(addBookmark?.categoryId)
+    : hasCreate
+      ? createAction
+      : onChildOpen;
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      aria-label={ariaLabel}
+      disabled={addChild != null ? childDisabled : undefined}
+      onClick={onClick}
+    >
+      <Plus className="size-4" />
+    </Button>
+  );
+}
+
+/** Multi-option header control: a Plus button opening a dropdown listing each addable item. */
+function MultiCreateDropdown({
+  addBookmark, createAction, createLabel, addChild, childLabel, childDisabled, onChildOpen,
+}: CreateOptionProps) {
+  const {
+    t,
+  } = useTranslation();
+  const openAddBookmarkModal = useUiStore(state => state.openAddBookmarkModal);
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label={t("New")}
+        >
+          <Plus className="size-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {addBookmark != null && (
+          <DropdownMenuItem onSelect={() => openAddBookmarkModal(addBookmark.categoryId)}>
+            <Bookmark className="size-4" />
+            {t("Add bookmark")}
+          </DropdownMenuItem>
+        )}
+        {createAction != null && (
+          <DropdownMenuItem onSelect={() => createAction()}>
+            <Plus className="size-4" />
+            {createLabel ?? t("New")}
+          </DropdownMenuItem>
+        )}
+        {addChild != null && (
+          <DropdownMenuItem
+            disabled={childDisabled}
+            onSelect={onChildOpen}
+          >
+            <Plus className="size-4" />
+            {childLabel}
+          </DropdownMenuItem>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 /**
  * The header Plus control for a listing page. With a single create option it renders a plain Plus
  * button (preserving the pre-existing single-button UX); with two or more of "Add bookmark", the
@@ -56,86 +139,26 @@ export function ListingCreateButton({
   const {
     t,
   } = useTranslation();
-  const openAddBookmarkModal = useUiStore(state => state.openAddBookmarkModal);
   const [childOpen, setChildOpen] = useState(false);
 
-  const hasBookmark = addBookmark != null;
-  const hasCreate = createAction != null;
-  const hasChild = addChild != null;
-  const optionCount = (hasBookmark ? 1 : 0) + (hasCreate ? 1 : 0) + (hasChild ? 1 : 0);
-
+  const optionCount = (addBookmark != null ? 1 : 0) + (createAction != null ? 1 : 0) + (addChild != null ? 1 : 0);
   if (optionCount === 0) return null;
 
-  const childLabel = addChild ? addChildLabel(addChild.kind, t) : "";
-  const childDisabled = addChild ? addChildDisabled(addChild) : false;
+  const optionProps: CreateOptionProps = {
+    addBookmark,
+    createAction,
+    createLabel,
+    addChild,
+    childLabel: addChild ? addChildLabel(addChild.kind, t) : "",
+    childDisabled: addChild ? addChildDisabled(addChild) : false,
+    onChildOpen: () => setChildOpen(true),
+  };
 
-  // Exactly one option → a plain Plus button, keeping today's single-button behavior.
-  if (optionCount === 1) {
-    return (
-      <>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label={hasBookmark ? t("Add bookmark") : hasCreate ? createLabel ?? t("New") : childLabel}
-          disabled={hasChild ? childDisabled : undefined}
-          onClick={hasBookmark
-            ? () => openAddBookmarkModal(addBookmark?.categoryId)
-            : hasCreate
-              ? createAction
-              : () => setChildOpen(true)}
-        >
-          <Plus className="size-4" />
-        </Button>
-        {addChild && (
-          <AddChildModal
-            {...addChild}
-            open={childOpen}
-            onOpenChange={setChildOpen}
-          />
-        )}
-      </>
-    );
-  }
-
-  // Two or more options → a Plus button that opens a dropdown listing each addable item.
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label={t("New")}
-          >
-            <Plus className="size-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {hasBookmark && (
-            <DropdownMenuItem onSelect={() => openAddBookmarkModal(addBookmark?.categoryId)}>
-              <Bookmark className="size-4" />
-              {t("Add bookmark")}
-            </DropdownMenuItem>
-          )}
-          {hasCreate && (
-            <DropdownMenuItem onSelect={() => createAction?.()}>
-              <Plus className="size-4" />
-              {createLabel ?? t("New")}
-            </DropdownMenuItem>
-          )}
-          {hasChild && (
-            <DropdownMenuItem
-              disabled={childDisabled}
-              onSelect={() => setChildOpen(true)}
-            >
-              <Plus className="size-4" />
-              {childLabel}
-            </DropdownMenuItem>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {optionCount === 1
+        ? <SingleCreateButton {...optionProps} />
+        : <MultiCreateDropdown {...optionProps} />}
       {addChild && (
         <AddChildModal
           {...addChild}
