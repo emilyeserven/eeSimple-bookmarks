@@ -284,4 +284,35 @@ describe("payloadFromValues", () => {
     expect(payload.hiddenFromForm).toBe(false);
     expect(payload.showInForm).toBe(false);
   });
+
+  it("applies fallback defaults for a minimal property across the extracted sub-mappers", () => {
+    const values = valuesFromProperty(makeCustomProperty({
+      numberMin: null,
+      numberMax: null,
+      unitSingular: null,
+      numberFormat: null,
+      dateTimeFormat: null,
+      ratingMax: null,
+      ratingLabel: null,
+      ratingDisplay: null,
+      itemInItemsBetweenText: null,
+      sectionsDefaultType: null,
+      sectionsAllowedTypes: null,
+    }));
+    // number sub-mapper: null bounds become the disabled "0"/"100" state
+    expect(values.numberMin).toBe("0");
+    expect(values.numberMax).toBe("100");
+    expect(values.disableMin).toBe(true);
+    expect(values.disableMax).toBe(true);
+    expect(values.unitSingular).toBe("");
+    expect(values.numberFormat).toBe("plain");
+    // rating sub-mapper defaults
+    expect(values.ratingMax).toBe("5");
+    expect(values.ratingLabel).toBe("");
+    expect(values.ratingDisplay).toBe("stars");
+    // progress/sections sub-mapper defaults
+    expect(values.itemInItemsBetweenText).toBe(" of ");
+    expect(values.sectionsDefaultType).toBeNull();
+    expect(values.sectionsAllowedTypes).toEqual([]);
+  });
 });

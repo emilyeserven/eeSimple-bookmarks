@@ -536,6 +536,69 @@ test("genre-mood per-item cascade: absent = legacy exact; flagged id matches its
   }), true);
 });
 
+test("taxonomy matches on presence of any listed term id; empty never matches", () => {
+  const input = makeInput({
+    taxonomyTermIds: new Set(["term-a"]),
+  });
+  assert.equal(evaluateConditions({
+    type: "taxonomy",
+    taxonomyId: "tax-1",
+    termIds: ["term-a", "term-b"],
+  }, input), true);
+  assert.equal(evaluateConditions({
+    type: "taxonomy",
+    taxonomyId: "tax-1",
+    termIds: ["term-z"],
+  }, input), false);
+  assert.equal(evaluateConditions({
+    type: "taxonomy",
+    taxonomyId: "tax-1",
+    termIds: [],
+  }, input), false);
+});
+
+test("taxonomy without any owned terms never matches", () => {
+  assert.equal(evaluateConditions({
+    type: "taxonomy",
+    taxonomyId: "tax-1",
+    termIds: ["term-a"],
+  }, makeInput()), false);
+});
+
+test("taxonomy per-item cascade: absent = legacy exact; flagged id matches its subtree", () => {
+  const resolve = buildTaxonomyTermDescendants(cascadeTree);
+  const input = makeInput({
+    taxonomyTermIds: new Set(["child"]),
+  });
+
+  // Absent cascade set (legacy) → exact only → a parent does NOT match a descendant term.
+  assert.equal(evaluateConditions({
+    type: "taxonomy",
+    taxonomyId: "tax-1",
+    termIds: ["parent"],
+  }, input, {
+    taxonomyTermDescendants: resolve,
+  }), false);
+  // Flagged to cascade → any descendant present on the bookmark matches.
+  assert.equal(evaluateConditions({
+    type: "taxonomy",
+    taxonomyId: "tax-1",
+    termIds: ["parent"],
+    cascadeTermIds: ["parent"],
+  }, input, {
+    taxonomyTermDescendants: resolve,
+  }), true);
+  // Exact self still matches with an explicit empty cascade set.
+  assert.equal(evaluateConditions({
+    type: "taxonomy",
+    taxonomyId: "tax-1",
+    termIds: ["child"],
+    cascadeTermIds: [],
+  }, input, {
+    taxonomyTermDescendants: resolve,
+  }), true);
+});
+
 test("property number predicate: range bounds and presence", () => {
   const input = makeInput({
     numberValues: new Map([["p", 5]]),

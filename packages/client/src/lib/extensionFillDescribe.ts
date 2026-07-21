@@ -64,6 +64,36 @@ export function taxonomyEntityFieldLabel(field: TaxonomyEntityWriteKey): string 
   return TAXONOMY_ENTITY_FIELD_LABELS[field as TaxonomyEntityFieldKey];
 }
 
+/** Summary for a `customProperty` target: the property name plus its chosen sub-value, if any. */
+function describeCustomPropertyTarget(
+  target: Extract<FillTarget, { kind: "customProperty" }>,
+  property?: CustomProperty,
+): string {
+  const name = property?.name ?? "Custom property";
+  if (target.subField) return `${name} · ${target.subField === "current" ? "Current" : "Total"}`;
+  if (target.ratingBound === "range") return `${name} · Range (detected)`;
+  if (target.ratingBound) return `${name} · ${target.ratingBound === "from" ? "From" : "To"}`;
+  if (target.choiceValue) {
+    const option = property?.choicesItems.find(item => item.value === target.choiceValue);
+    return `${name} · ${option?.label ?? target.choiceValue}`;
+  }
+  return name;
+}
+
+/** Summary for a `sections` target: the property name, entry type, and grouped/exhaustive flags. */
+function describeSectionsTarget(
+  target: Extract<FillTarget, { kind: "sections" }>,
+  property?: CustomProperty,
+): string {
+  const name = property?.name ?? "Sections";
+  const isGrouped = Boolean(
+    target.sectionMatch?.value.trim() || target.sectionHeaderSelector?.trim() || target.container?.trim(),
+  );
+  const grouped = isGrouped ? " · grouped" : "";
+  const exhaustive = target.exhaustive ? " · exhaustive" : "";
+  return `${name} · ${SECTION_FILL_ENTRY_TYPE_LABELS[target.entryType]}${grouped}${exhaustive}`;
+}
+
 /**
  * A short human summary of a rule's target for the collapsed rule card. Resolves the custom-property
  * name (and the chosen sub-value) from `property` when available.
@@ -74,17 +104,8 @@ export function describeFillTarget(target: FillTarget, property?: CustomProperty
       return FIELD_LABELS[target.field];
     case "taxonomy":
       return TAXONOMY_LABELS[target.taxonomy];
-    case "customProperty": {
-      const name = property?.name ?? "Custom property";
-      if (target.subField) return `${name} · ${target.subField === "current" ? "Current" : "Total"}`;
-      if (target.ratingBound === "range") return `${name} · Range (detected)`;
-      if (target.ratingBound) return `${name} · ${target.ratingBound === "from" ? "From" : "To"}`;
-      if (target.choiceValue) {
-        const option = property?.choicesItems.find(item => item.value === target.choiceValue);
-        return `${name} · ${option?.label ?? target.choiceValue}`;
-      }
-      return name;
-    }
+    case "customProperty":
+      return describeCustomPropertyTarget(target, property);
     case "image":
       return target.setMain ? "Image · Main" : "Image";
     case "taxonomyEntity": {
@@ -102,15 +123,8 @@ export function describeFillTarget(target: FillTarget, property?: CustomProperty
       const source = target.resolve.mode === "url" ? "from URL" : "from page";
       return `${assoc} · ${fieldLabel} (${source})`;
     }
-    case "sections": {
-      const name = property?.name ?? "Sections";
-      const isGrouped = Boolean(
-        target.sectionMatch?.value.trim() || target.sectionHeaderSelector?.trim() || target.container?.trim(),
-      );
-      const grouped = isGrouped ? " · grouped" : "";
-      const exhaustive = target.exhaustive ? " · exhaustive" : "";
-      return `${name} · ${SECTION_FILL_ENTRY_TYPE_LABELS[target.entryType]}${grouped}${exhaustive}`;
-    }
+    case "sections":
+      return describeSectionsTarget(target, property);
   }
 }
 

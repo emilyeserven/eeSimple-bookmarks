@@ -1,6 +1,36 @@
 import type { CardFieldPlacement } from "@eesimple/types";
 
 /**
+ * Boolean per-field knobs copied as `true` when the previous placement had them truthy. They apply
+ * in every body zone (and, for `hideLabel`/`hideIcon`, on image overlays too), so any move preserves
+ * them; fields that don't read a given knob simply ignore it.
+ */
+const TRUTHY_KNOBS = [
+  "hideLabel",
+  "hideIcon",
+  "showIfFalse",
+  "clickableInView",
+  "clickableInOverlay",
+  "showValueBeforeLabel",
+  "clickableTags",
+  "showTagHierarchyOnHover",
+  "showMediaTypeHierarchyOnHover",
+  "showLocationHierarchyOnHover",
+  "showGenreMoodHierarchyOnHover",
+  "collapseToCount",
+] as const satisfies readonly (keyof CardFieldPlacement)[];
+
+/**
+ * Knobs whose default is `true` (absent/omitted means true); only an explicit `false` is worth
+ * preserving across a move.
+ */
+const FALSE_PRESERVING_KNOBS = [
+  "showLabelColon",
+  "showProgressCount",
+  "showProgressUnit",
+] as const satisfies readonly (keyof CardFieldPlacement)[];
+
+/**
  * Build the placement for `key` in its destination zone, carrying over the per-field knobs from the
  * field's previous placement — plus the image-overlay scale when the destination is an image zone.
  * Pure, so it is unit-testable independently of the drag-and-drop board (`CardFieldZoneBoard`).
@@ -17,26 +47,14 @@ export function carryOverPlacement(
     placement.scale = existing?.scale;
     placement.mobileScale = existing?.mobileScale;
   }
-  if (existing?.hideLabel) placement.hideLabel = true;
-  // hideIcon applies to image overlays and to boolean body fields (icon/stars presets), so it is
-  // preserved across any move; fields that don't read it simply ignore it.
-  if (existing?.hideIcon) placement.hideIcon = true;
-  // Preserve the boolean per-field knobs across a move (they apply in every body zone).
-  if (existing?.showIfFalse) placement.showIfFalse = true;
-  if (existing?.clickableInView) placement.clickableInView = true;
-  if (existing?.clickableInOverlay) placement.clickableInOverlay = true;
-  if (existing?.showLabelColon === false) placement.showLabelColon = false;
-  if (existing?.showValueBeforeLabel) placement.showValueBeforeLabel = true;
-  if (existing?.clickableTags) placement.clickableTags = true;
-  if (existing?.showTagHierarchyOnHover) placement.showTagHierarchyOnHover = true;
-  if (existing?.showMediaTypeHierarchyOnHover) placement.showMediaTypeHierarchyOnHover = true;
-  if (existing?.showLocationHierarchyOnHover) placement.showLocationHierarchyOnHover = true;
-  if (existing?.showGenreMoodHierarchyOnHover) placement.showGenreMoodHierarchyOnHover = true;
-  // Multi-value taxonomy term-display knobs apply in every body zone; preserve them across a move.
-  if (existing?.maxTerms != null) placement.maxTerms = existing.maxTerms;
-  if (existing?.collapseToCount) placement.collapseToCount = true;
-  // Progress (itemInItems) text knobs apply in every zone (absent = true); preserve an off choice.
-  if (existing?.showProgressCount === false) placement.showProgressCount = false;
-  if (existing?.showProgressUnit === false) placement.showProgressUnit = false;
+  if (!existing) return placement;
+  for (const knob of TRUTHY_KNOBS) {
+    if (existing[knob]) placement[knob] = true;
+  }
+  for (const knob of FALSE_PRESERVING_KNOBS) {
+    if (existing[knob] === false) placement[knob] = false;
+  }
+  // Multi-value taxonomy term cap applies in every body zone; preserve an explicit value.
+  if (existing.maxTerms != null) placement.maxTerms = existing.maxTerms;
   return placement;
 }

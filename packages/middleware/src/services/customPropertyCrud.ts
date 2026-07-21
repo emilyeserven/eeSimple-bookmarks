@@ -39,6 +39,42 @@ export class BuiltInPropertyError extends AppError {
 }
 
 /** Map a DB row plus its hydrated relations to the shared `CustomProperty` wire type. */
+/** Rating-field mapping, split out to keep `toCustomProperty` under the complexity cap. */
+function ratingFieldsFromRow(row: CustomPropertyRow): Pick<
+  CustomProperty,
+  "ratingMax" | "ratingAllowZero" | "ratingAllowHalf" | "ratingShowLabel" | "ratingLabel" | "ratingAllowRange" | "ratingLabels" | "ratingCategoryLabels" | "ratingDisplay" | "ratingRangeIncludeStart"
+> {
+  return {
+    ratingMax: (row.ratingMax as CustomProperty["ratingMax"]) ?? null,
+    ratingAllowZero: row.ratingAllowZero ?? false,
+    ratingAllowHalf: row.ratingAllowHalf ?? false,
+    ratingShowLabel: row.ratingShowLabel ?? false,
+    ratingLabel: row.ratingLabel ?? null,
+    ratingAllowRange: row.ratingAllowRange ?? false,
+    ratingLabels: (row.ratingLabels as CustomProperty["ratingLabels"]) ?? null,
+    ratingCategoryLabels: (row.ratingCategoryLabels as CustomProperty["ratingCategoryLabels"]) ?? null,
+    ratingDisplay: (row.ratingDisplay as CustomProperty["ratingDisplay"]) ?? null,
+    ratingRangeIncludeStart: row.ratingRangeIncludeStart ?? false,
+  };
+}
+
+/** Progress (itemInItems) + sections field mapping, split out to keep `toCustomProperty` flat. */
+function progressAndSectionsFieldsFromRow(row: CustomPropertyRow): Pick<
+  CustomProperty,
+  "itemInItemsBeforeText" | "itemInItemsBetweenText" | "itemInItemsAfterText" | "itemInItemsMediaTypeTexts" | "itemInItemsSourcePropertyId" | "sectionsDefaultType" | "sectionsAllowedTypes" | "sectionsTiered"
+> {
+  return {
+    itemInItemsBeforeText: row.itemInItemsBeforeText ?? null,
+    itemInItemsBetweenText: row.itemInItemsBetweenText ?? null,
+    itemInItemsAfterText: row.itemInItemsAfterText ?? null,
+    itemInItemsMediaTypeTexts: (row.itemInItemsMediaTypeTexts as CustomProperty["itemInItemsMediaTypeTexts"]) ?? null,
+    itemInItemsSourcePropertyId: row.itemInItemsSourcePropertyId ?? null,
+    sectionsDefaultType: (row.sectionsDefaultType as CustomProperty["sectionsDefaultType"]) ?? null,
+    sectionsAllowedTypes: (row.sectionsAllowedTypes as CustomProperty["sectionsAllowedTypes"]) ?? null,
+    sectionsTiered: row.sectionsTiered ?? null,
+  };
+}
+
 function toCustomProperty(
   row: CustomPropertyRow,
   categoryIds: string[],
@@ -84,27 +120,11 @@ function toCustomProperty(
     booleanLabelPreset: (row.booleanLabelPreset as CustomProperty["booleanLabelPreset"]) ?? null,
     booleanTrueLabel: row.booleanTrueLabel ?? null,
     booleanFalseLabel: row.booleanFalseLabel ?? null,
-    ratingMax: (row.ratingMax as CustomProperty["ratingMax"]) ?? null,
-    ratingAllowZero: row.ratingAllowZero ?? false,
-    ratingAllowHalf: row.ratingAllowHalf ?? false,
-    ratingShowLabel: row.ratingShowLabel ?? false,
-    ratingLabel: row.ratingLabel ?? null,
-    ratingAllowRange: row.ratingAllowRange ?? false,
-    ratingLabels: (row.ratingLabels as CustomProperty["ratingLabels"]) ?? null,
-    ratingCategoryLabels: (row.ratingCategoryLabels as CustomProperty["ratingCategoryLabels"]) ?? null,
-    ratingDisplay: (row.ratingDisplay as CustomProperty["ratingDisplay"]) ?? null,
-    ratingRangeIncludeStart: row.ratingRangeIncludeStart ?? false,
+    ...ratingFieldsFromRow(row),
     choicesItems: (row.choicesItems as ChoicesItem[] | null) ?? [],
     choicesDisplay: (row.choicesDisplay as CustomProperty["choicesDisplay"]) ?? null,
     choicesMultiple: row.choicesMultiple ?? false,
-    itemInItemsBeforeText: row.itemInItemsBeforeText ?? null,
-    itemInItemsBetweenText: row.itemInItemsBetweenText ?? null,
-    itemInItemsAfterText: row.itemInItemsAfterText ?? null,
-    itemInItemsMediaTypeTexts: (row.itemInItemsMediaTypeTexts as CustomProperty["itemInItemsMediaTypeTexts"]) ?? null,
-    itemInItemsSourcePropertyId: row.itemInItemsSourcePropertyId ?? null,
-    sectionsDefaultType: (row.sectionsDefaultType as CustomProperty["sectionsDefaultType"]) ?? null,
-    sectionsAllowedTypes: (row.sectionsAllowedTypes as CustomProperty["sectionsAllowedTypes"]) ?? null,
-    sectionsTiered: row.sectionsTiered ?? null,
+    ...progressAndSectionsFieldsFromRow(row),
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
   };

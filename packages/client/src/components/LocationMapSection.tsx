@@ -1,5 +1,5 @@
 import type { MapView } from "./LocationMap";
-import type { AncestorChildrenScopeControls, LevelScope, MapFilterControls } from "../lib/locationLevels";
+import type { AncestorChildrenScopeControls, LevelScope, LevelsControls, MapFilterControls } from "../lib/locationLevels";
 import type { MapAncestryDebug } from "../lib/locationMapDebug";
 import type { LocationNode } from "@eesimple/types";
 
@@ -82,6 +82,74 @@ interface LocationMapSectionProps {
   ancestryDebug?: MapAncestryDebug | null;
 }
 
+/**
+ * The collapsible header row: the expand/collapse trigger plus the small-screen "Levels" overlay.
+ * Extracted so its aria-label / chevron / overlay conditionals are scored here, keeping the parent
+ * {@link LocationMapSection} under the complexity cap. Presentation only — no map-level logic.
+ */
+function MapSectionHeader({
+  label,
+  isCollapsed,
+  onToggle,
+  showLevels,
+  controls,
+  mapFilter,
+  ancestorChildrenScope,
+}: {
+  label: string;
+  isCollapsed: boolean;
+  onToggle: () => void;
+  showLevels: boolean;
+  controls: LevelsControls;
+  mapFilter: MapFilterControls | undefined;
+  ancestorChildrenScope?: AncestorChildrenScopeControls;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <div className="mb-2 flex items-center gap-2">
+      <button
+        type="button"
+        aria-expanded={!isCollapsed}
+        aria-label={isCollapsed
+          ? t("Expand {{title}}", {
+            title: label,
+          })
+          : t("Collapse {{title}}", {
+            title: label,
+          })}
+        onClick={onToggle}
+        className="
+          flex flex-1 items-center gap-2 rounded-lg border bg-card px-3 py-2
+          text-left font-semibold transition-colors
+          hover:bg-accent hover:text-accent-foreground
+        "
+      >
+        <MapIcon className="size-4 shrink-0 text-muted-foreground" />
+        <span className="flex-1">{label}</span>
+        <ChevronDown
+          className={cn(
+            "size-4 shrink-0 text-muted-foreground transition-transform",
+            isCollapsed && "-rotate-90",
+          )}
+        />
+      </button>
+      {showLevels && !isCollapsed
+        ? (
+          <div className="md:hidden">
+            <LocationLevelsOverlay
+              controls={controls}
+              filter={mapFilter}
+              ancestorChildrenScope={ancestorChildrenScope}
+            />
+          </div>
+        )
+        : null}
+    </div>
+  );
+}
+
 /** A collapsible "Map" section wrapping {@link LocationMap}, with persisted open/closed state. */
 export function LocationMapSection({
   mapKey,
@@ -145,45 +213,15 @@ export function LocationMapSection({
 
   return (
     <section aria-label={label}>
-      <div className="mb-2 flex items-center gap-2">
-        <button
-          type="button"
-          aria-expanded={!isCollapsed}
-          aria-label={isCollapsed
-            ? t("Expand {{title}}", {
-              title: label,
-            })
-            : t("Collapse {{title}}", {
-              title: label,
-            })}
-          onClick={() => toggle(mapKey)}
-          className="
-            flex flex-1 items-center gap-2 rounded-lg border bg-card px-3 py-2
-            text-left font-semibold transition-colors
-            hover:bg-accent hover:text-accent-foreground
-          "
-        >
-          <MapIcon className="size-4 shrink-0 text-muted-foreground" />
-          <span className="flex-1">{label}</span>
-          <ChevronDown
-            className={cn(
-              "size-4 shrink-0 text-muted-foreground transition-transform",
-              isCollapsed && "-rotate-90",
-            )}
-          />
-        </button>
-        {showLevels && !isCollapsed
-          ? (
-            <div className="md:hidden">
-              <LocationLevelsOverlay
-                controls={controls}
-                filter={mapFilter}
-                ancestorChildrenScope={ancestorChildrenScope}
-              />
-            </div>
-          )
-          : null}
-      </div>
+      <MapSectionHeader
+        label={label}
+        isCollapsed={isCollapsed}
+        onToggle={() => toggle(mapKey)}
+        showLevels={showLevels}
+        controls={controls}
+        mapFilter={mapFilter}
+        ancestorChildrenScope={ancestorChildrenScope}
+      />
 
       {!isCollapsed
         ? (

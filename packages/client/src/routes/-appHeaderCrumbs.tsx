@@ -524,6 +524,19 @@ export interface HeaderBreadcrumbData {
  * `breadcrumbsForPath` deriver. Also returns the raw entities the header's pin / add-child controls
  * consume so the component doesn't re-resolve them.
  */
+/**
+ * Resolve a node's ancestor chain from its tree, or `undefined` when the slug/tree isn't loaded.
+ * Pure helper so the four identical `slug && tree ? findAncestorPath(...) ?? undefined : undefined`
+ * blocks don't each inflate `useHeaderBreadcrumbs`'s complexity.
+ */
+function treeAncestors<T extends { slug: string;
+  children: T[]; }>(
+  slug: string,
+  tree: T[] | undefined,
+): T[] | undefined {
+  return slug && tree ? (findAncestorPath(tree, slug) ?? undefined) : undefined;
+}
+
 export function useHeaderBreadcrumbs(
   pathname: string,
   pathParts: string[],
@@ -540,27 +553,21 @@ export function useHeaderBreadcrumbs(
   const {
     data: tagTree,
   } = useTagTree();
-  const tagAncestors = tagSlug && tagTree
-    ? (findAncestorPath(tagTree, tagSlug) ?? undefined)
-    : undefined;
+  const tagAncestors = treeAncestors(tagSlug, tagTree);
 
   // Media-type breadcrumbs carry the ancestor chain too (one level deep), resolved from the tree.
   const mediaTypeSlug = slugFor(pathname, pathParts, "/taxonomies/media-types", 2);
   const {
     data: mediaTypeTree,
   } = useMediaTypeTree();
-  const mediaTypeAncestors = mediaTypeSlug && mediaTypeTree
-    ? (findAncestorPath(mediaTypeTree, mediaTypeSlug) ?? undefined)
-    : undefined;
+  const mediaTypeAncestors = treeAncestors(mediaTypeSlug, mediaTypeTree);
 
   // Location breadcrumbs carry the ancestor chain (unlimited nesting), resolved from the tree.
   const locationSlug = slugFor(pathname, pathParts, "/taxonomies/locations", 2);
   const {
     data: locationTree,
   } = useLocationTree();
-  const locationAncestors = locationSlug && locationTree
-    ? (findAncestorPath(locationTree, locationSlug) ?? undefined)
-    : undefined;
+  const locationAncestors = treeAncestors(locationSlug, locationTree);
 
   // A user-created taxonomy's term pages carry its name + term ancestor chain, the generic sibling of
   // the tag/media-type/location ancestor resolution above.
@@ -574,9 +581,7 @@ export function useHeaderBreadcrumbs(
     data: customTaxonomyTermTree,
   } = useTaxonomyTermTree(customTaxonomyRow?.id);
   const customTermSlug = customTaxonomySlug ? (pathParts[2] ?? "") : "";
-  const customTermAncestors = customTermSlug && customTaxonomyTermTree
-    ? (findAncestorPath(customTaxonomyTermTree, customTermSlug) ?? undefined)
-    : undefined;
+  const customTermAncestors = treeAncestors(customTermSlug, customTaxonomyTermTree);
   const customTaxonomy: CustomTaxonomyCrumbData | undefined = customTaxonomySlug
     ? {
       taxonomyName: customTaxonomyRow?.name,

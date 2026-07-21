@@ -356,8 +356,25 @@ export function resolveNewTagPlan(
       finalName: creation.finalName,
     };
   }
-  // Second pass: resolve each creation's parent now that every planned name is known. A parent name
-  // resolves through the same rename/reject decisions (its resolution entry), then existing tags.
+  // Second pass: resolve each creation's parent now that every planned name is known.
+  resolveCreationParents(candidates, resolution, creationByKey, existingByKey);
+  return {
+    creations: orderCreationsParentsFirst(creationByKey, fallbackParentId),
+    resolution,
+  };
+}
+
+/**
+ * Resolve each planned creation's parent, mutating the {@link NewTagCreation} entries in place. A
+ * parent name resolves through the same rename/reject decisions (its `resolution` entry) first, then
+ * falls back to an existing tag.
+ */
+function resolveCreationParents(
+  candidates: TagReviewItem[],
+  resolution: Record<string, TagResolution>,
+  creationByKey: Map<string, NewTagCreation>,
+  existingByKey: Map<string, string>,
+): void {
   for (const item of candidates) {
     if (item.existingTagId !== undefined || item.proposedParentName === undefined) continue;
     const resolved = resolution[normalizeTagKey(item.name)];
@@ -387,7 +404,16 @@ export function resolveNewTagPlan(
       }
     }
   }
-  // Order creations parents-first; a cycle re-parents its first member to the fallback and breaks.
+}
+
+/**
+ * Order creations parents-first (a parent must be emitted before its children). A cycle re-parents
+ * its first member to `fallbackParentId` and breaks.
+ */
+function orderCreationsParentsFirst(
+  creationByKey: Map<string, NewTagCreation>,
+  fallbackParentId: string | null,
+): NewTagCreation[] {
   const ordered: NewTagCreation[] = [];
   const emitted = new Set<string>();
   let remaining = [...creationByKey.values()];
@@ -409,10 +435,7 @@ export function resolveNewTagPlan(
     }
     remaining = remaining.filter(c => !ready.includes(c));
   }
-  return {
-    creations: ordered,
-    resolution,
-  };
+  return ordered;
 }
 
 /** Derive a page-typed entry's end page: explicit wins, else next sibling's start − 1 (clamped). */
