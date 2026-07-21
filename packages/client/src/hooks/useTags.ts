@@ -90,6 +90,25 @@ export function useDeleteTag() {
   });
 }
 
+/**
+ * Remove all of a tag's own bookmark associations without deleting the tag (its `bookmark_tags` links
+ * + its id in bookmarks' Sections jsonb). Surfaced on a non-leaf tag's edit page, where deletion would
+ * cascade away the child subtree.
+ */
+export function useClearTagAssociations() {
+  const invalidate = useTagInvalidation();
+  const {
+    t,
+  } = useTranslation();
+  return useMutation({
+    mutationFn: (id: string) => tagsApi.clearAssociations(id),
+    onSuccess: () => {
+      invalidate();
+      notifySuccess(t("Removed all bookmark associations"));
+    },
+  });
+}
+
 export function useBulkDeleteTags() {
   return useBulkDeleteEntity(tagsApi.bulkDelete, useTagInvalidation());
 }

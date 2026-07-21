@@ -13,6 +13,7 @@ import {
   deleteTag,
   getTagTree,
   listTags,
+  removeTagBookmarkAssociations,
   updateTag,
 } from "@/services/tags";
 import { NotFoundError } from "@/utils/errors";
@@ -224,6 +225,20 @@ export async function tagRoutes(app: FastifyInstance): Promise<void> {
     } = req.query as { reassignTo?: string };
     const deleted = await deleteTag(id, reassignTo);
     if (!deleted) throw new NotFoundError("Tag");
+    return reply.code(204).send();
+  });
+
+  app.delete("/api/tags/:id/associations", {
+    schema: {
+      tags: ["tags"],
+      params: tagParams,
+    },
+  }, async (req, reply) => {
+    const {
+      id,
+    } = req.params as { id: string };
+    const removed = await removeTagBookmarkAssociations(id);
+    if (!removed) throw new NotFoundError("Tag");
     return reply.code(204).send();
   });
 }

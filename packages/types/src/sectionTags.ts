@@ -86,6 +86,58 @@ export function reassignSectionTagIds(
   return sectionsChanged ? nextSections : sections;
 }
 
+/**
+ * Filter one entry's `tagIds`, dropping every id in `idsToRemove`. Returns the same array reference
+ * when nothing changes (so callers can skip untouched rows); an entry that loses all its tags keeps
+ * an empty `tagIds` array (consistent with `collectSectionTagIds`, which coalesces `?? []`).
+ */
+function removeEntryTagIds(
+  tagIds: string[] | undefined,
+  idsToRemove: ReadonlySet<string>,
+): string[] | undefined {
+  if (!tagIds || !tagIds.some(id => idsToRemove.has(id))) return tagIds;
+  return tagIds.filter(id => !idsToRemove.has(id));
+}
+
+/**
+ * Remove section tags: across every entry and child (the depth-2 model), drop any `tagIds` member in
+ * `idsToRemove`. The removal counterpart to {@link reassignSectionTagIds} — used when a tag's
+ * associations are cleared without a replacement, so the sections that referenced it no longer do.
+ * Entries/children with no affected tag keep their exact references; the array is returned unchanged
+ * when nothing matched.
+ */
+export function removeSectionTagIds(
+  sections: SectionEntry[],
+  idsToRemove: ReadonlySet<string>,
+): SectionEntry[] {
+  let sectionsChanged = false;
+  const nextSections = sections.map((entry) => {
+    const nextTagIds = removeEntryTagIds(entry.tagIds, idsToRemove);
+    let childrenChanged = false;
+    const nextChildren = entry.children?.map((child) => {
+      const childTagIds = removeEntryTagIds(child.tagIds, idsToRemove);
+      if (childTagIds === child.tagIds) return child;
+      childrenChanged = true;
+      return {
+        ...child,
+        tagIds: childTagIds,
+      };
+    });
+    if (nextTagIds === entry.tagIds && !childrenChanged) return entry;
+    sectionsChanged = true;
+    return {
+      ...entry,
+      tagIds: nextTagIds,
+      ...(nextChildren
+        ? {
+          children: nextChildren,
+        }
+        : {}),
+    };
+  });
+  return sectionsChanged ? nextSections : sections;
+}
+
 /** Whether any section entry or child across `values` carries one of `tagIds`. */
 export function sectionsCarryAnyTag(
   values: BookmarkSectionsValue[],
