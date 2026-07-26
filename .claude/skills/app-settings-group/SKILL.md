@@ -47,6 +47,17 @@ All layers live in four files; a new setting in an *existing* group touches each
 `notifySuccess`/`notifyFieldSaved` naming the field — auto-save on change/blur, no Save button (see
 the `toast-notifications` skill). Shared types for the group live in `@eesimple/types`.
 
+**Template/prompt groups debounce-save the whole form.** A group whose UI is one long editable form
+(the AI-feature prompts — `AiAutotagSettings` / `AiBulkEditSettings` / `AiSummarizationSettings` /
+`BookmarkAiUpdateSettings`, plus `TagReparentSettings` and `HomepageContentSettings`) doesn't save
+per field; it seeds a local form from the server, then debounce-auto-saves the **whole** form ~800ms
+after the last edit. Don't re-implement the seed/ref/timer dance — the single implementation is
+`hooks/useDebouncedSettingsForm.ts` (`useDebouncedSettingsForm({ data, isLoading, update, defaults })`
+→ `{ form, patchForm, isLoading }`). Each per-feature form hook is a thin wrapper that forwards its
+own `use<Group>Settings()` data, update mutation, and defaults; a component that wants a single-key
+setter derives it (`setField(k, v) => patchForm({ [k]: v })`, see `HomepageContentSettings`). The
+per-field toast rule above still applies to the point-and-click settings pages.
+
 **Worked example — a single nullable-FK field.** `display-preferences` carries two sibling language
 fields that are the cleanest template for adding one scalar field: `secondaryLanguageId` and
 `fallbackLanguageId` (each a nullable `uuid("…").references(() => languages.id, { onDelete: "set null" })`

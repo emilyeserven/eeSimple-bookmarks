@@ -1,7 +1,5 @@
 import type { HomepageContentSettings as HomepageContent, HomepageContentWidth, HomepageWidget, QuickAddDisplay } from "@eesimple/types";
 
-import { useEffect, useRef, useState } from "react";
-
 import { DEFAULT_HOMEPAGE_WIDGET_ORDER, resolveHomepageWidgetOrder } from "@eesimple/types";
 import { useTranslation } from "react-i18next";
 
@@ -11,6 +9,7 @@ import {
   useHomepageContentSettings,
   useUpdateHomepageContentSettings,
 } from "../hooks/useAppSettings";
+import { useDebouncedSettingsForm } from "../hooks/useDebouncedSettingsForm";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -31,9 +30,6 @@ const DEFAULTS: HomepageContent = {
   widgetOrder: DEFAULT_HOMEPAGE_WIDGET_ORDER,
 };
 
-/** Debounce window (ms) before an edit auto-saves. */
-const AUTOSAVE_DELAY_MS = 800;
-
 /**
  * The homepage content block, shown above the homepage sections settings. Configures the Markdown
  * shown at the top of the homepage and whether/how the Bookmark Quick Add form appears. Edits
@@ -47,45 +43,20 @@ export function HomepageContentSettings() {
     data, isLoading,
   } = useHomepageContentSettings();
   const update = useUpdateHomepageContentSettings();
-  const [form, setForm] = useState<HomepageContent>(DEFAULTS);
-  // Mirror the latest form state for the debounced save to read without re-creating the timer.
-  const formRef = useRef<HomepageContent>(form);
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Guard: don't auto-save until server data has been loaded at least once.
-  const isSeededRef = useRef(false);
+  const {
+    form, patchForm,
+  } = useDebouncedSettingsForm({
+    data,
+    isLoading,
+    update,
+    defaults: DEFAULTS,
+  });
 
-  // Seed local form state once the saved settings load (and whenever they change server-side).
-  // Writing the ref directly (not via setField) ensures seeding never schedules a save.
-  useEffect(() => {
-    if (data) {
-      isSeededRef.current = true;
-      formRef.current = data;
-      setForm(data);
-    }
-  }, [data]);
-
-  // Cancel any pending auto-save when the component unmounts.
-  useEffect(() => () => {
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-  }, []);
-
-  function scheduleAutoSave(): void {
-    if (!isSeededRef.current) return;
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => {
-      update.mutate(formRef.current);
-    }, AUTOSAVE_DELAY_MS);
-  }
-
-  /** Update one field, mirror it into the ref, and debounce an auto-save. */
+  /** Update one field and debounce an auto-save. */
   function setField<K extends keyof HomepageContent>(key: K, value: HomepageContent[K]): void {
-    const next = {
-      ...formRef.current,
+    patchForm({
       [key]: value,
-    };
-    formRef.current = next;
-    setForm(next);
-    scheduleAutoSave();
+    } as Partial<HomepageContent>);
   }
 
   if (isLoading) {
