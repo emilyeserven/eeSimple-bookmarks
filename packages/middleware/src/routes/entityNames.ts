@@ -67,7 +67,7 @@ export async function entityNameRoutes(app: FastifyInstance): Promise<void> {
       params: ownerParams,
       body: putBody,
     },
-  }, async (req, reply) => {
+  }, async (req) => {
     const {
       ownerType, ownerId,
     } = req.params as { ownerType: EntityNameOwnerType;
@@ -75,14 +75,9 @@ export async function entityNameRoutes(app: FastifyInstance): Promise<void> {
     const {
       entries,
     } = req.body as { entries: UpdateEntityNameEntry[] };
-    try {
-      await setEntityNames(ownerType, ownerId, entries);
-    }
-    catch (err) {
-      return reply.status(400).send({
-        message: err instanceof Error ? err.message : "Invalid entity names.",
-      });
-    }
+    // A domain failure (e.g. two primary names) throws a `ValidationError` — the central
+    // `setErrorHandler` serializes it to the standard envelope.
+    await setEntityNames(ownerType, ownerId, entries);
     return getEntityNames(ownerType, ownerId);
   });
 }

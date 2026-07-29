@@ -224,7 +224,7 @@ export const bookmarkAddFormBody = {
 
 export const automationBody = {
   type: "object",
-  required: ["autoFetchTitle", "autoFetchImage", "autoApplyTitleTags", "autoApplyTitleLocations", "shareBypassInbox", "sidebarOpenModifier", "defaultCategoryId"],
+  required: ["autoFetchTitle", "autoFetchImage", "autoApplyTitleTags", "autoApplyTitleLocations", "shareBypassInbox", "defaultCategoryId"],
   additionalProperties: false,
   properties: {
     autoFetchTitle: {
@@ -241,10 +241,6 @@ export const automationBody = {
     },
     shareBypassInbox: {
       type: "boolean",
-    },
-    sidebarOpenModifier: {
-      type: "string",
-      enum: ["alt", "ctrl", "shift", "meta"],
     },
     defaultCategoryId: {
       type: ["string", "null"],
@@ -398,8 +394,6 @@ export const displayPreferenceBody = {
     "bookmarkCardThumbnailSize",
     "interfaceLanguage",
     "searchBoxPinned",
-    "panelPinned",
-    "drawerUnpinnedBreakpoints",
     "croppedWidth",
     "croppedHeight",
     "hanScriptLanguage",
@@ -437,16 +431,6 @@ export const displayPreferenceBody = {
     },
     searchBoxPinned: {
       type: "boolean",
-    },
-    panelPinned: {
-      type: "boolean",
-    },
-    drawerUnpinnedBreakpoints: {
-      type: "array",
-      items: {
-        type: "integer",
-        minimum: 1,
-      },
     },
     croppedWidth: {
       type: "integer",

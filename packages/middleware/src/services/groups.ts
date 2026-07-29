@@ -21,8 +21,9 @@ import {
 } from "@/db/schema";
 import { deleteTaxonomyAssignmentsForOwner } from "@/services/taxonomyAssignments";
 import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
+import { invalidateBookmarkCache } from "@/services/bookmarkCacheVersion";
 import { getGroupImageRow } from "@/services/groupImages";
-import { AppError } from "@/utils/errors";
+import { AppError, NotFoundError } from "@/utils/errors";
 import { buildStringMap } from "@/utils/mapUtils";
 import { deleteObject } from "@/utils/objectStore";
 import { slugify, uniqueSlug } from "@/utils/slug";
@@ -333,7 +334,7 @@ export async function updateGroup(id: string, input: UpdateGroupInput): Promise<
     .from(groups)
     .where(eq(groups.id, id))
     .limit(1);
-  if (existing.length === 0) throw new Error(`Group ${id} not found`);
+  if (existing.length === 0) throw new NotFoundError("Group");
   const current = existing[0];
 
   if (input.name !== undefined && input.name !== current.name) {
@@ -405,6 +406,8 @@ export async function deleteGroup(id: string): Promise<boolean> {
     await deleteTaxonomyAssignmentsForOwner("group", id);
     await deleteEntityNamesForOwner("group", id);
     if (imageRow) await deleteObject(imageRow.objectKey).catch(() => undefined);
+    // The cascade removes bookmark_groups links — matchable data (groups condition leaves/facets).
+    invalidateBookmarkCache();
   }
   return deleted;
 }

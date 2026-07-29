@@ -1,5 +1,5 @@
 import type { ToastedMutationVars } from "./shared";
-import type { AutomationSettings, SidebarOpenModifier, UpdateAutomationInput } from "@eesimple/types";
+import type { AutomationSettings, UpdateAutomationInput } from "@eesimple/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -14,11 +14,10 @@ const AUTOMATION_DEFAULTS = {
   autoApplyTitleTags: false,
   autoApplyTitleLocations: false,
   shareBypassInbox: false,
-  sidebarOpenModifier: "alt" as SidebarOpenModifier,
   defaultCategoryId: null as string | null,
 };
 
-/** Automation settings (group B): auto-fetch title/image + the open-in-drawer modifier. */
+/** Automation settings (group B): auto-fetch title/image and add-bookmark behavior. */
 export function useAutomationSettings() {
   return useQuery({
     queryKey: AUTOMATION_KEY,

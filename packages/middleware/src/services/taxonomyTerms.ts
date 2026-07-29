@@ -194,14 +194,32 @@ export async function updateTaxonomyTerm(
 
 /** Delete a term. FK cascade removes descendants + value-side assignment rows. */
 export async function deleteTaxonomyTerm(id: string): Promise<boolean> {
+  const [existing] = await db
+    .select({
+      taxonomyId: taxonomyTerms.taxonomyId,
+    })
+    .from(taxonomyTerms)
+    .where(eq(taxonomyTerms.id, id));
+  if (!existing) return false;
+  // Collect the whole subtree BEFORE the delete — the parentId cascade removes descendant terms
+  // too, and their polymorphic (no-FK-on-ownerId) owner-side assignment/name rows must be cleaned
+  // up along with the root's.
+  const all = await db
+    .select({
+      id: taxonomyTerms.id,
+      parentId: taxonomyTerms.parentId,
+    })
+    .from(taxonomyTerms)
+    .where(eq(taxonomyTerms.taxonomyId, existing.taxonomyId));
+  const subtreeIds = [...collectSubtreeIds(all, id)];
   const rows = await db.delete(taxonomyTerms).where(eq(taxonomyTerms.id, id)).returning({
     id: taxonomyTerms.id,
   });
   if (rows.length > 0) {
     // A term can itself be an assignment owner (a term attached to another term); `ownerId` carries
     // no cascade FK, so clean up those rows here.
-    await deleteTaxonomyAssignmentsForOwner("taxonomy", id);
-    await deleteEntityNamesForOwner("taxonomyTerm", id);
+    await deleteTaxonomyAssignmentsForOwner("taxonomy", subtreeIds);
+    await deleteEntityNamesForOwner("taxonomyTerm", subtreeIds);
     invalidateBookmarkCache();
   }
   return rows.length > 0;

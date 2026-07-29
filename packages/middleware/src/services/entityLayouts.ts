@@ -61,7 +61,7 @@ export async function findInvalidEntityLayouts(): Promise<{ kind: string;
 /**
  * Store (or replace) the layout for one entity kind. Select-then-branch rather than a DB-level
  * `onConflictDoUpdate` — keeps this testable against the shared in-memory fake db, and mirrors how
- * `ensureDefaultCardDisplayRule` also does count-then-insert rather than a DB-level upsert.
+ * `ensureCardDisplayConfig` also does select-then-branch rather than a DB-level upsert.
  */
 export async function upsertEntityLayout(
   kind: LayoutableEntityKind,

@@ -36,10 +36,12 @@ interface ParsedCondition {
 }
 
 /**
- * Flatten a drizzle condition (`eq`, `and(eq, eq, …)`, `isNull`) into column-object filters. `and()`
- * interleaves its sub-conditions with separator text chunks that this walk skips (only `Column`/
- * `Param` nodes are collected), so `and(eq(a, x), eq(b, y))` and a bare `eq(a, x)` flatten the same
- * way. A `Column` with no adjacent `Param` (as `isNull` produces) is treated as an IS NULL filter.
+ * Flatten a drizzle condition (`eq`, `and(eq, eq, …)`, `isNull`, `inArray`) into column-object
+ * filters. `and()` interleaves its sub-conditions with separator text chunks that this walk skips
+ * (only `Column`/`Param` nodes are collected), so `and(eq(a, x), eq(b, y))` and a bare `eq(a, x)`
+ * flatten the same way. A `Column` with no adjacent value (as `isNull` produces) is treated as an
+ * IS NULL filter. `inArray(col, vals)` embeds its value list as a raw `Param[]` chunk — that
+ * flattens to a single array value, which `rowMatches` interprets as an IN (`includes`) check.
  */
 function parseCondition(condition: unknown): ParsedCondition {
   const flat: ({ kind: "col";
@@ -58,6 +60,14 @@ function parseCondition(condition: unknown): ParsedCondition {
       flat.push({
         kind: "val",
         value: node.value,
+      });
+      return;
+    }
+    // `inArray`'s value list: a plain array of `Param`s → one array-valued filter (an IN check).
+    if (Array.isArray(node)) {
+      flat.push({
+        kind: "val",
+        value: node.map(el => (is(el, Param) ? el.value : el)),
       });
       return;
     }
@@ -181,7 +191,12 @@ function rowMatches(row: Row, condition: ParsedCondition | undefined, keyMap: Ma
   if (!condition) return true;
   for (const filter of condition.eq) {
     const key = keyMap.get(filter.column);
-    if (key !== undefined && row[key] !== filter.value) return false;
+    if (key === undefined) continue;
+    // An array value is an `inArray` filter (IN check); anything else is a plain equality.
+    if (Array.isArray(filter.value)) {
+      if (!filter.value.includes(row[key])) return false;
+    }
+    else if (row[key] !== filter.value) return false;
   }
   for (const column of condition.isNull) {
     const key = keyMap.get(column);

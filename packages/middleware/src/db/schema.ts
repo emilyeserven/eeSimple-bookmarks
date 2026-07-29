@@ -475,21 +475,15 @@ export const translationSources = pgTable("translation_sources", {
 export type TranslationSourceRow = typeof translationSources.$inferSelect;
 
 /**
- * The owner entities a `language_usages` row can attach to. Polymorphic (`ownerId` carries no FK)
- * because one physical table can't carry a foreign key into six different owner tables — the same
- * trade `taxonomy_images` makes.
- */
-export const LANGUAGE_USAGE_OWNER_TYPES = ["bookmark", "movie", "tvShow", "episode", "album", "track", "book", "podcast", "website", "youtubeChannel", "person"] as const;
-
-/**
- * `language_usages` table — associates a language + a usage level with an owner entity (a bookmark,
- * movie, TV show, website, YouTube channel, or person), optionally annotated with a free-text `note`
- * (e.g. "sparse") and a `translationSourceId` (how the translation/script was produced). Polymorphic
- * on `(ownerType, ownerId)` like `taxonomy_images`; a surrogate `id` PK plus a unique index on the
- * full tuple like `bookmark_relationships`. `languageId`/`usageLevelId` are real FKs;
- * `translationSourceId` is a nullable FK (a non-key qualifier, kept out of the unique index like
- * `note`); `ownerId` is not an FK, so each owner's delete service must call
- * `deleteLanguageUsagesForOwner` to avoid orphans.
+ * `language_usages` table — associates a language + a usage level with an owner entity, optionally
+ * annotated with a free-text `note` (e.g. "sparse") and a `translationSourceId` (how the
+ * translation/script was produced). The API-authoritative owner set is `LANGUAGE_USAGE_OWNER_TYPES`
+ * in `@eesimple/types` (`bookmark` / `website` / `youtubeChannel` / `person`) — the routes validate
+ * against it, so don't mirror it here. Polymorphic on `(ownerType, ownerId)` like
+ * `taxonomy_images`; a surrogate `id` PK plus a unique index on the full tuple like
+ * `bookmark_relationships`. `languageId`/`usageLevelId` are real FKs; `translationSourceId` is a
+ * nullable FK (a non-key qualifier, kept out of the unique index like `note`); `ownerId` is not an
+ * FK, so each owner's delete service must call `deleteLanguageUsagesForOwner` to avoid orphans.
  */
 export const languageUsages = pgTable("language_usages", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1838,8 +1832,6 @@ export const appSettings = pgTable("app_settings", {
   // bookmarks. Nullable (no NOT NULL) so `drizzle-kit push` applies it without an interactive
   // prompt; the service reads it as `?? false`.
   shareBypassInbox: boolean("share_bypass_inbox"),
-  // Modifier held while clicking Edit to open the item in the drawer: "alt" | "ctrl" | "shift" | "meta".
-  sidebarOpenModifier: text("sidebar_open_modifier").notNull().default("alt"),
   // User-configurable fallback category for new/uncategorized bookmarks. Null = use the seeded
   // built-in "Default" category (ensureDefaultCategory()). Nullable FK → push-safe additive, no
   // migrate.ts step. onDelete: "set null" self-heals back to the seeded default if the configured
@@ -1873,10 +1865,6 @@ export const appSettings = pgTable("app_settings", {
   filtersHidden: boolean("filters_hidden").notNull().default(false),
   // When true, the listing search/filters/sort box floats (sticks to the top while the list scrolls).
   searchBoxPinned: boolean("search_box_pinned").notNull().default(false),
-  // When true, the right-hand panel docks as a persistent column by default.
-  panelPinned: boolean("panel_pinned").notNull().default(false),
-  // Viewport widths (px) below which the drawer floats even when pinned. Default [768].
-  drawerUnpinnedBreakpoints: jsonb("drawer_unpinned_breakpoints").$type<number[]>().notNull().default(sql`'[768]'::jsonb`),
   // Width component of the built-in "Cropped" aspect ratio (default 16).
   croppedWidth: integer("cropped_width").notNull().default(16),
   // Height component of the built-in "Cropped" aspect ratio (default 9).

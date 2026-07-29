@@ -1,6 +1,6 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { entityNames, taxonomyAssignments } from "@/db/schema";
+import { entityNames, languageUsages, taxonomyAssignments } from "@/db/schema";
 
 /**
  * Remove the polymorphic Genres & Moods assignment rows for deleted bookmark ids. `ownerId` carries
@@ -25,5 +25,17 @@ export async function cleanupBookmarkEntityNames(bookmarkIds: string[]): Promise
   await db.delete(entityNames).where(and(
     eq(entityNames.ownerType, "bookmark"),
     inArray(entityNames.ownerId, bookmarkIds),
+  ));
+}
+
+/**
+ * Remove the polymorphic language-usage rows for deleted bookmark ids. `ownerId` carries no cascade
+ * FK (like the assignments and entity names above), so every bookmark-delete path must call this.
+ */
+export async function cleanupBookmarkLanguageUsages(bookmarkIds: string[]): Promise<void> {
+  if (bookmarkIds.length === 0) return;
+  await db.delete(languageUsages).where(and(
+    eq(languageUsages.ownerType, "bookmark"),
+    inArray(languageUsages.ownerId, bookmarkIds),
   ));
 }

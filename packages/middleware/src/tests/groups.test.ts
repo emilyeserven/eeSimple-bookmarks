@@ -171,7 +171,7 @@ test("deleteGroup: a group with no stored image skips the object-store delete", 
   assert.deepEqual(deletedObjectKeys, []);
 });
 
-test("deleteGroup: never invalidates the bookmark cache — groups aren't matchable bookmark data", async () => {
+test("deleteGroup: invalidates the bookmark cache — the cascade removes bookmark_groups links", async () => {
   resetRows({
     groups: [{
       id: "group-3",
@@ -181,5 +181,11 @@ test("deleteGroup: never invalidates the bookmark cache — groups aren't matcha
 
   const versionBefore = bookmarkCacheVersion();
   await deleteGroup("group-3");
+  assert.equal(bookmarkCacheVersion(), versionBefore + 1);
+});
+
+test("deleteGroup: a missing id does not invalidate the bookmark cache", async () => {
+  const versionBefore = bookmarkCacheVersion();
+  await deleteGroup("nonexistent-id");
   assert.equal(bookmarkCacheVersion(), versionBefore);
 });

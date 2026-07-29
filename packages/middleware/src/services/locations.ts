@@ -597,14 +597,23 @@ export async function autofillLocationWikipediaLinks(id: string): Promise<Locati
 }
 
 export async function deleteLocation(id: string): Promise<boolean> {
+  // Collect the whole subtree BEFORE the delete — the parentId cascade removes descendants too, and
+  // their polymorphic (no-FK-on-ownerId) assignment/name rows must be cleaned up along with the root's.
+  const allLocations = await db
+    .select({
+      id: locations.id,
+      parentId: locations.parentId,
+    })
+    .from(locations);
+  const subtreeIds = [...collectParentTreeSubtreeIds(allLocations, id)];
   // FK cascade removes descendant locations, bookmark_locations and location_tags link rows.
   const rows = await db.delete(locations).where(eq(locations.id, id)).returning({
     id: locations.id,
   });
   if (rows.length > 0) {
     // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
-    await deleteTaxonomyAssignmentsForOwner("location", id);
-    await deleteEntityNamesForOwner("location", id);
+    await deleteTaxonomyAssignmentsForOwner("location", subtreeIds);
+    await deleteEntityNamesForOwner("location", subtreeIds);
     invalidateBookmarkCache();
   }
   return rows.length > 0;

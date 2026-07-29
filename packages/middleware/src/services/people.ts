@@ -5,6 +5,7 @@ import { getPersonSourceLabelSettings } from "@/services/appSettings";
 import { deleteTaxonomyAssignmentsForOwner } from "@/services/taxonomyAssignments";
 import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
 import { deleteLanguageUsagesForOwner } from "@/services/languageUsages";
+import { invalidateBookmarkCache } from "@/services/bookmarkCacheVersion";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import {
   personImages,
@@ -393,6 +394,8 @@ export async function deletePerson(id: string): Promise<boolean> {
     // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
     await deleteTaxonomyAssignmentsForOwner("person", id);
     await deleteEntityNamesForOwner("person", id);
+    // The cascade removes bookmark_people links — matchable data (people condition leaves/facets).
+    invalidateBookmarkCache();
   }
   return rows.length > 0;
 }

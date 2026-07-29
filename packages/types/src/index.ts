@@ -32,6 +32,7 @@ export * from "./bookmarkSearchMatch.js";
 export * from "./bookmarkSearchScope.js";
 export * from "./bookmarkSortEngine.js";
 export * from "./bookmarkTextSearch.js";
+export * from "./cardFieldKeys.js";
 export * from "./customPropertyFilter.js";
 export * from "./honto.js";
 export * from "./oreilly.js";
@@ -392,8 +393,6 @@ export interface AppSettings {
   autoFetchTitle: boolean;
   /** When on, the Add Bookmark Images section starts collapsed and the page image is fetched on save. */
   autoFetchImage: boolean;
-  /** Modifier held while clicking an Edit button to open the item in the drawer instead of its page. */
-  sidebarOpenModifier: SidebarOpenModifier;
   /** Image size on the bookmark detail page/panel. */
   bookmarkDetailImageSize: BookmarkDetailImageSize;
   /** Video embed size on the bookmark detail page/panel. */
@@ -404,10 +403,6 @@ export interface AppSettings {
   bookmarkCardThumbnailSize: BookmarkCardThumbnailSize;
   /** When true, the listing search/filters/sort box floats (sticks to the top while the list scrolls). */
   searchBoxPinned: boolean;
-  /** When pinned, the right-hand panel docks as a persistent column instead of a floating drawer. */
-  panelPinned: boolean;
-  /** Viewport widths (px) below which the drawer is unpinned (floats) even when panelPinned is true. */
-  drawerUnpinnedBreakpoints: number[];
   /** Width component of the built-in "Cropped" aspect ratio. */
   croppedWidth: number;
   /** Height component of the built-in "Cropped" aspect ratio. */
@@ -526,8 +521,8 @@ export interface SidebarCustomizationSettings {
 export type UpdateSidebarCustomizationInput = SidebarCustomizationSettings;
 
 /**
- * The subset of {@link AppSettings} that drives add-bookmark automation and the open-in-drawer
- * modifier. Persisted server-side so the behavior choices follow the user across devices.
+ * The subset of {@link AppSettings} that drives add-bookmark automation. Persisted server-side so
+ * the behavior choices follow the user across devices.
  */
 export interface AutomationSettings {
   autoFetchTitle: boolean;
@@ -538,7 +533,6 @@ export interface AutomationSettings {
   autoApplyTitleLocations: boolean;
   /** When on, quick-saves from the PWA share target skip the Inbox and are added directly as bookmarks. */
   shareBypassInbox: boolean;
-  sidebarOpenModifier: SidebarOpenModifier;
   /** App-configured fallback category for new/uncategorized bookmarks; null = use the seeded built-in. */
   defaultCategoryId: string | null;
 }
@@ -625,8 +619,8 @@ export const DEFAULT_PERSON_SOURCE_LABEL_SETTINGS: PersonSourceLabelSettings = {
 
 /**
  * The subset of {@link AppSettings} that drives display/detail preferences: bookmark detail media
- * sizing + layout, the pinnable listing search box, right-panel pin behavior, and the built-in
- * "Cropped" aspect ratio. Persisted server-side so the display choices follow the user across devices.
+ * sizing + layout, the pinnable listing search box, and the built-in "Cropped" aspect ratio.
+ * Persisted server-side so the display choices follow the user across devices.
  */
 export interface DisplayPreferenceSettings {
   bookmarkDetailImageSize: BookmarkDetailImageSize;
@@ -639,8 +633,6 @@ export interface DisplayPreferenceSettings {
    * while the list scrolls. Toggled from the box's pin button on every listing page.
    */
   searchBoxPinned: boolean;
-  panelPinned: boolean;
-  drawerUnpinnedBreakpoints: number[];
   croppedWidth: number;
   croppedHeight: number;
   customPropertyTypeIcons: Partial<Record<CustomPropertyType, string>> | null;
@@ -3274,9 +3266,6 @@ export type BookmarkImageVisibility = "shown" | "image-only" | "off";
 /** Rendering mode for a listing/section: a card grid (default) or a data table. */
 export type ViewMode = "cards" | "table";
 
-/** Modifier key that, held while clicking an Edit button, opens the item in the right-hand drawer. */
-export type SidebarOpenModifier = "alt" | "ctrl" | "shift" | "meta";
-
 /** Bookmark detail page image size preference. */
 export type BookmarkDetailImageSize = "small" | "medium" | "large";
 
@@ -3841,6 +3830,11 @@ export interface SavedFilter {
   viewableOnline: boolean;
   /** User-starred favorite. */
   isFavorite?: boolean;
+  /**
+   * How many bookmarks currently match this filter, computed server-side by the list endpoint over
+   * the shared search predicates (display-only; absent on rows from create/update responses).
+   */
+  bookmarkCount?: number;
   createdAt: string;
 }
 

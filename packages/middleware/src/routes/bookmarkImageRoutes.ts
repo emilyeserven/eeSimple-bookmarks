@@ -18,6 +18,7 @@ import { importBookmarkPodcastArtwork, resolveBookmarkPodcastFeedPreview } from 
 import { importPlexPoster, plexEnabledAsync, resolveBookmarkPlexMetadata } from "@/services/plex";
 import { isObjectStoreConfigured } from "@/utils/objectStore";
 import { AppError, ImageTooLargeError, MaxImagesReachedError, NoFileUploadedError, NotFoundError, StorageUnconfiguredError, ValidationError } from "@/utils/errors";
+import { imageGrabErrorReply } from "@/utils/imageGrabError";
 import { bookmarkImageParams, bookmarkParams } from "./bookmarkParamsSchema";
 
 /** Bookmark image upload, auto-capture, and removal. */
@@ -87,17 +88,8 @@ export function registerBookmarkImageRoutes(app: FastifyInstance): void {
       throw new NotFoundError("Bookmark");
     }
     if (typeof result === "string") {
-      const errorMessages: Record<string, string> = {
-        no_image: "No preview image found for that page",
-        bad_image: "Preview image couldn't be loaded",
-        blocked: "Access to this page was blocked",
-        server_error: "Site returned a server error",
-        fetch_error: "Page couldn't be reached",
-      };
-      return reply.code(502).send({
-        message: errorMessages[result] ?? "Could not fetch a preview image",
-        code: result,
-      });
+      // Sanctioned discriminated-result → reply.code mapping: emit the standard error envelope shape.
+      return reply.code(502).send(imageGrabErrorReply(result, "preview image"));
     }
     return reply.code(201).send(result);
   });

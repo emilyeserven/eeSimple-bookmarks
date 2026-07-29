@@ -40,15 +40,7 @@ import {
   UnsupportedImageError,
   ValidationError,
 } from "@/utils/errors";
-
-/** User-facing messages for the typed grab failures shared by the entity-image auto routes. */
-const IMAGE_GRAB_ERROR_MESSAGES: Record<string, string> = {
-  no_image: "No image found for that site",
-  bad_image: "Image couldn't be loaded",
-  blocked: "Access to the site was blocked",
-  server_error: "Site returned a server error",
-  fetch_error: "Site couldn't be reached",
-};
+import { imageGrabErrorReply } from "@/utils/imageGrabError";
 
 /** Routes for the built-in Websites taxonomy, mounted under `/api/websites`. */
 export async function websiteRoutes(app: FastifyInstance): Promise<void> {
@@ -244,10 +236,8 @@ export async function websiteRoutes(app: FastifyInstance): Promise<void> {
       throw new NotFoundError("Website");
     }
     if (typeof result === "string") {
-      return reply.code(502).send({
-        message: IMAGE_GRAB_ERROR_MESSAGES[result] ?? "Could not fetch a favicon",
-        code: result,
-      });
+      // Sanctioned discriminated-result → reply.code mapping: emit the standard error envelope shape.
+      return reply.code(502).send(imageGrabErrorReply(result, "favicon"));
     }
     return reply.code(201).send(result);
   });

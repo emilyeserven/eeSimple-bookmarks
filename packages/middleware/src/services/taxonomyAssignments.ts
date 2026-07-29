@@ -144,16 +144,20 @@ export async function setOwnerTaxonomyTerms(
 }
 
 /**
- * Remove every taxonomy attachment (across all taxonomies) for one owner. Called from each owner
- * entity's delete service (bookmark + all taxonomies) since `ownerId` carries no cascade FK.
+ * Remove every taxonomy attachment (across all taxonomies) for one owner — or a batch of owners of
+ * the same type (e.g. a deleted tree taxonomy root plus its cascade-deleted descendants). Called
+ * from each owner entity's delete service (bookmark + all taxonomies) since `ownerId` carries no
+ * cascade FK.
  */
 export async function deleteTaxonomyAssignmentsForOwner(
   ownerType: TaxonomyOwnerType,
-  ownerId: string,
+  ownerId: string | string[],
 ): Promise<void> {
+  const ownerIds = Array.isArray(ownerId) ? ownerId : [ownerId];
+  if (ownerIds.length === 0) return;
   await db.delete(taxonomyAssignments).where(and(
     eq(taxonomyAssignments.ownerType, ownerType),
-    eq(taxonomyAssignments.ownerId, ownerId),
+    inArray(taxonomyAssignments.ownerId, ownerIds),
   ));
   if (ownerType === "bookmark") invalidateBookmarkCache();
 }

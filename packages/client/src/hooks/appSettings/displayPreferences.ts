@@ -30,8 +30,6 @@ const DISPLAY_PREFERENCE_DEFAULTS = {
   mobileHiddenFilters: [] as string[],
   defaultBookmarkSort: null as BookmarkFieldSort | null,
   searchBoxPinned: false,
-  panelPinned: false,
-  drawerUnpinnedBreakpoints: [768],
   croppedWidth: 16,
   croppedHeight: 9,
   hanScriptLanguage: "ja" as "ja" | "zh",
