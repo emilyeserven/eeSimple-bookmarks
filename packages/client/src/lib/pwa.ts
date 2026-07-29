@@ -84,6 +84,13 @@ export function getPwaRegistration(): ServiceWorkerRegistration | undefined {
   return registration;
 }
 
+/** Test-only: clear the module-level registration state (wired in `test-utils/resetStores.ts`). */
+export function __resetPwaForTests(): void {
+  registration = undefined;
+  updateServiceWorker = undefined;
+  initialized = false;
+}
+
 /** Classify a completed `registration.update()` by whether a new worker is now in flight. */
 export function classifyUpdateCheck(reg: ServiceWorkerRegistration | undefined): UpdateCheckOutcome {
   if (!reg) return "unsupported";

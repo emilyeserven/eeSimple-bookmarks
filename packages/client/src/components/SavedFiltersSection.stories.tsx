@@ -4,12 +4,11 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { HttpResponse, http } from "msw";
 
 import { SavedFiltersSection } from "./SavedFiltersSection";
+import { makeSavedFilter } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
 const savedFilters: SavedFilter[] = [
-  {
+  makeSavedFilter({
     id: "filter-tech-videos",
     name: "Tech Videos",
     slug: "tech-videos",
@@ -18,8 +17,7 @@ const savedFilters: SavedFilter[] = [
       mediaTypes: ["media-video"],
     },
     viewableOnline: true,
-    createdAt: NOW,
-  },
+  }),
 ];
 
 const meta = {

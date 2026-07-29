@@ -1,57 +1,8 @@
 // @vitest-environment node
-import type { ConnectorsStatus } from "@eesimple/types";
-
 import { describe, expect, it } from "vitest";
 
 import { CONNECTOR_LINKS, providerLabel } from "./connectorLinks";
-
-function makeStatus(overrides: Partial<ConnectorsStatus> = {}): ConnectorsStatus {
-  return {
-    hostedMetadata: {
-      enabled: false,
-      provider: null,
-      baseUrl: null,
-    },
-    youtubeDataApi: {
-      enabled: false,
-    },
-    youtubeEmbed: {
-      useNoCookie: true,
-    },
-    instagram: {
-      apiKey: false,
-    },
-    instagramReelArchive: {
-      enabled: false,
-    },
-    objectStorage: {
-      configured: false,
-    },
-    archiveBox: {
-      enabled: false,
-      baseUrl: null,
-    },
-    kavita: {
-      enabled: false,
-      baseUrl: null,
-      sidebarUrl: null,
-    },
-    plex: {
-      enabled: false,
-      baseUrl: null,
-      machineIdentifier: null,
-    },
-    geocoding: {
-      enabled: true,
-      endpoint: "https://nominatim.openstreetmap.org",
-    },
-    wikidata: {
-      enabled: true,
-      endpoint: "https://www.wikidata.org",
-    },
-    ...overrides,
-  };
-}
+import { makeConnectorsStatus } from "../test-utils/factories";
 
 function link(key: string) {
   const found = CONNECTOR_LINKS.find(l => l.key === key);
@@ -74,7 +25,7 @@ describe("providerLabel", () => {
 
 describe("CONNECTOR_LINKS", () => {
   it("is unconfigured and href-less when no endpoints are set", () => {
-    const status = makeStatus();
+    const status = makeConnectorsStatus();
     for (const l of CONNECTOR_LINKS) {
       expect(l.isConfigured(status)).toBe(false);
       expect(l.href(status)).toBeNull();
@@ -82,7 +33,7 @@ describe("CONNECTOR_LINKS", () => {
   });
 
   it("gates kavita on the base URL alone (not enabled)", () => {
-    const status = makeStatus({
+    const status = makeConnectorsStatus({
       kavita: {
         enabled: false,
         baseUrl: "http://localhost:5000",
@@ -95,7 +46,7 @@ describe("CONNECTOR_LINKS", () => {
   });
 
   it("prefers the kavita sidebar URL over the base URL when it is set", () => {
-    const status = makeStatus({
+    const status = makeConnectorsStatus({
       kavita: {
         enabled: true,
         baseUrl: "http://100.68.29.108:5000",
@@ -107,7 +58,7 @@ describe("CONNECTOR_LINKS", () => {
   });
 
   it("falls back to the kavita base URL when no sidebar URL is set", () => {
-    const status = makeStatus({
+    const status = makeConnectorsStatus({
       kavita: {
         enabled: true,
         baseUrl: "http://localhost:5000",
@@ -118,7 +69,7 @@ describe("CONNECTOR_LINKS", () => {
   });
 
   it("labels archivebox and resolves its href", () => {
-    const status = makeStatus({
+    const status = makeConnectorsStatus({
       archiveBox: {
         enabled: true,
         baseUrl: "http://localhost:8000",
@@ -130,7 +81,7 @@ describe("CONNECTOR_LINKS", () => {
   });
 
   it("gates plex on the base URL and lands on the web UI", () => {
-    const status = makeStatus({
+    const status = makeConnectorsStatus({
       plex: {
         enabled: false,
         baseUrl: "http://plex.local:32400/",
@@ -143,7 +94,7 @@ describe("CONNECTOR_LINKS", () => {
   });
 
   it("labels the hosted-metadata link by provider name", () => {
-    const status = makeStatus({
+    const status = makeConnectorsStatus({
       hostedMetadata: {
         enabled: true,
         provider: "browserless",

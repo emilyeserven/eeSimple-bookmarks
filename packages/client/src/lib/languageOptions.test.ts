@@ -1,20 +1,12 @@
 // @vitest-environment node
 import type { TFunction } from "i18next";
-import type { Language } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
 
 import { languageComboboxGroups, sortLanguagesFavoritesFirst } from "./languageOptions";
+import { makeLanguage } from "../test-utils/factories";
 
 const t = ((s: string) => s) as TFunction;
-
-function makeLanguage(overrides: Partial<Language> & Pick<Language, "id" | "name">): Language {
-  return {
-    isFavorite: false,
-    isoCode: null,
-    ...overrides,
-  } as Language;
-}
 
 describe("languageComboboxGroups", () => {
   it("returns a single 'Languages' group when there are no favorites", () => {

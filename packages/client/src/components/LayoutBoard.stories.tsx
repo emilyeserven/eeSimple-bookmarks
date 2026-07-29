@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Calendar, FileText, Hash, Image, Link, Tag, Type } from "lucide-react";
 
 import { LayoutBoard } from "./LayoutBoard";
+import { makeEntityLayout, makeLayoutSection, makeLayoutTab } from "../test-utils/factories";
 
 /** A fake field registry — the caller-supplied `{ key, label, icon }` metadata the board renders. */
 const FAKE_FIELDS: LayoutFieldMeta[] = [
@@ -49,64 +50,64 @@ const FAKE_FIELDS: LayoutFieldMeta[] = [
 
 /** A two-tab layout with fields split across sections and two fields left in the tray. */
 function twoTabLayout(): EntityLayout {
-  return {
+  return makeEntityLayout({
     tabs: [
-      {
+      makeLayoutTab({
         key: "general",
         label: "General",
         icon: "FileText",
         sections: [
-          {
+          makeLayoutSection({
             key: "main",
             title: "Main",
             fields: ["title", "url", "description"],
-          },
-          {
+          }),
+          makeLayoutSection({
             key: "meta",
             title: "Metadata",
             fields: ["tags"],
-          },
+          }),
         ],
-      },
-      {
+      }),
+      makeLayoutTab({
         key: "advanced",
         label: "Advanced",
-        sections: [{
+        sections: [makeLayoutSection({
           key: "misc",
           fields: ["priority"],
-        }],
-      },
+        })],
+      }),
     ],
-  };
+  });
 }
 
 /** A single tab / single section — everything else sits in the tray. */
 function emptyLayout(): EntityLayout {
-  return {
-    tabs: [{
+  return makeEntityLayout({
+    tabs: [makeLayoutTab({
       key: "general",
       label: "General",
-      sections: [{
+      sections: [makeLayoutSection({
         key: "main",
         fields: [],
-      }],
-    }],
-  };
+      })],
+    })],
+  });
 }
 
 /** A single tab + single non-empty section: both delete buttons are guarded (disabled). */
 function guardRailLayout(): EntityLayout {
-  return {
-    tabs: [{
+  return makeEntityLayout({
+    tabs: [makeLayoutTab({
       key: "general",
       label: "General",
-      sections: [{
+      sections: [makeLayoutSection({
         key: "main",
         title: "Main",
         fields: ["title", "url"],
-      }],
-    }],
-  };
+      })],
+    })],
+  });
 }
 
 const meta = {
@@ -166,35 +167,35 @@ export const GuardRails: Story = {
 export const CrossTab: Story = {
   render: () => (
     <Controlled
-      initial={{
+      initial={makeEntityLayout({
         tabs: [
-          {
+          makeLayoutTab({
             key: "general",
             label: "General",
-            sections: [{
+            sections: [makeLayoutSection({
               key: "main",
               title: "Main",
               fields: ["title", "url", "description", "tags"],
-            }],
-          },
-          {
+            })],
+          }),
+          makeLayoutTab({
             key: "advanced",
             label: "Advanced",
             sections: [
-              {
+              makeLayoutSection({
                 key: "dates",
                 title: "Dates",
                 fields: ["created"],
-              },
-              {
+              }),
+              makeLayoutSection({
                 key: "misc",
                 title: "Misc",
                 fields: ["priority", "image"],
-              },
+              }),
             ],
-          },
+          }),
         ],
-      }}
+      })}
     />
   ),
 };

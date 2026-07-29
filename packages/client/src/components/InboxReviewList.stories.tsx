@@ -3,30 +3,18 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { InboxReviewList } from "./InboxReviewList";
 import { useInboxReviewController } from "./useInboxReviewController";
+import { makeImportItem } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
 function makeItem(overrides: Partial<ImportItem>): ImportItem {
-  return {
+  return makeImportItem({
     id: "item-1",
     importId: "import-1",
-    url: "https://example.com/article",
-    rawUrl: "https://example.com/article",
     title: "An interesting article",
     description: "A short summary of the article.",
-    imageUrl: null,
-    newsletterContext: null,
     anchorText: "read more",
-    categoryId: null,
-    status: "pending",
-    markedForDeletion: false,
-    duplicateBookmarkId: null,
-    createdBookmarkId: null,
-    errorReason: null,
-    createdAt: NOW,
     ...overrides,
-  };
+  });
 }
 
 const pendingItems = [

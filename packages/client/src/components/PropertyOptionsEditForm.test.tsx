@@ -7,6 +7,7 @@ import { PropertyOptionsEditForm } from "./PropertyOptionsEditForm";
 import { OPTIONS_KEYS } from "./propertyOptionsKeys";
 import { makeCustomProperty } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
+import { notifySuccess, resetToastSpies } from "../test-utils/toastSpies";
 
 const updateMutate
   = vi.fn<(vars: { id: string;
@@ -35,12 +36,7 @@ vi.mock("../hooks/useCustomProperties", () => ({
   }),
 }));
 
-const notifyFieldSaved = vi.fn<(label: string) => void>();
-const notifyFieldSaveError = vi.fn<(label: string, cause?: string) => void>();
-vi.mock("../lib/autoSave", () => ({
-  notifyFieldSaved: (label: string) => notifyFieldSaved(label),
-  notifyFieldSaveError: (label: string, cause?: string) => notifyFieldSaveError(label, cause),
-}));
+vi.mock("../lib/notifications", async () => await import("../test-utils/toastSpies"));
 
 const choicesProperty = makeCustomProperty({
   id: "prop-choices",
@@ -62,8 +58,7 @@ function callWithKey(key: string) {
 describe("PropertyOptionsEditForm (options save on blur)", () => {
   beforeEach(() => {
     updateMutate.mockReset();
-    notifyFieldSaved.mockReset();
-    notifyFieldSaveError.mockReset();
+    resetToastSpies();
   });
 
   it("does not fire a save on mount", async () => {
@@ -111,7 +106,7 @@ describe("PropertyOptionsEditForm (options save on blur)", () => {
     const call = callWithKey("choicesItems");
     if (!call) throw new Error("expected a choicesItems save");
     expect((call[0].input.choicesItems as unknown[]).length).toBe(2);
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Choices");
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Choices");
   });
 
   it("flushes a changed option on unmount (leaving the tab before blur)", async () => {

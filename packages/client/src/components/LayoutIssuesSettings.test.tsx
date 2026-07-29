@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { LayoutIssuesSettings } from "./LayoutIssuesSettings";
 import { renderWithRouter } from "../test-utils/router";
+import { notifySuccess, resetToastSpies } from "../test-utils/toastSpies";
 
 let invalidLayouts: EntityLayoutRecord[] = [];
 const clearMutate
@@ -28,11 +29,7 @@ vi.mock("../lib/clipboard", () => ({
   copyText: (text: string) => copyText(text),
 }));
 
-const notifySuccess = vi.fn<(m: string) => void>();
-vi.mock("../lib/notifications", () => ({
-  notifySuccess: (m: string) => notifySuccess(m),
-  notifyError: (m: string) => m,
-}));
+vi.mock("../lib/notifications", async () => await import("../test-utils/toastSpies"));
 
 const invalidRecord: EntityLayoutRecord = {
   entityKind: "custom-property",
@@ -50,7 +47,7 @@ describe("LayoutIssuesSettings", () => {
     invalidLayouts = [];
     clearMutate.mockClear();
     copyText.mockClear();
-    notifySuccess.mockClear();
+    resetToastSpies();
   });
 
   it("shows an empty state when there are no invalid layouts", async () => {

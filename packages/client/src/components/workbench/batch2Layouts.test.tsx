@@ -13,6 +13,7 @@ import { savedFilterWorkbench } from "./savedFilter";
 import { tagWorkbench } from "./tag";
 import { websiteWorkbench } from "./website";
 import { youtubeChannelWorkbench } from "./youtubeChannel";
+import { makeEntityLayout, makeLayoutSection, makeLayoutTab } from "../../test-utils/factories";
 
 import { deriveWorkbenchTabs, knownFieldKeys, visibleSectionsForTab } from "@/lib/workbenchLayout";
 
@@ -291,18 +292,16 @@ describe("saved filter default layout", () => {
 
 describe("stored layout rearrangement (end-to-end loop, one tree entity + one config entity)", () => {
   it("moves a tag field into a brand-new user-created tab in both modes", () => {
-    const stored: EntityLayout = {
-      tabs: [
-        {
-          key: "extras",
-          label: "Extras",
-          sections: [{
-            key: "s",
-            fields: ["autofillRules"],
-          }],
-        },
-      ],
-    };
+    const stored: EntityLayout = makeEntityLayout({
+      tabs: [makeLayoutTab({
+        key: "extras",
+        label: "Extras",
+        sections: [makeLayoutSection({
+          key: "s",
+          fields: ["autofillRules"],
+        })],
+      })],
+    });
     const viewKeys = shape(tagWorkbench, "view", stored).map(tab => tab.key);
     const editKeys = shape(tagWorkbench, "edit", stored).map(tab => tab.key);
     expect(viewKeys).toContain("extras");

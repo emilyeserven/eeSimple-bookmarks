@@ -2,14 +2,9 @@ import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useFieldAutoSave } from "./useFieldAutoSave";
+import { notifyError, notifySuccess, resetToastSpies } from "../test-utils/toastSpies";
 
-const notifyFieldSaved = vi.fn<(label: string) => void>();
-const notifyFieldSaveError = vi.fn<(label: string, cause?: string) => void>();
-
-vi.mock("../lib/autoSave", () => ({
-  notifyFieldSaved: (label: string) => notifyFieldSaved(label),
-  notifyFieldSaveError: (label: string, cause?: string) => notifyFieldSaveError(label, cause),
-}));
+vi.mock("../lib/notifications", async () => await import("../test-utils/toastSpies"));
 
 interface Fields {
   name: string;
@@ -43,8 +38,7 @@ const labels: Record<keyof Fields, string> = {
 
 describe("useFieldAutoSave", () => {
   beforeEach(() => {
-    notifyFieldSaved.mockReset();
-    notifyFieldSaveError.mockReset();
+    resetToastSpies();
   });
 
   it("saves a single-field patch and fires a field-named success toast", () => {
@@ -71,7 +65,7 @@ describe("useFieldAutoSave", () => {
         name: "New",
       },
     });
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Name");
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Name");
   });
 
   it("skips a no-op (value equal to last saved), including deep array equality", () => {
@@ -93,7 +87,7 @@ describe("useFieldAutoSave", () => {
     act(() => result.current.saveField("tagIds", ["a", "b"]));
 
     expect(update.mutate).not.toHaveBeenCalled();
-    expect(notifyFieldSaved).not.toHaveBeenCalled();
+    expect(notifySuccess).not.toHaveBeenCalled();
   });
 
   it("skips an invalid value without saving or toasting", () => {
@@ -116,7 +110,7 @@ describe("useFieldAutoSave", () => {
     }));
 
     expect(update.mutate).not.toHaveBeenCalled();
-    expect(notifyFieldSaved).not.toHaveBeenCalled();
+    expect(notifySuccess).not.toHaveBeenCalled();
   });
 
   it("advances the saved snapshot so the same value isn't saved twice", () => {
@@ -156,7 +150,7 @@ describe("useFieldAutoSave", () => {
       }));
 
     act(() => result.current.saveField("name", "New"));
-    expect(notifyFieldSaveError).toHaveBeenCalledWith("Name", "boom");
+    expect(notifyError).toHaveBeenCalledWith("Couldn't save Name: boom");
 
     // Snapshot did not advance, so retrying the same value attempts the save again.
     act(() => result.current.saveField("name", "New"));

@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AutofillRulePrefillForm } from "./AutofillRulePrefillForm";
 import { makeAutofillRule, makeCategory, makeMediaType } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
+import { notifySuccess, resetToastSpies } from "../test-utils/toastSpies";
 
 const updateMutate
   = vi.fn<(vars: { id: string;
@@ -70,12 +71,7 @@ vi.mock("../hooks/useTags", () => ({
   }),
 }));
 
-const notifyFieldSaved = vi.fn<(label: string) => void>();
-const notifyFieldSaveError = vi.fn<(label: string, cause?: string) => void>();
-vi.mock("../lib/autoSave", () => ({
-  notifyFieldSaved: (label: string) => notifyFieldSaved(label),
-  notifyFieldSaveError: (label: string, cause?: string) => notifyFieldSaveError(label, cause),
-}));
+vi.mock("../lib/notifications", async () => await import("../test-utils/toastSpies"));
 
 // Stub the per-field picker halves so the test can drive each onChange directly without a real
 // Select/TagPicker. The prefill form is recomposed (#1197) from the five granular edit fields, each
@@ -129,8 +125,7 @@ const rule = makeAutofillRule({
 describe("AutofillRulePrefillForm (auto-save)", () => {
   beforeEach(() => {
     updateMutate.mockReset();
-    notifyFieldSaved.mockReset();
-    notifyFieldSaveError.mockReset();
+    resetToastSpies();
   });
 
   it("has no Save button (auto-save)", async () => {
@@ -152,7 +147,7 @@ describe("AutofillRulePrefillForm (auto-save)", () => {
         setCategoryId: "cat-1",
       },
     });
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Category");
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Category");
   });
 
   it("saves only setMediaTypeId when the media type changes and toasts Media Type", async () => {
@@ -167,7 +162,7 @@ describe("AutofillRulePrefillForm (auto-save)", () => {
         setMediaTypeId: "mt-1",
       },
     });
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Media Type");
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Media Type");
   });
 
   it("saves only tagIds when a tag is toggled and toasts Tags", async () => {
@@ -182,6 +177,6 @@ describe("AutofillRulePrefillForm (auto-save)", () => {
         tagIds: ["tag-1"],
       },
     });
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Tags");
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Tags");
   });
 });

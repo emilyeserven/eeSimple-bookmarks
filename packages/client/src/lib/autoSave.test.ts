@@ -2,19 +2,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { notifyFieldSaved, notifyFieldSaveError } from "./autoSave";
+import { notifyError, notifySuccess, resetToastSpies } from "../test-utils/toastSpies";
 
-const notifySuccess = vi.fn<(message: string) => void>();
-const notifyError = vi.fn<(message: string) => void>();
-
-vi.mock("./notifications", () => ({
-  notifySuccess: (message: string) => notifySuccess(message),
-  notifyError: (message: string) => notifyError(message),
-}));
+vi.mock("./notifications", async () => await import("../test-utils/toastSpies"));
 
 describe("autoSave notifications", () => {
   beforeEach(() => {
-    notifySuccess.mockReset();
-    notifyError.mockReset();
+    resetToastSpies();
   });
 
   it("fires a field-referencing success toast", () => {

@@ -19,36 +19,37 @@ import {
   setTabDescription,
   setTabIcon,
 } from "./entityLayoutMutations";
+import { makeEntityLayout, makeLayoutSection, makeLayoutTab } from "../test-utils/factories";
 
 /** A two-tab layout: general(main[a,b] / meta[c]) + advanced(danger[d]). */
 function sampleLayout(): EntityLayout {
-  return {
+  return makeEntityLayout({
     tabs: [
-      {
+      makeLayoutTab({
         key: "general",
         label: "General",
         sections: [
-          {
+          makeLayoutSection({
             key: "main",
             title: "Main",
             fields: ["a", "b"],
-          },
-          {
+          }),
+          makeLayoutSection({
             key: "meta",
             fields: ["c"],
-          },
+          }),
         ],
-      },
-      {
+      }),
+      makeLayoutTab({
         key: "advanced",
         label: "Advanced",
-        sections: [{
+        sections: [makeLayoutSection({
           key: "danger",
           fields: ["d"],
-        }],
-      },
+        })],
+      }),
     ],
-  };
+  });
 }
 
 /** The field keys held by section `sectionKey` of tab `tabKey`. */
@@ -286,16 +287,16 @@ describe("deleteTab", () => {
   });
 
   it("is a no-op when only one tab remains", () => {
-    const single: EntityLayout = {
-      tabs: [{
+    const single: EntityLayout = makeEntityLayout({
+      tabs: [makeLayoutTab({
         key: "general",
         label: "General",
-        sections: [{
+        sections: [makeLayoutSection({
           key: "main",
           fields: ["a"],
-        }],
-      }],
-    };
+        })],
+      })],
+    });
     expect(deleteTab(single, "general")).toBe(single);
   });
 });
@@ -313,16 +314,16 @@ describe("deleteSection", () => {
   });
 
   it("deletes an empty last section, leaving a section-less tab", () => {
-    const layout: EntityLayout = {
-      tabs: [{
+    const layout: EntityLayout = makeEntityLayout({
+      tabs: [makeLayoutTab({
         key: "advanced",
         label: "Advanced",
-        sections: [{
+        sections: [makeLayoutSection({
           key: "danger",
           fields: [],
-        }],
-      }],
-    };
+        })],
+      })],
+    });
     const next = deleteSection(layout, "advanced", "danger");
     expect(next.tabs[0].sections).toEqual([]);
   });

@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { WebsiteParamRulesForm } from "./WebsiteParamRulesForm";
 import { makeWebsite as makeWebsiteEntity } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
+import { notifyError, notifySuccess, resetToastSpies } from "../test-utils/toastSpies";
 
 const updateMutate
   = vi.fn<(vars: { id: string;
@@ -45,18 +46,12 @@ vi.mock("../hooks/useWebsites", () => ({
   }),
 }));
 
-const notifyFieldSaved = vi.fn<(label: string) => void>();
-const notifyFieldSaveError = vi.fn<(label: string, cause?: string) => void>();
-vi.mock("../lib/autoSave", () => ({
-  notifyFieldSaved: (label: string) => notifyFieldSaved(label),
-  notifyFieldSaveError: (label: string, cause?: string) => notifyFieldSaveError(label, cause),
-}));
+vi.mock("../lib/notifications", async () => await import("../test-utils/toastSpies"));
 
 describe("WebsiteParamRulesForm (auto-save)", () => {
   beforeEach(() => {
     updateMutate.mockReset();
-    notifyFieldSaved.mockReset();
-    notifyFieldSaveError.mockReset();
+    resetToastSpies();
     mutationBehavior = "success";
   });
 
@@ -92,7 +87,7 @@ describe("WebsiteParamRulesForm (auto-save)", () => {
         }],
       },
     });
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Param Rules");
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Param Rules");
   });
 
   it("saves the param rules array with matchMode 'contains' when selected", async () => {
@@ -148,7 +143,7 @@ describe("WebsiteParamRulesForm (auto-save)", () => {
         paramRules: [],
       },
     });
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Param Rules");
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Param Rules");
   });
 
   it("does not save when the normalized rules are unchanged", async () => {
@@ -179,7 +174,7 @@ describe("WebsiteParamRulesForm (auto-save)", () => {
     }));
 
     await waitFor(() =>
-      expect(notifyFieldSaveError).toHaveBeenCalledWith("Param Rules", "offline"));
+      expect(notifyError).toHaveBeenCalledWith("Couldn't save Param Rules: offline"));
     expect(screen.queryByLabelText("Path suffix")).toBeNull();
   });
 });

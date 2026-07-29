@@ -4,26 +4,22 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { PlaceTypesCard } from "./PlaceTypesCard";
+import { makePlaceType, makePlaceTypeLevelGroup } from "../test-utils/factories";
 
 const PLACE_TYPES: PlaceType[] = [
-  {
+  makePlaceType({
     id: "pt1",
     name: "Country",
     slug: "country",
-    description: null,
-    sortOrder: 0,
-    createdAt: "2024-01-01T00:00:00.000Z",
     locationCount: 2,
-  },
-  {
+  }),
+  makePlaceType({
     id: "pt2",
     name: "City",
     slug: "city",
-    description: null,
     sortOrder: 1,
-    createdAt: "2024-01-01T00:00:00.000Z",
     locationCount: 3,
-  },
+  }),
 ];
 
 vi.mock("../hooks/usePlaceTypes", () => ({
@@ -47,14 +43,11 @@ vi.mock("../hooks/usePlaceTypes", () => ({
 describe("PlaceTypesCard", () => {
   it("flags a place type not assigned to any level group", () => {
     const groups: PlaceTypeLevelGroup[] = [
-      {
+      makePlaceTypeLevelGroup({
         id: "g1",
         name: "Country level",
         placeTypes: ["country"],
-        displayMode: "area",
-        visible: true,
-        sortOrder: 0,
-      },
+      }),
     ];
     render(<PlaceTypesCard groups={groups} />);
     expect(screen.getByTitle("City isn’t assigned to any level")).toBeInTheDocument();

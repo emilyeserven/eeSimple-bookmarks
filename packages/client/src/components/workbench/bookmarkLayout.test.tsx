@@ -5,6 +5,7 @@ import { resolveLayout } from "@eesimple/types";
 import { describe, expect, it } from "vitest";
 
 import { bookmarkWorkbench } from "./bookmark";
+import { makeEntityLayout, makeLayoutSection, makeLayoutTab } from "../../test-utils/factories";
 
 import { augmentDefaultLayout, deriveWorkbenchTabs, knownFieldKeys, visibleSectionsForTab } from "@/lib/workbenchLayout";
 
@@ -199,18 +200,16 @@ describe("bookmark stored layout rearrangement (end-to-end loop)", () => {
   // Move the `imagePicker` field into a brand-new user-created tab; `resolveLayout` keeps it there and
   // appends every other unplaced field to its default home — proving a stored layout drives the render
   // in BOTH modes for bookmarks too (the hand-PUT loop the editor UI automates).
-  const stored: EntityLayout = {
-    tabs: [
-      {
-        key: "media",
-        label: "Media",
-        sections: [{
-          key: "s",
-          fields: ["imagePicker"],
-        }],
-      },
-    ],
-  };
+  const stored: EntityLayout = makeEntityLayout({
+    tabs: [makeLayoutTab({
+      key: "media",
+      label: "Media",
+      sections: [makeLayoutSection({
+        key: "s",
+        fields: ["imagePicker"],
+      })],
+    })],
+  });
 
   it("shows the moved field under the new tab in both modes", () => {
     const viewMedia = shape(bookmarkWorkbench, "view", stored).find(tab => tab.key === "media");

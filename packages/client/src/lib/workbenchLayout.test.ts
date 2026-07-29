@@ -12,6 +12,7 @@ import {
   visibleFieldKeys,
   visibleSectionsForTab,
 } from "./workbenchLayout";
+import { makeEntityLayout, makeLayoutSection, makeLayoutTab } from "../test-utils/factories";
 
 interface Fake {
   id: string;
@@ -49,42 +50,42 @@ const fields = {
 } satisfies Record<string, WorkbenchField<Fake>>;
 
 // One tab per field so tab-level empty-in-mode hiding is directly observable.
-const layout: EntityLayout = {
+const layout: EntityLayout = makeEntityLayout({
   tabs: [
-    {
+    makeLayoutTab({
       key: "general",
       label: "General",
-      sections: [{
+      sections: [makeLayoutSection({
         key: "main",
         fields: ["name"],
-      }],
-    },
-    {
+      })],
+    }),
+    makeLayoutTab({
       key: "display",
       label: "Display",
-      sections: [{
+      sections: [makeLayoutSection({
         key: "s",
         fields: ["display"],
-      }],
-    },
-    {
+      })],
+    }),
+    makeLayoutTab({
       key: "hierarchy",
       label: "Hierarchy",
-      sections: [{
+      sections: [makeLayoutSection({
         key: "s",
         fields: ["hierarchy"],
-      }],
-    },
-    {
+      })],
+    }),
+    makeLayoutTab({
       key: "opts",
       label: "Options",
-      sections: [{
+      sections: [makeLayoutSection({
         key: "s",
         fields: ["options"],
-      }],
-    },
+      })],
+    }),
   ],
-};
+});
 
 const withOptions: Fake = {
   id: "1",
@@ -326,45 +327,45 @@ describe("deriveWorkbenchTabs (layout-driven)", () => {
   });
 
   it("leaves a layout tab with no matching workbench tab ungrouped (user-created tab stays flat)", () => {
-    const withNewTab: EntityLayout = {
+    const withNewTab: EntityLayout = makeEntityLayout({
       tabs: [
         ...layout.tabs,
-        {
+        makeLayoutTab({
           key: "custom",
           label: "My Tab",
-          sections: [{
+          sections: [makeLayoutSection({
             key: "s",
             fields: ["name"],
-          }],
-        },
+          })],
+        }),
       ],
-    };
+    });
     const tabs = deriveWorkbenchTabs(layoutDriven, withNewTab, "view", withOptions);
     expect(tabs.find(t => t.key === "custom")?.group).toBeUndefined();
   });
 });
 
 describe("augmentDefaultLayout (dynamic field homes)", () => {
-  const base: EntityLayout = {
+  const base: EntityLayout = makeEntityLayout({
     tabs: [
-      {
+      makeLayoutTab({
         key: "general",
         label: "General",
-        sections: [{
+        sections: [makeLayoutSection({
           key: "main",
           fields: ["name"],
-        }],
-      },
-      {
+        })],
+      }),
+      makeLayoutTab({
         key: "properties",
         label: "Properties",
-        sections: [{
+        sections: [makeLayoutSection({
           key: "properties",
           fields: [],
-        }],
-      },
+        })],
+      }),
     ],
-  };
+  });
   const home = {
     tabKey: "properties",
     sectionKey: "properties",
@@ -388,13 +389,13 @@ describe("augmentDefaultLayout (dynamic field homes)", () => {
   });
 
   it("creates the home section when the home tab lacks it", () => {
-    const noSection: EntityLayout = {
-      tabs: [{
+    const noSection: EntityLayout = makeEntityLayout({
+      tabs: [makeLayoutTab({
         key: "properties",
         label: "Properties",
         sections: [],
-      }],
-    };
+      })],
+    });
     const out = augmentDefaultLayout(noSection, ["p1"], home);
     expect(out.tabs[0]?.sections).toEqual([{
       key: "properties",
@@ -403,16 +404,16 @@ describe("augmentDefaultLayout (dynamic field homes)", () => {
   });
 
   it("creates the home tab + section when the default layout lacks the home tab", () => {
-    const noTab: EntityLayout = {
-      tabs: [{
+    const noTab: EntityLayout = makeEntityLayout({
+      tabs: [makeLayoutTab({
         key: "general",
         label: "General",
-        sections: [{
+        sections: [makeLayoutSection({
           key: "main",
           fields: ["name"],
-        }],
-      }],
-    };
+        })],
+      })],
+    });
     const out = augmentDefaultLayout(noTab, ["p1"], home);
     const created = out.tabs.find(t => t.key === "properties");
     expect(created?.sections).toEqual([{

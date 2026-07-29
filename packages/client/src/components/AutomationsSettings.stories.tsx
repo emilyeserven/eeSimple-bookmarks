@@ -11,7 +11,6 @@ const automationSettings = {
   autoApplyTitleTags: false,
   autoApplyTitleLocations: false,
   shareBypassInbox: false,
-  sidebarOpenModifier: "alt",
 };
 
 const personSourceLabelSettings = {

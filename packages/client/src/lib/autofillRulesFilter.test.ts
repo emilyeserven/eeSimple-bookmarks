@@ -1,5 +1,5 @@
 // @vitest-environment node
-import type { AutofillRule, ConditionNode, ConditionTree } from "@eesimple/types";
+import type { ConditionNode, ConditionTree } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
 
@@ -10,30 +10,7 @@ import {
   ruleTargetsWebsite,
   ruleTargetsYoutubeChannel,
 } from "./autofillRulesFilter";
-
-function makeRule(overrides: Partial<AutofillRule> = {}): AutofillRule {
-  return {
-    id: "rule-1",
-    name: "Rule",
-    slug: "rule",
-    description: null,
-    conditions: {
-      type: "group",
-      combinator: "and",
-      children: [],
-    },
-    setCategoryId: null,
-    setMediaTypeId: null,
-    tagIds: [],
-    locationIds: [],
-    numberValues: [],
-    booleanValues: [],
-    dateTimeValues: [],
-    sortOrder: 0,
-    createdAt: "2026-06-01T00:00:00.000Z",
-    ...overrides,
-  };
-}
+import { makeAutofillRule } from "../test-utils/factories";
 
 function tree(...children: ConditionNode[]): ConditionTree {
   return {
@@ -45,19 +22,19 @@ function tree(...children: ConditionNode[]): ConditionTree {
 
 describe("ruleSetsProperty", () => {
   it("matches a property set via any value-kind array", () => {
-    expect(ruleSetsProperty(makeRule({
+    expect(ruleSetsProperty(makeAutofillRule({
       numberValues: [{
         propertyId: "p1",
         value: 3,
       }],
     }), "p1")).toBe(true);
-    expect(ruleSetsProperty(makeRule({
+    expect(ruleSetsProperty(makeAutofillRule({
       booleanValues: [{
         propertyId: "p2",
         value: true,
       }],
     }), "p2")).toBe(true);
-    expect(ruleSetsProperty(makeRule({
+    expect(ruleSetsProperty(makeAutofillRule({
       dateTimeValues: [{
         propertyId: "p3",
         value: "2026-01-01",
@@ -66,22 +43,22 @@ describe("ruleSetsProperty", () => {
   });
 
   it("returns false when no array references the property", () => {
-    expect(ruleSetsProperty(makeRule({
+    expect(ruleSetsProperty(makeAutofillRule({
       numberValues: [{
         propertyId: "other",
         value: 1,
       }],
     }), "p1")).toBe(false);
-    expect(ruleSetsProperty(makeRule(), "p1")).toBe(false);
+    expect(ruleSetsProperty(makeAutofillRule(), "p1")).toBe(false);
   });
 });
 
 describe("ruleSetsTag", () => {
   it("is true only when tagIds includes the tag", () => {
-    expect(ruleSetsTag(makeRule({
+    expect(ruleSetsTag(makeAutofillRule({
       tagIds: ["t1", "t2"],
     }), "t2")).toBe(true);
-    expect(ruleSetsTag(makeRule({
+    expect(ruleSetsTag(makeAutofillRule({
       tagIds: ["t1"],
     }), "t2")).toBe(false);
   });
@@ -89,19 +66,19 @@ describe("ruleSetsTag", () => {
 
 describe("ruleSetsMediaType", () => {
   it("compares against setMediaTypeId", () => {
-    expect(ruleSetsMediaType(makeRule({
+    expect(ruleSetsMediaType(makeAutofillRule({
       setMediaTypeId: "m1",
     }), "m1")).toBe(true);
-    expect(ruleSetsMediaType(makeRule({
+    expect(ruleSetsMediaType(makeAutofillRule({
       setMediaTypeId: "m1",
     }), "m2")).toBe(false);
-    expect(ruleSetsMediaType(makeRule(), "m1")).toBe(false);
+    expect(ruleSetsMediaType(makeAutofillRule(), "m1")).toBe(false);
   });
 });
 
 describe("ruleTargetsWebsite", () => {
   it("matches a normalized domain anywhere in a nested tree", () => {
-    const rule = makeRule({
+    const rule = makeAutofillRule({
       conditions: tree({
         type: "group",
         combinator: "or",
@@ -116,13 +93,13 @@ describe("ruleTargetsWebsite", () => {
   });
 
   it("returns false when there is no website condition", () => {
-    expect(ruleTargetsWebsite(makeRule(), "example.com")).toBe(false);
+    expect(ruleTargetsWebsite(makeAutofillRule(), "example.com")).toBe(false);
   });
 });
 
 describe("ruleTargetsYoutubeChannel", () => {
   it("matches a channel id nested in a group", () => {
-    const rule = makeRule({
+    const rule = makeAutofillRule({
       conditions: tree({
         type: "group",
         combinator: "or",
@@ -137,6 +114,6 @@ describe("ruleTargetsYoutubeChannel", () => {
   });
 
   it("returns false when there is no youtube-channel condition", () => {
-    expect(ruleTargetsYoutubeChannel(makeRule(), "c1")).toBe(false);
+    expect(ruleTargetsYoutubeChannel(makeAutofillRule(), "c1")).toBe(false);
   });
 });

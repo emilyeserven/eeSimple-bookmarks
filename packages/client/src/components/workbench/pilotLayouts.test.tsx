@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { categoryWorkbench } from "./category";
 import { newsletterWorkbench } from "./newsletter";
 import { shape } from "./workbenchLayoutTestUtils";
+import { makeEntityLayout, makeLayoutSection, makeLayoutTab } from "../../test-utils/factories";
 
 /**
  * Byte-identical pilot check (#1161): the two field-registry pilots (Category, Newsletter) must resolve
@@ -115,18 +116,16 @@ describe("stored layout rearrangement (end-to-end loop)", () => {
   // Move Category's `customProperties` field into a brand-new user-created tab. `resolveLayout` keeps it
   // there and appends every other (unplaced) field to its default home — proving a stored layout drives
   // the render in BOTH modes without the editor UI (that is #1160/#1162).
-  const stored: EntityLayout = {
-    tabs: [
-      {
-        key: "extras",
-        label: "Extras",
-        sections: [{
-          key: "s",
-          fields: ["customProperties"],
-        }],
-      },
-    ],
-  };
+  const stored: EntityLayout = makeEntityLayout({
+    tabs: [makeLayoutTab({
+      key: "extras",
+      label: "Extras",
+      sections: [makeLayoutSection({
+        key: "s",
+        fields: ["customProperties"],
+      })],
+    })],
+  });
 
   function extrasFields(mode: WorkbenchMode): string[] | undefined {
     return shape(categoryWorkbench, mode, stored).find(tab => tab.key === "extras")?.sections[0]?.fields;

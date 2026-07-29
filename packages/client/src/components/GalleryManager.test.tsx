@@ -4,7 +4,7 @@ import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { GalleryListing } from "./GalleryManager";
-import { makeBookmark } from "../test-utils/factories";
+import { makeBookmark, makeMediaObject } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
 
 // Stub the gallery hooks so the listing can be driven without a live API.
@@ -68,17 +68,15 @@ vi.mock("../hooks/useBookmarks", () => ({
 
 const DETAIL_PATH = "/bookmarks/$bookmarkId";
 
+/** This suite's object defaults over the shared factory. */
 function makeObject(over: Partial<MediaObject>): MediaObject {
-  return {
+  return makeMediaObject({
     objectKey: "bookmarks/x.webp",
-    contentType: "image/webp",
-    byteSize: 2048,
     lastModified: "2026-06-18T00:00:00.000Z",
     lastSeenAt: "2026-06-18T00:00:00.000Z",
-    bookmark: null,
     url: "/api/gallery/image?key=bookmarks%2Fx.webp",
     ...over,
-  };
+  });
 }
 
 describe("GalleryListing", () => {

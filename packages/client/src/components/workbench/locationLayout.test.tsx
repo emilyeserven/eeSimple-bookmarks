@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { locationWorkbench } from "./location";
 import { shape } from "./workbenchLayoutTestUtils";
+import { makeEntityLayout, makeLayoutSection, makeLayoutTab } from "../../test-utils/factories";
 
 /**
  * The #1191 location analogue of `bookmarkLayout.test.tsx`: the former single `general` composite is now
@@ -108,18 +109,16 @@ describe("location stored layout rearrangement (end-to-end loop)", () => {
   // Move the both-mode `coordinates` field into a brand-new user-created tab; `resolveLayout` keeps it
   // there and appends every other unplaced field to its default home — proving a stored layout drives
   // the render in BOTH modes (the hand-PUT loop the editor UI automates).
-  const stored: EntityLayout = {
-    tabs: [
-      {
-        key: "geo",
-        label: "Geo",
-        sections: [{
-          key: "s",
-          fields: ["coordinates"],
-        }],
-      },
-    ],
-  };
+  const stored: EntityLayout = makeEntityLayout({
+    tabs: [makeLayoutTab({
+      key: "geo",
+      label: "Geo",
+      sections: [makeLayoutSection({
+        key: "s",
+        fields: ["coordinates"],
+      })],
+    })],
+  });
 
   it("shows the moved field under the new tab in both modes", () => {
     const viewGeo = shape(locationWorkbench, "view", stored).find(tab => tab.key === "geo");

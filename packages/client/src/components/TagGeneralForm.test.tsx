@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TagGeneralForm } from "./TagGeneralForm";
 import { makeTag } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
+import { notifyError, notifySuccess, resetToastSpies } from "../test-utils/toastSpies";
 
 const updateMutate
   = vi.fn<(vars: { id: string;
@@ -46,12 +47,7 @@ vi.mock("../hooks/useTags", () => ({
   }),
 }));
 
-const notifyFieldSaved = vi.fn<(label: string) => void>();
-const notifyFieldSaveError = vi.fn<(label: string, cause?: string) => void>();
-vi.mock("../lib/autoSave", () => ({
-  notifyFieldSaved: (label: string) => notifyFieldSaved(label),
-  notifyFieldSaveError: (label: string, cause?: string) => notifyFieldSaveError(label, cause),
-}));
+vi.mock("../lib/notifications", async () => await import("../test-utils/toastSpies"));
 
 function makeTagNode(overrides: Partial<TagNode> = {}): TagNode {
   return {
@@ -70,8 +66,7 @@ const node = makeTagNode();
 describe("TagGeneralForm (auto-save)", () => {
   beforeEach(() => {
     updateMutate.mockReset();
-    notifyFieldSaved.mockReset();
-    notifyFieldSaveError.mockReset();
+    resetToastSpies();
     mutationBehavior = "success";
   });
 
@@ -112,7 +107,7 @@ describe("TagGeneralForm (auto-save)", () => {
         name: "Reading List",
       },
     });
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Name");
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Name");
   });
 
   it("does not save a cleared required name and shows the inline error", async () => {
@@ -163,7 +158,7 @@ describe("TagGeneralForm (auto-save)", () => {
         parentId: "tag-2",
       },
     });
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Parent");
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Parent");
   });
 
   it("opens the inline create-tag modal from the parent picker", async () => {
@@ -204,7 +199,7 @@ describe("TagGeneralForm (auto-save)", () => {
     });
     fireEvent.blur(name);
 
-    await waitFor(() => expect(notifyFieldSaveError).toHaveBeenCalledWith("Name", "offline"));
+    await waitFor(() => expect(notifyError).toHaveBeenCalledWith("Couldn't save Name: offline"));
     expect(name.value).toBe("Reading List");
   });
 });

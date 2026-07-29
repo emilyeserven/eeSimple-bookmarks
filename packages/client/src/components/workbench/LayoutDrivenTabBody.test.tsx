@@ -5,6 +5,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { LayoutDrivenTabBody } from "./LayoutDrivenTabBody";
+import { makeEntityLayout, makeLayoutSection, makeLayoutTab } from "../../test-utils/factories";
 
 interface Demo {
   id: string;
@@ -34,23 +35,23 @@ const workbench = {
 } as unknown as EntityWorkbench<Demo>;
 
 /** A layout with a 2-column "grid" section and a default full-width "solo" section. */
-const layout: EntityLayout = {
-  tabs: [{
+const layout: EntityLayout = makeEntityLayout({
+  tabs: [makeLayoutTab({
     key: "general",
     label: "General",
     sections: [
-      {
+      makeLayoutSection({
         key: "grid",
         columns: 2,
         fields: ["a", "b"],
-      },
-      {
+      }),
+      makeLayoutSection({
         key: "solo",
         fields: ["c"],
-      },
+      }),
     ],
-  }],
-};
+  })],
+});
 
 describe("LayoutDrivenTabBody column layout (#1220)", () => {
   it("renders a multi-column section as a container-query grid that reflows by width", () => {
@@ -93,19 +94,19 @@ describe("LayoutDrivenTabBody column layout (#1220)", () => {
 });
 
 describe("LayoutDrivenTabBody descriptions (#1220 follow-up)", () => {
-  const describedLayout: EntityLayout = {
-    tabs: [{
+  const describedLayout: EntityLayout = makeEntityLayout({
+    tabs: [makeLayoutTab({
       key: "general",
       label: "General",
       description: "What this tab is about",
-      sections: [{
+      sections: [makeLayoutSection({
         key: "main",
         title: "Main",
         description: "The core fields",
         fields: ["a"],
-      }],
-    }],
-  };
+      })],
+    })],
+  });
 
   it("renders the tab description above the sections and the section description under its title", () => {
     const {
@@ -124,17 +125,17 @@ describe("LayoutDrivenTabBody descriptions (#1220 follow-up)", () => {
   });
 
   it("shows a description on an untitled section (title falls back to empty)", () => {
-    const layout: EntityLayout = {
-      tabs: [{
+    const layout: EntityLayout = makeEntityLayout({
+      tabs: [makeLayoutTab({
         key: "general",
         label: "General",
-        sections: [{
+        sections: [makeLayoutSection({
           key: "main",
           description: "Standalone blurb",
           fields: ["a"],
-        }],
-      }],
-    };
+        })],
+      })],
+    });
     const {
       getByText,
     } = render(
@@ -171,24 +172,24 @@ describe("LayoutDrivenTabBody empty-section hiding (#1225)", () => {
     fields: emptyFields,
   } as unknown as EntityWorkbench<Demo>;
 
-  const emptyLayout: EntityLayout = {
-    tabs: [{
+  const emptyLayout: EntityLayout = makeEntityLayout({
+    tabs: [makeLayoutTab({
       key: "general",
       label: "General",
       sections: [
-        {
+        makeLayoutSection({
           key: "a",
           title: "Filled Section",
           fields: ["filled"],
-        },
-        {
+        }),
+        makeLayoutSection({
           key: "b",
           title: "Empty Section",
           fields: ["blank"],
-        },
+        }),
       ],
-    }],
-  };
+    })],
+  });
 
   it("hides a view section whose fields render no value", async () => {
     render(
@@ -222,17 +223,17 @@ describe("LayoutDrivenTabBody empty-section hiding (#1225)", () => {
     expect(screen.getByLabelText("Blank")).toBeVisible();
   });
 
-  const onlyBlankLayout: EntityLayout = {
-    tabs: [{
+  const onlyBlankLayout: EntityLayout = makeEntityLayout({
+    tabs: [makeLayoutTab({
       key: "general",
       label: "General",
-      sections: [{
+      sections: [makeLayoutSection({
         key: "b",
         title: "Empty Section",
         fields: ["blank"],
-      }],
-    }],
-  };
+      })],
+    })],
+  });
 
   it("reports the whole tab empty when every section renders no value", async () => {
     const onViewEmptyChange = vi.fn();
