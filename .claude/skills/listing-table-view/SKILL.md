@@ -28,7 +28,6 @@ view to a listing that doesn't have one yet, or scaffolds the column file for a 
 | Shared column factories | `packages/client/src/components/tables/columnHelpers.tsx` | `bookmarkCountColumn<T>()`, `categoryPillColumn<T>()` (non-component helpers — keep them out of `cells.tsx`). |
 | `useViewMode(pageKey)` | `packages/client/src/lib/bookmarkColumns.ts` | Reads the current `"cards" | "table"` for a page key (default `"cards"`). |
 | View toggle UI | `packages/client/src/components/DisplaySettingsControls.tsx` | The Cards/Table `ToggleGroup` that calls `setViewMode(pageKey, …)`. Already rendered by the listing's display controls — no per-entity work needed. |
-| Panel click helpers | `packages/client/src/components/panel/useEditPanelClick.ts` | `useEditPanelClick` / `useViewPanelClick` — wire name links and the edit-action cell so a modifier-click opens the right panel. |
 
 ## 1. Add the column file
 

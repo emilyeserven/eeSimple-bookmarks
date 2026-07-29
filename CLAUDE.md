@@ -142,12 +142,13 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   `SegmentedToggleRow` (`components/SegmentedToggleRow.tsx`, the shared segmented control also used by
   the sidebar show/hide settings). **See the `bookmark-add-form` skill for the change recipes.** In short:
   - **Standard fields** — the `BOOKMARK_ADD_FORM_STANDARD_FIELDS` tuple in
-    `packages/types/src/bookmarkAddForm.ts`: `title`/`names` (Default), the taxonomy fields
-    `categoryId`/`mediaTypeId`/`languageId`/`groupId`/`descriptionTags`/`personIds`/`image` (Advanced),
+    `packages/types/src/bookmarkAddForm.ts` (14 entries): `title`/`names` (Default), the taxonomy
+    fields `categoryId`/`mediaTypeId`/`descriptionTags`/`personIds`/`image` (Advanced),
     and the taxonomy/media/location relations `groupIds` (creators, plural), `genreMoodIds`,
     `locationIds`, `mediaLink` (the six book/movie/tvShow/episode/album/track FKs, via the
-    selection-driven `BookmarkMediaField`), `blacklistedTagIds`, `blacklistedLocationIds` — all six of
-    these **default to Hidden** so the create form is unchanged until opted in. Persisted in the
+    selection-driven `BookmarkMediaField`), `blacklistedTagIds`, `blacklistedLocationIds`, plus
+    `secondaryUrl` — all seven of these **default to Hidden** so the create form is unchanged until
+    opted in. Persisted in the
     server-side **`bookmark-add-form`** app-settings group as a **placement map**
     (`BookmarkAddFormSettings.standardFieldPlacements: Record<field, placement>`, resolved
     `{...DEFAULT.standardFieldPlacements, ...stored}` — the same merge as the built-in slugs). This
@@ -268,13 +269,15 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   just `throw` (reuse a generic subclass or a per-service `Duplicate*`/`BuiltIn*` one) — they don't
   build error bodies for domain failures. A route may `reply.code().send()` **only** to map a helper's
   *discriminated result union* (external-fetch/image-grab), and then only in the same envelope shape. A
-  new client-translatable `code` needs both an `ErrorCode` union entry and an `errorMessages.ts` entry
-  (a non-`tsc`-enforced sync point). **See the `api-errors` skill.**
+  new client-translatable `code` needs both an `ErrorCode` union entry (in
+  `packages/middleware/src/utils/errors.ts` — the union is middleware-local, not in `@eesimple/types`)
+  and a client `errorMessages.ts` entry (a non-`tsc`-enforced sync point). **See the `api-errors` skill.**
 
 ## Page-header breadcrumbs
 
 The top app-bar breadcrumb trail is built in **one place** —
-`packages/client/src/routes/-appHeader.tsx` (`breadcrumbsForPath()` + its helpers). It derives crumbs
+`packages/client/src/routes/-appHeaderCrumbs.tsx` (`breadcrumbsForPath()` + its helpers, consumed by
+`-appHeader.tsx`). It derives crumbs
 from the **pathname** and enriches them with real entity names resolved via `use*BySlug` hooks. Don't
 render a page-specific breadcrumb anywhere else; route components only set their own `<h1>`/`<h2>`
 title (see **Content hierarchies**), never a header crumb.
@@ -366,12 +369,12 @@ that matches the surface — don't invent a new structure for a one-off page.
   Languages, Locations, Media Properties, the seven media taxonomies, People, Groups) gets a **pathless
   `_hub` layout** (`…$slug._hub.tsx` → `components/ListingHubLayout.tsx`) that renders the entity `<h1>`
   header over a **horizontal outer strip of real URL path segments**: **Bookmarks** (`…/$slug`, exact
-  match), **Gallery** (`…/$slug/gallery`), **Media** (`…/$slug/media`), and **Info** (`…/$slug/info`).
-  The first three are `BookmarkSearchView` panes sharing the filter sidebar — selected by the
-  `activeView` prop passed from each `_hub.{index,gallery,media}.tsx` route — and **Info** navigates to
+  match), **Gallery** (`…/$slug/gallery`), and **Info** (`…/$slug/info`).
+  The first two are `BookmarkSearchView` panes sharing the filter sidebar — selected by the
+  `activeView` prop passed from each `_hub.{index,gallery}.tsx` route — and **Info** navigates to
   the vertical `EntityInfoView`. `edit` sits **outside** `_hub` (a sibling of the pathless layout) so
   the strip never shows while editing. Each entity's listing body is a shared `routes/-<entity>Listing.tsx`
-  component the three pane routes render with their own `activeView`; it resolves the entity by slug,
+  component the pane routes render with their own `activeView`; it resolves the entity by slug,
   filters bookmarks by its id/relation, and passes `pageKey`/filter props to `BookmarkSearchView` with
   **no `header`** (the `<h1>` lives in `_hub`). **Do not redirect to `/bookmarks?<filter>=…`** — that
   loses the entity context and breaks deep-linking. Reference: `routes/categories.$categorySlug._hub.tsx`
@@ -442,7 +445,7 @@ user-editable **Tab › Section › Field** tree, instead of the tab/section str
 **The whole system is live** — the schema, the `WorkbenchField` registry contract, the pure
 `resolveLayout`, the render seam, server persistence, and the drag-and-drop editor (**Settings → Display
 → Page Layouts**, `PageLayoutsSettings` + `LayoutBoard`) all shipped. **Every entity is layout-driven**:
-all 21 slug-routed workbench kinds *and* bookmarks render through the resolved-layout path (pilots
+all 19 slug-routed workbench kinds, the shared `taxonomy-term` kind, *and* bookmarks render through the resolved-layout path (pilots
 Category + Newsletter #1161, then rollout batches #1164/#1165, bookmarks #1163). The legacy opaque-pane
 path (`WorkbenchPane.render`) still exists in the types + `WorkbenchRouteTab`/`deriveWorkbenchTabs` as a
 **dormant fallback**, but **no descriptor populates panes anymore** — treat "add a field to a page" as a
@@ -464,7 +467,7 @@ registry edit, never a pane edit.
   (`middleware/routes/entityLayoutsSchema.ts`, `additionalProperties: false`) and the two places a
   tab/section literal is rebuilt from scratch — `resolveLayout`'s recreated-tab/-section branch and the
   editor's `renameSection` reducer — must carry them through (#1220). **Page Layouts is its own top-level settings
-  section** (`/settings/page-layouts`, a vertical entity rail, not the old Display sub-tab dropdown). `LAYOUTABLE_ENTITY_KINDS` (the 21 workbench kinds + `"bookmark"`) is the single edit
+  section** (`/settings/page-layouts`, a vertical entity rail, not the old Display sub-tab dropdown). `LAYOUTABLE_ENTITY_KINDS` (19 slug-routed workbench kinds + `"taxonomy-term"` + `"bookmark"` = 21) is the single edit
   point for adding a layoutable kind; `EntityLayoutRecord` is the API/DB row shape (`{ entityKind, layout,
   updatedAt }`, `layout: null` = no override) and `isValidEntityLayout` is the structural boundary guard
   (validates the tabs/sections nesting only — it does **not** check field keys; that is `resolveLayout`'s
@@ -1194,7 +1197,8 @@ recipe.** The load-bearing pieces:
 
 - **`hooks/useFavoriteToggle.ts`** — `useFavoriteToggle(kind)` → `{ toggle(item) }`, registry-driven off
   `ENTITY_PALETTE_CONFIGS[kind]` (`updateFn`/`queryKey`/`extraInvalidateKeys`) with the standard
-  Starred/Unstarred toast. `FAVORITABLE_KINDS` is the favoritable-kind set (all except the shortcut
+  Starred/Unstarred toast. `FAVORITABLE_KINDS` (in `lib/favoriteEntityConfig.ts`) is the
+  favoritable-kind set (all except the shortcut
   sub-taxonomies place-type/group-type/location-relation). Custom-taxonomy **terms** aren't registry
   kinds → `useTaxonomyTermFavoriteToggle(taxonomyId)` (`hooks/useTaxonomies.ts`).
 - **`components/StarredFlyoutSidebarItem.tsx`** — the single sidebar flyout (subsumed the old per-entity
@@ -1209,7 +1213,7 @@ recipe.** The load-bearing pieces:
   resolved generically from the route (`matchEntityRoute` + the entity's list-query cache); any
   favoritable kind lights up with **no** per-entity header wiring (replaced the old 2-branch
   `resolveFavoriteContext`).
-- **`lib/entityPaletteRegistry.ts` `starredPaletteField`** — the shared palette field appended to each
+- **`lib/starredPaletteField.ts` `starredPaletteField`** — the shared palette field appended to each
   descriptor's `fields`; `EntityCommandGroup` renders it automatically.
 - **Listing toggles:** flat rows use `FavoriteToggleButton` (`StandardListingCard`) via `renderExtra`
   (fragment-combine if occupied); tree entities use the `isFavorite`/`onToggleFavorite` slot pair on
@@ -1432,8 +1436,6 @@ action categories and their palette hooks:
 
 - **Listing display** (view mode, columns) — reads/writes `uiStore` via `useListingPageContext`;
   gate on `listingCtx.listingPage !== null`.
-- **Filter location** — reads/writes server `DisplayPreference` via
-  `useListingPageContext.setFilterLocation`; gate on `listingCtx.listingPage?.hasFilters`.
 - **Bulk select** — reads/writes `uiStore` via `useListingPageContext`; gate on
   `listingCtx.bulkSelectPageKey !== null`.
 - **Bookmark entity fields** (category, tags, media type, people, groups, boolean properties, choices

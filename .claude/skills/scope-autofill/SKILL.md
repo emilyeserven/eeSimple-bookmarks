@@ -37,11 +37,12 @@ workbench descriptor, the `edit` route shell + nav array, and the vertical Info 
 1. **`AutofillRulesList`** (`packages/client/src/components/AutofillRulesList.tsx`) — add a scope
    prop next to `categoryId` / `propertyId`, fold it into `scoped`, filter `scopedRules`, and add a
    scoped empty message. (Category filter is already hidden whenever `scoped`.)
-2. **Default a new rule** — the "New Autofill Rule" button opens the right panel
-   (`openAutofill(NEW_SENTINEL)`). The panel's `CreateAutofillRule`
-   (`packages/client/src/components/panel/AutofillRuleForms.tsx`) reads the entity slug from the URL
-   via `useParams({ strict: false })` and passes a `default<Entity>Id` to `AutofillRuleForm`, which
-   seeds the relevant form field. Mirror that.
+2. **Default a new rule** — every "New Autofill Rule" button goes through `useNewAutofillRule`
+   (`packages/client/src/hooks/useNewAutofillRule.tsx`): it resolves the current entity scope via
+   `useAutofillScopeDefaults` (which reads the URL params) and passes
+   `buildAutofillRulePrefill(defaults)` into `AddAutofillRuleModal`, then navigates to the new
+   rule's `/autofill/$ruleSlug/edit?tab=conditions`. Extend `useAutofillScopeDefaults` +
+   `lib/autofillPrefill.ts` for the new scope. Mirror that.
 3. Render `<AutofillRulesList <scope>={entity.id} query="" />` inside the entity's view + edit autofill
    tabs (the tab is wired via the workbench descriptor — see "Route files" below). `AutofillRulesList`
    requires a `query` prop; pass `query=""` inline (the text search lives only on the central page).

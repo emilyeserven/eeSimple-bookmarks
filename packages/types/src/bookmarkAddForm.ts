@@ -46,8 +46,8 @@ export const BOOKMARK_FORM_DETAIL_SLUGS = [
  * The standard (non-custom-property) fields on the Add Bookmark form that can be placed into the
  * main area, the Advanced section, or hidden.
  *
- * The first eight are the original always-available fields; the remaining six are taxonomy / media /
- * location relations that used to be editable only on the post-create edit surfaces. They default to
+ * The first seven are the original always-available fields; the remaining seven are taxonomy / media /
+ * location relations (plus `secondaryUrl`) that used to be editable only on the post-create edit surfaces. They default to
  * `hidden` (see {@link DEFAULT_BOOKMARK_ADD_FORM_SETTINGS}) so the create form is unchanged until the
  * user opts each one in.
  */

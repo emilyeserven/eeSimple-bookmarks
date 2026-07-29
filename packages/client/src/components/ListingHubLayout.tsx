@@ -10,14 +10,14 @@ import { cn } from "@/lib/utils";
 export interface ListingHubTab {
   to: LinkProps["to"];
   label: string;
-  /** Match only the exact path (the bookmarks/index tab, so it isn't active on gallery/media/info). */
+  /** Match only the exact path (the bookmarks/index tab, so it isn't active on gallery/info). */
   exact?: boolean;
 }
 
 interface Props {
   /** Entity heading rendered above the tab strip (shared by every hub tab, including Info). */
   header: ReactNode;
-  /** The horizontal outer tabs — `Bookmarks | Gallery | Media | Info` for a listing entity. */
+  /** The horizontal outer tabs — `Bookmarks | Gallery | Info` for a listing entity. */
   tabs: readonly ListingHubTab[];
   /** Route params shared by every tab link (e.g. `{ categorySlug }`). */
   params: LinkProps["params"];
@@ -26,7 +26,7 @@ interface Props {
 
 /**
  * The listing entity's outer shell: the entity `<h1>` header over a horizontal tab strip
- * (`Bookmarks | Gallery | Media | Info`) and the active child route via `<Outlet/>`. The first three
+ * (`Bookmarks | Gallery | Info`) and the active child route via `<Outlet/>`. The non-Info
  * tabs are `BookmarkSearchView` panes sharing the filter sidebar; **Info** navigates to the vertical
  * {@link import("./workbench/EntityInfoView").EntityInfoView}. Rendered by each entity's pathless `_hub`
  * layout so the strip + header appear on every listing view but never on the separate `edit` pages.

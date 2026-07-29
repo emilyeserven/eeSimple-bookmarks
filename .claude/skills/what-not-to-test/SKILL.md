@@ -126,7 +126,7 @@ play** — the conclusion is recorded here so the analysis isn't repeated:
 - **No more clean node-env migrations exist.** Of the client jsdom files, all but a handful call
   `render`/`renderHook`/`renderWithRouter` (they legitimately need a DOM); the rest need a DOM global
   (`localStorage` in `stores/uiStore.viewMode.test.ts` / `lib/shareNotifications.test.ts`, `window`
-  in `lib/bugReport.test.ts`, leaflet-at-import in `components/bookmarkDetailSections.test.tsx`). The
+  in `lib/bugReport.test.ts`). The
   pure files that *could* move already carry the `// @vitest-environment node` pragma.
 - **The remaining "pure logic behind a render" candidates are deferred, not ignored.** A couple of
   files assert pure derivations through a rendered component — `bookmarkDetailSections` (section

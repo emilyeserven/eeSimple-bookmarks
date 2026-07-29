@@ -92,12 +92,12 @@ schema edit — the two type-package edits below make it work end to end.
 `YouTubeChannelFilterSection` or `WebsiteFilterSection` instead.
 
 `FilterSidebar` (the caller of `FilterSections`) no longer derives visibility inline — it calls
-`computeFilterSidebarVisibility` (`packages/client/src/lib/filterSidebarVisibility.ts`), which
+`computeFilterSidebarVisibility` (`packages/client/src/lib/filterVisibility.ts`), which
 combines data presence with the on-demand reveal state. Wiring a new facet therefore means:
 add the entity list to `FilterFacetInputs` + `computeFacetData` there, add the facet's
 `{ key, label }` to `FILTER_FACETS` and its arm to `facetHasActiveSelection`
 (`lib/filterFacets.ts`), and read `facetVisible["<key>"]` in `FilterSidebar` — the same way
-`channels` is wired. `filterSidebarVisibility.test.ts` covers the reveal rules; extend it for the
+`channels` is wired. `filterVisibility.test.ts` covers the reveal rules; extend it for the
 new facet.
 
 ### 3. Route files that render `BookmarkSearchView`
@@ -122,9 +122,9 @@ A standalone "New Autofill Rule" button on the entity's view page that opens the
 preseeded with the entity — without the full rules tab.
 
 ### 1. Preseed the create form from the URL slug
-`CreateAutofillRule` (`packages/client/src/components/panel/AutofillRuleForms.tsx`) already reads
-`useParams({ strict: false })` and passes `defaultCategoryId` / `defaultWebsiteDomain` to
-`AutofillRuleForm`. Extend it:
+`useAutofillScopeDefaults` (used by `hooks/useNewAutofillRule.tsx`) already reads the URL params and
+feeds `buildAutofillRulePrefill` (`lib/autofillPrefill.ts`), which prefills the created rule.
+Extend it:
 - Add the entity's slug param (e.g. `mediaTypeSlug`) to the `useParams` destructure.
 - Fetch the entity list (its `use<Entity>s()` hook) and resolve `slug → identifier`.
 - Pass a `default<Entity>…` prop to `AutofillRuleForm`.
@@ -141,8 +141,8 @@ Then seed it in `AutofillRuleForm` (`packages/client/src/components/AutofillRule
 ### 2. Add the button to the entity's view page
 In the entity's General **view** pane body (in `components/workbench/<entity>.tsx` — it renders on the
 `…/$slug/info` page and the right panel), add a "New Autofill Rule" button:
-- `const { openAutofill } = usePanelControls();` then
-  `onClick={() => openAutofill(NEW_SENTINEL)}` (`NEW_SENTINEL` from `@/lib/drawerSearch`).
+- `const { onClick, modal } = useNewAutofillRule();` then spread `onClick` onto the button and
+  render `modal` beside it (`hooks/useNewAutofillRule.tsx`).
 - Place it in a `LabeledSection` (title "Autofill"). Because the entity slug is already in the URL
   path, step B.1's `useParams({ strict: false })` preseeds the panel automatically — no extra args
   needed on `openAutofill`.
@@ -173,8 +173,8 @@ Then `pnpm dev`:
 - **Never rename a facet `key`**: it is persisted in `DisplayPreferenceSettings.onDemandFilters`
   and in saved-filter URLs; a renamed key silently orphans users' on-demand configuration.
 - **Remove a facet**: delete its `FILTER_FACETS` entry + `facetHasActiveSelection` arm, its
-  `FilterFacetInputs`/`computeFacetData` field (`lib/filterSidebarVisibility.ts`), its
+  `FilterFacetInputs`/`computeFacetData` field (`lib/filterVisibility.ts`), its
   `FilterSections` row, and its `BookmarkSearch` params in `lib/bookmarkSearch.ts`. Old URLs
   carrying the retired params must be ignored, not crash search-param validation.
 - **"Shows when empty" bugs** live in `computeFilterSidebarVisibility` — extend
-  `filterSidebarVisibility.test.ts` with the failing case before fixing.
+  `filterVisibility.test.ts` with the failing case before fixing.

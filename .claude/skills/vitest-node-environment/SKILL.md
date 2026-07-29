@@ -56,7 +56,7 @@ Needs **jsdom** (do NOT add the pragma) when the test — or anything it imports
 - `window` / `document` / DOM events / timers that dispatch DOM events
 - toast libraries (`sonner`), routers mounted into the DOM, MSW in browser mode
 - a transitive import that itself touches `window`/`document` (e.g. `leaflet` reads `window` at
-  module load — see `components/bookmarkDetailSections` below)
+  module load — any test transitively importing a `Location*Map*` component)
 
 Safe for **node** (add the pragma): pure functions over data — parsers, formatters, predicates,
 tree builders, zod schemas, reducers. Nearly everything in `packages/client/src/lib/*.test.ts`
@@ -68,9 +68,7 @@ Known jsdom-only `.test.ts`/`.test.tsx` files (precedent — they look pure but 
 `lib/bugReport` (navigator), `lib/shareNotifications` (localStorage), `lib/useListSelection` +
 `lib/useListingPagination` + `hooks/useExpandedSet` + `hooks/useFieldAutoSave` +
 `hooks/useOfflineToast` + `hooks/useServerUnreachableToast` + `components/useBookmarkImageEditForm`
-+ `components/useBookmarkIsbn` (renderHook), `stores/uiStore.viewMode` (persisted store),
-`components/bookmarkDetailSections` (transitively imports `leaflet`, which reads `window` at
-module load).
++ `components/useBookmarkIsbn` (renderHook), `stores/uiStore.viewMode` (persisted store).
 
 ## The shared setup stays guarded
 

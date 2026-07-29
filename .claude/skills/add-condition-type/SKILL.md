@@ -58,10 +58,10 @@ projection note in touch point 1).
    `EntityMultiSelectCondition` from `components/conditions/EntityMultiSelectCondition.tsx` — it
    wraps `MultiCombobox` with the standard aria/placeholder props so editors don't duplicate the
    markup. For websites reuse the website `Combobox` + "Add new website" `Dialog`.
-6. **Default-seed a new rule (optional)** — if an entity page creates rules pre-scoped to itself, the
-   panel's `CreateAutofillRule` (`components/panel/AutofillRulePanel.tsx`) resolves the entity from
-   the URL slug and passes a `default…` prop; `AutofillRuleForm` seeds the initial `conditions` tree
-   with the leaf (see `seedConditions`).
+6. **Default-seed a new rule (optional)** — if an entity page creates rules pre-scoped to itself,
+   `useNewAutofillRule` (`hooks/useNewAutofillRule.tsx`) resolves the current entity scope via
+   `useAutofillScopeDefaults` and passes `buildAutofillRulePrefill(defaults)` into
+   `AddAutofillRuleModal`, which seeds the created rule (see `lib/autofillPrefill.ts`).
 7. **Boot backfill for legacy data** — if the new leaf supersedes an older encoding (Website replaced
    the legacy `match`/`domain` operator), add an idempotent `ensure*` step to
    `services/autofill.ts` and wire it into `src/index.ts` next to the other autofill `ensure*` steps
