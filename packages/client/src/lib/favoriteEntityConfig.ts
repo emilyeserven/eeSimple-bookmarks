@@ -15,6 +15,7 @@ import {
   peopleApi,
   relationshipTypesApi,
   tagsApi,
+  taxonomiesApi,
   websitesApi,
   youtubeChannelsApi,
 } from "./api/taxonomies";
@@ -122,7 +123,14 @@ export const FAVORITE_ENTITY_CONFIGS = {
     update: (id, patch) => savedFiltersApi.update(id, patch),
     invalidateKeys: [["saved-filters"]],
   },
+  // A custom-taxonomy TERM (not an `EntityRouteKind`) — lets the generic header star work on
+  // `/taxonomies/<custom>/<term>` pages (`useHeaderFavoriteContext`'s term path). Mirrors
+  // `useTaxonomyTermFavoriteToggle`'s PATCH + invalidations (`["taxonomies"]` covers the term trees).
+  "taxonomy-term": {
+    update: (id, patch) => taxonomiesApi.updateTerm(id, patch),
+    invalidateKeys: [["taxonomies"], FAVORITE_TERMS_KEY, ["bookmarks"]],
+  },
 } satisfies Record<string, FavoriteEntityConfig>;
 
-/** Exactly the 16 favoritable kinds — the keys of {@link FAVORITE_ENTITY_CONFIGS}. */
+/** The favoritable kinds (16 entity kinds + the custom-taxonomy term) — the keys of {@link FAVORITE_ENTITY_CONFIGS}. */
 export type FavoritableKind = keyof typeof FAVORITE_ENTITY_CONFIGS;

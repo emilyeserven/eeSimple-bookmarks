@@ -38,7 +38,8 @@ function makeActions(): ToolbarAction[] {
         </button>
       ),
       mobile: {
-        kind: "standalone",
+        kind: "menuItem",
+        node: <div role="menuitem">Open panel row</div>,
       },
     },
   ];
@@ -56,17 +57,17 @@ describe("HeaderToolbar", () => {
     })).not.toBeInTheDocument();
   });
 
-  it("collapses everything but the panel toggle into a More menu on small screens", async () => {
+  it("collapses every action into a More menu on small screens", async () => {
     setViewport(500);
     render(<HeaderToolbar actions={makeActions()} />);
 
-    // The panel toggle stays standalone; the desktop-only Display node is gone.
+    // The desktop-only nodes are gone; everything lives in the More menu.
     const moreButton = await screen.findByRole("button", {
       name: "More",
     });
-    expect(screen.getByRole("button", {
+    expect(screen.queryByRole("button", {
       name: "Open panel",
-    })).toBeInTheDocument();
+    })).not.toBeInTheDocument();
     expect(screen.queryByText("Display desktop")).not.toBeInTheDocument();
 
     // Open the dropdown (jsdom needs a keyboard event), select the Display row.

@@ -1,13 +1,15 @@
 import type { CreateKind } from "./commandPaletteModals";
-import type { CommandPaletteTaxonomyState } from "./useCommandPaletteState";
+import type { CommandPaletteTaxonomyState, PaletteAddChild } from "./useCommandPaletteState";
 import type { useEntityCommandContext } from "./useEntityCommandContext";
 import type { useListingPageContext } from "./useListingPageContext";
+import type { TaxonomyTermPageContext } from "@/hooks/useHeaderFavoriteContext";
 import type { SettingsPage } from "@/lib/settingsPages";
 import type { SyncProvider } from "@/lib/syncSources/syncSourceTypes";
 import type { Bookmark, BookmarkDetailLayout } from "@eesimple/types";
 import type { ReactNode } from "react";
 
-import { PlusIcon, RefreshCw, StarIcon } from "lucide-react";
+import { useRouterState } from "@tanstack/react-router";
+import { PencilIcon, PlusIcon, RefreshCw, SettingsIcon, StarIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { BookmarkViewPageCommandGroup } from "./BookmarkViewPageCommandGroup";
@@ -20,7 +22,9 @@ import {
   CommandItem,
   CommandSeparator,
 } from "@/components/ui/command";
+import { useTaxonomyTermPageContext } from "@/hooks/useHeaderFavoriteContext";
 import { useSettingsFavorite } from "@/hooks/useSettingsFavorite";
+import { useTaxonomyTermFavoriteToggle } from "@/hooks/useTaxonomies";
 import { useUiStore } from "@/stores/uiStore";
 
 /**
@@ -205,6 +209,139 @@ function SettingsFavoriteGroup({
   );
 }
 
+/**
+ * Palette mirror of the header homepage-settings gear (`homepageSettingsAction`) — a "Current Page"
+ * link to Settings → Display → Homepage, shown on the homepage (`/`) only.
+ */
+function HomepageSettingsGroup({
+  onSelect,
+}: {
+  onSelect: (path: string) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const pathname = useRouterState({
+    select: state => state.location.pathname,
+  });
+  if (pathname !== "/") return null;
+  return (
+    <>
+      <CommandGroup heading={t("Current Page")}>
+        <CommandItem
+          value="Homepage settings"
+          onSelect={() => onSelect("/settings/display/homepage")}
+        >
+          <SettingsIcon />
+          {t("Homepage settings")}
+        </CommandItem>
+      </CommandGroup>
+      <CommandSeparator />
+    </>
+  );
+}
+
+/** Star/unstar the current custom-taxonomy term — the palette twin of the header star button. */
+function TermFavoriteCommandItem({
+  termPage,
+  onDone,
+}: {
+  termPage: TaxonomyTermPageContext;
+  onDone: () => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const {
+    toggle,
+  } = useTaxonomyTermFavoriteToggle(termPage.taxonomy.id);
+  const term = termPage.term;
+  const label = term.isFavorite
+    ? t("Unstar {{name}}", {
+      name: term.name,
+    })
+    : t("Star {{name}}", {
+      name: term.name,
+    });
+  return (
+    <CommandItem
+      value={label}
+      onSelect={() => {
+        toggle({
+          id: term.id,
+          name: term.name,
+          isFavorite: Boolean(term.isFavorite),
+        });
+        onDone();
+      }}
+    >
+      <StarIcon className={term.isFavorite ? "fill-current" : undefined} />
+      {label}
+    </CommandItem>
+  );
+}
+
+/**
+ * The "Current Term" quick-action group for a user-created taxonomy's term page — the term twin of
+ * `EntityCommandGroup` (terms are not an `EntityRouteKind`): star, "New sub-term" (the header
+ * add-child mirror, reusing the same `AddChildModal`), and Edit navigation. Resolution is gated
+ * inside `useTaxonomyTermPageContext`, and this component only mounts while the palette is open.
+ */
+function CurrentTermGroup({
+  onSelect, onAddChild, onClose,
+}: {
+  onSelect: (path: string) => void;
+  onAddChild: (child: PaletteAddChild) => void;
+  onClose: () => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  const pathname = useRouterState({
+    select: state => state.location.pathname,
+  });
+  const termPage = useTaxonomyTermPageContext(pathname);
+  if (!termPage) return null;
+  const {
+    taxonomy, term,
+  } = termPage;
+  const newSubTerm = t("New sub-term");
+  return (
+    <>
+      <CommandGroup heading={t("Current Term")}>
+        <TermFavoriteCommandItem
+          termPage={termPage}
+          onDone={onClose}
+        />
+        <CommandItem
+          value={newSubTerm}
+          onSelect={() => onAddChild({
+            kind: "taxonomyTerm",
+            parentId: term.id,
+            taxonomyId: taxonomy.id,
+            taxonomySlug: taxonomy.slug,
+          })}
+        >
+          <PlusIcon />
+          {newSubTerm}
+        </CommandItem>
+        <CommandItem
+          value={t("Edit {{name}}", {
+            name: term.name,
+          })}
+          onSelect={() => onSelect(`/taxonomies/${taxonomy.slug}/${term.slug}/edit`)}
+        >
+          <PencilIcon />
+          {t("Edit")}
+          {" "}
+          {term.name}
+        </CommandItem>
+      </CommandGroup>
+      <CommandSeparator />
+    </>
+  );
+}
+
 /** The matched slug-routed entity's quick-action group, shown only when a route matched. */
 function MatchedEntityGroup({
   entityCtx, taxonomy, setInputValue, onSelect, onAddChild, onClose,
@@ -213,7 +350,7 @@ function MatchedEntityGroup({
   taxonomy: CommandPaletteTaxonomyState;
   setInputValue: (value: string) => void;
   onSelect: (path: string) => void;
-  onAddChild: (kind: "tag" | "mediaType", parentId: string) => void;
+  onAddChild: (child: PaletteAddChild) => void;
   onClose: () => void;
 }) {
   if (!entityCtx.matched) return null;
@@ -253,7 +390,7 @@ interface CommandPaletteDefaultViewProps {
   taxonomy: CommandPaletteTaxonomyState;
   setInputValue: (value: string) => void;
   onSelect: (path: string) => void;
-  onAddChild: (kind: "tag" | "mediaType", parentId: string) => void;
+  onAddChild: (child: PaletteAddChild) => void;
   bookmarks: Bookmark[];
   onCreate: (kind: CreateKind) => void;
 }
@@ -330,6 +467,14 @@ export function CommandPaletteDefaultView({
 
       <SettingsFavoriteGroup
         settingsPage={settingsPage}
+        onClose={onClose}
+      />
+
+      <HomepageSettingsGroup onSelect={onSelect} />
+
+      <CurrentTermGroup
+        onSelect={onSelect}
+        onAddChild={onAddChild}
         onClose={onClose}
       />
 

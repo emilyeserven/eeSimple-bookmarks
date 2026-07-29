@@ -1,10 +1,12 @@
 import type { PinContext } from "@/components/HeaderPinButton";
-import type { EntityName } from "@eesimple/types";
+import type { EntityName, PinnedSidebarEntityType } from "@eesimple/types";
 
 import { useTaxonomyNameMap } from "./-appHeaderNames";
 
 import { useCategoryBySlug } from "@/hooks/useCategories";
+import { useLocationBySlug } from "@/hooks/useLocations";
 import { useMediaTypeBySlug } from "@/hooks/useMediaTypes";
+import { useSavedFilterBySlug } from "@/hooks/useSavedFilters";
 import { useWebsiteBySlug } from "@/hooks/useWebsites";
 import { useYouTubeChannelBySlug } from "@/hooks/useYouTubeChannels";
 
@@ -110,38 +112,82 @@ export interface PinCandidates {
     name: string; };
   currentTag?: { id: string;
     name: string; };
+  location?: { id: string;
+    name: string; };
+  savedFilter?: { id: string;
+    name: string; };
 }
 
 /**
- * The pinnable entity for the current detail page, if any. Each by-slug hook is non-null only on its
- * own detail page, so at most one branch matches; tag uses the resolved ancestor chain's leaf.
+ * The location / saved-filter pin candidates for the current page, resolved by slug like the
+ * `useTaxonomyCrumbData` entities (each lookup is a find over an already-cached list; `slugFor`
+ * returns "" off the entity's pages, so nothing matches elsewhere).
+ */
+export function usePinExtraCandidates(
+  pathname: string,
+  pathParts: string[],
+): Pick<PinCandidates, "location" | "savedFilter"> {
+  const {
+    location,
+  } = useLocationBySlug(slugFor(pathname, pathParts, "/taxonomies/locations", 2));
+  const {
+    savedFilter,
+  } = useSavedFilterBySlug(slugFor(pathname, pathParts, "/saved-filters", 1));
+  return {
+    location,
+    savedFilter,
+  };
+}
+
+/**
+ * The pinnable entity for the current detail page, if any. Each by-slug candidate is non-null only
+ * on its own detail page, so at most one entry matches; tag uses the resolved ancestor chain's leaf.
+ * The candidate map is checked exhaustive against `PinnedSidebarEntityType` (minus the sidebar-only
+ * `taxonomy-listing` pin, which has no detail page), the same union the palette's `PINNABLE_KINDS`
+ * (`EntityCommandGroup.tsx`) mirrors — so a new pinnable type fails `tsc` here instead of drifting.
  */
 export function resolvePinContext(c: PinCandidates): PinContext | null {
-  if (c.category) return {
-    entityType: "category",
-    entityId: c.category.id,
-    label: c.category.name,
-  };
-  if (c.website) return {
-    entityType: "website",
-    entityId: c.website.id,
-    label: c.website.siteName,
-  };
-  if (c.mediaType) return {
-    entityType: "media-type",
-    entityId: c.mediaType.id,
-    label: c.mediaType.name,
-  };
-  if (c.channel) return {
-    entityType: "youtube-channel",
-    entityId: c.channel.id,
-    label: c.channel.name,
-  };
-  if (c.currentTag) return {
-    entityType: "tag",
-    entityId: c.currentTag.id,
-    label: c.currentTag.name,
-  };
+  const candidates = {
+    "category": c.category && {
+      entityId: c.category.id,
+      label: c.category.name,
+    },
+    "website": c.website && {
+      entityId: c.website.id,
+      label: c.website.siteName,
+    },
+    "media-type": c.mediaType && {
+      entityId: c.mediaType.id,
+      label: c.mediaType.name,
+    },
+    "youtube-channel": c.channel && {
+      entityId: c.channel.id,
+      label: c.channel.name,
+    },
+    "tag": c.currentTag && {
+      entityId: c.currentTag.id,
+      label: c.currentTag.name,
+    },
+    "location": c.location && {
+      entityId: c.location.id,
+      label: c.location.name,
+    },
+    "saved-filter": c.savedFilter && {
+      entityId: c.savedFilter.id,
+      label: c.savedFilter.name,
+    },
+  } satisfies Record<
+    Exclude<PinnedSidebarEntityType, "taxonomy-listing">,
+    { entityId: string;
+      label: string; } | undefined
+  >;
+
+  for (const [entityType, candidate] of Object.entries(candidates)) {
+    if (candidate) return {
+      entityType: entityType as PinnedSidebarEntityType,
+      ...candidate,
+    };
+  }
   return null;
 }
 

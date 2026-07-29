@@ -1,5 +1,6 @@
 import type { FlyoutLink } from "./StarredFlyoutSidebarItem";
 import type { SidebarEntityData } from "./useSidebarEntityData";
+import type { SidebarItemKey } from "@/lib/sidebarNavItems";
 import type { ImportRule, Language, RelationshipType, Taxonomy, TaxonomyTerm } from "@eesimple/types";
 import type { TFunction } from "i18next";
 import type { ReactNode } from "react";
@@ -112,7 +113,9 @@ export function buildSidebarFlyoutData(inputs: FlyoutInputs): SidebarFlyoutData 
   });
   const gmId = taxonomies.find(taxonomy => taxonomy.slug === GENRES_MOODS_TAXONOMY_SLUG)?.id;
 
-  const configs: SidebarFlyoutData = {
+  // `satisfies` checks the literal against the sidebar item-key union — a typo'd key (or a new
+  // keyed sidebar item with no flyout entry) fails `tsc` instead of silently rendering no flyout.
+  const entityConfigs = {
     "categories": {
       starredTitle: t("Starred Categories"),
       starred: starred(data.categories, c => c.name, c => (
@@ -198,6 +201,9 @@ export function buildSidebarFlyoutData(inputs: FlyoutInputs): SidebarFlyoutData 
       starredTitle: t("Starred Saved Filters"),
       starred: starred(data.savedFilters, f => f.name, () => <ListFilter className={SUB_ICON} />),
     },
+  } satisfies Record<SidebarItemKey, EntityFlyoutData>;
+  const configs: SidebarFlyoutData = {
+    ...entityConfigs,
   };
 
   // Custom (user-defined) taxonomies: starred terms per taxonomy, keyed by the sidebar `taxonomy:${id}`.

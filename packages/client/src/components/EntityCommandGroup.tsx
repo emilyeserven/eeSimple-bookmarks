@@ -1,3 +1,4 @@
+import type { PaletteAddChild } from "./useCommandPaletteState";
 import type {
   EntityChoiceOptions,
   MatchedEntityContext,
@@ -86,7 +87,7 @@ export function EntityCommandGroup({
   matched: MatchedEntityContext;
   onNavigate: (path: string) => void;
   onEnterChoiceField: (field: EntityChoiceField) => void;
-  onAddChild: (kind: "tag" | "mediaType", parentId: string) => void;
+  onAddChild: (child: PaletteAddChild) => void;
   onClose: () => void;
 }) {
   const {
@@ -155,7 +156,10 @@ export function EntityCommandGroup({
       {addChildKind && entity && (
         <CommandItem
           value={addChildKind === "tag" ? newSubTag : newSubType}
-          onSelect={() => onAddChild(addChildKind, entity.id)}
+          onSelect={() => onAddChild({
+            kind: addChildKind,
+            parentId: entity.id,
+          })}
         >
           <PlusIcon />
           {addChildKind === "tag" ? newSubTag : newSubType}

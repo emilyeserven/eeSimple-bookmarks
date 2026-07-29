@@ -29,7 +29,6 @@ function registerListingPage() {
     listingPage: {
       key: PAGE,
       showsImages: false,
-      hasFilters: false,
       showsCards: true,
     },
   });

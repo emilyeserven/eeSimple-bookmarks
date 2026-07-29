@@ -75,12 +75,44 @@ const CREATE_ITEMS: { kind: CreateKind;
     label: "New Newsletter",
   },
   {
+    kind: "group",
+    label: "New Group",
+  },
+  {
+    kind: "group-type",
+    label: "New Group Type",
+  },
+  {
     kind: "location",
     label: "New Location",
   },
   {
+    kind: "location-relation",
+    label: "New Location Relation",
+  },
+  {
+    kind: "genre-mood",
+    label: "New Genres & Moods Entry",
+  },
+  {
+    kind: "language",
+    label: "New Language",
+  },
+  {
+    kind: "relationship-type",
+    label: "New Relationship Type",
+  },
+  {
     kind: "custom-property",
     label: "New Custom Property",
+  },
+  {
+    kind: "autofill",
+    label: "New Autofill Rule",
+  },
+  {
+    kind: "import-rule",
+    label: "New Import Rule",
   },
 ];
 

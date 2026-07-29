@@ -67,6 +67,32 @@ describe("resolvePinContext", () => {
       label: "Tag",
     });
   });
+
+  it("resolves a location detail page (previously missing from the if-chain)", () => {
+    expect(resolvePinContext({
+      location: {
+        id: "loc",
+        name: "Tokyo",
+      },
+    })).toEqual({
+      entityType: "location",
+      entityId: "loc",
+      label: "Tokyo",
+    });
+  });
+
+  it("resolves a saved-filter detail page (previously missing from the if-chain)", () => {
+    expect(resolvePinContext({
+      savedFilter: {
+        id: "sf",
+        name: "Unread",
+      },
+    })).toEqual({
+      entityType: "saved-filter",
+      entityId: "sf",
+      label: "Unread",
+    });
+  });
 });
 
 describe("resolveAddChild", () => {

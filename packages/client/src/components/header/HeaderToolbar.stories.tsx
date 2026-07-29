@@ -63,7 +63,13 @@ const actions: ToolbarAction[] = [
       </Button>
     ),
     mobile: {
-      kind: "standalone",
+      kind: "menuItem",
+      node: (
+        <DropdownMenuItem>
+          <PanelRight className="size-4" />
+          Toggle panel
+        </DropdownMenuItem>
+      ),
     },
   },
 ];

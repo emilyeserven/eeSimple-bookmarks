@@ -1,14 +1,21 @@
 import type { useBookmarkTaxonomyContext } from "./useBookmarkTaxonomyContext";
 import type { Bookmark } from "@eesimple/types";
 
+import { AddAutofillRuleModal } from "./AddAutofillRuleModal";
 import { AddBookmarkModal } from "./AddBookmarkModal";
 import { AddCategoryModal } from "./AddCategoryModal";
 import { AddCustomPropertyModal } from "./AddCustomPropertyModal";
+import { AddGenreMoodModal } from "./AddGenreMoodModal";
 import { AddGroupModal } from "./AddGroupModal";
+import { AddGroupTypeModal } from "./AddGroupTypeModal";
+import { AddImportRuleModal } from "./AddImportRuleModal";
+import { AddLanguageModal } from "./AddLanguageModal";
 import { AddLocationModal } from "./AddLocationModal";
+import { AddLocationRelationModal } from "./AddLocationRelationModal";
 import { AddMediaTypeModal } from "./AddMediaTypeModal";
 import { AddNewsletterModal } from "./AddNewsletterModal";
 import { AddPersonModal } from "./AddPersonModal";
+import { AddRelationshipTypeModal } from "./AddRelationshipTypeModal";
 import { AddTagModal } from "./AddTagModal";
 import { AddWebsiteModal } from "./AddWebsiteModal";
 import { AddYouTubeChannelModal } from "./AddYouTubeChannelModal";
@@ -23,7 +30,14 @@ export type CreateKind
     | "youtube-channel"
     | "newsletter"
     | "location"
-    | "custom-property";
+    | "custom-property"
+    | "genre-mood"
+    | "group-type"
+    | "location-relation"
+    | "relationship-type"
+    | "language"
+    | "autofill"
+    | "import-rule";
 
 /**
  * Every modal the command palette can open: the Add Bookmark draft plus the inline-create modals for
@@ -154,6 +168,34 @@ export function CommandPaletteModals({
             },
           })
           : undefined}
+      />
+      <AddGenreMoodModal
+        open={createKind === "genre-mood"}
+        onOpenChange={open => !open && closeCreate()}
+      />
+      <AddGroupTypeModal
+        open={createKind === "group-type"}
+        onOpenChange={open => !open && closeCreate()}
+      />
+      <AddLocationRelationModal
+        open={createKind === "location-relation"}
+        onOpenChange={open => !open && closeCreate()}
+      />
+      <AddRelationshipTypeModal
+        open={createKind === "relationship-type"}
+        onOpenChange={open => !open && closeCreate()}
+      />
+      <AddLanguageModal
+        open={createKind === "language"}
+        onOpenChange={open => !open && closeCreate()}
+      />
+      <AddAutofillRuleModal
+        open={createKind === "autofill"}
+        onOpenChange={open => !open && closeCreate()}
+      />
+      <AddImportRuleModal
+        open={createKind === "import-rule"}
+        onOpenChange={open => !open && closeCreate()}
       />
     </>
   );
