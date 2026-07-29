@@ -22,8 +22,10 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** A warning for an existing bookmark with the exact same URL. */
 export const ExactMatch: Story = {};
 
+/** A warning for a bookmark matching the same path with different query params. */
 export const PathMatch: Story = {
   args: {
     urlDuplicate: {
@@ -38,6 +40,7 @@ export const PathMatch: Story = {
   },
 };
 
+/** A warning for a bookmark sharing the same content identity (e.g. same book). */
 export const IdentityMatch: Story = {
   args: {
     urlDuplicate: {
@@ -52,7 +55,7 @@ export const IdentityMatch: Story = {
   },
 };
 
-// When the only match is the bookmark being edited, no warning shows.
+/** When the only match is the bookmark being edited, no warning shows. */
 export const SuppressedForCurrentBookmark: Story = {
   args: {
     currentBookmarkId: "bk-1",

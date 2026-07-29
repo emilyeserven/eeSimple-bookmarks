@@ -11,6 +11,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** The pill for a website source. */
 export const Website: Story = {
   args: {
     type: "website",
@@ -24,6 +25,7 @@ export const Website: Story = {
   },
 };
 
+/** The pill for a YouTube channel source. */
 export const YouTubeChannel: Story = {
   args: {
     type: "youtube-channel",

@@ -27,10 +27,12 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** The channel condition with nothing selected yet. */
 export const Empty: Story = {
   render: () => <Controlled initial={[]} />,
 };
 
+/** A sample channel preselected. */
 export const WithSelection: Story = {
   render: () => <Controlled initial={["channel-fireship"]} />,
 };

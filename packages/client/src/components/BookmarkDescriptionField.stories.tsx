@@ -39,6 +39,7 @@ export const Default: Story = {
   render: () => <DescriptionFieldHost />,
 };
 
+/** A bookmark with no description, showing the empty textarea. */
 export const EmptyDescription: Story = {
   render: () => (
     <DescriptionFieldHost

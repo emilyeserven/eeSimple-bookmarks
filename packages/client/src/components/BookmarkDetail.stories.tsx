@@ -25,6 +25,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** Detail view with the Edit and Delete header actions wired. */
 export const WithActions: Story = {
   args: {
     onEdit: () => {},
@@ -32,6 +33,7 @@ export const WithActions: Story = {
   },
 };
 
+/** A sparse bookmark — no description, website, tags, or property values. */
 export const Minimal: Story = {
   args: {
     bookmark: {

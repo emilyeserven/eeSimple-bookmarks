@@ -12,6 +12,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** The image cell in its rounded and full-circle shapes. */
 export const Image: Story = {
   render: () => (
     <div className="flex items-center gap-4">
@@ -28,6 +29,7 @@ export const Image: Story = {
   ),
 };
 
+/** Null and broken image sources both falling back to the icon. */
 export const ImageFallback: Story = {
   render: () => (
     <div className="flex items-center gap-4">
@@ -43,6 +45,7 @@ export const ImageFallback: Story = {
   ),
 };
 
+/** The edit action cell linking to an edit page. */
 export const EditAction: Story = {
   render: () => (
     <div className="w-40">

@@ -27,10 +27,12 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** The media-type condition with nothing selected yet. */
 export const Empty: Story = {
   render: () => <Controlled initial={[]} />,
 };
 
+/** The Video media type preselected. */
 export const WithSelection: Story = {
   render: () => <Controlled initial={["media-video"]} />,
 };

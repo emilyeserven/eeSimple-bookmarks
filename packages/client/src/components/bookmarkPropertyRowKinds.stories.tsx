@@ -32,6 +32,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** A plain number property row. */
 export const Number: Story = {
   render: () => (
     <Row>
@@ -48,6 +49,7 @@ export const Number: Story = {
   ),
 };
 
+/** A calculated number row (e.g. a derived reading time). */
 export const CalculatedNumber: Story = {
   render: () => (
     <Row>
@@ -64,6 +66,7 @@ export const CalculatedNumber: Story = {
   ),
 };
 
+/** A boolean row shown as Yes with a label colon. */
 export const Boolean: Story = {
   render: () => (
     <Row>
@@ -83,6 +86,7 @@ export const Boolean: Story = {
   ),
 };
 
+/** A date-time row with a formatted date value. */
 export const DateTime: Story = {
   render: () => (
     <Row>
@@ -98,6 +102,7 @@ export const DateTime: Story = {
   ),
 };
 
+/** A star-display rating row at 4 of 5 with half-steps allowed. */
 export const Rating: Story = {
   render: () => (
     <Row>
@@ -120,6 +125,7 @@ export const Rating: Story = {
   ),
 };
 
+/** A non-image file row linking to the stored file. */
 export const File: Story = {
   render: () => (
     <Row>
@@ -137,6 +143,7 @@ export const File: Story = {
   ),
 };
 
+/** A checkbox-display choices row with two selected options. */
 export const Choices: Story = {
   render: () => (
     <Row>
@@ -163,6 +170,7 @@ export const Choices: Story = {
   ),
 };
 
+/** A progress row at 120 of 384 with the formatted percentage. */
 export const Progress: Story = {
   render: () => (
     <Row>
@@ -180,6 +188,7 @@ export const Progress: Story = {
   ),
 };
 
+/** A sections row listing two page-type chapter entries. */
 export const Sections: Story = {
   render: () => (
     <Row>
@@ -212,6 +221,7 @@ export const Sections: Story = {
   ),
 };
 
+/** A text row with an attached external link (an ISBN with a store link). */
 export const Text: Story = {
   render: () => (
     <Row>

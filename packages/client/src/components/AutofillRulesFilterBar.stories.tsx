@@ -28,12 +28,14 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** A facet with a value chosen — the GitHub option is selected. */
 export const Selected: Story = {
   args: {
     value: "github",
   },
 };
 
+/** The facet select in its loading state while options are fetched. */
 export const Loading: Story = {
   args: {
     loading: true,

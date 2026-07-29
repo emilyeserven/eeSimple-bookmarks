@@ -49,6 +49,7 @@ export const Default: Story = {
   },
 };
 
+/** A person with no bookmarks, labeled websites, or social links. */
 export const Minimal: Story = {
   args: {
     entity: {

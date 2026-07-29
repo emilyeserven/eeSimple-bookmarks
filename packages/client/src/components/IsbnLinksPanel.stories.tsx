@@ -29,6 +29,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** The panel with just one store link. */
 export const SingleLink: Story = {
   args: {
     links: [
@@ -40,6 +41,7 @@ export const SingleLink: Story = {
   },
 };
 
+/** No links, showing the panel's empty rendering. */
 export const Empty: Story = {
   args: {
     links: [],

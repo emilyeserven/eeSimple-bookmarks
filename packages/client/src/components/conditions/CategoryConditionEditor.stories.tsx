@@ -38,10 +38,12 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** The category condition with nothing selected yet. */
 export const Empty: Story = {
   render: () => <Controlled initial={[]} />,
 };
 
+/** Two categories preselected in the condition. */
 export const WithSelection: Story = {
   render: () => <Controlled initial={["c1", "c3"]} />,
 };

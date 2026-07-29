@@ -74,6 +74,7 @@ export const Default: Story = {
   },
 };
 
+/** A rule with no category, media type, or property values set — each view shows its empty text. */
 export const NothingSet: Story = {
   args: {
     entity: {

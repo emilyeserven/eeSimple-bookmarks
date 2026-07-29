@@ -45,6 +45,7 @@ export const Default: Story = {
   ),
 };
 
+/** A multiple-selection toggle group. */
 export const Multiple: Story = {
   render: () => (
     <ToggleGroup

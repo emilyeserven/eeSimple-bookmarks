@@ -54,6 +54,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** Empty rule list from an MSW override returning no rules. */
 export const Empty: Story = {
   parameters: {
     msw: {
@@ -65,6 +66,7 @@ export const Empty: Story = {
   },
 };
 
+/** A query that matches no rules, showing the no-results state. */
 export const NoMatches: Story = {
   args: {
     query: "nothing-matches-this",

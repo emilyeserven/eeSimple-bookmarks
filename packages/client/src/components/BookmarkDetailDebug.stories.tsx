@@ -18,6 +18,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** Debug JSON for a bare factory bookmark with only a title and URL. */
 export const MinimalBookmark: Story = {
   args: {
     bookmark: makeBookmark({

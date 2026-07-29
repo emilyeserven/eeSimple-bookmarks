@@ -80,6 +80,7 @@ export const Default: Story = {
   ),
 };
 
+/** The revealed fields with hideNameField set, dropping the name input. */
 export const HideNameField: Story = {
   render: () => (
     <BookmarkFormHost

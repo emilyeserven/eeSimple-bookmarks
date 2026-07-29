@@ -36,6 +36,7 @@ export const Default: Story = {
   },
 };
 
+/** An empty tag tree — the picker with nothing to select. */
 export const Empty: Story = {
   args: {
     tree: [],

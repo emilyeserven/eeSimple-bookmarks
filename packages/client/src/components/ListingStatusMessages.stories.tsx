@@ -29,18 +29,21 @@ type Story = StoryObj<typeof meta>;
 /** Items present, no active query — the row renders nothing. */
 export const Idle: Story = {};
 
+/** The loading label while the listing fetches. */
 export const Loading: Story = {
   args: {
     isLoading: true,
   },
 };
 
+/** A load error message. */
 export const ErrorState: Story = {
   args: {
     error: new Error("Failed to load websites."),
   },
 };
 
+/** No items at all, showing the empty message. */
 export const Empty: Story = {
   args: {
     totalCount: 0,
@@ -48,6 +51,7 @@ export const Empty: Story = {
   },
 };
 
+/** An active query matching a subset — shows the filtered/total count. */
 export const FilteredSubset: Story = {
   args: {
     totalCount: 12,
@@ -57,6 +61,7 @@ export const FilteredSubset: Story = {
   },
 };
 
+/** An active query matching nothing, showing the no-match message. */
 export const NoMatch: Story = {
   args: {
     totalCount: 12,

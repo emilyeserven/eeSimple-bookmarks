@@ -38,6 +38,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** The first of three rows — move-up is disabled. */
 export const FirstRow: Story = {
   render: () => {
     const [kind, setKind] = useState("selfText");
@@ -60,6 +61,7 @@ export const FirstRow: Story = {
   },
 };
 
+/** A middle row where both move-up and move-down are enabled. */
 export const MiddleRow: Story = {
   render: () => {
     const [kind, setKind] = useState("closest");

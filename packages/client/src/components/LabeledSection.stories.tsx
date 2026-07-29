@@ -18,6 +18,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** The section heading without the muted description line. */
 export const WithoutDescription: Story = {
   args: {
     description: undefined,

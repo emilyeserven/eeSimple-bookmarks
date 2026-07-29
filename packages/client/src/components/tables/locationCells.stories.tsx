@@ -39,6 +39,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** A flat location name cell with no children. */
 export const Name: Story = {
   render: () => (
     <LocationNameCell
@@ -51,6 +52,7 @@ export const Name: Story = {
   ),
 };
 
+/** An indented location with children, showing the expand toggle. */
 export const NestedWithChildren: Story = {
   render: () => (
     <LocationNameCell
@@ -71,6 +73,7 @@ export const NestedWithChildren: Story = {
   ),
 };
 
+/** The place-type cell with a value and with none. */
 export const PlaceType: Story = {
   render: () => (
     <div className="space-y-1">

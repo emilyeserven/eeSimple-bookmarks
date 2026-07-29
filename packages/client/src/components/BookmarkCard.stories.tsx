@@ -18,12 +18,14 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** Card with the delete affordance enabled via an onDelete handler. */
 export const Deletable: Story = {
   args: {
     onDelete: () => {},
   },
 };
 
+/** A minimal bookmark with no description, tags, or property values. */
 export const Plain: Story = {
   args: {
     bookmark: {

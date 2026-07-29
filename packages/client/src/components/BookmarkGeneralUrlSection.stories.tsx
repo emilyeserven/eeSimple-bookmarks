@@ -42,6 +42,7 @@ export const Default: Story = {
   render: () => <UrlSectionHost bookmark={sampleBookmark} />,
 };
 
+/** A URL with no matched website, so no website pill accompanies the field. */
 export const PlainUrl: Story = {
   render: () => (
     <UrlSectionHost

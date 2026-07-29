@@ -34,6 +34,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** Details rendered below a card image (hasImageAbove adjusts spacing/rounding). */
 export const WithImageAbove: Story = {
   args: {
     hasImageAbove: true,

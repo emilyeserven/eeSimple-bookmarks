@@ -24,6 +24,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** A shortened URL with the expand nudge showing the resolved destination. */
 export const ShortenerNudge: Story = {
   args: {
     urlCleanup: {
@@ -37,7 +38,7 @@ export const ShortenerNudge: Story = {
   },
 };
 
-// Nothing renders until a cleanup has actually been applied.
+/** Nothing renders until a cleanup has actually been applied. */
 export const NotApplied: Story = {
   args: {
     urlCleanup: null,

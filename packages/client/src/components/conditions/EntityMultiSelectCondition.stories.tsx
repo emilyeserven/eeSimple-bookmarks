@@ -41,6 +41,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** The generic multi-select condition with no values chosen. */
 export const Empty: Story = {
   render: args => (
     <Controlled
@@ -50,6 +51,7 @@ export const Empty: Story = {
   ),
 };
 
+/** Two options preselected (Article and Video). */
 export const WithSelection: Story = {
   render: args => (
     <Controlled

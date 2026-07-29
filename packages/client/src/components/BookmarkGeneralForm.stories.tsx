@@ -23,6 +23,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** The form loaded with a bare factory bookmark (URL, title, category only). */
 export const MinimalBookmark: Story = {
   args: {
     bookmark: makeBookmark({

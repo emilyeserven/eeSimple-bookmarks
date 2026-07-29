@@ -16,6 +16,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** The disabled input with a value. */
 export const Disabled: Story = {
   args: {
     disabled: true,
@@ -23,6 +24,7 @@ export const Disabled: Story = {
   },
 };
 
+/** A number-typed input. */
 export const Number: Story = {
   args: {
     type: "number",

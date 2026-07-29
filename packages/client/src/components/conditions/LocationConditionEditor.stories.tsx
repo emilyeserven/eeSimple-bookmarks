@@ -67,10 +67,12 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** The location condition with nothing selected yet. */
 export const Empty: Story = {
   render: () => <Controlled initial={[]} />,
 };
 
+/** A nested location (Tokyo) preselected from the tree. */
 export const WithSelection: Story = {
   render: () => <Controlled initial={["loc-tokyo"]} />,
 };

@@ -45,6 +45,7 @@ export const Default: Story = {
   render: () => <CategoryFieldHost />,
 };
 
+/** The category combobox with a category preselected. */
 export const Selected: Story = {
   render: () => <CategoryFieldHost selectedId="cat-workflow" />,
 };

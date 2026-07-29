@@ -51,6 +51,7 @@ export const Default: Story = {
   },
 };
 
+/** Options carrying per-option description lines in the dropdown. */
 export const WithDescriptions: Story = {
   render: () => {
     const [value, setValue] = useState("url");

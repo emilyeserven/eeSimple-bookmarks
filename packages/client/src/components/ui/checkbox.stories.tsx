@@ -18,6 +18,7 @@ export const Default: Story = {
   },
 };
 
+/** A checkbox paired with a clickable label. */
 export const WithLabel: Story = {
   render: () => (
     <div className="flex items-center gap-2">

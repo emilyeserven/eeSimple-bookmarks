@@ -20,6 +20,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** Reading the element's text content (the default read kind). */
 export const TextContent: Story = {
   render: () => {
     const [read, setRead] = useState<FillExtract["read"]>({
@@ -36,6 +37,7 @@ export const TextContent: Story = {
   },
 };
 
+/** Reading an attribute (href), showing the attribute-name input. */
 export const Attribute: Story = {
   render: () => {
     const [read, setRead] = useState<FillExtract["read"]>({
@@ -53,6 +55,7 @@ export const Attribute: Story = {
   },
 };
 
+/** Reading the element's CSS background image. */
 export const BackgroundImage: Story = {
   render: () => {
     const [read, setRead] = useState<FillExtract["read"]>({

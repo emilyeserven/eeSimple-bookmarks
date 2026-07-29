@@ -55,6 +55,7 @@ export const Default: Story = {
   ),
 };
 
+/** Shows the save-tags-as-source-default offer for the example.com website. */
 export const WithSourceDefaultOffer: Story = {
   render: () => (
     <BookmarkFormHost
@@ -78,6 +79,7 @@ export const WithSourceDefaultOffer: Story = {
   ),
 };
 
+/** No onFetchDescription handler, so the fetch-description button is hidden. */
 export const WithoutFetchButton: Story = {
   render: () => (
     <BookmarkFormHost

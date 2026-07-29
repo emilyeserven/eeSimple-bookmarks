@@ -90,6 +90,7 @@ export const Default: Story = {
   ),
 };
 
+/** The advanced section with a category preselected, revealing category-scoped fields. */
 export const WithCategorySelected: Story = {
   render: () => (
     <BookmarkFormHost

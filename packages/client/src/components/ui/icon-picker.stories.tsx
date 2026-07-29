@@ -31,6 +31,7 @@ export const Default: Story = {
   },
 };
 
+/** No icon chosen yet — the picker's placeholder state. */
 export const Empty: Story = {
   render: () => {
     const [value, setValue] = useState<string | null>(null);
@@ -45,6 +46,7 @@ export const Empty: Story = {
   },
 };
 
+/** A Phosphor-set icon selected (ph: prefix). */
 export const PhosphorIcon: Story = {
   render: () => {
     const [value, setValue] = useState<string | null>("ph:YinYang");
@@ -59,6 +61,7 @@ export const PhosphorIcon: Story = {
   },
 };
 
+/** A custom app icon selected (custom: prefix). */
 export const CustomIcon: Story = {
   render: () => {
     const [value, setValue] = useState<string | null>("custom:Torii");

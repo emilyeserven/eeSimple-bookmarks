@@ -11,6 +11,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** A single-thumb slider. */
 export const Single: Story = {
   args: {
     defaultValue: [50],
@@ -25,6 +26,7 @@ export const Single: Story = {
   ),
 };
 
+/** A two-thumb range slider. */
 export const Range: Story = {
   args: {
     defaultValue: [25, 75],

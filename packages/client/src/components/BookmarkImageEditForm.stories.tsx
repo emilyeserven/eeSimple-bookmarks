@@ -25,8 +25,10 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** A bookmark with no image yet — the empty picker state. */
 export const NoImage: Story = {};
 
+/** A bookmark that already has an uploaded main image. */
 export const WithExistingImage: Story = {
   args: {
     bookmark: makeBookmark({
@@ -46,6 +48,7 @@ export const WithExistingImage: Story = {
   },
 };
 
+/** A bookmark carrying a page screenshot alongside no main image. */
 export const WithScreenshot: Story = {
   args: {
     bookmark: makeBookmark({

@@ -73,6 +73,7 @@ const iconOptions: ComboboxOption[] = [
   },
 ];
 
+/** Options carrying leading lucide icons in the trigger and list. */
 export const WithIcons: Story = {
   render: () => {
     const [value, setValue] = useState<string | undefined>(undefined);

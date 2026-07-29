@@ -38,6 +38,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** The table with no bookmark rows. */
 export const Empty: Story = {
   args: {
     bookmarks: [],

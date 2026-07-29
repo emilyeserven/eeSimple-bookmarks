@@ -39,10 +39,12 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** The tag condition with nothing selected yet. */
 export const Empty: Story = {
   render: () => <Controlled initial={[]} />,
 };
 
+/** A parent tag (Development) preselected from the tree. */
 export const WithSelection: Story = {
   render: () => <Controlled initial={["dev"]} />,
 };

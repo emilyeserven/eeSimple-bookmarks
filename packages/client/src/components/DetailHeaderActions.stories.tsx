@@ -15,14 +15,17 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** Both the Edit and Delete actions wired. */
 export const EditAndDelete: Story = {};
 
+/** Only the Edit action — no Delete handler. */
 export const EditOnly: Story = {
   args: {
     onDelete: undefined,
   },
 };
 
+/** Only the Delete action — no Edit handler. */
 export const DeleteOnly: Story = {
   args: {
     onEdit: undefined,

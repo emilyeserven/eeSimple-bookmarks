@@ -16,6 +16,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** The disabled textarea with a value. */
 export const Disabled: Story = {
   args: {
     disabled: true,

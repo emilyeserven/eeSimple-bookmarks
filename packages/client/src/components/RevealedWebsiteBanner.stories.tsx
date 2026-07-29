@@ -19,6 +19,7 @@ export default meta;
 
 type Story = StoryObj;
 
+/** A lookup matching an already-known website. */
 export const ExistingWebsite: Story = {
   render: () => (
     <BookmarkFormHost
@@ -43,6 +44,7 @@ export const ExistingWebsite: Story = {
   ),
 };
 
+/** A lookup for a brand-new domain, offering to name the new website. */
 export const NewWebsite: Story = {
   render: () => (
     <BookmarkFormHost

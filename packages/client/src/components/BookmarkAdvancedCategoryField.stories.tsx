@@ -52,6 +52,7 @@ export const Default: Story = {
   ),
 };
 
+/** The category combobox locked to a preselected category (lockedCategoryId). */
 export const Locked: Story = {
   render: () => (
     <BookmarkFormHost
@@ -72,6 +73,7 @@ export const Locked: Story = {
   ),
 };
 
+/** Shows the save-as-source-default offer for the example.com website. */
 export const WithSourceDefaultOffer: Story = {
   render: () => (
     <BookmarkFormHost

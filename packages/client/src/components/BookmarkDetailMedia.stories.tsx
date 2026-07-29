@@ -36,8 +36,10 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** A bookmark with a stored hero image and no embed. */
 export const StaticImage: Story = {};
 
+/** A YouTube embed URL, rendering the video iframe instead of an image. */
 export const YouTubeEmbed: Story = {
   args: {
     bookmark: sampleBookmark,
@@ -45,6 +47,7 @@ export const YouTubeEmbed: Story = {
   },
 };
 
+/** A bookmark with neither an image nor an embed — renders no media. */
 export const NoMedia: Story = {
   args: {
     bookmark: makeBookmark(),

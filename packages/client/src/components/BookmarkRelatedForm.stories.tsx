@@ -23,6 +23,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** The related-bookmarks form for a bare factory bookmark with no relationships. */
 export const MinimalBookmark: Story = {
   args: {
     bookmark: makeBookmark({

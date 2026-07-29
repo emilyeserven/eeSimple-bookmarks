@@ -71,6 +71,7 @@ export const Default: Story = {
   ),
 };
 
+/** Right after a title fetch — the undo affordance shows the previous title. */
 export const AfterTitleFetch: Story = {
   render: () => (
     <BookmarkFormHost

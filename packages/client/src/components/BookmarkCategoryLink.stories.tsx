@@ -17,6 +17,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** Rendered with a different sample category to vary name and icon. */
 export const SecondCategory: Story = {
   args: {
     category: sampleCategories[1] ?? sampleCategories[0],

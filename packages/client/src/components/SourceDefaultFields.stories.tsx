@@ -53,6 +53,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** Category and media type defaults already chosen. */
 export const Preselected: Story = {
   args: {
     initialCategoryId: "cat-2",
@@ -60,6 +61,7 @@ export const Preselected: Story = {
   },
 };
 
+/** Newsletter-flavored labels and note text for the same fields. */
 export const NewsletterLabels: Story = {
   args: {
     categoryLabel: "Default category",

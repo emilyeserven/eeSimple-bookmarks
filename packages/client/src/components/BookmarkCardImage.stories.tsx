@@ -55,12 +55,14 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** Corner overlay badges placed on the image (top-left and bottom-right). */
 export const WithOverlays: Story = {
   args: {
     overlayItems,
   },
 };
 
+/** The image docked to the card's left side, overlays included. */
 export const ImageLeft: Story = {
   args: {
     imageLeft: true,
