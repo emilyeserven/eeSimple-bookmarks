@@ -34,16 +34,14 @@ function NewLocationPage() {
         </p>
       </div>
 
-      <div className="rounded-lg border bg-card p-4">
-        <LocationForm
-          onCreated={location => void navigate({
-            to: "/taxonomies/locations/$locationSlug/edit",
-            params: {
-              locationSlug: location.slug,
-            },
-          })}
-        />
-      </div>
+      <LocationForm
+        onCreated={location => void navigate({
+          to: "/taxonomies/locations/$locationSlug/edit",
+          params: {
+            locationSlug: location.slug,
+          },
+        })}
+      />
     </section>
   );
 }

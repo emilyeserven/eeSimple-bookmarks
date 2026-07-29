@@ -4,18 +4,13 @@ import type { Bookmark } from "@eesimple/types";
 import { useTranslation } from "react-i18next";
 
 import { BookmarkAiUpdateReviewList } from "./BookmarkAiUpdateReview";
+import { LabeledSection } from "./LabeledSection";
 import { useBookmarkAiUpdate } from "../hooks/useBookmarkAiUpdate";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslatedLabel } from "@/hooks/useTranslatedLabel";
 
@@ -170,26 +165,20 @@ export function BookmarkAiUpdateTab({
   const hasChecked = controller.checkedFields.size > 0;
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("Fields to Update")}</CardTitle>
-          <CardDescription>
-            {t("Choose which fields the AI should provide values for. Everything else is left untouched.")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <BookmarkAiUpdateFieldPicker controller={controller} />
-        </CardContent>
-      </Card>
+      <LabeledSection
+        title={t("Fields to Update")}
+        description={t("Choose which fields the AI should provide values for. Everything else is left untouched.")}
+      >
+        <BookmarkAiUpdateFieldPicker controller={controller} />
+      </LabeledSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("AI Update Prompt")}</CardTitle>
-          <CardDescription>
-            {t("Ready to paste into your AI. It asks for JSON you can paste back below, then review and apply.")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <Separator />
+
+      <LabeledSection
+        title={t("AI Update Prompt")}
+        description={t("Ready to paste into your AI. It asks for JSON you can paste back below, then review and apply.")}
+      >
+        <div className="space-y-4">
           {hasChecked
             ? (
               <>
@@ -207,17 +196,16 @@ export function BookmarkAiUpdateTab({
               </>
             )
             : <p className="text-sm text-muted-foreground">{t("Check at least one field above to generate the prompt.")}</p>}
-        </CardContent>
-      </Card>
+        </div>
+      </LabeledSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("Review & Apply")}</CardTitle>
-          <CardDescription>
-            {t("Paste the AI's JSON response here. Review the proposed changes, uncheck any you don't want, then apply.")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <Separator />
+
+      <LabeledSection
+        title={t("Review & Apply")}
+        description={t("Paste the AI's JSON response here. Review the proposed changes, uncheck any you don't want, then apply.")}
+      >
+        <div className="space-y-4">
           <Textarea
             value={controller.applyText}
             onChange={e => controller.setApplyText(e.target.value)}
@@ -247,25 +235,22 @@ export function BookmarkAiUpdateTab({
               {controller.isApplying ? t("Applying…") : t("Apply Changes")}
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </LabeledSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("Prompt Template")}</CardTitle>
-          <CardDescription>
-            {t("The reusable instructions included at the top of the generated prompt above. Saved automatically as you type.")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Textarea
-            value={controller.templatePrompt}
-            onChange={e => controller.setTemplatePrompt(e.target.value)}
-            placeholder={t("Leave empty to use the built-in instructions.")}
-            rows={6}
-          />
-        </CardContent>
-      </Card>
+      <Separator />
+
+      <LabeledSection
+        title={t("Prompt Template")}
+        description={t("The reusable instructions included at the top of the generated prompt above. Saved automatically as you type.")}
+      >
+        <Textarea
+          value={controller.templatePrompt}
+          onChange={e => controller.setTemplatePrompt(e.target.value)}
+          placeholder={t("Leave empty to use the built-in instructions.")}
+          rows={6}
+        />
+      </LabeledSection>
     </div>
   );
 }

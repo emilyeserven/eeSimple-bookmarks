@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { LabeledSection } from "../LabeledSection";
 
 import { Badge } from "@/components/ui/badge";
+import { RowCard } from "@/components/ui/card";
 import { useMediaTypes } from "@/hooks/useMediaTypes";
 import { useTags } from "@/hooks/useTags";
 import { buildBuiltInFillRules } from "@/lib/builtInFillRules";
@@ -69,7 +70,7 @@ function BuiltInFillRuleRow({
     t,
   } = useTranslation();
   return (
-    <div className="space-y-1 rounded-lg border bg-card p-3">
+    <RowCard className="space-y-1 p-3">
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
           <span className="text-sm font-medium">{t(rule.label)}</span>
@@ -83,6 +84,6 @@ function BuiltInFillRuleRow({
         </div>
       </div>
       <p className="text-xs text-muted-foreground">{t(rule.source)}</p>
-    </div>
+    </RowCard>
   );
 }

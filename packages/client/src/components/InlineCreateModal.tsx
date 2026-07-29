@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { useMemo } from "react";
+
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
@@ -14,10 +16,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-const nameOnlySchema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
-});
-
 interface InlineCreateModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -27,6 +25,10 @@ interface InlineCreateModalProps {
   description: string;
   /** Placeholder for the name field, e.g. "e.g. Workflow". */
   placeholder: string;
+  /** Label for the name field when the entity's key field isn't "Name" (e.g. "Domain"). */
+  nameLabel?: string;
+  /** Required-validation message for the name field, e.g. "Domain is required". */
+  nameRequiredMessage?: string;
   /** Submit button label, e.g. "Add category". */
   submitLabel: string;
   /** Submit button label while the create is pending. */
@@ -37,6 +39,11 @@ interface InlineCreateModalProps {
    * `InlineCreateModal` stays name-only internally. See `AddRelationshipTypeModal`.
    */
   extraFields?: ReactNode;
+  /**
+   * Extra condition that disables the submit button — for a caller-owned required `extraFields`
+   * input (e.g. pass `value.trim() === ""`).
+   */
+  submitDisabledWhen?: boolean;
   /** Whether the underlying create mutation errored. */
   isError: boolean;
   /** Error message to surface when `isError`. */
@@ -60,9 +67,12 @@ export function InlineCreateModal({
   title,
   description,
   placeholder,
+  nameLabel,
+  nameRequiredMessage,
   submitLabel,
   pendingLabel,
   extraFields,
+  submitDisabledWhen,
   isError,
   errorMessage,
   onSubmit,
@@ -70,6 +80,9 @@ export function InlineCreateModal({
   const {
     t,
   } = useTranslation();
+  const nameOnlySchema = useMemo(() => z.object({
+    name: z.string().trim().min(1, nameRequiredMessage ?? "Name is required"),
+  }), [nameRequiredMessage]);
   const form = useAppForm({
     defaultValues: {
       name: "",
@@ -109,7 +122,7 @@ export function InlineCreateModal({
           <form.AppField name="name">
             {field => (
               <field.TextField
-                label={t("Name")}
+                label={nameLabel ?? t("Name")}
                 placeholder={placeholder}
               />
             )}
@@ -126,6 +139,7 @@ export function InlineCreateModal({
               <form.SubmitButton
                 label={submitLabel}
                 pendingLabel={pendingLabel ?? t("Adding…")}
+                disabledWhen={submitDisabledWhen ?? false}
               />
             </form.AppForm>
           </DialogFooter>

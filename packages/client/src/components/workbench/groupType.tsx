@@ -207,7 +207,7 @@ export const groupTypeWorkbench: EntityWorkbench<GroupType> = {
   tabs: [
     {
       key: "general",
-      label: "General",
+      label: i18n.t("General"),
     },
   ],
 };

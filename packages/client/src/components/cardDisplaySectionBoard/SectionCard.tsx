@@ -24,6 +24,7 @@ import {
 import { SectionVisibilityEditor } from "../SectionVisibilityEditor";
 
 import { Button } from "@/components/ui/button";
+import { RowCard } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -51,7 +52,7 @@ export function SectionCard({
     id: `sec:${section.key}`,
   });
   return (
-    <div className="space-y-3 rounded-lg border bg-card p-3">
+    <RowCard className="space-y-3 p-3">
       <div className="flex flex-wrap items-center gap-2">
         <InlineEditableLabel
           value={section.title ?? ""}
@@ -189,7 +190,7 @@ export function SectionCard({
             )}
         </SortableContext>
       </div>
-    </div>
+    </RowCard>
   );
 }
 

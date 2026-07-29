@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { BookmarkForm } from "./BookmarkForm";
 import { useUiStore } from "../stores/uiStore";
 
+import { RowCard } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface AddBookmarkCollapsibleProps {
@@ -27,27 +28,29 @@ export function AddBookmarkCollapsible({
 
   return (
     <Collapsible
+      asChild
       open={addBookmarkFormOpen}
       onOpenChange={setAddBookmarkFormOpen}
-      className="group/add-bookmark rounded-lg border bg-card"
     >
-      <CollapsibleTrigger
-        className="
-          flex w-full items-center justify-between p-4 text-sm font-medium
-          hover:text-foreground
-        "
-      >
-        {t("Add Bookmark")}
-        <ChevronDown
+      <RowCard className="group/add-bookmark">
+        <CollapsibleTrigger
           className="
-            size-4 transition-transform
-            group-data-[state=open]/add-bookmark:rotate-180
+            flex w-full items-center justify-between p-4 text-sm font-medium
+            hover:text-foreground
           "
-        />
-      </CollapsibleTrigger>
-      <CollapsibleContent className="px-4 pb-4">
-        <BookmarkForm lockedCategoryId={lockedCategoryId} />
-      </CollapsibleContent>
+        >
+          {t("Add Bookmark")}
+          <ChevronDown
+            className="
+              size-4 transition-transform
+              group-data-[state=open]/add-bookmark:rotate-180
+            "
+          />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="px-4 pb-4">
+          <BookmarkForm lockedCategoryId={lockedCategoryId} />
+        </CollapsibleContent>
+      </RowCard>
     </Collapsible>
   );
 }

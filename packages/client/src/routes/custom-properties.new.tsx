@@ -47,33 +47,31 @@ function NewCustomPropertyPage() {
         <h1 className="text-2xl font-bold">{t("New custom property")}</h1>
       </div>
 
-      <div className="rounded-lg border bg-card p-4">
-        <PropertyForm
-          mode="create"
-          categories={categories ?? []}
-          mediaTypes={mediaTypes ?? []}
-          numberProperties={numberProperties}
-          onSubmit={payload => createProperty.mutate(payload, {
-            onSuccess: (created) => {
-              // Seed the list cache so the destination view finds the property before the refetch.
-              queryClient.setQueryData<CustomProperty[]>(
-                ["custom-properties"],
-                prev => (prev ? [...prev, created] : [created]),
-              );
-              void navigate({
-                to: "/custom-properties/$propertySlug",
-                params: {
-                  propertySlug: created.slug,
-                },
-              });
-            },
-          })}
-          submitLabel={t("Add property")}
-          pendingLabel={t("Adding…")}
-          errorMessage={createProperty.isError ? createProperty.error.message : undefined}
-          idPrefix="new-property-category"
-        />
-      </div>
+      <PropertyForm
+        mode="create"
+        categories={categories ?? []}
+        mediaTypes={mediaTypes ?? []}
+        numberProperties={numberProperties}
+        onSubmit={payload => createProperty.mutate(payload, {
+          onSuccess: (created) => {
+            // Seed the list cache so the destination view finds the property before the refetch.
+            queryClient.setQueryData<CustomProperty[]>(
+              ["custom-properties"],
+              prev => (prev ? [...prev, created] : [created]),
+            );
+            void navigate({
+              to: "/custom-properties/$propertySlug",
+              params: {
+                propertySlug: created.slug,
+              },
+            });
+          },
+        })}
+        submitLabel={t("Add property")}
+        pendingLabel={t("Adding…")}
+        errorMessage={createProperty.isError ? createProperty.error.message : undefined}
+        idPrefix="new-property-category"
+      />
     </section>
   );
 }

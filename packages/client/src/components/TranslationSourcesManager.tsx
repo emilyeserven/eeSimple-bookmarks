@@ -17,7 +17,7 @@ import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { RowCard } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -73,45 +73,40 @@ export function TranslationSourcesManager() {
           {t("How a language's translation or script was produced — attached, optionally, when associating a language with a bookmark, movie, show, website, channel, or person.")}
         </p>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("Translation Sources")}</CardTitle>
-          <CardDescription>
-            {t("e.g. AI generated, Fan-translated, Professionally translated.")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {sources.length === 0 && (
-            <p className="text-sm text-muted-foreground">{t("No translation sources yet.")}</p>
-          )}
-          {sources.map(source => (
-            <SourceRow
-              key={source.id}
-              source={source}
-              siblings={sources}
-            />
-          ))}
-          <div className="flex items-center gap-2 pt-2">
-            <Input
-              placeholder={t("New source name…")}
-              value={newName}
-              onChange={e => setNewName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") addSource();
-              }}
-            />
-            <Button
-              type="button"
-              size="sm"
-              onClick={addSource}
-              disabled={newName.trim().length === 0 || create.isPending}
-            >
-              <Plus className="size-4" />
-              {t("Add")}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <section className="space-y-2">
+        <p className="text-sm text-muted-foreground">
+          {t("e.g. AI generated, Fan-translated, Professionally translated.")}
+        </p>
+        {sources.length === 0 && (
+          <p className="text-sm text-muted-foreground">{t("No translation sources yet.")}</p>
+        )}
+        {sources.map(source => (
+          <SourceRow
+            key={source.id}
+            source={source}
+            siblings={sources}
+          />
+        ))}
+        <div className="flex items-center gap-2 pt-2">
+          <Input
+            placeholder={t("New source name…")}
+            value={newName}
+            onChange={e => setNewName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") addSource();
+            }}
+          />
+          <Button
+            type="button"
+            size="sm"
+            onClick={addSource}
+            disabled={newName.trim().length === 0 || create.isPending}
+          >
+            <Plus className="size-4" />
+            {t("Add")}
+          </Button>
+        </div>
+      </section>
     </div>
   );
 }
@@ -158,7 +153,7 @@ function SourceRow({
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <RowCard className="flex items-center gap-2 p-3">
       {source.builtIn
         ? (
           <div className="flex flex-1 items-center gap-2 text-sm">
@@ -193,7 +188,7 @@ function SourceRow({
         source={source}
         siblings={siblings.filter(s => s.id !== source.id)}
       />
-    </div>
+    </RowCard>
   );
 }
 

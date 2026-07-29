@@ -1,6 +1,8 @@
 import type { PropertyFormApi } from "./propertyFormSchema";
 import type { CustomProperty } from "@eesimple/types";
 
+import { useTranslation } from "react-i18next";
+
 import { AllowDefaultField } from "./AllowDefaultField";
 import { CollapsibleFormSection } from "./CollapsibleFormSection";
 import { BOOLEAN_LABEL_PRESET_OPTIONS, summarizeBooleanOptions } from "./propertyFormParts";
@@ -19,6 +21,9 @@ export function BooleanOptions({
   defaultOpen: boolean;
   full: boolean;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <>
       {full ? <Separator /> : null}
@@ -97,7 +102,7 @@ export function BooleanOptions({
               } as CustomProperty;
               return (
                 <div className="space-y-2 rounded-md border bg-muted/30 p-3">
-                  <p className="text-xs font-medium text-muted-foreground">Preview</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t("Preview")}</p>
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2 text-sm">
                       <span

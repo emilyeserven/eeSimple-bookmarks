@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import { useTranslation } from "react-i18next";
 
+import { LabeledSection } from "./LabeledSection";
 import { useTagReparentForm } from "../hooks/useTagReparentForm";
 import { useApplyTagReparentPlan } from "../hooks/useTags";
 import { describeError } from "../lib/apiError";
@@ -18,15 +19,9 @@ import {
 } from "../lib/tagReparent";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 
 /** Recursively flatten a subtree into prompt lines, prefixing each name with its ancestor path. */
@@ -117,58 +112,49 @@ export function TagReparentTab({
   }
 
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("Current Subtags")}</CardTitle>
-          <CardDescription>
-            {subtree.length > 0
-              ? t("The tags currently nested under this tag, included in the prompt below.")
-              : t("This tag has no subtags yet. Note the ones you want below, then generate the prompt.")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {subtree.length > 0
-            ? (
-              <ul className="space-y-1 text-sm">
-                {subtree.map(line => (
-                  <li
-                    key={line.id}
-                    className="font-mono text-xs text-muted-foreground"
-                  >{line.path}
-                  </li>
-                ))}
-              </ul>
-            )
-            : <p className="text-sm text-muted-foreground">{t("No subtags.")}</p>}
-        </CardContent>
-      </Card>
+    <div className="space-y-6">
+      <LabeledSection
+        title={t("Current Subtags")}
+        description={subtree.length > 0
+          ? t("The tags currently nested under this tag, included in the prompt below.")
+          : t("This tag has no subtags yet. Note the ones you want below, then generate the prompt.")}
+      >
+        {subtree.length > 0
+          ? (
+            <ul className="space-y-1 text-sm">
+              {subtree.map(line => (
+                <li
+                  key={line.id}
+                  className="font-mono text-xs text-muted-foreground"
+                >{line.path}
+                </li>
+              ))}
+            </ul>
+          )
+          : <p className="text-sm text-muted-foreground">{t("No subtags.")}</p>}
+      </LabeledSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("Subtags I Want")}</CardTitle>
-          <CardDescription>
-            {t("Describe any groupings or subtags you'd like — the AI uses these as goals when proposing a new hierarchy.")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Textarea
-            value={notes}
-            onChange={e => setNotes(e.target.value)}
-            placeholder={t("e.g. group the frontend frameworks under a \"Frontend\" tag, split tooling from libraries…")}
-            rows={4}
-          />
-        </CardContent>
-      </Card>
+      <Separator />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("Reparent Prompt")}</CardTitle>
-          <CardDescription>
-            {t("Ready to paste into your AI. It asks for JSON you can paste back below, then review and apply.")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <LabeledSection
+        title={t("Subtags I Want")}
+        description={t("Describe any groupings or subtags you'd like — the AI uses these as goals when proposing a new hierarchy.")}
+      >
+        <Textarea
+          value={notes}
+          onChange={e => setNotes(e.target.value)}
+          placeholder={t("e.g. group the frontend frameworks under a \"Frontend\" tag, split tooling from libraries…")}
+          rows={4}
+        />
+      </LabeledSection>
+
+      <Separator />
+
+      <LabeledSection
+        title={t("Reparent Prompt")}
+        description={t("Ready to paste into your AI. It asks for JSON you can paste back below, then review and apply.")}
+      >
+        <div className="space-y-4">
           <Textarea
             value={generatedPrompt}
             readOnly
@@ -180,17 +166,16 @@ export function TagReparentTab({
               {copied ? t("Copied!") : t("Copy Prompt")}
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </LabeledSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("Review & Apply")}</CardTitle>
-          <CardDescription>
-            {t("Paste the AI's JSON response here. Review the proposed new tags and moves, uncheck any you don't want, then apply.")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <Separator />
+
+      <LabeledSection
+        title={t("Review & Apply")}
+        description={t("Paste the AI's JSON response here. Review the proposed new tags and moves, uncheck any you don't want, then apply.")}
+      >
+        <div className="space-y-4">
           <Textarea
             value={applyText}
             onChange={e => setApplyText(e.target.value)}
@@ -221,28 +206,25 @@ export function TagReparentTab({
               {applyPlan.isPending ? t("Applying…") : t("Apply Changes")}
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </LabeledSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("Prompt Template")}</CardTitle>
-          <CardDescription>
-            {t("The reusable instructions included at the top of the generated prompt above. Saved automatically as you type.")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Textarea
-            value={form.tagReparentPrompt}
-            onChange={e => patchForm({
-              tagReparentPrompt: e.target.value,
-            })}
-            placeholder={t("Enter instructions for the AI to follow when reorganizing this tag's hierarchy…")}
-            rows={6}
-          />
-        </CardContent>
-      </Card>
-    </>
+      <Separator />
+
+      <LabeledSection
+        title={t("Prompt Template")}
+        description={t("The reusable instructions included at the top of the generated prompt above. Saved automatically as you type.")}
+      >
+        <Textarea
+          value={form.tagReparentPrompt}
+          onChange={e => patchForm({
+            tagReparentPrompt: e.target.value,
+          })}
+          placeholder={t("Enter instructions for the AI to follow when reorganizing this tag's hierarchy…")}
+          rows={6}
+        />
+      </LabeledSection>
+    </div>
   );
 }
 
