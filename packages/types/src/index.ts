@@ -185,6 +185,11 @@ export interface Website {
   shortenedLinks: ShortenedLink[];
   /** Path-scoped query-param whitelist applied when canonicalizing this site's URLs. */
   paramRules: WebsiteParamRule[];
+  /**
+   * Query params always stripped from this site's URLs when a bookmark is saved (e.g. YouTube's `t`).
+   * A blacklist applied by the canonicalizer regardless of cleanup mode or `paramRules`.
+   */
+  stripParams?: string[];
   /** User-starred favorite. */
   isFavorite?: boolean;
   /** ISO-8601 timestamp of when the website was first seen. */
@@ -255,6 +260,8 @@ export interface CreateWebsiteInput {
   shortenedLinks?: ShortenedLink[];
   /** Optional path-scoped query-param whitelist. */
   paramRules?: WebsiteParamRule[];
+  /** Optional query params always stripped from this site's URLs on save. */
+  stripParams?: string[];
   description?: string | null;
 }
 
@@ -266,6 +273,8 @@ export interface UpdateWebsiteInput {
   domain?: string;
   shortenedLinks?: ShortenedLink[];
   paramRules?: WebsiteParamRule[];
+  /** Full replacement list of query params always stripped from this site's URLs on save. Omit to leave unchanged. */
+  stripParams?: string[];
   description?: string | null;
   /** Category to associate with this website. `null` clears the association; omit to leave unchanged. */
   categoryId?: string | null;

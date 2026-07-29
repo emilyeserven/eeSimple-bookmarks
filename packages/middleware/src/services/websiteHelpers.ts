@@ -158,6 +158,7 @@ export const websiteSelect = {
   isFavorite: websites.isFavorite,
   shortenedLinks: websites.shortenedLinks,
   paramRules: websites.paramRules,
+  stripParams: websites.stripParams,
   socialLinks: websites.socialLinks,
   labeledWebsites: websites.labeledWebsites,
   alternateNames: websites.alternateNames,

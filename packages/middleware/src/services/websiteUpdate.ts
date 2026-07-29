@@ -6,6 +6,7 @@ export interface WebsiteScalarPatch {
   description?: string | null;
   shortenedLinks?: ShortenedLink[];
   paramRules?: WebsiteParamRule[];
+  stripParams?: string[];
   categoryId?: string | null;
   mediaTypeId?: string | null;
   socialLinks?: SocialLink[];
@@ -49,6 +50,7 @@ export function buildWebsiteScalarPatch(input: UpdateWebsiteInput): WebsiteScala
   // Rule fields stay editable even on built-ins (only rename/move/delete are blocked).
   if (input.shortenedLinks !== undefined) patch.shortenedLinks = input.shortenedLinks;
   if (input.paramRules !== undefined) patch.paramRules = input.paramRules;
+  if (input.stripParams !== undefined) patch.stripParams = input.stripParams;
   if ("categoryId" in input) patch.categoryId = input.categoryId ?? null;
   if ("mediaTypeId" in input) patch.mediaTypeId = input.mediaTypeId ?? null;
   if ("socialLinks" in input) patch.socialLinks = input.socialLinks ?? [];

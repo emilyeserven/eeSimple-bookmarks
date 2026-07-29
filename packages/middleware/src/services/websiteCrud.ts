@@ -104,6 +104,7 @@ function toWebsite(
     isFavorite: row.isFavorite,
     shortenedLinks: row.shortenedLinks,
     paramRules: row.paramRules,
+    stripParams: (row.stripParams as string[] | null) ?? [],
     createdAt:
       row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     bookmarkCount: row.bookmarkCount,
@@ -299,6 +300,9 @@ export async function createWebsite(input: CreateWebsiteInput): Promise<Website>
     ...(input.paramRules !== undefined && {
       paramRules: input.paramRules,
     }),
+    ...(input.stripParams !== undefined && {
+      stripParams: input.stripParams,
+    }),
   }).returning({
     id: websites.id,
   });
@@ -321,7 +325,7 @@ export async function updateWebsite(
     throw new BuiltInWebsiteError("A built-in website cannot be renamed or moved");
   }
 
-  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "description" | "slug" | "shortenedLinks" | "paramRules" | "categoryId" | "mediaTypeId" | "socialLinks" | "labeledWebsites" | "alternateNames" | "extensionFillRules" | "extensionFillRuleGroups" | "scanObservations" | "redirectResolutionFailure" | "scanUrlForIsbn" | "isFavorite">> = buildWebsiteScalarPatch(input);
+  const patch: Partial<Pick<WebsiteRow, "domain" | "siteName" | "description" | "slug" | "shortenedLinks" | "paramRules" | "stripParams" | "categoryId" | "mediaTypeId" | "socialLinks" | "labeledWebsites" | "alternateNames" | "extensionFillRules" | "extensionFillRuleGroups" | "scanObservations" | "redirectResolutionFailure" | "scanUrlForIsbn" | "isFavorite">> = buildWebsiteScalarPatch(input);
   if (input.isFavorite !== undefined) patch.isFavorite = input.isFavorite;
   if (input.domain !== undefined) {
     const domain = normalizeWebsiteDomain(input.domain);
