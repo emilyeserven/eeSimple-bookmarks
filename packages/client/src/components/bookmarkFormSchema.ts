@@ -68,8 +68,6 @@ export const bookmarkSchema = z.object({
 export {
   CONTENT_STATUS_SLUG,
   DATE_POSTED_SLUG,
-  PAGE_RANGE_SLUG,
-  PROGRESS_SLUG,
   RUNTIME_SLUG,
   SECTIONS_SLUG,
 } from "@eesimple/types";
