@@ -91,7 +91,7 @@ describe("website default layout", () => {
         group: undefined,
         sections: [{
           key: "param-rules",
-          fields: ["paramRules"],
+          fields: ["paramRules", "stripParams"],
         }],
       },
       {
@@ -168,7 +168,7 @@ describe("website default layout", () => {
         group: undefined,
         sections: [{
           key: "param-rules",
-          fields: ["paramRules"],
+          fields: ["paramRules", "stripParams"],
         }],
       },
       {
