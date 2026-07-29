@@ -9,12 +9,35 @@
  */
 
 import type { CreateBookmarkInput } from "@eesimple/types";
+import { cleanUrl } from "@eesimple/types";
 import { db } from "@/db";
 import { importItems, imports } from "@/db/schema";
+import { getCustomStripParams, getShortenerIgnoreList } from "@/services/appSettings";
 import { suggestAutofillForBookmark } from "@/services/autofill";
 import { checkBookmarkUrlDuplicate, createBookmark, DuplicateUrlError } from "@/services/bookmarks";
 import { approvalTitle } from "@/services/importApproval";
 import { findPendingImportItemByUrl } from "@/services/importItems";
+import { listWebsites } from "@/services/websites";
+
+/**
+ * Canonicalize a URL saved via the extension/PWA share target: expand verified shortened links and
+ * strip tracker params, the app-level custom strip list, and the matched website's per-site
+ * `paramRules` / `stripParams`. Mirrors how the newsletter import pipeline builds its canonicalize
+ * data (`mode: "trackers"`) — this is the quick-save equivalent, which previously stored the raw URL.
+ */
+async function canonicalizeQuickSaveUrl(url: string): Promise<string> {
+  const [websites, ignoreList, customStripParams] = await Promise.all([
+    listWebsites(),
+    getShortenerIgnoreList(),
+    getCustomStripParams(),
+  ]);
+  return cleanUrl(url, {
+    mode: "trackers",
+    websites,
+    ignoreList,
+    customStripParams,
+  });
+}
 
 /**
  * Queue a single URL directly into the Inbox review queue — used by the browser extension and
@@ -28,10 +51,12 @@ export async function quickSaveToInbox(
   url: string,
   title: string,
 ): Promise<{ id: string } | null> {
-  const dup = await checkBookmarkUrlDuplicate(url);
+  const cleaned = await canonicalizeQuickSaveUrl(url);
+
+  const dup = await checkBookmarkUrlDuplicate(cleaned);
   if (dup.exactMatch ?? dup.pathMatch) return null;
 
-  const existingPending = await findPendingImportItemByUrl(url);
+  const existingPending = await findPendingImportItemByUrl(cleaned);
   if (existingPending) return null;
 
   const [importRow] = await db
@@ -52,7 +77,7 @@ export async function quickSaveToInbox(
     .insert(importItems)
     .values({
       importId: importRow.id,
-      url,
+      url: cleaned,
       rawUrl: url,
       title,
       status: "pending",
@@ -83,15 +108,17 @@ export async function quickAddBookmarkDirect(
   url: string,
   title: string,
 ): Promise<{ id: string } | null> {
-  const dup = await checkBookmarkUrlDuplicate(url);
+  const cleaned = await canonicalizeQuickSaveUrl(url);
+
+  const dup = await checkBookmarkUrlDuplicate(cleaned);
   if (dup.exactMatch ?? dup.pathMatch) return null;
 
   const resolvedTitle = approvalTitle({
     title,
-    url,
+    url: cleaned,
   });
   const autofill = await suggestAutofillForBookmark({
-    url,
+    url: cleaned,
     title: resolvedTitle,
   });
 
@@ -99,7 +126,7 @@ export async function quickAddBookmarkDirect(
   // title, and whatever the autofill rules matched. (Unlike Inbox approval, there is no importId to
   // spread in, so build the input directly rather than via buildApprovalBookmarkInput.)
   const input: CreateBookmarkInput = {
-    url,
+    url: cleaned,
     title: resolvedTitle,
     description: null,
     categoryId: autofill.categoryId ?? undefined,

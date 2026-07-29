@@ -118,6 +118,14 @@ export const alternateNamesSchema = {
   },
 } as const;
 
+export const stripParamsSchema = {
+  type: "array",
+  items: {
+    type: "string",
+    minLength: 1,
+  },
+} as const;
+
 export const textMatchSchema = {
   type: "object",
   additionalProperties: false,
@@ -852,6 +860,7 @@ export const updateWebsiteBody = {
     },
     shortenedLinks: shortenedLinksSchema,
     paramRules: paramRulesSchema,
+    stripParams: stripParamsSchema,
     categoryId: {
       type: ["string", "null"],
       format: "uuid",

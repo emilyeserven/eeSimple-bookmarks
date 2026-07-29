@@ -7,6 +7,7 @@ import { GenreMoodAssignmentSection } from "../GenreMoodAssignmentSection";
 import { LanguageUsagesTabEditor, LanguageUsagesTabView } from "../languageUsages/LanguageUsagesTab";
 import { ParamRulesList } from "../ParamRulesList";
 import { ShortenedLinksList } from "../ShortenedLinksList";
+import { StripParamsList } from "../StripParamsList";
 import { WebsiteExtensionFillRulesForm } from "../WebsiteExtensionFillRulesForm";
 import {
   WebsiteAlternateNamesEditField,
@@ -28,6 +29,7 @@ import { WebsiteParamRulesForm } from "../WebsiteParamRulesForm";
 import { WebsitePeopleForm, WebsitePeopleView } from "../WebsitePeopleForm";
 import { WebsiteScanObservationsForm } from "../WebsiteScanObservationsForm";
 import { WebsiteShortenedLinksForm } from "../WebsiteShortenedLinksForm";
+import { WebsiteStripParamsForm } from "../WebsiteStripParamsForm";
 import {
   WebsiteAlternateNamesView,
   WebsiteDescriptionView,
@@ -76,6 +78,7 @@ type WebsiteFieldKey
     | "people"
     | "shortenedLinks"
     | "paramRules"
+    | "stripParams"
     | "extensionFillRules"
     | "hierarchy"
     | "autofillRules"
@@ -262,6 +265,21 @@ const websiteFields = {
       entity,
     }) => <WebsiteParamRulesForm website={entity} />,
   },
+  stripParams: {
+    key: "stripParams",
+    label: i18n.t("Strip URL params"),
+    view: ({
+      entity,
+    }) => (
+      <StripParamsList
+        params={entity.stripParams ?? []}
+        emptyText={i18n.t("None configured.")}
+      />
+    ),
+    edit: ({
+      entity,
+    }) => <WebsiteStripParamsForm website={entity} />,
+  },
   extensionFillRules: {
     key: "extensionFillRules",
     label: i18n.t("Extension Fill Rules"),
@@ -367,7 +385,7 @@ const WEBSITE_DEFAULT_LAYOUT: EntityLayout = {
       label: i18n.t("Param Rules"),
       sections: [{
         key: "param-rules",
-        fields: ["paramRules"] satisfies WebsiteFieldKey[],
+        fields: ["paramRules", "stripParams"] satisfies WebsiteFieldKey[],
       }],
     },
     {

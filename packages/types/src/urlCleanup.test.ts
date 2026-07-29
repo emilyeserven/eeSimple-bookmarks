@@ -218,6 +218,78 @@ test("an absent matchMode behaves identically to explicit 'suffix' mode", () => 
   assert.equal(result.url, "https://example.com/some/watch/extra");
 });
 
+test("a matched website's stripParams blacklist drops those params while keeping the rest", () => {
+  const site = website({
+    domain: "youtube.com",
+    stripParams: ["t", "si"],
+  });
+  const result = canonicalize(
+    "https://youtube.com/watch?v=abc&t=90&si=xyz",
+    data({
+      mode: "none",
+      websites: [site],
+    }),
+  );
+  assert.equal(result.url, "https://youtube.com/watch?v=abc");
+  assert.equal(result.matchedWebsite, site);
+});
+
+test("stripParams applies even in mode 'none' (a pure blacklist hit re-serializes)", () => {
+  const site = website({
+    domain: "youtube.com",
+    stripParams: ["t"],
+  });
+  const result = canonicalize(
+    "https://youtube.com/watch?v=abc&t=90",
+    data({
+      mode: "none",
+      websites: [site],
+    }),
+  );
+  assert.equal(result.url, "https://youtube.com/watch?v=abc");
+});
+
+test("stripParams is a no-op when the site has no matching params", () => {
+  const site = website({
+    domain: "youtube.com",
+    stripParams: ["t"],
+  });
+  const url = "https://youtube.com/watch?v=abc";
+  assert.equal(cleanUrl(url, data({
+    mode: "none",
+    websites: [site],
+  })), url);
+});
+
+test("stripParams has no effect when the URL host matches no website", () => {
+  const site = website({
+    domain: "youtube.com",
+    stripParams: ["t"],
+  });
+  const url = "https://other.com/watch?v=abc&t=90";
+  assert.equal(cleanUrl(url, data({
+    mode: "none",
+    websites: [site],
+  })), url);
+});
+
+test("stripParams applies after a verified shortened link expands to the parent site", () => {
+  const site = website({
+    domain: "youtube.com",
+    stripParams: ["t"],
+    shortenedLinks: [{
+      domain: "youtu.be",
+      expandTo: "https://youtube.com/watch?v={id}&t=90",
+      keepShortened: false,
+    }],
+  });
+  const result = canonicalize("https://youtu.be/abc123", data({
+    mode: "none",
+    websites: [site],
+  }));
+  assert.equal(result.url, "https://youtube.com/watch?v=abc123");
+});
+
 test("longest-match tie-break still applies across mixed match modes", () => {
   const site = website({
     domain: "example.com",

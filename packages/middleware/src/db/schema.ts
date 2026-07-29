@@ -294,6 +294,10 @@ export const websites = pgTable("websites", {
   shortenedLinks: jsonb("shortened_links").$type<ShortenedLink[]>().notNull().default(sql`'[]'::jsonb`),
   // Path-scoped query-param whitelist; params outside the matching rule are stripped on canonicalize.
   paramRules: jsonb("param_rules").$type<WebsiteParamRule[]>().notNull().default(sql`'[]'::jsonb`),
+  // Query params always stripped from this site's URLs on save (a blacklist, e.g. YouTube's `t`).
+  // Applied by the canonicalizer regardless of cleanup mode or paramRules. Nullable (push-safe
+  // additive); NULL = none.
+  stripParams: jsonb("strip_params").$type<string[]>(),
   // Optional category association; set null when the category is deleted.
   categoryId: uuid("category_id").references((): AnyPgColumn => categories.id, {
     onDelete: "set null",

@@ -176,9 +176,20 @@ export function canonicalize(url: string, {
     }
   }
 
+  // The matched website's blacklist is applied unconditionally — independent of `mode` and even when
+  // the site has whitelist `paramRules` (where it's a harmless no-op) — so a configured strip param
+  // (e.g. YouTube's `t`) is always dropped on save.
+  let siteStripped = false;
+  for (const key of matchedWebsite?.stripParams ?? []) {
+    if (parsed.searchParams.has(key)) {
+      parsed.searchParams.delete(key);
+      siteStripped = true;
+    }
+  }
+
   // Only re-serialize when something actually changed, so a `none`-mode no-op preserves the raw URL
   // (and doesn't introduce a spurious `originalUrl` diff via URL normalization).
-  const changed = expanded || hasRules || mode === "all" || mode === "trackers" || customStripped;
+  const changed = expanded || hasRules || mode === "all" || mode === "trackers" || customStripped || siteStripped;
   return {
     url: changed ? parsed.toString() : url,
     matchedWebsite,
