@@ -2,29 +2,17 @@ import type { BookmarkFormApi } from "./bookmarkFormSchema";
 import type { CustomFieldControls } from "./customFieldControls";
 import type { BookmarkAddFormPlacement, CustomProperty } from "@eesimple/types";
 
+import { BOOKMARK_FORM_DETAIL_SLUGS } from "@eesimple/types";
+
 import { CategoryCustomFields } from "./BookmarkCustomFields";
-import {
-  CONTENT_STATUS_SLUG,
-  DATE_POSTED_SLUG,
-  PAGE_RANGE_SLUG,
-  PROGRESS_SLUG,
-  RUNTIME_SLUG,
-  SECTIONS_SLUG,
-} from "./bookmarkFormSchema";
 
 /**
  * The built-in detail slugs hidden from the main (non-Advanced) form by default — used when no
  * explicit `hiddenSlugs`/`placementOverrides` are provided (e.g. stories and the edit surface's
- * fallback), matching the historical hardcoded behavior.
+ * fallback), matching the historical hardcoded behavior. Derived from
+ * {@link BOOKMARK_FORM_DETAIL_SLUGS} so a new detail slug is picked up automatically.
  */
-const DEFAULT_MAIN_HIDDEN_SLUGS = [
-  RUNTIME_SLUG,
-  DATE_POSTED_SLUG,
-  CONTENT_STATUS_SLUG,
-  PROGRESS_SLUG,
-  PAGE_RANGE_SLUG,
-  SECTIONS_SLUG,
-];
+const DEFAULT_MAIN_HIDDEN_SLUGS = [...BOOKMARK_FORM_DETAIL_SLUGS];
 
 export interface RevealedCustomFieldsProps extends CustomFieldControls {
   form: BookmarkFormApi;

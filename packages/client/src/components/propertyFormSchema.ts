@@ -1,6 +1,6 @@
 import type { CreateCustomPropertyInput, CustomProperty } from "@eesimple/types";
 
-import { CHOICES_DISPLAY_TYPES, clampRatingMax, CUSTOM_PROPERTY_TYPES, DATE_TIME_FORMATS, NUMBER_FORMATS, RATING_DISPLAYS, RATING_MAX_LIMIT, RATING_MAX_MIN, SECTION_ENTRY_TYPES } from "@eesimple/types";
+import { BOOLEAN_LABEL_PRESETS, CHOICES_DISPLAY_TYPES, clampRatingMax, CUSTOM_PROPERTY_TYPES, DATE_TIME_FORMATS, NUMBER_FORMATS, RATING_DISPLAYS, RATING_MAX_LIMIT, RATING_MAX_MIN, SECTION_ENTRY_TYPES } from "@eesimple/types";
 import { z } from "zod";
 
 import { useAppForm } from "../lib/form";
@@ -73,7 +73,7 @@ export const propertySchema = z
     enabledInInbox: z.boolean(),
     enabled: z.boolean(),
     allowDefault: z.boolean(),
-    booleanLabelPreset: z.enum(["yes-no", "true-false", "enabled-disabled", "icons", "stars", "custom"]),
+    booleanLabelPreset: z.enum(BOOLEAN_LABEL_PRESETS),
     booleanTrueLabel: z.string(),
     booleanFalseLabel: z.string(),
     ratingMax: z.string().refine((value) => {

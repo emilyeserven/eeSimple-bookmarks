@@ -7,7 +7,7 @@
  */
 
 import type { BookmarkContentKind } from "./bookmarkContentKind.js";
-import type { ConditionMatchField, ConditionMatchOperator, ConditionTree } from "./conditions.js";
+import type { ConditionTree } from "./conditions.js";
 import type { BookmarkSectionsValue, BookmarkTextValue, ChoicesDisplayType, ChoicesItem, CustomPropertyType, DateTimeFormat, ItemInItemsMediaTypeTexts, NumberFormat, RatingCategoryLabels, RatingDisplay, SectionEntryType } from "./customProperties.js";
 import type { EntityName, UpdateEntityNameEntry } from "./entityNames.js";
 import type { WebsiteExtensionFillRule } from "./extensionFill.js";
@@ -2227,18 +2227,23 @@ export type RatingMax = number;
  * - `icons` — "✓" / "✗".
  * - `stars` — "★" / "☆".
  * - `custom` — user-supplied strings via `booleanTrueLabel` / `booleanFalseLabel`.
+ *
+ * The tuple is the single source of truth — the client zod enum and the middleware JSON-Schema enum
+ * both derive from it (never re-list the literals).
  */
-export type BooleanLabelPreset = "yes-no" | "true-false" | "enabled-disabled" | "icons" | "stars" | "custom";
+export const BOOLEAN_LABEL_PRESETS = ["yes-no", "true-false", "enabled-disabled", "icons", "stars", "custom"] as const;
+export type BooleanLabelPreset = (typeof BOOLEAN_LABEL_PRESETS)[number];
 
 /**
  * Which corner of a bookmark card's image a field's value is overlaid in. Honored only when the card
  * actually has an image; a field placed in an image corner with no image falls back to its in-card
- * position. The placement now lives on a {@link CardDisplayRule}, not the property.
+ * position. The placement now lives on the {@link CardDisplayConfig}, not the property.
  */
 export type CardImageCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
 /**
- * Where a bookmark-card field is shown by a {@link CardDisplayRule}: in one of the four card-body
+ * Where a bookmark-card field is shown in the legacy zone model (now only the transform input that
+ * seeds the default {@link CardDisplayConfig}): in one of the four card-body
  * sub-zones (rendered top-to-bottom in {@link CARD_BODY_ZONES} order) or overlaid in one of the
  * image's four corners. A field key (a standard field key or a custom-property id) that appears in
  * **no** zone is hidden.
@@ -2269,11 +2274,6 @@ export const CARD_BODY_ZONES = [
 
 /** A card-body sub-zone (vs. an image-corner overlay). */
 export type CardBodyZone = (typeof CARD_BODY_ZONES)[number];
-
-/** Whether a {@link CardFieldZone} is a card-body sub-zone (vs. an image-corner overlay). */
-export function isCardBodyZone(zone: CardFieldZone): boolean {
-  return (CARD_BODY_ZONES as readonly CardFieldZone[]).includes(zone);
-}
 
 /**
  * How a card-body sub-zone arranges the fields placed in it: `flex` is the wrapping inline flow (the
@@ -2317,7 +2317,7 @@ export interface CardZoneLayout {
   wrap?: CardZoneWrap;
 }
 
-/** The per-body-zone {@link CardZoneLayout} a {@link CardDisplayRule} declares (`null` = inherit). */
+/** The legacy per-body-zone {@link CardZoneLayout} map; in the live {@link CardDisplayConfig} each {@link CardDisplaySection} carries its own `layout`. */
 export type CardZoneLayouts = Record<CardBodyZone, CardZoneLayout>;
 
 /**
@@ -2482,7 +2482,8 @@ export interface CardFieldPlacement {
 }
 
 /**
- * The per-zone, ordered field placements a {@link CardDisplayRule} declares. Every zone key is
+ * The legacy per-zone, ordered field placements — now only the transform input from which the
+ * default {@link CardDisplayConfig} is derived (`cardDisplayConfigFromFieldZones`). Every zone key is
  * present (possibly with an empty array); any field key absent from all zones is hidden.
  */
 export type CardFieldZones = Record<CardFieldZone, CardFieldPlacement[]>;
@@ -2549,8 +2550,8 @@ export function emptyCardImageCorners(): CardImageCorners {
 }
 
 /**
- * The single card-display configuration governing every listing card. Replaces the multi-rule
- * {@link CardDisplayRule} model: dynamic card-body {@link CardDisplaySection}s (each with its own
+ * The single card-display configuration governing every listing card. Replaces the historical
+ * multi-rule card-display-rule model: dynamic card-body {@link CardDisplaySection}s (each with its own
  * form/layout/visibility) plus the four fixed image-corner overlays and the image presentation
  * attributes. Resolved entirely client-side at render time.
  */
@@ -3089,12 +3090,6 @@ export interface CategoryPropertyDefaults {
 /** Payload for replacing a category's default custom-property values. */
 export type UpdateCategoryDefaultsInput = CategoryPropertyDefaults;
 
-/** @deprecated Use {@link ConditionMatchField}. Retained for existing references. */
-export type AutofillField = ConditionMatchField;
-
-/** @deprecated Use {@link ConditionMatchOperator}. Retained for existing references. */
-export type AutofillOperator = ConditionMatchOperator;
-
 /**
  * A rule that prefills the Add-Bookmark form: when a bookmark matches the rule's `conditions`,
  * the rule's category, tags, and custom-property values are suggested in the form.
@@ -3403,69 +3398,6 @@ export interface CreateHomepageSectionInput {
 
 /** Payload for partially updating a homepage section. */
 export type UpdateHomepageSectionInput = Partial<CreateHomepageSectionInput>;
-
-/**
- * A prioritized rule that overrides per-card display for bookmarks matching its `conditions`. Rules
- * form an ordered list (lower `sortOrder` = higher priority); when several match a card, the display
- * is built by a layered merge — for each attribute the highest-priority matching rule that sets it
- * wins, lower rules fill the rest, and the singleton **Default** rule (`isDefault`, always matches,
- * lowest priority, fully concrete) fills whatever remains. A `null` display attribute means "inherit"
- * (fall through to a lower-priority rule / the Default). `fieldZones` is `null` to inherit, or a
- * concrete per-zone placement map to override (a field key absent from all zones is hidden). Resolved
- * entirely client-side at render time.
- */
-export interface CardDisplayRule {
-  id: string;
-  name: string;
-  /** URL-friendly slug for the rule's detail/edit pages. Null only until the boot backfill assigns it. */
-  slug: string | null;
-  description: string | null;
-  conditions: ConditionTree;
-  /** Lower = higher priority. The Default rule is always pinned last (lowest priority). */
-  sortOrder: number;
-  /** The singleton baseline rule: matches every card regardless of `conditions`; cannot be deleted. */
-  isDefault: boolean;
-  /**
-   * Per-zone field placements (`null` = inherit). A field key (standard field key or custom-property
-   * id) absent from every zone is hidden; image-* zones overlay the field on the card image. Concrete
-   * on the Default rule. Supersedes the legacy `hiddenCardFields` + per-property corner placement.
-   */
-  fieldZones: CardFieldZones | null;
-  /**
-   * Per-body-zone layout (`flex` inline flow vs. `grid` two-column), or `null` to inherit. Concrete on
-   * the Default rule. Only affects the four card-body sub-zones; image corners always overlay.
-   */
-  cardZoneLayouts: CardZoneLayouts | null;
-  /** Image display mode, or `null` to inherit. Concrete on the Default rule. */
-  imageMode: BookmarkImageMode | null;
-  /** Image visibility, or `null` to inherit. Concrete on the Default rule. */
-  imageVisibility: BookmarkImageVisibility | null;
-  /** Image layout, or `null` to inherit. Concrete on the Default rule. */
-  imageLayout: HomepageSectionImageLayout | null;
-  /**
-   * When true, the website pill is hidden on a matching bookmark that also has a YouTube channel
-   * (keeping only the channel pill). `null` to inherit. Concrete on the Default rule.
-   */
-  hideWebsiteForYouTube: boolean | null;
-  createdAt: string;
-}
-
-/** Payload for creating a card display rule. */
-export interface CreateCardDisplayRuleInput {
-  name: string;
-  description?: string | null;
-  conditions: ConditionTree;
-  sortOrder?: number;
-  fieldZones?: CardFieldZones | null;
-  cardZoneLayouts?: CardZoneLayouts | null;
-  imageMode?: BookmarkImageMode | null;
-  imageVisibility?: BookmarkImageVisibility | null;
-  imageLayout?: HomepageSectionImageLayout | null;
-  hideWebsiteForYouTube?: boolean | null;
-}
-
-/** Payload for partially updating a card display rule. */
-export type UpdateCardDisplayRuleInput = Partial<CreateCardDisplayRuleInput>;
 
 /** A saved named configuration of card field zone placements, reusable across display rules. */
 export interface CardFieldTemplate {

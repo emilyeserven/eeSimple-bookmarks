@@ -25,6 +25,8 @@ import type {
   UpdateEntityNameEntry,
 } from "@eesimple/types";
 
+import { SECTION_ENTRY_TYPES } from "@eesimple/types";
+
 import { AI_STANDARD_FIELD_LABELS, propertyIdFromAiFieldKey } from "./bookmarkAiUpdate";
 import { sectionEntryTypeHint } from "./sectionEntryTypeHint";
 
@@ -438,7 +440,7 @@ export function wireAiSections(
   ctx: Pick<AiUpdateReviewContext, "bookmark" | "mediaTypes">,
   makeId: () => string,
 ): SectionEntry[] {
-  const allowed = property.sectionsAllowedTypes ?? ["name", "url", "page", "timestamp"];
+  const allowed = property.sectionsAllowedTypes ?? SECTION_ENTRY_TYPES;
   const hint = sectionEntryTypeHint(ctx.bookmark.mediaType?.id ?? null, ctx.mediaTypes);
   const valueType: SectionEntryType = hint && allowed.includes(hint) ? hint : allowed[0] ?? "name";
   const nameType: SectionEntryType = allowed.includes("name") ? "name" : valueType;

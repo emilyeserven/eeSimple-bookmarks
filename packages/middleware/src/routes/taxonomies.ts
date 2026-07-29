@@ -2,6 +2,8 @@ import type { FastifyInstance } from "fastify";
 import type {
   CreateTaxonomyInput,
   CreateTaxonomyTermInput,
+  DemoteTaxonomyInput,
+  PromoteTagInput,
   UpdateTaxonomyInput,
   UpdateTaxonomyTermInput,
 } from "@eesimple/types";
@@ -270,7 +272,7 @@ export async function taxonomyRoutes(app: FastifyInstance): Promise<void> {
   }, async (req, reply) => {
     const {
       tagId,
-    } = req.body as { tagId: string };
+    } = req.body as PromoteTagInput;
     const taxonomy = await promoteTagToTaxonomy(tagId);
     if (!taxonomy) throw new NotFoundError("Tag");
     return reply.code(201).send(taxonomy);
@@ -288,7 +290,7 @@ export async function taxonomyRoutes(app: FastifyInstance): Promise<void> {
     } = req.params as { id: string };
     const {
       parentTagId,
-    } = req.body as { parentTagId?: string | null };
+    } = req.body as DemoteTaxonomyInput;
     const result = await demoteTaxonomy(id, parentTagId);
     if (!result) throw new NotFoundError("Taxonomy");
     return result;

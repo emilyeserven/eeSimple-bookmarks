@@ -5,6 +5,7 @@
  * jsonb on `websites.extension_fill_rules`.
  */
 
+import type { SectionEntryType } from "./customProperties.js";
 import type { ExtensionFillRuleGroup } from "./extensionFillGroups.js";
 import type { TaxonomyDirectFieldKey, TaxonomyEntityAssociation, TaxonomyEntityTermRef, TaxonomyEntityWriteKey } from "./extensionFillTaxonomy.js";
 import type { Bookmark, CustomProperty } from "./index.js";
@@ -202,8 +203,11 @@ export type FillTarget
  * Entry types a `sections` fill target can build. `timestamp` is parsed from a text block; `name`
  * captures a plain titled list with no positional value (`startValue` stays `""`) — the item's name
  * comes from `itemName`/its own text, so no value selector or transform is needed.
+ *
+ * Derived from {@link SectionEntryType} (`SECTION_ENTRY_TYPES` in `customProperties.ts`) — the fill
+ * entry types are exactly the Sections property's entry types.
  */
-export type SectionFillEntryType = "name" | "url" | "page" | "timestamp";
+export type SectionFillEntryType = SectionEntryType;
 
 /**
  * One component of a composed section-item name (see the `sections` target's `nameParts`). Each part

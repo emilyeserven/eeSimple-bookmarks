@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import type { ConditionNode } from "@eesimple/types";
+import type { ConditionNode, HomepageFilter } from "@eesimple/types";
 import { db } from "@/db";
 import { categories, homepageFilter, homepageTags } from "@/db/schema";
 
@@ -47,15 +47,22 @@ export async function ensureHomepageFilter(): Promise<void> {
     });
   }
 
+  // The seeded singleton is the shared `HomepageFilter` shape (`UpdateHomepageFilterInput` aliases
+  // it), so the stored row can't silently drift from the `@eesimple/types` contract. There is no
+  // live update endpoint anymore — the row is read once to seed the default homepage section.
+  const seed: HomepageFilter = {
+    conditions: {
+      type: "group",
+      combinator: "or",
+      children,
+    },
+  };
+
   await db
     .insert(homepageFilter)
     .values({
       id: ROW_ID,
-      conditions: {
-        type: "group",
-        combinator: "or",
-        children,
-      },
+      ...seed,
     })
     .onConflictDoNothing();
 }
