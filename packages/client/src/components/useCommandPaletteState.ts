@@ -154,10 +154,21 @@ export function useCreateModalState() {
   };
 }
 
-/** The header add-child modal, opened from the matched entity's "New sub-tag/sub-type" item. */
+/**
+ * The palette add-child modal's target — mirrors the header `AddChild` context (`resolveAddChild`),
+ * including a custom-taxonomy term's "New sub-term".
+ */
+export type PaletteAddChild
+  = | { kind: "tag" | "mediaType";
+    parentId: string; }
+    | { kind: "taxonomyTerm";
+      parentId: string;
+      taxonomyId: string;
+      taxonomySlug: string; };
+
+/** The header add-child modal, opened from the matched entity's "New sub-tag/sub-type/sub-term" item. */
 export function useAddChildModalState() {
-  const [addChild, setAddChild] = useState<{ kind: "tag" | "mediaType";
-    parentId: string; } | null>(null);
+  const [addChild, setAddChild] = useState<PaletteAddChild | null>(null);
   return {
     addChild,
     setAddChild,

@@ -22,15 +22,7 @@ import { labeledWebsitesSchema } from "@/routes/labeledWebsitesSchema";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { deleteObject, getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
 import { AppError, ImageTooLargeError, NoFileUploadedError, NotFoundError, StorageUnconfiguredError } from "@/utils/errors";
-
-/** User-facing messages for the typed grab failures shared by the entity-image auto routes. */
-const IMAGE_GRAB_ERROR_MESSAGES: Record<string, string> = {
-  no_image: "No avatar found for that channel",
-  bad_image: "Avatar couldn't be loaded",
-  blocked: "YouTube rate-limited the request — wait a moment and try again",
-  server_error: "YouTube returned a server error",
-  fetch_error: "Channel page couldn't be reached",
-};
+import { imageGrabErrorReply } from "@/utils/imageGrabError";
 
 const channelParams = {
   type: "object",
@@ -268,7 +260,6 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
         message: "Unsupported or invalid image",
         code: result.code,
         statusCode: 415,
-        detail: result.detail,
       });
     }
     return reply.code(201).send(result);
@@ -292,22 +283,12 @@ export async function youtubeChannelRoutes(app: FastifyInstance): Promise<void> 
       throw new NotFoundError("Channel");
     }
     // Sanctioned discriminated-result → reply.code mapping (external avatar fetch failed): emit the
-    // standard error envelope shape. `code` is the grab helper's free-form reason, not an ErrorCode —
-    // the client falls back to the English `message`.
+    // standard error envelope shape via the shared helper.
     if (typeof result === "object" && "code" in result) {
-      return reply.code(502).send({
-        message: IMAGE_GRAB_ERROR_MESSAGES[result.code] ?? "Could not fetch an avatar",
-        code: result.code,
-        statusCode: 502,
-        detail: result.detail,
-      });
+      return reply.code(502).send(imageGrabErrorReply(result.code, "avatar"));
     }
     if (typeof result === "string") {
-      return reply.code(502).send({
-        message: IMAGE_GRAB_ERROR_MESSAGES[result] ?? "Could not fetch an avatar",
-        code: result,
-        statusCode: 502,
-      });
+      return reply.code(502).send(imageGrabErrorReply(result, "avatar"));
     }
     return reply.code(201).send(result);
   });

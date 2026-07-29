@@ -16,9 +16,7 @@ vi.mock("../hooks/useFetchIsbnMetadata", () => ({
   }),
 }));
 
-vi.mock("../lib/notifications", () => ({
-  notifyError: vi.fn(),
-}));
+vi.mock("../lib/notifications", async () => await import("../test-utils/toastSpies"));
 
 vi.mock("../hooks/useBookmarks", () => ({
   useBookmarkUrlDuplicateCheck: () => ({

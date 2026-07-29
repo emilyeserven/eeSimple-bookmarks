@@ -18,6 +18,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** Zero progress on the ring. */
 export const Empty: Story = {
   args: {
     value: 0,
@@ -25,6 +26,7 @@ export const Empty: Story = {
   },
 };
 
+/** A full ring at max value. */
 export const Complete: Story = {
   args: {
     value: 10,
@@ -32,6 +34,7 @@ export const Complete: Story = {
   },
 };
 
+/** A percentage label rendered in the ring's center. */
 export const WithPercentLabel: Story = {
   args: {
     value: 3,

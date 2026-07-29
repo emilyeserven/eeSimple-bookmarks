@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { WebsiteShortenedLinksForm } from "./WebsiteShortenedLinksForm";
 import { makeWebsite as makeWebsiteEntity } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
+import { notifyError, notifySuccess, resetToastSpies } from "../test-utils/toastSpies";
 
 const updateMutate
   = vi.fn<(vars: { id: string;
@@ -52,18 +53,12 @@ vi.mock("./BulkExpandSection", () => ({
   BulkExpandSection: () => null,
 }));
 
-const notifyFieldSaved = vi.fn<(label: string) => void>();
-const notifyFieldSaveError = vi.fn<(label: string, cause?: string) => void>();
-vi.mock("../lib/autoSave", () => ({
-  notifyFieldSaved: (label: string) => notifyFieldSaved(label),
-  notifyFieldSaveError: (label: string, cause?: string) => notifyFieldSaveError(label, cause),
-}));
+vi.mock("../lib/notifications", async () => await import("../test-utils/toastSpies"));
 
 describe("WebsiteShortenedLinksForm (auto-save)", () => {
   beforeEach(() => {
     updateMutate.mockReset();
-    notifyFieldSaved.mockReset();
-    notifyFieldSaveError.mockReset();
+    resetToastSpies();
     mutationBehavior = "success";
   });
 
@@ -100,7 +95,7 @@ describe("WebsiteShortenedLinksForm (auto-save)", () => {
         }],
       },
     });
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Shortened Links");
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Shortened Links");
   });
 
   it("saves the shortened links array on change when an item is removed", async () => {
@@ -124,7 +119,7 @@ describe("WebsiteShortenedLinksForm (auto-save)", () => {
         shortenedLinks: [],
       },
     });
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Shortened Links");
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Shortened Links");
   });
 
   it("does not save when the normalized array is unchanged", async () => {
@@ -158,7 +153,7 @@ describe("WebsiteShortenedLinksForm (auto-save)", () => {
     }));
 
     await waitFor(() =>
-      expect(notifyFieldSaveError).toHaveBeenCalledWith("Shortened Links", "offline"));
+      expect(notifyError).toHaveBeenCalledWith("Couldn't save Shortened Links: offline"));
     // The removed row stays removed locally (optimistic local state).
     expect(screen.queryByLabelText("Short domain")).toBeNull();
   });

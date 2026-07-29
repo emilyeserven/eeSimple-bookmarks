@@ -17,6 +17,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** A JSX value (a tag chip) instead of plain text. */
 export const RichValue: Story = {
   args: {
     label: "Tags",
@@ -25,6 +26,7 @@ export const RichValue: Story = {
 };
 
 // Renders nothing when the value is empty — the row is omitted entirely.
+/** An empty value, so the whole row is omitted. */
 export const EmptyValueRendersNothing: Story = {
   args: {
     label: "Notes",

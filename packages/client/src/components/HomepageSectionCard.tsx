@@ -13,6 +13,7 @@ import {
 } from "../hooks/useHomepageSections";
 
 import { Button } from "@/components/ui/button";
+import { RowCard } from "@/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
@@ -74,88 +75,92 @@ export function HomepageSectionCard({
 
   return (
     <Collapsible
+      asChild
       open={open}
       onOpenChange={setOpen}
-      className={cn(
-        "rounded-xl border bg-card transition-shadow",
-        isDragging && "shadow-lg",
-      )}
     >
-      <div className="flex items-center gap-2 px-4 py-3">
-        <button
-          type="button"
-          className="
-            cursor-grab touch-none text-muted-foreground
-            hover:text-foreground
-          "
-          aria-label={t("Drag to reorder")}
-          {...dragHandleProps}
-        >
-          <GripVertical className="size-4" />
-        </button>
-        <span className="flex-1 text-base font-semibold">
-          {section.title}
-          {section.hideIfEmpty && (
-            <EyeOff
-              className="ml-1.5 inline size-3.5 text-muted-foreground"
-              aria-label={t("Hides when empty")}
-            />
-          )}
-        </span>
-        {!editing && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-8"
-            aria-label={t("Edit section")}
-            onClick={startEditing}
-          >
-            <Pencil className="size-4" />
-          </Button>
+      <RowCard
+        className={cn(
+          "transition-shadow",
+          isDragging && "shadow-lg",
         )}
-        <CollapsibleTrigger asChild>
-          <Button
+      >
+        <div className="flex items-center gap-2 px-4 py-3">
+          <button
             type="button"
-            variant="ghost"
-            size="icon"
-            className="size-8"
-            aria-label={open ? t("Collapse section") : t("Expand section")}
+            className="
+              cursor-grab touch-none text-muted-foreground
+              hover:text-foreground
+            "
+            aria-label={t("Drag to reorder")}
+            {...dragHandleProps}
           >
-            <ChevronDown
-              className={cn(
-                "size-4 transition-transform",
-                open && "rotate-180",
-              )}
-            />
-          </Button>
-        </CollapsibleTrigger>
-      </div>
-
-      <CollapsibleContent className="space-y-4 px-4 pb-4">
-        {editing
-          ? (
-            <HomepageSectionForm
-              section={section}
-              onChange={handleFieldChange}
-              onCancel={() => setEditing(false)}
-              onDelete={() => {
-                if (confirm(t("Delete section \"{{title}}\"?", {
-                  title: section.title,
-                }))) {
-                  remove.mutate(section.id);
-                }
-              }}
-              isDeleting={remove.isPending}
-            />
-          )
-          : (
-            <HomepageSectionView
-              section={section}
-              onPatchDisplay={patchDisplay}
-            />
+            <GripVertical className="size-4" />
+          </button>
+          <span className="flex-1 text-base font-semibold">
+            {section.title}
+            {section.hideIfEmpty && (
+              <EyeOff
+                className="ml-1.5 inline size-3.5 text-muted-foreground"
+                aria-label={t("Hides when empty")}
+              />
+            )}
+          </span>
+          {!editing && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-8"
+              aria-label={t("Edit section")}
+              onClick={startEditing}
+            >
+              <Pencil className="size-4" />
+            </Button>
           )}
-      </CollapsibleContent>
+          <CollapsibleTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-8"
+              aria-label={open ? t("Collapse section") : t("Expand section")}
+            >
+              <ChevronDown
+                className={cn(
+                  "size-4 transition-transform",
+                  open && "rotate-180",
+                )}
+              />
+            </Button>
+          </CollapsibleTrigger>
+        </div>
+
+        <CollapsibleContent className="space-y-4 px-4 pb-4">
+          {editing
+            ? (
+              <HomepageSectionForm
+                section={section}
+                onChange={handleFieldChange}
+                onCancel={() => setEditing(false)}
+                onDelete={() => {
+                  if (confirm(t("Delete section \"{{title}}\"?", {
+                    title: section.title,
+                  }))) {
+                    remove.mutate(section.id);
+                  }
+                }}
+                isDeleting={remove.isPending}
+              />
+            )
+            : (
+              <HomepageSectionView
+                section={section}
+                onPatchDisplay={patchDisplay}
+              />
+            )}
+        </CollapsibleContent>
+      </RowCard>
     </Collapsible>
   );
 }

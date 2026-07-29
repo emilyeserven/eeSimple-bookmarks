@@ -9,7 +9,7 @@ import type {
 import { db } from "@/db";
 import { bookmarks } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
-import { cleanupBookmarkEntityNames, cleanupGenreMoodAssignments } from "@/services/bookmarkCleanup";
+import { cleanupBookmarkEntityNames, cleanupBookmarkLanguageUsages, cleanupGenreMoodAssignments } from "@/services/bookmarkCleanup";
 import { DuplicateUrlError } from "@/services/bookmarkErrors";
 import { hasValuePatch, mergeBookmarkValues } from "@/services/bookmarkValueMerge";
 import { getBookmark, updateBookmark } from "@/services/bookmarkCrud";
@@ -90,6 +90,7 @@ export async function bulkDeleteBookmarks(ids: string[]): Promise<BulkBookmarkRe
   const deleted = new Set(rows.map(row => row.id));
   await cleanupGenreMoodAssignments([...deleted]);
   await cleanupBookmarkEntityNames([...deleted]);
+  await cleanupBookmarkLanguageUsages([...deleted]);
   if (deleted.size > 0) invalidateBookmarkCache();
   return ids.map(id => ({
     id,

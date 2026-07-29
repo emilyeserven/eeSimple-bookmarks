@@ -4,7 +4,8 @@ import { Link } from "@tanstack/react-router";
 import { Info, Languages, Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import { HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { FavoriteToggleButton, HoverIconButton, StandardListingCard } from "./StandardListingCard";
+import { useFavoriteToggle } from "../hooks/useFavoriteToggle";
 
 import { Badge } from "@/components/ui/badge";
 import { useLanguageName } from "@/lib/builtInName";
@@ -27,6 +28,7 @@ export function LanguageCard({
     t,
   } = useTranslation();
   const languageName = useLanguageName();
+  const favorite = useFavoriteToggle("language");
 
   return (
     <StandardListingCard
@@ -34,6 +36,17 @@ export function LanguageCard({
       selected={selected}
       onSelectToggle={onSelectToggle}
       inSelectionMode={inSelectionMode}
+      renderExtra={() => (
+        <FavoriteToggleButton
+          isFavorite={Boolean(language.isFavorite)}
+          name={languageName(language)}
+          onToggle={() => favorite.toggle({
+            id: language.id,
+            name: languageName(language),
+            isFavorite: Boolean(language.isFavorite),
+          })}
+        />
+      )}
       icon={<Languages className="size-5 shrink-0 text-muted-foreground" />}
       title={languageName(language)}
       titleAdornment={language.builtIn

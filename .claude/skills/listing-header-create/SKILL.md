@@ -2,7 +2,7 @@
 name: listing-header-create
 description: >-
   Add or update the "New X" create button for a listing page in eeSimple Bookmarks. The button
-  lives in the AppHeader toolbar (to the left of the Right Drawer Toggle / PanelRight button),
+  lives in the AppHeader toolbar (at the right edge of the toolbar action strip),
   rendered as a Plus icon. Use when asked to "add a create button to a listing page", "wire up the
   + button for X", "move the New X button to the header", "implement create for X", or "add a
   New X button". Covers any slug-routed or taxonomy entity listing page.
@@ -13,7 +13,7 @@ description: >-
 Every entity listing page that supports creation follows a single pattern:
 
 1. The listing page registers a **`createAction`** callback via `useSetListingPage` (5th argument).
-2. The AppHeader renders a **Plus icon button** (`key: "create"`) left of the PanelRight toggle
+2. The AppHeader renders a **Plus icon button** (`key: "create"`) in the toolbar action strip
    whenever `listingPage.createAction` is set — no per-page header changes needed.
 3. Clicking the Plus opens a **minimal modal** — name-only for most entities; extra required fields
    for Websites (domain) and Custom Properties (type); URL + name for YouTube Channels.
@@ -245,7 +245,7 @@ scoped views (category/website/etc. detail tabs use `newRule.onClick` directly).
 
 ## Sibling pattern: "New child" button on hierarchy *detail* pages
 
-The same Plus-left-of-the-PanelRight-toggle slot is also used on the **detail** pages of
+The same header Plus slot is also used on the **detail** pages of
 parent/child-tree taxonomies (currently **Tags** and **Media Types** — the ones with a Hierarchy
 tab) to quick-create a **child of the current entity**, with the parent **fixed** to it. This is a
 separate mechanism from the listing `createAction` above — it does **not** go through
@@ -269,8 +269,8 @@ two Plus buttons are mutually exclusive.
 
 For each entity after implementing:
 
-1. Navigate to the entity listing page — a Plus icon button appears in the AppHeader, left of the
-   PanelRight toggle. No "New X" button in the page body.
+1. Navigate to the entity listing page — a Plus icon button appears in the AppHeader toolbar.
+   No "New X" button in the page body.
 2. Click `+` — the modal opens.
 3. Submit — modal closes, browser navigates to `…/$entitySlug/edit/general`.
 4. Navigate back — new entity is in the listing.
@@ -279,8 +279,8 @@ For each entity after implementing:
 7. Custom Properties: type selector shows all four types.
 8. YouTube Channels: Channel URL and Name fields both appear.
 9. Autofill Rules: navigates to `edit/conditions` (not `edit/general`).
-10. Tags / Media Types pages (e.g. `/tags/<slug>` or `/tags/<slug>/info`): a Plus button appears left
-    of the PanelRight toggle, opens a name-only modal, and the created entity is a child of the current
+10. Tags / Media Types pages (e.g. `/tags/<slug>` or `/tags/<slug>/info`): a Plus button appears in
+    the header toolbar, opens a name-only modal, and the created entity is a child of the current
     one (not duplicated on the listing pages, absent on non-hierarchy pages).
 
 ```

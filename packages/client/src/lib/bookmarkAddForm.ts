@@ -55,7 +55,7 @@ export interface ResolvedBookmarkAddForm {
  *   entirely. Excluding the hidden-by-default fields keeps the edit surfaces byte-for-byte as before
  *   this feature — the newer taxonomy/media/location relations (which default to hidden) never
  *   render here; they are edited on their own edit-form sections. `mainHiddenSlugs` = every {@link
- *   BOOKMARK_FORM_DETAIL_SLUGS} slug (matches `RevealedCustomFields.tsx`'s hardcoded list),
+ *   BOOKMARK_FORM_DETAIL_SLUGS} slug (`RevealedCustomFields.tsx`'s default derives from the same tuple),
  *   `advancedHiddenSlugs` = `[RUNTIME_SLUG, DATE_POSTED_SLUG]` (matches `BookmarkCustomFields.tsx`'s
  *   default), and no per-property placement overrides.
  * - **Create mode** (`isEdit: false`) buckets each standard field by its resolved placement in

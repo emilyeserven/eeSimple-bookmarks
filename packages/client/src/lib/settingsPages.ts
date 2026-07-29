@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
-import { Captions, ClipboardList, Languages, LayoutDashboard, MapPinned, Puzzle, Shapes, Tags, Waypoints } from "lucide-react";
+import { Captions, ClipboardList, Languages, LayoutDashboard, Link2, MapPinned, Puzzle, Shapes, Tags, Waypoints } from "lucide-react";
 
 import { SETTINGS_TAB_SECTIONS } from "./settingsNav";
 import { actionItems, customizationItems, taxonomyItems } from "./sidebarNavItems";
@@ -55,6 +55,12 @@ const STANDALONE_PAGES: readonly SettingsPage[] = [
     path: "/settings/parse-templates",
     label: i18n.t("Parse Templates"),
     icon: ClipboardList,
+  },
+  {
+    // The bookmark-relationships editor — a live tab-less /settings leaf, on neither nav surface.
+    path: "/settings/relationships",
+    label: i18n.t("Bookmark Relationships"),
+    icon: Link2,
   },
   {
     // Listing page reachable from Locations, not from the sidebar.

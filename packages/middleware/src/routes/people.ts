@@ -24,14 +24,7 @@ import { labeledWebsitesSchema } from "@/routes/labeledWebsitesSchema";
 import { registerBulkDelete } from "@/routes/bulkDeleteRoute";
 import { deleteObject, getObjectStream, isObjectStoreConfigured } from "@/utils/objectStore";
 import { AppError, ImageTooLargeError, NoFileUploadedError, NotFoundError, StorageUnconfiguredError, ValidationError } from "@/utils/errors";
-
-const IMAGE_GRAB_ERROR_MESSAGES: Record<string, string> = {
-  no_image: "No avatar found at that URL",
-  bad_image: "Avatar couldn't be loaded",
-  blocked: "Request was blocked — wait a moment and try again",
-  server_error: "The URL returned a server error",
-  fetch_error: "The URL couldn't be reached",
-};
+import { imageGrabErrorReply } from "@/utils/imageGrabError";
 
 const personParams = {
   type: "object",
@@ -261,10 +254,8 @@ export async function personRoutes(app: FastifyInstance): Promise<void> {
     if (result === "not_found") throw new NotFoundError("Person");
     if (result === "no_url") throw new ValidationError("No URL configured for that source");
     if (typeof result === "string") {
-      return reply.code(502).send({
-        message: IMAGE_GRAB_ERROR_MESSAGES[result] ?? "Could not fetch an avatar",
-        code: result,
-      });
+      // Sanctioned discriminated-result → reply.code mapping: emit the standard error envelope shape.
+      return reply.code(502).send(imageGrabErrorReply(result, "avatar"));
     }
     return reply.code(201).send(result);
   });

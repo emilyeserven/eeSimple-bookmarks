@@ -4,6 +4,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { LevelGroupRowContent } from "./LevelGroupRowContent";
+import { makePlaceTypeLevelGroup } from "../test-utils/factories";
 
 const options = [
   {
@@ -26,15 +27,12 @@ const attributes = {
 } as const;
 
 function makeGroup(overrides: Partial<PlaceTypeLevelGroup> = {}): PlaceTypeLevelGroup {
-  return {
+  return makePlaceTypeLevelGroup({
     id: "g1",
     name: "Country",
     placeTypes: ["country", "region"],
-    displayMode: "area",
-    visible: true,
-    sortOrder: 0,
     ...overrides,
-  };
+  });
 }
 
 describe("LevelGroupRowContent", () => {

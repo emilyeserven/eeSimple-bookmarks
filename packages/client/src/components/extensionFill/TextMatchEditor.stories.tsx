@@ -38,6 +38,7 @@ export const Default: Story = {
   },
 };
 
+/** A regex-mode match with case sensitivity turned on. */
 export const CaseSensitiveRegex: Story = {
   render: () => {
     const [match, setMatch] = useState<TextMatch>({

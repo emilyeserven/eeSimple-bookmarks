@@ -24,6 +24,7 @@ export const Default: Story = {
   },
 };
 
+/** The popover with a description line under its title. */
 export const WithDescription: Story = {
   args: {
     title: "Filters",

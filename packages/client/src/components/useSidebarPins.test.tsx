@@ -23,7 +23,6 @@ const emptyData = {
   allMediaTypes: [],
   allChannels: [],
   savedFilters: [],
-  allBookmarks: [],
   allLocations: [],
 };
 
@@ -95,6 +94,37 @@ describe("PIN_RESOLVERS", () => {
       link: {
         kind: "path",
         path: "/tags/react",
+      },
+    });
+  });
+
+  it("resolves a saved-filter pin with the server-computed bookmarkCount", () => {
+    const savedFilter = {
+      id: "e1",
+      name: "Recent anime",
+      slug: "recent-anime",
+      filters: {
+        categories: ["c1"],
+      },
+      viewableOnline: false,
+      // Computed server-side by the saved-filters list endpoint — no client-side tallying.
+      bookmarkCount: 7,
+      createdAt: "2026-01-01T00:00:00.000Z",
+    };
+    const resolved = PIN_RESOLVERS["saved-filter"](
+      pin({
+        entityType: "saved-filter",
+      }),
+      ctx({
+        savedFilters: [savedFilter] as never,
+      }),
+    );
+    expect(resolved).toHaveLength(1);
+    expect(resolved[0]).toMatchObject({
+      label: "Recent anime",
+      bookmarkCount: 7,
+      link: {
+        kind: "filter",
       },
     });
   });

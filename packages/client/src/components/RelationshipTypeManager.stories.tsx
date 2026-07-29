@@ -4,50 +4,37 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { HttpResponse, http } from "msw";
 
 import { RelationshipTypesListing } from "./RelationshipTypeManager";
+import { makeRelationshipType } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
 const relationshipTypes: RelationshipType[] = [
-  {
+  makeRelationshipType({
     id: "rt-parent-child",
     name: "Parent / Child",
     slug: "parent-child",
-    description: null,
     directional: true,
     builtIn: true,
-    hidden: false,
-    sortOrder: 0,
-    createdAt: NOW,
     bookmarkCount: 42,
     relationshipCount: 38,
-  },
-  {
+  }),
+  makeRelationshipType({
     id: "rt-related",
     name: "Related to",
     slug: "related-to",
-    description: null,
-    directional: false,
     builtIn: true,
-    hidden: false,
     sortOrder: 1,
-    createdAt: NOW,
     bookmarkCount: 18,
     relationshipCount: 12,
-  },
-  {
+  }),
+  makeRelationshipType({
     id: "rt-sequel",
     name: "Sequel of",
     slug: "sequel-of",
-    description: null,
     directional: true,
-    builtIn: false,
-    hidden: false,
     sortOrder: 2,
-    createdAt: NOW,
     bookmarkCount: 0,
     relationshipCount: 0,
-  },
+  }),
 ];
 
 const meta = {

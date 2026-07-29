@@ -32,6 +32,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** The image cell in cropped mode. */
 export const Cropped: Story = {
   args: {
     bookmark: withImage,
@@ -39,6 +40,7 @@ export const Cropped: Story = {
   },
 };
 
+/** The image cell in natural (uncropped) mode. */
 export const Natural: Story = {
   args: {
     bookmark: withImage,
@@ -46,6 +48,7 @@ export const Natural: Story = {
   },
 };
 
+/** A bookmark without an image — the cell's fallback. */
 export const NoImage: Story = {
   args: {
     bookmark: makeBookmark({

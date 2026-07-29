@@ -26,6 +26,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** No rules configured, showing the empty text. */
 export const Empty: Story = {
   args: {
     rules: [],

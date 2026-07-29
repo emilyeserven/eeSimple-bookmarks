@@ -6,7 +6,7 @@ import { useUiStore } from "../stores/uiStore";
 
 /**
  * Options controlling a listing page's registration in uiStore.
- * - `showsImages` / `hasFilters` / `showsCards` / `hasSort`: which header controls apply.
+ * - `showsImages` / `showsCards` / `hasSort`: which header controls apply.
  * - `createAction`: shows a header Plus button that invokes this on click.
  * - `addBookmark`: when present, the header Plus offers an "Add bookmark" action (opening the
  *   app-level modal); its optional `categoryId` locks the new bookmark to a category.
@@ -14,7 +14,6 @@ import { useUiStore } from "../stores/uiStore";
  */
 export interface ListingPageOptions {
   showsImages?: boolean;
-  hasFilters?: boolean;
   showsCards?: boolean;
   hasSort?: boolean;
   /** True on a tag listing page — gates the section-display control. */
@@ -29,7 +28,7 @@ export function useSetListingPage(key: string, options?: ListingPageOptions) {
   const setListingPage = useUiStore(state => state.setListingPage);
 
   const {
-    showsImages = false, hasFilters = false, showsCards = false, hasSort = false,
+    showsImages = false, showsCards = false, hasSort = false,
     showsSectionDisplay = false, createAction, addBookmark, createLabel,
   } = options ?? {};
 
@@ -56,7 +55,6 @@ export function useSetListingPage(key: string, options?: ListingPageOptions) {
     setListingPage({
       key,
       showsImages,
-      hasFilters,
       hasSort,
       showsCards,
       showsSectionDisplay,
@@ -71,5 +69,5 @@ export function useSetListingPage(key: string, options?: ListingPageOptions) {
       createLabel,
     });
     return () => setListingPage(null);
-  }, [key, showsImages, hasFilters, hasSort, showsCards, showsSectionDisplay, hasAddBookmark, addBookmarkCategoryId, createLabel, setListingPage]);
+  }, [key, showsImages, hasSort, showsCards, showsSectionDisplay, hasAddBookmark, addBookmarkCategoryId, createLabel, setListingPage]);
 }

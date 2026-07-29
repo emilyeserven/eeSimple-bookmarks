@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { InboxBulkActions, InboxReviewList } from "./InboxReviewList";
 import { useInboxReviewController } from "./useInboxReviewController";
+import { makeInboxItem } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
 
 import { useUiStore } from "@/stores/uiStore";
@@ -38,28 +39,17 @@ afterEach(() => {
 const LONG_TITLE
   = "This is a very long imported article title that should wrap fully instead of being cut off on mobile screens";
 
+/** This suite's item defaults over the shared factory (the long title + a tracker-wrapped raw URL). */
 function makeItem(overrides: Partial<InboxItem> = {}): InboxItem {
-  return {
+  return makeInboxItem({
     id: "item-1",
     importId: "import-1",
     url: "https://example.com/articles/the-post",
     rawUrl: "https://tracker.example/abc",
     title: LONG_TITLE,
-    description: null,
-    imageUrl: null,
-    newsletterContext: null,
-    anchorText: null,
-    categoryId: null,
-    status: "pending",
-    markedForDeletion: false,
-    duplicateBookmarkId: null,
-    createdBookmarkId: null,
-    errorReason: null,
     createdAt: "2026-06-22T00:00:00.000Z",
-    importSource: "paste",
-    sourceLabel: null,
     ...overrides,
-  };
+  });
 }
 
 describe("InboxReviewList", () => {

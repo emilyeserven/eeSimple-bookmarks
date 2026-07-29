@@ -11,6 +11,8 @@ import {
   useLocationRelations,
   useUpdateLocationRelation,
 } from "../hooks/useLocationRelations";
+import { describeError } from "../lib/apiError";
+import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -63,7 +65,14 @@ export function LocationRelationsCard() {
           },
         },
         {
-          onSuccess: () => setEditingId(null),
+          onSuccess: () => {
+            setEditingId(null);
+            notifySuccess(t("Renamed to \"{{name}}\"", {
+              name,
+            }));
+          },
+          // Keep the row in edit mode with the user's input so the rename can be retried.
+          onError: error => notifyError(describeError(error)),
         },
       );
     }

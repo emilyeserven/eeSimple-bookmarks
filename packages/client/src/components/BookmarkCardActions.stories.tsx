@@ -22,12 +22,14 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** The external-link button opening the bookmark URL. */
 export const ExternalLink: Story = {
   args: {
     url: "https://github.com",
   },
 };
 
+/** The archive link-out button pointing at a configured ArchiveBox instance. */
 export const ArchiveLink: StoryObj = {
   render: () => (
     <BookmarkArchiveLinkButton
@@ -37,6 +39,7 @@ export const ArchiveLink: StoryObj = {
   ),
 };
 
+/** The "Archive now" button that opens the ArchiveBox add view for the URL. */
 export const ArchiveNow: StoryObj = {
   render: () => (
     <BookmarkArchiveNowButton
@@ -46,6 +49,7 @@ export const ArchiveNow: StoryObj = {
   ),
 };
 
+/** The card's More dropdown menu for a sample bookmark. */
 export const MoreMenu: StoryObj = {
   render: () => <BookmarkMoreMenu bookmark={sampleBookmark} />,
 };

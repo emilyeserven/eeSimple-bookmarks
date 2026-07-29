@@ -8,9 +8,8 @@ import { useTranslation } from "react-i18next";
 import { draftsFromNames, entriesFromDrafts } from "./draftEntityName";
 import { EntityNamesEditor } from "./EntityNamesEditor";
 import { EntityNamesView } from "./EntityNamesView";
+import { useCollectionAutoSave } from "../../hooks/useCollectionAutoSave";
 import { useEntityNames, useSetEntityNames } from "../../hooks/useEntityNames";
-import { describeError } from "../../lib/apiError";
-import { notifyFieldSaved, notifyFieldSaveError } from "../../lib/autoSave";
 
 interface TabProps {
   ownerType: EntityNameOwnerType;
@@ -119,41 +118,35 @@ export function EntityNamesTabEditor({
   const setNames = useSetEntityNames(ownerType, ownerId);
   const [drafts, setDrafts] = useState<DraftEntityName[] | null>(null);
 
-  // The serialized entries last persisted, so the debounce skips no-op saves (including the initial load).
-  const savedRef = useRef<string | null>(null);
-  const mutateRef = useRef(setNames.mutate);
-  mutateRef.current = setNames.mutate;
   // The latest full (including-primary) list, read at save time so the primary row is never dropped.
   const dataRef = useRef(data);
   dataRef.current = data;
 
+  // The shared collection engine compares the *other* (non-primary) entries — the set this editor
+  // owns — and skips no-op saves (including the initial load, which seeds it). The persisted payload
+  // re-attaches the current primary row at fire time, since `setEntityNames` is a replace-all write.
+  const {
+    queueSave,
+  } = useCollectionAutoSave<UpdateEntityNameEntry[]>({
+    id: `${ownerType}:${ownerId}`,
+    label: "Names",
+    persist: (otherEntries, callbacks) =>
+      setNames.mutate([...otherEntries, ...primaryEntry(dataRef.current ?? [])], callbacks),
+  });
+
   // Seed the editor once the owner's names load.
   useEffect(() => {
     if (data && drafts === null) {
-      const initialOthers = otherNames(data);
-      setDrafts(draftsFromNames(initialOthers));
-      savedRef.current = JSON.stringify(entriesFromDrafts(draftsFromNames(initialOthers)));
+      setDrafts(draftsFromNames(otherNames(data)));
     }
   }, [data, drafts]);
 
-  // Debounced persist whenever the complete entries change from the last saved snapshot.
+  // Debounced persist whenever the complete entries change from the last saved snapshot (the first
+  // run after the load seeds the snapshot without saving).
   useEffect(() => {
-    if (drafts === null || savedRef.current === null) return;
-    const otherEntries = entriesFromDrafts(drafts);
-    const serialized = JSON.stringify(otherEntries);
-    if (serialized === savedRef.current) return;
-    const timer = setTimeout(() => {
-      const entries = [...otherEntries, ...primaryEntry(dataRef.current ?? [])];
-      mutateRef.current(entries, {
-        onSuccess: () => {
-          savedRef.current = serialized;
-          notifyFieldSaved("Names");
-        },
-        onError: error => notifyFieldSaveError("Names", describeError(error)),
-      });
-    }, 700);
-    return () => clearTimeout(timer);
-  }, [drafts]);
+    if (drafts === null) return;
+    queueSave(entriesFromDrafts(drafts));
+  }, [drafts, queueSave]);
 
   return (
     <EntityNamesEditor

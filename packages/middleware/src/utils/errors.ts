@@ -35,6 +35,20 @@ export type ErrorCode
     | "maxImagesReached"
     | "schemaValidation"
     | "conflict"
+    // The typed image-grab failure reasons emitted by the entity-image auto-capture routes
+    // (502, via `imageGrabErrorReply` in `utils/imageGrabError.ts`).
+    | "no_image"
+    | "bad_image"
+    | "blocked"
+    | "server_error"
+    | "fetch_error"
+    // `/api/fetch-title` failed to read a title from the page (502).
+    | "fetchFailed"
+    // `/api/fetch-isbn-metadata`: no provider knew the ISBN (404) / providers unreachable (502).
+    | "isbnNotFound"
+    | "providersUnreachable"
+    // `errorHandler`'s non-AppError fallback for a non-5xx thrown error.
+    | "error"
     | "internal";
 
 export class AppError extends Error {

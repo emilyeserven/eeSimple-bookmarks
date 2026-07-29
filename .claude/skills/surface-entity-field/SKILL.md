@@ -170,8 +170,9 @@ entity, but **no bytes-ingest** path. To add upload:
 - **Route:** add `POST /api/<entity>/:id/image` multipart, mirroring `routes/bookmarks.ts`'s upload
   (multipart file → `toBuffer()` → service; 503 when storage unconfigured, 413 too-large, 415
   bad-image, 201 with `{ imageUrl }`). Place it beside the existing `…/image/auto` route.
-- **Client:** add `uploadImage` to the entity's API module via the shared `uploadImageFile` helper in
-  `lib/api.ts`; add a `useUpload<Entity>Image` hook (mirror `useUploadBookmarkImage`) that invalidates
+- **Client:** add `uploadImage` to the entity's API module (`lib/api/<entity>.ts`) via the shared
+  `uploadImageFile` helper in
+  `lib/api/client.ts`; add a `useUpload<Entity>Image` hook (mirror `useUploadBookmarkImage`) that invalidates
   the entity query; wire it into `EntityImageField` in the composite's edit renderer.
 
 ## Extraction (reverse direction) — split a composite into granular fields

@@ -25,22 +25,19 @@ function MoreMenuRow({
 }) {
   const mobile = action.mobile;
   if (mobile.kind === "menuItem") return <>{mobile.node}</>;
-  if (mobile.kind === "modal") {
-    const Icon = mobile.icon;
-    return (
-      <DropdownMenuItem
-        disabled={mobile.disabled}
-        onSelect={(e) => {
-          e.preventDefault();
-          onOpenModal(action.key);
-        }}
-      >
-        <Icon className="size-4" />
-        {mobile.label}
-      </DropdownMenuItem>
-    );
-  }
-  return null;
+  const Icon = mobile.icon;
+  return (
+    <DropdownMenuItem
+      disabled={mobile.disabled}
+      onSelect={(e) => {
+        e.preventDefault();
+        onOpenModal(action.key);
+      }}
+    >
+      <Icon className="size-4" />
+      {mobile.label}
+    </DropdownMenuItem>
+  );
 }
 
 /**
@@ -105,8 +102,7 @@ function HeaderMoreMenu({
 
 /**
  * The right-side header toolbar. Wide screens render the inline row (separated by dividers); small
- * screens collapse every action except the panel toggle into the {@link HeaderMoreMenu}, keeping the
- * panel toggle standalone on the far right.
+ * screens collapse every action into the {@link HeaderMoreMenu}.
  */
 export function HeaderToolbar({
   actions,
@@ -114,8 +110,6 @@ export function HeaderToolbar({
   actions: ToolbarAction[];
 }) {
   const isMobile = useIsMobile();
-  const standalone = actions.filter(a => a.mobile.kind === "standalone");
-  const collapsible = actions.filter(a => a.mobile.kind !== "standalone");
   // An action may opt out of the wide-screen row (desktop === null) while keeping a mobile row —
   // e.g. add-child folded into the listing Plus dropdown. Drop those so no orphan separator renders.
   const desktopActions = actions.filter(a => a.desktop != null);
@@ -123,14 +117,7 @@ export function HeaderToolbar({
   return (
     <div className="-mr-1 ml-auto flex items-center gap-1">
       {isMobile
-        ? (
-          <>
-            {collapsible.length > 0 && <HeaderMoreMenu actions={collapsible} />}
-            {standalone.map(action => (
-              <React.Fragment key={action.key}>{action.desktop}</React.Fragment>
-            ))}
-          </>
-        )
+        ? actions.length > 0 && <HeaderMoreMenu actions={actions} />
         : desktopActions.map((action, i) => (
           <React.Fragment key={action.key}>
             {i > 0 && (

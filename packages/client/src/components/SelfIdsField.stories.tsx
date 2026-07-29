@@ -25,6 +25,7 @@ export const Default: Story = {
   render: () => <Controlled initial={["SNL", "Weekend Update"]} />,
 };
 
+/** The field with no self-ids yet. */
 export const Empty: Story = {
   render: () => <Controlled initial={[]} />,
 };

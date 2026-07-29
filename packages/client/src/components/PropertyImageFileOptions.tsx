@@ -1,5 +1,7 @@
 import type { PropertyFormApi } from "./propertyFormSchema";
 
+import { useTranslation } from "react-i18next";
+
 import { LabeledSection } from "./LabeledSection";
 
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,6 +19,9 @@ export function ImageFileOptions({
   isImage: boolean;
   full: boolean;
 }) {
+  const {
+    t,
+  } = useTranslation();
   return (
     <>
       {full ? <Separator /> : null}
@@ -31,7 +36,7 @@ export function ImageFileOptions({
                   checked={field.state.value}
                   onCheckedChange={checked => field.handleChange(checked === true)}
                 />
-                <Label htmlFor={`${idPrefix}-show-in-details`}>Show in detail view</Label>
+                <Label htmlFor={`${idPrefix}-show-in-details`}>{t("Show in detail view")}</Label>
               </div>
             )}
           </form.AppField>
@@ -52,7 +57,7 @@ export function ImageFileOptions({
                         checked={field.state.value}
                         onCheckedChange={checked => field.handleChange(checked === true)}
                       />
-                      <Label htmlFor={`${idPrefix}-show-in-gallery`}>Show in Media Management</Label>
+                      <Label htmlFor={`${idPrefix}-show-in-gallery`}>{t("Show in Media Management")}</Label>
                     </div>
                   )}
                 </form.AppField>

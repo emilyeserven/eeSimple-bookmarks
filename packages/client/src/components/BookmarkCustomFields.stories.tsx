@@ -46,8 +46,10 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** The advanced-placement fields for a category, all inputs empty. */
 export const AdvancedFields: Story = {};
 
+/** Number properties pre-filled with values. */
 export const WithValues: Story = {
   args: {
     numberInputs: {
@@ -57,12 +59,14 @@ export const WithValues: Story = {
   },
 };
 
+/** The fields in the stacked (single-column) layout. */
 export const StackedLayout: Story = {
   args: {
     layout: "stack",
   },
 };
 
+/** Default-placement fields for another category, with a boolean pre-checked. */
 export const DefaultPlacement: Story = {
   args: {
     categoryId: "cat-content",

@@ -5,6 +5,7 @@ import { resolveLayout } from "@eesimple/types";
 import { describe, expect, it } from "vitest";
 
 import { websiteWorkbench } from "./website";
+import { makeEntityLayout, makeLayoutSection, makeLayoutTab } from "../../test-utils/factories";
 
 import { deriveWorkbenchTabs, knownFieldKeys, visibleSectionsForTab } from "@/lib/workbenchLayout";
 
@@ -203,18 +204,16 @@ describe("website stored layout rearrangement (end-to-end loop)", () => {
   // Pull the favicon field into a brand-new user-created tab; `resolveLayout` keeps it there and
   // appends every other unplaced field to its default home — proving a stored layout drives the render
   // in BOTH modes (the hand-PUT loop the Page Layouts editor automates).
-  const stored: EntityLayout = {
-    tabs: [
-      {
-        key: "branding",
-        label: "Branding",
-        sections: [{
-          key: "s",
-          fields: ["favicon"],
-        }],
-      },
-    ],
-  };
+  const stored: EntityLayout = makeEntityLayout({
+    tabs: [makeLayoutTab({
+      key: "branding",
+      label: "Branding",
+      sections: [makeLayoutSection({
+        key: "s",
+        fields: ["favicon"],
+      })],
+    })],
+  });
 
   it("shows the moved field under the new tab in both modes", () => {
     const viewBranding = shape(websiteWorkbench, "view", stored).find(tab => tab.key === "branding");

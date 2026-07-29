@@ -17,7 +17,7 @@ import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { RowCard } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -117,43 +117,41 @@ function LevelGroupCard({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        {levels.length === 0 && (
-          <p className="text-sm text-muted-foreground">{t("No levels yet.")}</p>
-        )}
-        {levels.map(level => (
-          <LevelRow
-            key={level.id}
-            level={level}
-            siblings={levels}
-          />
-        ))}
-        <div className="flex items-center gap-2 pt-2">
-          <Input
-            placeholder={t("New level name…")}
-            value={newName}
-            onChange={e => setNewName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") addLevel();
-            }}
-          />
-          <Button
-            type="button"
-            size="sm"
-            onClick={addLevel}
-            disabled={newName.trim().length === 0 || create.isPending}
-          >
-            <Plus className="size-4" />
-            {t("Add")}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+    <section className="space-y-2">
+      <div className="space-y-1">
+        <h2 className="text-lg font-semibold">{title}</h2>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+      {levels.length === 0 && (
+        <p className="text-sm text-muted-foreground">{t("No levels yet.")}</p>
+      )}
+      {levels.map(level => (
+        <LevelRow
+          key={level.id}
+          level={level}
+          siblings={levels}
+        />
+      ))}
+      <div className="flex items-center gap-2 pt-2">
+        <Input
+          placeholder={t("New level name…")}
+          value={newName}
+          onChange={e => setNewName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") addLevel();
+          }}
+        />
+        <Button
+          type="button"
+          size="sm"
+          onClick={addLevel}
+          disabled={newName.trim().length === 0 || create.isPending}
+        >
+          <Plus className="size-4" />
+          {t("Add")}
+        </Button>
+      </div>
+    </section>
   );
 }
 
@@ -245,7 +243,11 @@ function LevelRow({
   }
 
   return (
-    <div className={level.hidden ? "space-y-1 opacity-60" : "space-y-1"}>
+    <RowCard
+      className={level.hidden
+        ? "space-y-1 p-3 opacity-60"
+        : "space-y-1 p-3"}
+    >
       <div className="flex items-center gap-2">
         {level.builtIn
           ? (
@@ -312,7 +314,7 @@ function LevelRow({
         onBlur={saveDescription}
         aria-label={t("Level description")}
       />
-    </div>
+    </RowCard>
   );
 }
 

@@ -19,6 +19,8 @@ import { BookmarkYouTubeMetadataFields } from "./BookmarkYouTubeMetadataFields";
 import { useAddBookmarkPeopleByNames } from "../hooks/useAddBookmarkPeopleByNames";
 import { useUpdateBookmark } from "../hooks/useBookmarks";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { describeError } from "../lib/apiError";
+import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
 import { mergeBooleanValue, mergeSectionsCompleted, mergeSectionsFavorite } from "../lib/bookmarkFormat";
 
 /** Whether a property is in scope for this bookmark (its own category/media-type gate — the runtime lock). */
@@ -107,13 +109,19 @@ function BookmarkPropertyViewField({
   bookmark: Bookmark;
 }) {
   const updateBookmark = useUpdateBookmark();
+  // Each in-view toggle persists server-side, so it toasts the property's name
+  // (edit-tab auto-save standard).
+  const fieldCallbacks = {
+    onSuccess: () => notifyFieldSaved(property.name),
+    onError: (error: Error) => notifyFieldSaveError(property.name, describeError(error)),
+  };
   function saveBoolean(propertyId: string, value: boolean) {
     updateBookmark.mutate({
       id: bookmark.id,
       input: {
         booleanValues: mergeBooleanValue(bookmark.booleanValues, propertyId, value),
       },
-    });
+    }, fieldCallbacks);
   }
   // The sections twin of `saveBoolean` — a PATCH with the whole sectionsValues array carrying the
   // one flipped flag; the server then recomputes any linked derived Progress value in the same tx.
@@ -123,7 +131,7 @@ function BookmarkPropertyViewField({
       input: {
         sectionsValues: mergeSectionsCompleted(bookmark.sectionsValues, propertyId, entryId, completed),
       },
-    });
+    }, fieldCallbacks);
   }
   // The favorite twin of `saveSectionCompleted` — starring is independent (no parent→child cascade).
   function saveSectionFavorite(propertyId: string, entryId: string, isFavorite: boolean) {
@@ -132,7 +140,7 @@ function BookmarkPropertyViewField({
       input: {
         sectionsValues: mergeSectionsFavorite(bookmark.sectionsValues, propertyId, entryId, isFavorite),
       },
-    });
+    }, fieldCallbacks);
   }
   return (
     <BookmarkPropertyRow

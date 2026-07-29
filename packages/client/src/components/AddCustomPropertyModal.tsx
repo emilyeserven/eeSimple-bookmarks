@@ -1,27 +1,22 @@
 import type { CustomProperty, CustomPropertyType } from "@eesimple/types";
 
-import { CUSTOM_PROPERTY_TYPES } from "@eesimple/types";
-import { useTranslation } from "react-i18next";
-import { z } from "zod";
+import { useId, useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
+import { InlineCreateModal } from "./InlineCreateModal";
 import { useCreateCustomProperty } from "../hooks/useCustomProperties";
-import { useAppForm } from "../lib/form";
 import { TYPE_OPTIONS } from "../lib/propertyForm";
 
+import { Label } from "@/components/ui/label";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useTranslatedLabel } from "@/hooks/useTranslatedLabel";
-
-const schema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
-  type: z.enum(CUSTOM_PROPERTY_TYPES),
-});
 
 interface AddCustomPropertyModalProps {
   open: boolean;
@@ -29,7 +24,10 @@ interface AddCustomPropertyModalProps {
   onCreated?: (property: CustomProperty) => void;
 }
 
-/** Minimal name + type modal to create a custom property inline from the listing page. */
+/**
+ * Minimal name + type modal to create a custom property inline from the listing page — a thin
+ * `InlineCreateModal` wrapper using `extraFields` for the type select.
+ */
 export function AddCustomPropertyModal({
   open, onOpenChange, onCreated,
 }: AddCustomPropertyModalProps) {
@@ -37,87 +35,61 @@ export function AddCustomPropertyModal({
     t,
   } = useTranslation();
   const tLabel = useTranslatedLabel();
-  const typeOptions = TYPE_OPTIONS.map(option => ({
-    ...option,
-    label: tLabel(option.label),
-  }));
   const createProperty = useCreateCustomProperty();
-  const form = useAppForm({
-    defaultValues: {
-      name: "",
-      type: "number",
-    },
-    validators: {
-      onChange: schema,
-    },
-    onSubmit: ({
-      value,
-    }) => {
-      createProperty.mutate(
-        {
-          name: value.name.trim(),
-          type: value.type as CustomPropertyType,
-        },
-        {
-          onSuccess: (property) => {
-            onCreated?.(property);
-            onOpenChange(false);
-            form.reset();
-          },
-        },
-      );
-    },
-  });
+  const [type, setType] = useState<CustomPropertyType>("number");
+  const typeId = useId();
 
   return (
-    <Dialog
+    <InlineCreateModal
       open={open}
       onOpenChange={onOpenChange}
-    >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t("New custom property")}</DialogTitle>
-          <DialogDescription>
-            {t("Pick a name and type — fill in the rest from its edit page.")}
-          </DialogDescription>
-        </DialogHeader>
-        <form
-          className="space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            void form.handleSubmit();
-          }}
-        >
-          <form.AppField name="name">
-            {field => (
-              <field.TextField
-                label={t("Name")}
-                placeholder={t("e.g. Rating")}
-              />
-            )}
-          </form.AppField>
-          <form.AppField name="type">
-            {field => (
-              <field.SelectField
-                label={t("Type")}
-                options={typeOptions}
-              />
-            )}
-          </form.AppField>
-          {createProperty.isError
-            ? <p className="text-sm text-destructive">{createProperty.error.message}</p>
-            : null}
-          <DialogFooter>
-            <form.AppForm>
-              <form.SubmitButton
-                label={t("Add property")}
-                pendingLabel={t("Adding…")}
-              />
-            </form.AppForm>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+      title={t("New custom property")}
+      description={t("Pick a name and type — fill in the rest from its edit page.")}
+      placeholder={t("e.g. Rating")}
+      submitLabel={t("Add property")}
+      isError={createProperty.isError}
+      errorMessage={createProperty.error?.message}
+      extraFields={(
+        <div className="space-y-1">
+          <Label htmlFor={typeId}>{t("Type")}</Label>
+          <Select
+            value={type}
+            onValueChange={value => setType(value as CustomPropertyType)}
+          >
+            <SelectTrigger
+              id={typeId}
+              className="w-full"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TYPE_OPTIONS.map(option => (
+                <SelectItem
+                  key={option.value}
+                  value={option.value}
+                >
+                  {tLabel(option.label)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+      onSubmit={(name, done) => {
+        createProperty.mutate(
+          {
+            name,
+            type,
+          },
+          {
+            onSuccess: (property) => {
+              onCreated?.(property);
+              setType("number");
+              done();
+            },
+          },
+        );
+      }}
+    />
   );
 }

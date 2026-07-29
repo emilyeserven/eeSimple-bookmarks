@@ -5,6 +5,7 @@ import { CSS } from "@dnd-kit/utilities";
 
 import { LevelGroupRowContent } from "./LevelGroupRowContent";
 
+import { RowCard } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 /** A single drag-sortable level-group card: name + visibility + pin/area + place-type assignment. */
@@ -16,14 +17,14 @@ export function SortableGroupRow(props: GroupRowProps) {
   });
 
   return (
-    <div
+    <RowCard
       ref={setNodeRef}
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
       }}
       className={cn(
-        "space-y-3 rounded-lg border bg-card p-3",
+        "space-y-3 p-3",
         isDragging && "opacity-60",
       )}
     >
@@ -32,6 +33,6 @@ export function SortableGroupRow(props: GroupRowProps) {
         attributes={attributes}
         listeners={listeners}
       />
-    </div>
+    </RowCard>
   );
 }

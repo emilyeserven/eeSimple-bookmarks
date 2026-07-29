@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AutofillRuleConditionsForm } from "./AutofillRuleConditionsForm";
 import { makeAutofillRule } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
+import { notifySuccess, resetToastSpies } from "../test-utils/toastSpies";
 
 const updateMutate
   = vi.fn<(vars: { id: string;
@@ -47,12 +48,7 @@ vi.mock("../hooks/useTags", () => ({
   }),
 }));
 
-const notifyFieldSaved = vi.fn<(label: string) => void>();
-const notifyFieldSaveError = vi.fn<(label: string, cause?: string) => void>();
-vi.mock("../lib/autoSave", () => ({
-  notifyFieldSaved: (label: string) => notifyFieldSaved(label),
-  notifyFieldSaveError: (label: string, cause?: string) => notifyFieldSaveError(label, cause),
-}));
+vi.mock("../lib/notifications", async () => await import("../test-utils/toastSpies"));
 
 // Stub ConditionsField so the test can drive onChange with valid/invalid trees directly.
 const VALID_TREE: ConditionTree = {
@@ -109,8 +105,7 @@ const rule = makeAutofillRule({
 describe("AutofillRuleConditionsForm (auto-save)", () => {
   beforeEach(() => {
     updateMutate.mockReset();
-    notifyFieldSaved.mockReset();
-    notifyFieldSaveError.mockReset();
+    resetToastSpies();
   });
 
   it("has no Save button (auto-save)", async () => {
@@ -132,7 +127,7 @@ describe("AutofillRuleConditionsForm (auto-save)", () => {
         conditions: VALID_TREE,
       },
     });
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Conditions");
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Conditions");
   });
 
   it("does not save an invalid condition tree", async () => {
@@ -141,7 +136,7 @@ describe("AutofillRuleConditionsForm (auto-save)", () => {
     fireEvent.click(screen.getByText("set-invalid"));
 
     expect(updateMutate).not.toHaveBeenCalled();
-    expect(notifyFieldSaved).not.toHaveBeenCalled();
+    expect(notifySuccess).not.toHaveBeenCalled();
     expect(await screen.findByText(/pattern/i)).toBeInTheDocument();
   });
 });

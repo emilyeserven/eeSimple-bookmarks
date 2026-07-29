@@ -41,6 +41,7 @@ export const Default: Story = {
   },
 };
 
+/** An empty tag tree, leaving only the inline-create affordance. */
 export const Empty: Story = {
   args: {
     tree: [],

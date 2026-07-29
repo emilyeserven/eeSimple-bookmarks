@@ -17,6 +17,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** A label wired to an input via htmlFor. */
 export const WithInput: Story = {
   render: args => (
     <div className="space-y-1">

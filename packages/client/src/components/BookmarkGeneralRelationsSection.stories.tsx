@@ -37,6 +37,7 @@ export const Default: Story = {
   render: () => <RelationsHost />,
 };
 
+/** The relations section for a bare bookmark with no tags, people, or groups yet. */
 export const Empty: Story = {
   render: () => (
     <RelationsHost

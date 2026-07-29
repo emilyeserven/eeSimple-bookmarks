@@ -19,6 +19,7 @@ export default meta;
 
 type Story = StoryObj;
 
+/** The cleanup section shown for a tracker-laden URL in trackers mode. */
 export const Visible: Story = {
   render: () => (
     <BookmarkFormHost

@@ -1,14 +1,13 @@
 import type { DraftLanguageUsage } from "./draftLanguageUsage";
-import type { LanguageUsageKind, LanguageUsageOwnerType } from "@eesimple/types";
+import type { LanguageUsageKind, LanguageUsageOwnerType, UpdateLanguageUsageEntry } from "@eesimple/types";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { draftsFromUsages, entriesFromDrafts } from "./draftLanguageUsage";
 import { LanguageUsagesEditor } from "./LanguageUsagesEditor";
 import { LanguageUsagesView } from "./LanguageUsagesView";
+import { useCollectionAutoSave } from "../../hooks/useCollectionAutoSave";
 import { useLanguageUsages, useSetLanguageUsages } from "../../hooks/useLanguageUsages";
-import { describeError } from "../../lib/apiError";
-import { notifyFieldSaved, notifyFieldSaveError } from "../../lib/autoSave";
 
 interface TabProps {
   ownerType: LanguageUsageOwnerType;
@@ -40,36 +39,28 @@ export function LanguageUsagesTabEditor({
   const setUsages = useSetLanguageUsages(ownerType, ownerId);
   const [drafts, setDrafts] = useState<DraftLanguageUsage[] | null>(null);
 
-  // The serialized entries last persisted, so the debounce skips no-op saves (including the initial load).
-  const savedRef = useRef<string | null>(null);
-  const mutateRef = useRef(setUsages.mutate);
-  mutateRef.current = setUsages.mutate;
+  // The shared collection engine skips no-op saves (including the initial load, which seeds it).
+  const {
+    queueSave,
+  } = useCollectionAutoSave<UpdateLanguageUsageEntry[]>({
+    id: `${ownerType}:${ownerId}`,
+    label: "Languages",
+    persist: (entries, callbacks) => setUsages.mutate(entries, callbacks),
+  });
 
   // Seed the editor once the owner's usages load.
   useEffect(() => {
     if (data && drafts === null) {
       setDrafts(draftsFromUsages(data));
-      savedRef.current = JSON.stringify(entriesFromDrafts(draftsFromUsages(data)));
     }
   }, [data, drafts]);
 
-  // Debounced persist whenever the complete entries change from the last saved snapshot.
+  // Debounced persist whenever the complete entries change from the last saved snapshot (the first
+  // run after the load seeds the snapshot without saving).
   useEffect(() => {
-    if (drafts === null || savedRef.current === null) return;
-    const entries = entriesFromDrafts(drafts);
-    const serialized = JSON.stringify(entries);
-    if (serialized === savedRef.current) return;
-    const timer = setTimeout(() => {
-      mutateRef.current(entries, {
-        onSuccess: () => {
-          savedRef.current = serialized;
-          notifyFieldSaved("Languages");
-        },
-        onError: error => notifyFieldSaveError("Languages", describeError(error)),
-      });
-    }, 700);
-    return () => clearTimeout(timer);
-  }, [drafts]);
+    if (drafts === null) return;
+    queueSave(entriesFromDrafts(drafts));
+  }, [drafts, queueSave]);
 
   return (
     <LanguageUsagesEditor

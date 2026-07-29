@@ -19,8 +19,9 @@
 import type { ConditionTree } from "./conditions.js";
 
 /**
- * The 21 slug-routed workbench entity kinds (the `ENTITY_DESCRIPTORS` keys in
- * `packages/client/src/entities/registry.ts`), plus `"bookmark"` — bookmarks adopt the field
+ * The 19 slug-routed workbench entity kinds (the `ENTITY_DESCRIPTORS` keys in
+ * `packages/client/src/entities/registry.ts`), plus the shared `"taxonomy-term"` kind and
+ * `"bookmark"` (21 total) — bookmarks adopt the field
  * registry + a `"bookmark"` layout kind but stay off `ENTITY_DESCRIPTORS` since they aren't a
  * slug-routed workbench entity.
  */

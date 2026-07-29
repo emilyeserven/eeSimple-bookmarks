@@ -1,47 +1,20 @@
 import type { HomepageSection } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { defaultCardZoneLayouts, emptyConditionTree } from "@eesimple/types";
 import { HttpResponse, http } from "msw";
 
 import { HomepageSectionsSettings } from "./HomepageSectionsSettings";
+import { makeHomepageSection } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
-function makeSection(overrides: Partial<HomepageSection>): HomepageSection {
-  return {
-    id: "section-1",
-    title: "Section",
-    description: null,
-    conditions: emptyConditionTree(),
-    sortOrder: 0,
-    hideIfEmpty: false,
-    columns: 3,
-    imageMode: "natural",
-    imageLayout: "above",
-    imageVisibility: "shown",
-    viewMode: "cards",
-    fieldZones: null,
-    cardZoneLayouts: defaultCardZoneLayouts(),
-    hiddenCardFields: [],
-    cornerOverlays: false,
-    hideWebsiteForYouTube: false,
-    sort: null,
-    bookmarkLimit: null,
-    createdAt: NOW,
-    ...overrides,
-  };
-}
-
 const sections: HomepageSection[] = [
-  makeSection({
+  makeHomepageSection({
     id: "section-reading",
     title: "Currently Reading",
     description: "Books in progress.",
     sortOrder: 0,
   }),
-  makeSection({
+  makeHomepageSection({
     id: "section-watch",
     title: "Watch Later",
     description: "Videos queued up.",

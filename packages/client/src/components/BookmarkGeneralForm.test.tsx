@@ -87,10 +87,7 @@ vi.mock("./useBookmarkScanHandlers", () => ({
   }),
 }));
 
-vi.mock("../lib/notifications", () => ({
-  notifySuccess: vi.fn(),
-  notifyError: vi.fn(),
-}));
+vi.mock("../lib/notifications", async () => await import("../test-utils/toastSpies"));
 
 afterEach(() => {
   vi.clearAllMocks();

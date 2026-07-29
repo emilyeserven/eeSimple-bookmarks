@@ -99,7 +99,6 @@ mock.module("@/services/appSettings", {
       autoApplyTitleTags: false,
       autoApplyTitleLocations: false,
       shareBypassInbox: false,
-      sidebarOpenModifier: "alt",
       defaultCategoryId: automationDefaultCategoryId,
     }),
   },

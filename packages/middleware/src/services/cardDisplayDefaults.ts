@@ -1,40 +1,20 @@
 import type { CardFieldZones } from "@eesimple/types";
-import { emptyCardFieldZones } from "@eesimple/types";
+import {
+  emptyCardFieldZones,
+  HEADER_CARD_FIELD_KEYS as SHARED_HEADER_CARD_FIELD_KEYS,
+  STANDARD_CARD_FIELD_KEYS as SHARED_STANDARD_CARD_FIELD_KEYS,
+} from "@eesimple/types";
 
 /**
- * The fixed (non-custom-property) bookmark-card field keys, in display order. Mirrors the client's
- * `STANDARD_CARD_FIELDS` (`packages/client/src/lib/bookmarkCardFields.ts`) — keep the two in sync.
+ * The fixed (non-custom-property) bookmark-card field keys, in display order — spread from the
+ * canonical `STANDARD_CARD_FIELD_KEYS` tuple in `@eesimple/types` (`cardFieldKeys.ts`), the same
+ * list the client's `STANDARD_CARD_FIELDS` (`packages/client/src/lib/bookmarkCardFieldDefs.ts`)
+ * derives its labels from — the two sides can no longer drift.
  */
-export const STANDARD_CARD_FIELD_KEYS = [
-  "title",
-  "secondaryName",
-  "description",
-  "url",
-  "secondaryUrl",
-  "category",
-  "website",
-  "mediaType",
-  "youtubeChannel",
-  "tags",
-  "genreMoods",
-  "locations",
-  "people",
-  "groups",
-  "taggedSections",
-  "favoriteSections",
-  "matchType",
-  "createdAt",
-  "updatedAt",
-  "externalLink",
-  "archiveLink",
-  "kavitaLink",
-  "plexLink",
-  "podcastLink",
-  "more",
-] as const;
+export const STANDARD_CARD_FIELD_KEYS = [...SHARED_STANDARD_CARD_FIELD_KEYS] as const;
 
 /** The card header fields (title + action buttons), which default into the `card-single-top` zone. */
-export const HEADER_CARD_FIELD_KEYS = ["title", "externalLink", "more"] as const;
+export const HEADER_CARD_FIELD_KEYS = [...SHARED_HEADER_CARD_FIELD_KEYS] as const;
 
 /**
  * The card-body sub-zone a standard/custom field lands in by default: the header fields (`title`,

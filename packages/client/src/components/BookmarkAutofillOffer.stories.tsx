@@ -26,12 +26,14 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** The offer after dismissal — renders nothing. */
 export const Dismissed: Story = {
   args: {
     dismissed: true,
   },
 };
 
+/** A built-in category id, which suppresses the autofill offer. */
 export const BuiltInCategoryHidden: Story = {
   args: {
     categoryId: "cat-default",

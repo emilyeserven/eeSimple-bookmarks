@@ -37,6 +37,7 @@ export const Empty: Story = {
   },
 };
 
+/** The card with an extra Info button rendered via renderInfo. */
 export const WithInfoButton: Story = {
   args: {
     renderInfo: () => (

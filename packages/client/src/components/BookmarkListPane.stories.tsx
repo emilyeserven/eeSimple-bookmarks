@@ -50,6 +50,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** The pane in its loading state before any bookmarks arrive. */
 export const Loading: Story = {
   args: {
     bookmarks: [],
@@ -58,6 +59,7 @@ export const Loading: Story = {
   },
 };
 
+/** No bookmarks and no active filters, showing the empty message. */
 export const EmptyNoFilters: Story = {
   args: {
     bookmarks: [],
@@ -65,6 +67,7 @@ export const EmptyNoFilters: Story = {
   },
 };
 
+/** A load error, showing the error message instead of results. */
 export const ErrorState: Story = {
   args: {
     bookmarks: [],

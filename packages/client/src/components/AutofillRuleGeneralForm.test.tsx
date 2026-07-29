@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AutofillRuleGeneralForm } from "./AutofillRuleGeneralForm";
 import { makeAutofillRule } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
+import { notifyError, notifySuccess, resetToastSpies } from "../test-utils/toastSpies";
 
 const updateMutate
   = vi.fn<(vars: { id: string;
@@ -35,12 +36,7 @@ vi.mock("../hooks/useAutofill", () => ({
   }),
 }));
 
-const notifyFieldSaved = vi.fn<(label: string) => void>();
-const notifyFieldSaveError = vi.fn<(label: string, cause?: string) => void>();
-vi.mock("../lib/autoSave", () => ({
-  notifyFieldSaved: (label: string) => notifyFieldSaved(label),
-  notifyFieldSaveError: (label: string, cause?: string) => notifyFieldSaveError(label, cause),
-}));
+vi.mock("../lib/notifications", async () => await import("../test-utils/toastSpies"));
 
 const rule = makeAutofillRule({
   id: "rule-1",
@@ -54,8 +50,7 @@ const rule = makeAutofillRule({
 describe("AutofillRuleGeneralForm (auto-save)", () => {
   beforeEach(() => {
     updateMutate.mockReset();
-    notifyFieldSaved.mockReset();
-    notifyFieldSaveError.mockReset();
+    resetToastSpies();
     mutationBehavior = "success";
   });
 
@@ -84,7 +79,7 @@ describe("AutofillRuleGeneralForm (auto-save)", () => {
         name: "Recipes List",
       },
     });
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Name");
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Name");
   });
 
   it("saves the priority (sortOrder) on blur", async () => {
@@ -105,7 +100,7 @@ describe("AutofillRuleGeneralForm (auto-save)", () => {
         sortOrder: 7,
       },
     });
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Priority");
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Priority");
   });
 
   it("does not save an unchanged field on blur", async () => {
@@ -125,7 +120,7 @@ describe("AutofillRuleGeneralForm (auto-save)", () => {
     fireEvent.blur(name);
 
     expect(updateMutate).not.toHaveBeenCalled();
-    expect(notifyFieldSaved).not.toHaveBeenCalled();
+    expect(notifySuccess).not.toHaveBeenCalled();
     expect(await screen.findByText("Name is required")).toBeInTheDocument();
   });
 
@@ -141,7 +136,7 @@ describe("AutofillRuleGeneralForm (auto-save)", () => {
     });
     fireEvent.blur(name);
 
-    await waitFor(() => expect(notifyFieldSaveError).toHaveBeenCalledWith("Name", "offline"));
+    await waitFor(() => expect(notifyError).toHaveBeenCalledWith("Couldn't save Name: offline"));
     expect(name.value).toBe("Recipes List");
   });
 });

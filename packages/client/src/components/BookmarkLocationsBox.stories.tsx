@@ -50,12 +50,14 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** The box with just one location pill. */
 export const SingleLocation: Story = {
   args: {
     locations: [locations[0]],
   },
 };
 
+/** Twelve locations to show how the pill list wraps. */
 export const Many: Story = {
   args: {
     locations: Array.from({

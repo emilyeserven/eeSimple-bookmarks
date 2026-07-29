@@ -52,8 +52,6 @@ model. New listing pages adopt it from the start; existing ones must not drift b
 | `StandardListingCard` | `components/StandardListingCard.tsx` | The card shell. Props below. |
 | `HoverIconButton` | same | Ghost icon button with the hover-opacity classes; wrap a typed `<Link>`. |
 | `withCategories` / `withTags` / `withWebsites` / `withMediaTypes` / `withYouTubeChannels` / `withRelationshipTypes` | `lib/bookmarkSearch.ts` | Build a `/bookmarks` filter — used by the **filter sidebar facets** (`FilterSidebarSections.tsx`), **not** listing-card body links anymore. |
-| `useEditPanelClick` / `useViewPanelClick` | `components/panel/useEditPanelClick.ts` | Panel-aware `onClick={e => editClick(e, ct, id)}` for the hover Edit/Info links. |
-| `useUiStore(s => s.sidebarOpenModifier)` + `SIDEBAR_MODIFIER_LABELS` | `stores/uiStore`, `lib/sidebarModifier` | The "(hold ⌥ to open in the sidebar)" title hint. |
 | `CategoryIcon` | `lib/icons.tsx` | Lucide icon by stored name; falls back to a Tag glyph when null. |
 | `useEntityImage` | `hooks/useEntityImage.ts` | Favicon/avatar `<img>` with fallback (websites, channels). |
 | `Pencil`, `Info`, plus a per-entity glyph (`Layers`, `Link2`, `Wand2`) | `lucide-react` | Hover-button + fixed icons. |
@@ -184,10 +182,9 @@ Reuse the `listing-page-controls` keys (`categories-listing`, `websites-listing`
 
 Relationship Types had none — the hover Edit/Info buttons need them. Scaffold the slug-routed Info +
 Edit pages first with the **`tabbed-pages`** and **`add-entity`** skills (a `*Workbench` descriptor
-with view/edit panes, the `…$slug.info.tsx` + `edit.<tab>.tsx` route files + a
-`RelationshipTypeGeneralForm` auto-save edit form per **`toast-notifications`**), register a panel
-content type (`lib/drawerSearch.ts` union + `panel/contentTypes.tsx`), and add the breadcrumb
-descriptor. Then convert the inline manager row to `StandardListingCard`.
+with a workbench field registry, the `…$slug.info.tsx` + single `…$slug.edit.tsx` `?tab=` route + a
+`RelationshipTypeGeneralForm` auto-save edit form per **`toast-notifications`**), and add the
+breadcrumb descriptor. Then convert the inline manager row to `StandardListingCard`.
 
 ## Cross-links
 

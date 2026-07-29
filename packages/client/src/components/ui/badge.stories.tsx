@@ -22,12 +22,14 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** The secondary badge variant. */
 export const Secondary: Story = {
   args: {
     variant: "secondary",
   },
 };
 
+/** The outline badge variant. */
 export const Outline: Story = {
   args: {
     variant: "outline",

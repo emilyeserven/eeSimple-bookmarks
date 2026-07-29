@@ -3,7 +3,7 @@ import type { BookmarkFieldSort, DisplayPreferenceSettings, UpdateDisplayPrefere
 import { db } from "@/db";
 import { appSettings } from "@/db/schema";
 import { MAX_IMAGE_EDGE } from "@/utils/image";
-import { asBreakpoints, asCropped, asDetailLayout, asHanScriptLanguage, asImageSize, asInterfaceLanguage, asMapPinScale, asMinAreaThreshold, asScreenshotDefault, asVideoSize, DEFAULT_DISPLAY_PREFERENCES, DEFAULT_SHORTENER_IGNORE_LIST, ROW_ID } from "./appSettingsShared";
+import { asCropped, asDetailLayout, asHanScriptLanguage, asImageSize, asInterfaceLanguage, asMapPinScale, asMinAreaThreshold, asScreenshotDefault, asVideoSize, DEFAULT_DISPLAY_PREFERENCES, DEFAULT_SHORTENER_IGNORE_LIST, ROW_ID } from "./appSettingsShared";
 
 /** Read the display/detail preferences (group C). */
 export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceSettings> {
@@ -15,8 +15,6 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
       bookmarkCardThumbnailSize: appSettings.bookmarkCardThumbnailSize,
       interfaceLanguage: appSettings.interfaceLanguage,
       searchBoxPinned: appSettings.searchBoxPinned,
-      panelPinned: appSettings.panelPinned,
-      drawerUnpinnedBreakpoints: appSettings.drawerUnpinnedBreakpoints,
       croppedWidth: appSettings.croppedWidth,
       croppedHeight: appSettings.croppedHeight,
       customPropertyTypeIcons: appSettings.customPropertyTypeIcons,
@@ -47,8 +45,6 @@ export async function getDisplayPreferenceSettings(): Promise<DisplayPreferenceS
     bookmarkCardThumbnailSize: asImageSize(row.bookmarkCardThumbnailSize),
     interfaceLanguage: asInterfaceLanguage(row.interfaceLanguage),
     searchBoxPinned: row.searchBoxPinned,
-    panelPinned: row.panelPinned,
-    drawerUnpinnedBreakpoints: asBreakpoints(row.drawerUnpinnedBreakpoints),
     croppedWidth: asCropped(row.croppedWidth, DEFAULT_DISPLAY_PREFERENCES.croppedWidth),
     croppedHeight: asCropped(row.croppedHeight, DEFAULT_DISPLAY_PREFERENCES.croppedHeight),
     customPropertyTypeIcons: (row.customPropertyTypeIcons as Partial<Record<string, string>> | null) ?? null,
@@ -109,8 +105,6 @@ export async function updateDisplayPreferenceSettings(
     bookmarkCardThumbnailSize: asImageSize(input.bookmarkCardThumbnailSize),
     interfaceLanguage: asInterfaceLanguage(input.interfaceLanguage),
     searchBoxPinned: input.searchBoxPinned,
-    panelPinned: input.panelPinned,
-    drawerUnpinnedBreakpoints: asBreakpoints(input.drawerUnpinnedBreakpoints),
     croppedWidth: asCropped(input.croppedWidth, DEFAULT_DISPLAY_PREFERENCES.croppedWidth),
     croppedHeight: asCropped(input.croppedHeight, DEFAULT_DISPLAY_PREFERENCES.croppedHeight),
     customPropertyTypeIcons: input.customPropertyTypeIcons ?? null,

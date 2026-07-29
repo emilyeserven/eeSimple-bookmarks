@@ -19,6 +19,7 @@ import {
   taxonomyTerms,
 } from "@/db/schema";
 import { getDisplayPreferenceSettings } from "@/services/appSettings";
+import { ValidationError } from "@/utils/errors";
 import { detectNameLanguage } from "@/utils/scriptDetection";
 
 /**
@@ -161,7 +162,7 @@ export function buildEntityNameRows(
     if (value.length === 0) continue;
     const isPrimary = entry.isPrimary === true;
     if (isPrimary && primaryValue !== null) {
-      throw new Error("An entity may have at most one primary name.");
+      throw new ValidationError("An entity may have at most one primary name.");
     }
     if (isPrimary) primaryValue = value;
     rows.push({
@@ -215,16 +216,20 @@ export async function setEntityNames(
 }
 
 /**
- * Delete every entity name for an owner. Called from each owner entity's delete service — the
- * polymorphic `ownerId` has no FK, so this is the manual cleanup that prevents orphan rows.
+ * Delete every entity name for an owner — or a batch of owners of the same type (e.g. a deleted
+ * tree taxonomy root plus its cascade-deleted descendants). Called from each owner entity's delete
+ * service — the polymorphic `ownerId` has no FK, so this is the manual cleanup that prevents
+ * orphan rows.
  */
 export async function deleteEntityNamesForOwner(
   ownerType: EntityNameOwnerType,
-  ownerId: string,
+  ownerId: string | string[],
 ): Promise<void> {
+  const ownerIds = Array.isArray(ownerId) ? ownerId : [ownerId];
+  if (ownerIds.length === 0) return;
   await db
     .delete(entityNames)
-    .where(and(eq(entityNames.ownerType, ownerType), eq(entityNames.ownerId, ownerId)));
+    .where(and(eq(entityNames.ownerType, ownerType), inArray(entityNames.ownerId, ownerIds)));
   if (ownerType === "bookmark") invalidateBookmarkCache();
 }
 

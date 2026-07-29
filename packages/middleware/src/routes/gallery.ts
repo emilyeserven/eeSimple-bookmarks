@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import type { AttachOrphanInput } from "@eesimple/types";
 import { bulkAutoFetchImages, bulkAutoFetchWithScreenshotFallback, setBookmarkImage } from "@/services/bookmarkImages";
 import { deleteOrphans, forgetManifestObject, getCatalog, MANAGED_PREFIX, scanBucket, verifyIsOrphan } from "@/services/gallery";
 import { getAutoFetchJobStatus, getScreenshotFallbackJobStatus, setAutoFetchJobStatus, setScreenshotFallbackJobStatus } from "@/services/imageAutoFetchState";
@@ -93,8 +94,7 @@ export async function galleryRoutes(app: FastifyInstance): Promise<void> {
     if (!isObjectStoreConfigured()) throw new StorageUnconfiguredError();
     const {
       key, bookmarkId,
-    } = req.body as { key: string;
-      bookmarkId: string; };
+    } = req.body as AttachOrphanInput;
 
     if (!key.startsWith(MANAGED_PREFIX)) {
       throw new ValidationError("Invalid key");

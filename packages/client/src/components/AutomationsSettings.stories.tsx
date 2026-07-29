@@ -11,7 +11,6 @@ const automationSettings = {
   autoApplyTitleTags: false,
   autoApplyTitleLocations: false,
   shareBypassInbox: false,
-  sidebarOpenModifier: "alt",
 };
 
 const personSourceLabelSettings = {
@@ -39,6 +38,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** Every automation toggle on via an MSW override enabling title tags and locations. */
 export const AllEnabled: Story = {
   parameters: {
     msw: {

@@ -9,6 +9,7 @@ import { PropertyCategoriesEditForm } from "./PropertyScopeEditForms";
 import { makeCustomProperty } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
 import { sampleCategories, sampleMediaTypes } from "../test-utils/story-mocks";
+import { notifyError, notifySuccess, resetToastSpies } from "../test-utils/toastSpies";
 
 // The auto-saving edit tabs are data-in / mutation-out: the only side effects are the update mutation
 // and the named auto-save toast, both mocked here so the tests pin the persistence contract (which key
@@ -45,12 +46,7 @@ vi.mock("../hooks/useCustomProperties", () => ({
   }),
 }));
 
-const notifyFieldSaved = vi.fn<(label: string) => void>();
-const notifyFieldSaveError = vi.fn<(label: string, cause?: string) => void>();
-vi.mock("../lib/autoSave", () => ({
-  notifyFieldSaved: (label: string) => notifyFieldSaved(label),
-  notifyFieldSaveError: (label: string, cause?: string) => notifyFieldSaveError(label, cause),
-}));
+vi.mock("../lib/notifications", async () => await import("../test-utils/toastSpies"));
 
 const property = makeCustomProperty({
   id: "prop-1",
@@ -64,8 +60,7 @@ const property = makeCustomProperty({
 
 beforeEach(() => {
   updateMutate.mockReset();
-  notifyFieldSaved.mockReset();
-  notifyFieldSaveError.mockReset();
+  resetToastSpies();
   mutationBehavior = "success";
 });
 
@@ -101,7 +96,7 @@ describe("PropertyGeneralEditForm (auto-save)", () => {
         name: "Urgency",
       },
     });
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Name");
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Name");
   });
 
   it("saves the description on blur", async () => {
@@ -122,7 +117,7 @@ describe("PropertyGeneralEditForm (auto-save)", () => {
         description: "Triage urgency",
       },
     });
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Description");
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Description");
   });
 
   it("saves enabled on change (no blur needed)", async () => {
@@ -137,7 +132,7 @@ describe("PropertyGeneralEditForm (auto-save)", () => {
         enabled: false,
       },
     });
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Status");
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Status");
   });
 
   it("does not save and shows the inline error when the name is cleared", async () => {
@@ -152,7 +147,7 @@ describe("PropertyGeneralEditForm (auto-save)", () => {
     fireEvent.blur(name);
 
     expect(updateMutate).not.toHaveBeenCalled();
-    expect(notifyFieldSaved).not.toHaveBeenCalled();
+    expect(notifySuccess).not.toHaveBeenCalled();
     expect(await screen.findByText("Name is required")).toBeInTheDocument();
   });
 
@@ -168,7 +163,7 @@ describe("PropertyGeneralEditForm (auto-save)", () => {
     });
     fireEvent.blur(name);
 
-    await waitFor(() => expect(notifyFieldSaveError).toHaveBeenCalledWith("Name", "offline"));
+    await waitFor(() => expect(notifyError).toHaveBeenCalledWith("Couldn't save Name: offline"));
     expect(name.value).toBe("Urgency");
   });
 });
@@ -191,8 +186,8 @@ describe("PropertyCategoriesEditForm (auto-save)", () => {
     expect(Object.keys(sent.input).sort()).toEqual(["allCategories", "categoryIds"]);
     expect(sent.input.allCategories).toBe(false);
     expect(sent.input.categoryIds).toContain("cat-content");
-    expect(notifyFieldSaved).toHaveBeenCalledTimes(1);
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Categories");
+    expect(notifySuccess).toHaveBeenCalledTimes(1);
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Categories");
   });
 });
 

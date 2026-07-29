@@ -18,6 +18,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** The title cell with the website favicon beside the title. */
 export const WithFavicon: Story = {
   args: {
     bookmark: makeBookmark({
@@ -34,6 +35,7 @@ export const WithFavicon: Story = {
   },
 };
 
+/** A bookmark with no website, so no favicon renders. */
 export const NoFavicon: Story = {
   args: {
     bookmark: makeBookmark({

@@ -1,7 +1,7 @@
-import type { ProgressInputEntry } from "./bookmarkFormSchema";
+import type { AllPropertyValues, ProgressInputEntry } from "./bookmarkFormSchema";
 import type { Bookmark, CustomProperty, SectionEntry } from "@eesimple/types";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 import { countSectionLeaves, propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple/types";
 
@@ -14,10 +14,9 @@ import {
 import { useKavitaSectionsImport } from "./useKavitaSectionsImport";
 import { useSeededPropertyInputs } from "./useSeededPropertyInputs";
 import { useUpdateBookmark } from "../hooks/useBookmarks";
+import { useCollectionAutoSave } from "../hooks/useCollectionAutoSave";
 import { useCustomProperties } from "../hooks/useCustomProperties";
 import { useFetchMetadata } from "../hooks/useFetchMetadata";
-import { describeError } from "../lib/apiError";
-import { notifyFieldSaved, notifyFieldSaveError } from "../lib/autoSave";
 
 /**
  * Whether any property is editable for this bookmark: a YouTube built-in (Runtime/Date Posted) on a
@@ -73,45 +72,30 @@ export function useBookmarkPropertiesForm(bookmark: Bookmark) {
 
   // Per-field auto-save (edit-tab standard — no Save button). The property values ride in one
   // array-shaped PATCH, so we mirror the Languages tab: debounce-persist the whole set whenever it
-  // changes from the last-saved snapshot, firing a single "Properties" toast. The serialized entries
-  // last persisted, so the debounce skips no-op saves (including the initial seed on load).
-  const savedRef = useRef<string | null>(null);
-  const mutateRef = useRef(updateBookmark.mutate);
-  mutateRef.current = updateBookmark.mutate;
+  // changes from the last-saved snapshot, firing a single "Properties" toast. The shared collection
+  // engine skips no-op saves (including the initial seed on load).
+  const {
+    queueSave,
+  } = useCollectionAutoSave<AllPropertyValues>({
+    id: bookmark.id,
+    label: "Properties",
+    persist: (values, callbacks) => updateBookmark.mutate({
+      id: bookmark.id,
+      input: values,
+    }, callbacks),
+  });
 
   useEffect(() => {
     if (!customProperties) return;
-    const values = buildAllPropertyValues(
+    queueSave(buildAllPropertyValues(
       customProperties,
       bookmark.categoryId ?? "",
       customRef.current,
       bookmark.mediaType?.id ?? null,
-    );
-    const serialized = JSON.stringify(values);
-    // Seed the snapshot on first load without saving.
-    if (savedRef.current === null) {
-      savedRef.current = serialized;
-      return;
-    }
-    if (serialized === savedRef.current) return;
-    const timer = setTimeout(() => {
-      mutateRef.current(
-        {
-          id: bookmark.id,
-          input: values,
-        },
-        {
-          onSuccess: () => {
-            savedRef.current = serialized;
-            notifyFieldSaved("Properties");
-          },
-          onError: error => notifyFieldSaveError("Properties", describeError(error)),
-        },
-      );
-    }, 700);
-    return () => clearTimeout(timer);
+    ));
     // customRef is a stable ref mirroring the maps below; the maps are the reactive triggers.
   }, [
+    queueSave,
     numberInputs,
     booleanInputs,
     dateTimeInputs,

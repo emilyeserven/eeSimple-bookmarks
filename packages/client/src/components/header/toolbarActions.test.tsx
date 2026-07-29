@@ -1,4 +1,5 @@
-// @vitest-environment node
+// (Default jsdom environment: `taxonomyEditLink` now derives from the entity-descriptor registry,
+// matching `lib/entityRoutes.test.ts`.)
 import type { ToolbarContext } from "./toolbarActions";
 
 import { describe, expect, it, vi } from "vitest";
@@ -43,7 +44,6 @@ describe("buildToolbarActions", () => {
       keys(ctx({
         listingPage: {
           key: "bookmarks",
-          hasFilters: true,
           createAction,
         },
       })),
@@ -54,7 +54,6 @@ describe("buildToolbarActions", () => {
     expect(keys(ctx({
       listingPage: {
         key: "categories-listing",
-        hasFilters: false,
       },
     }))).not.toContain("bulk-select");
   });
@@ -145,7 +144,6 @@ describe("buildToolbarActions", () => {
     const all = ctx({
       listingPage: {
         key: "bookmarks",
-        hasFilters: true,
         createAction: vi.fn(),
       },
       pathParts: ["tags", "dev"],

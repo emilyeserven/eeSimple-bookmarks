@@ -16,8 +16,10 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** The editable rating with whole-star steps. */
 export const Interactive: Story = {};
 
+/** A read-only rating displaying a half value with a label. */
 export const ReadOnly: Story = {
   args: {
     value: 3.5,
@@ -26,6 +28,7 @@ export const ReadOnly: Story = {
   },
 };
 
+/** Half-star increments enabled via allowHalf. */
 export const HalfSteps: Story = {
   args: {
     value: 2.5,
@@ -33,6 +36,7 @@ export const HalfSteps: Story = {
   },
 };
 
+/** allowZero lets clicking the current value clear the rating. */
 export const Clearable: Story = {
   args: {
     value: 4,

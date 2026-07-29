@@ -20,6 +20,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** The button with a custom label instead of the default. */
 export const CustomLabel: Story = {
   args: {
     label: "Copy debug payload",

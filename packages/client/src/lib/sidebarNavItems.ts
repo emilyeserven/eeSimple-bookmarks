@@ -170,3 +170,12 @@ export const customizationItems = [
     icon: ListFilter,
   },
 ] as const;
+
+/**
+ * The stable `key` union of the keyed sidebar items (taxonomy + customization sections) — the same
+ * keys `ExpandableLinkSection.renderItem` switches on and `useSidebarFlyoutConfigs` builds flyout
+ * data for. Derived so a typo'd or missing flyout-config key fails `tsc`.
+ */
+export type SidebarItemKey
+  = | typeof taxonomyItems[number]["key"]
+    | typeof customizationItems[number]["key"];

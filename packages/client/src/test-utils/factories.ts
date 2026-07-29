@@ -4,17 +4,27 @@ import type {
   Bookmark,
   BookmarkImage,
   Category,
+  ConnectorsStatus,
   CustomProperty,
+  EntityLayout,
   GenreMood,
   HomepageSection,
+  ImportItem,
   ImportRule,
+  InboxItem,
   Language,
+  LayoutSection,
+  LayoutTab,
   Group,
   GroupType,
   Location,
   LanguageUsage,
   LanguageUsageLevel,
+  MediaObject,
+  PlaceType,
+  PlaceTypeLevelGroup,
   RelationshipType,
+  SavedFilter,
   TranslationSource,
   MediaType,
   Newsletter,
@@ -798,6 +808,179 @@ export function makeHomepageSection(overrides: Partial<HomepageSection> = {}): H
     hideWebsiteForYouTube: false,
     bookmarkLimit: null,
     createdAt: NOW,
+    ...overrides,
+  };
+}
+
+/**
+ * A `LayoutSection` (an untitled, full-width, empty section by default). The optional keys
+ * (`title` / `description` / `columns` / `visibleIf`) are deliberately left absent — absence is
+ * the meaningful default the layout engine and its tests rely on.
+ */
+export function makeLayoutSection(overrides: Partial<LayoutSection> = {}): LayoutSection {
+  return {
+    key: "section",
+    fields: [],
+    ...overrides,
+  };
+}
+
+/** A `LayoutTab` ("General" with one empty untitled section by default). */
+export function makeLayoutTab(overrides: Partial<LayoutTab> = {}): LayoutTab {
+  return {
+    key: "general",
+    label: "General",
+    sections: [makeLayoutSection()],
+    ...overrides,
+  };
+}
+
+/** An `EntityLayout` (a single default "General" tab). */
+export function makeEntityLayout(overrides: Partial<EntityLayout> = {}): EntityLayout {
+  return {
+    tabs: [makeLayoutTab()],
+    ...overrides,
+  };
+}
+
+/** A fully-populated `SavedFilter` (no stored filter state, not a sidebar shortcut by default). */
+export function makeSavedFilter(overrides: Partial<SavedFilter> = {}): SavedFilter {
+  return {
+    id: "filter",
+    name: "Filter",
+    slug: "filter",
+    description: null,
+    filters: {},
+    viewableOnline: false,
+    isFavorite: false,
+    createdAt: NOW,
+    ...overrides,
+  };
+}
+
+/** A fully-populated `PlaceType` with no locations by default. */
+export function makePlaceType(overrides: Partial<PlaceType> = {}): PlaceType {
+  return {
+    id: "pt",
+    name: "Place Type",
+    slug: "place-type",
+    description: null,
+    sortOrder: 0,
+    createdAt: NOW,
+    locationCount: 0,
+    ...overrides,
+  };
+}
+
+/**
+ * A `PlaceTypeLevelGroup` (an empty, visible, area-mode level by default). The optional per-anchor
+ * keys (`showOnMainMap` / `levelMode` / `defaultHiddenGroupIds` / `color`) stay absent — absence is
+ * the legacy-default behavior the level helpers are specified against.
+ */
+export function makePlaceTypeLevelGroup(overrides: Partial<PlaceTypeLevelGroup> = {}): PlaceTypeLevelGroup {
+  return {
+    id: "group",
+    name: "Level",
+    placeTypes: [],
+    displayMode: "area",
+    visible: true,
+    sortOrder: 0,
+    ...overrides,
+  };
+}
+
+/** A fully-populated `ImportItem` (a pending extracted link by default). */
+export function makeImportItem(overrides: Partial<ImportItem> = {}): ImportItem {
+  return {
+    id: "item",
+    importId: "import",
+    url: "https://example.com/article",
+    rawUrl: "https://example.com/article",
+    title: "Imported article",
+    description: null,
+    imageUrl: null,
+    newsletterContext: null,
+    anchorText: null,
+    categoryId: null,
+    status: "pending",
+    markedForDeletion: false,
+    duplicateBookmarkId: null,
+    createdBookmarkId: null,
+    errorReason: null,
+    createdAt: NOW,
+    ...overrides,
+  };
+}
+
+/** A fully-populated `InboxItem` (an `ImportItem` from a paste ingest with no source label). */
+export function makeInboxItem(overrides: Partial<InboxItem> = {}): InboxItem {
+  return {
+    ...makeImportItem(),
+    importSource: "paste",
+    sourceLabel: null,
+    ...overrides,
+  };
+}
+
+/** A fully-populated `MediaObject` (an orphan webp with no owning bookmark by default). */
+export function makeMediaObject(overrides: Partial<MediaObject> = {}): MediaObject {
+  return {
+    objectKey: "bookmarks/example.webp",
+    contentType: "image/webp",
+    byteSize: 2048,
+    lastModified: NOW,
+    lastSeenAt: NOW,
+    bookmark: null,
+    url: "/api/gallery/image?key=bookmarks%2Fexample.webp",
+    ...overrides,
+  };
+}
+
+/** A fully-populated `ConnectorsStatus` with every gated connector off (keyless geocoding/wikidata on). */
+export function makeConnectorsStatus(overrides: Partial<ConnectorsStatus> = {}): ConnectorsStatus {
+  return {
+    hostedMetadata: {
+      enabled: false,
+      provider: null,
+      baseUrl: null,
+    },
+    youtubeDataApi: {
+      enabled: false,
+    },
+    youtubeEmbed: {
+      useNoCookie: true,
+    },
+    instagram: {
+      apiKey: false,
+    },
+    instagramReelArchive: {
+      enabled: false,
+    },
+    objectStorage: {
+      configured: false,
+    },
+    archiveBox: {
+      enabled: false,
+      baseUrl: null,
+    },
+    kavita: {
+      enabled: false,
+      baseUrl: null,
+      sidebarUrl: null,
+    },
+    plex: {
+      enabled: false,
+      baseUrl: null,
+      machineIdentifier: null,
+    },
+    geocoding: {
+      enabled: true,
+      endpoint: "https://nominatim.openstreetmap.org",
+    },
+    wikidata: {
+      enabled: true,
+      endpoint: "https://www.wikidata.org",
+    },
     ...overrides,
   };
 }

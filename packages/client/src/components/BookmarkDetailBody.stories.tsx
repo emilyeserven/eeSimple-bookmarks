@@ -25,6 +25,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** A sparse bookmark — no description, website, tags, or property values. */
 export const Minimal: Story = {
   args: {
     bookmark: {

@@ -28,6 +28,7 @@ export const Default: Story = {
   ),
 };
 
+/** A number input with a trailing unit addon (px). */
 export const TrailingAddon: Story = {
   render: () => (
     <InputGroup className="w-72">

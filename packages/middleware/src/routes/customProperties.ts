@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import {
+  BOOLEAN_LABEL_PRESETS,
   CHOICES_DISPLAY_TYPES,
   CUSTOM_PROPERTY_TYPES,
   DATE_TIME_FORMATS,
@@ -137,7 +138,7 @@ const createPropertyBody = {
     },
     booleanLabelPreset: {
       type: ["string", "null"],
-      enum: ["yes-no", "true-false", "enabled-disabled", "icons", "stars", "custom", null],
+      enum: [...BOOLEAN_LABEL_PRESETS, null],
     },
     booleanTrueLabel: {
       type: ["string", "null"],

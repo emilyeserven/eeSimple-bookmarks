@@ -4,21 +4,16 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { HttpResponse, http } from "msw";
 
 import { GalleryListing } from "./GalleryManager";
+import { makeMediaObject } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const NOW = "2026-06-01T00:00:00.000Z";
-
+/** Story objects render a real placeholder image and a plausible size. */
 function makeObject(overrides: Partial<MediaObject> = {}): MediaObject {
-  return {
-    objectKey: "bookmarks/example.webp",
-    contentType: "image/webp",
+  return makeMediaObject({
     byteSize: 184_320,
-    lastModified: NOW,
-    lastSeenAt: NOW,
-    bookmark: null,
     url: "https://placehold.co/400x300/png",
     ...overrides,
-  };
+  });
 }
 
 const catalog: GalleryCatalog = {

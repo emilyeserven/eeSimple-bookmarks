@@ -7,7 +7,7 @@ import type {
 } from "@eesimple/types";
 import { db } from "@/db";
 import { deriveDetectedPrimaryNames, setEntityNames } from "@/services/entityNames";
-import { deleteLanguageUsagesForOwner, setLanguageUsages } from "@/services/languageUsages";
+import { setLanguageUsages } from "@/services/languageUsages";
 import {
   bookmarkPeople,
   bookmarkGroups,
@@ -27,7 +27,7 @@ import {
   relationshipTypes,
 } from "@/db/schema";
 import { invalidateBookmarkCache } from "@/services/bookmarkCache";
-import { cleanupBookmarkEntityNames, cleanupGenreMoodAssignments } from "@/services/bookmarkCleanup";
+import { cleanupBookmarkEntityNames, cleanupBookmarkLanguageUsages, cleanupGenreMoodAssignments } from "@/services/bookmarkCleanup";
 import { DuplicateUrlError } from "@/services/bookmarkErrors";
 import { getBookmarkImageRow } from "@/services/bookmarkImages";
 import {
@@ -629,10 +629,11 @@ export async function deleteBookmark(id: string): Promise<boolean> {
     id: bookmarks.id,
   });
   if (rows.length > 0) {
-    // Polymorphic language-usage rows have no FK on ownerId — clean them up explicitly.
-    await deleteLanguageUsagesForOwner("bookmark", id);
+    // Polymorphic assignment/name/language-usage rows have no FK on ownerId — clean them up
+    // explicitly (the same shared helpers the bulk + orphan delete paths call).
     await cleanupGenreMoodAssignments([id]);
     await cleanupBookmarkEntityNames([id]);
+    await cleanupBookmarkLanguageUsages([id]);
     invalidateBookmarkCache();
   }
   return rows.length > 0;

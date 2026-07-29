@@ -63,6 +63,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** An MSW search override returning no bookmarks, showing the empty message. */
 export const Empty: Story = {
   parameters: {
     msw: {
@@ -78,6 +79,7 @@ export const Empty: Story = {
   },
 };
 
+/** An infinitely-delayed MSW search response, holding the loading state. */
 export const Loading: Story = {
   parameters: {
     msw: {

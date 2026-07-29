@@ -1,6 +1,5 @@
 import type { Bookmark } from "@eesimple/types";
 
-import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
 import { BookmarkMediaIdentitySection } from "./BookmarkMediaIdentitySection";
@@ -17,7 +16,7 @@ interface BookmarkRelatedFormProps {
  * The bookmark "Related" edit field: the Media identity section and the bookmark-relationships editor.
  * The related-entity taxonomy fields (YouTube channel, locations, people, groups) and Genres & Moods
  * are now individually-placeable layout fields on the General tab (#1163 field extraction), no longer
- * bundled here. The relationships editor is submit-based (Save/Cancel); Media identity auto-saves.
+ * bundled here. Both sections auto-save (the relationships editor debounce-persists the whole set).
  */
 export function BookmarkRelatedForm({
   bookmark,
@@ -25,14 +24,6 @@ export function BookmarkRelatedForm({
   const {
     t,
   } = useTranslation();
-  const navigate = useNavigate();
-
-  const goToView = () => void navigate({
-    to: "/bookmarks/$bookmarkId",
-    params: {
-      bookmarkId: bookmark.id,
-    },
-  });
 
   return (
     <div className="space-y-6">
@@ -54,7 +45,6 @@ export function BookmarkRelatedForm({
       <BookmarkRelationshipsEditor
         bookmarkId={bookmark.id}
         initialRelationships={bookmark.relationships}
-        onDone={goToView}
       />
     </div>
   );

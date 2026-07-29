@@ -101,7 +101,6 @@ export function useBookmarkSearchView(data: BookmarkSearchViewData): BookmarkSea
   const showsSectionDisplay = scope?.kind === "tag";
   useSetListingPage(pageKey, {
     showsImages: true,
-    hasFilters: true,
     showsCards: true,
     hasSort: true,
     showsSectionDisplay,

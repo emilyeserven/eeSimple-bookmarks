@@ -1,116 +1,57 @@
-import type { CustomProperty } from "@eesimple/types";
+import type { CustomProperty, StandardCardFieldKey } from "@eesimple/types";
+
+import { STANDARD_CARD_FIELD_KEYS } from "@eesimple/types";
+
+/**
+ * Display label for each fixed card-field key. The keys are the canonical shared tuple
+ * (`STANDARD_CARD_FIELD_KEYS` in `@eesimple/types`, also consumed by the middleware's
+ * `cardDisplayDefaults.ts`); the exhaustive `satisfies` makes a key added there fail `tsc` here
+ * until it gets a label.
+ */
+const STANDARD_CARD_FIELD_LABELS = {
+  title: "Title",
+  secondaryName: "Secondary Title",
+  description: "Description",
+  url: "URL",
+  secondaryUrl: "Download URL",
+  category: "Category",
+  website: "Website",
+  mediaType: "Media Type",
+  youtubeChannel: "YouTube Channel",
+  tags: "Tags",
+  genreMoods: "Genres & Moods",
+  locations: "Locations",
+  people: "People",
+  groups: "Groups",
+  taggedSections: "Tagged Sections",
+  favoriteSections: "Favorite Sections",
+  matchType: "Match Type",
+  createdAt: "Date Added",
+  updatedAt: "Date Updated",
+  externalLink: "Open Link",
+  archiveLink: "Archive Link",
+  kavitaLink: "Kavita Link",
+  plexLink: "Plex Link",
+  podcastLink: "Podcast Link",
+  more: "More menu",
+} satisfies Record<StandardCardFieldKey, string>;
 
 /**
  * The fixed (non-custom-property) fields a bookmark card can show, in display order. Custom
  * properties extend this list (keyed by id). Pure (no hooks) so it can be shared by the rendering
  * pipeline and the rule editor without an import cycle; the hook-backed helpers live in
- * `bookmarkCardFields.ts`, which re-exports this. Mirrors the middleware's `STANDARD_CARD_FIELD_KEYS`.
+ * `bookmarkCardFields.ts`, which re-exports this. Derived from the shared
+ * `STANDARD_CARD_FIELD_KEYS` tuple (`@eesimple/types`) — one canonical key list for client and
+ * middleware.
  */
-export const STANDARD_CARD_FIELDS = [
-  {
-    key: "title",
-    label: "Title",
-  },
-  {
-    key: "secondaryName",
-    label: "Secondary Title",
-  },
-  {
-    key: "description",
-    label: "Description",
-  },
-  {
-    key: "url",
-    label: "URL",
-  },
-  {
-    key: "secondaryUrl",
-    label: "Download URL",
-  },
-  {
-    key: "category",
-    label: "Category",
-  },
-  {
-    key: "website",
-    label: "Website",
-  },
-  {
-    key: "mediaType",
-    label: "Media Type",
-  },
-  {
-    key: "youtubeChannel",
-    label: "YouTube Channel",
-  },
-  {
-    key: "tags",
-    label: "Tags",
-  },
-  {
-    key: "genreMoods",
-    label: "Genres & Moods",
-  },
-  {
-    key: "locations",
-    label: "Locations",
-  },
-  {
-    key: "people",
-    label: "People",
-  },
-  {
-    key: "groups",
-    label: "Groups",
-  },
-  {
-    key: "taggedSections",
-    label: "Tagged Sections",
-  },
-  {
-    key: "favoriteSections",
-    label: "Favorite Sections",
-  },
-  {
-    key: "matchType",
-    label: "Match Type",
-  },
-  {
-    key: "createdAt",
-    label: "Date Added",
-  },
-  {
-    key: "updatedAt",
-    label: "Date Updated",
-  },
-  {
-    key: "externalLink",
-    label: "Open Link",
-  },
-  {
-    key: "archiveLink",
-    label: "Archive Link",
-  },
-  {
-    key: "kavitaLink",
-    label: "Kavita Link",
-  },
-  {
-    key: "plexLink",
-    label: "Plex Link",
-  },
-  {
-    key: "podcastLink",
-    label: "Podcast Link",
-  },
-  {
-    key: "more",
-    label: "More menu",
-  },
-] as const;
+export const STANDARD_CARD_FIELDS: readonly { key: StandardCardFieldKey;
+  label: string; }[] = STANDARD_CARD_FIELD_KEYS.map(key => ({
+  key,
+  label: STANDARD_CARD_FIELD_LABELS[key],
+}));
 
 /** The card header field keys (title + action buttons); they default into the `card-single-top` zone. */
-export const HEADER_CARD_FIELD_KEYS = ["title", "externalLink", "more"] as const;
+export { HEADER_CARD_FIELD_KEYS } from "@eesimple/types";
 
 /**
  * The taxonomy fields that can hold multiple terms — the ones that support the per-field term-display

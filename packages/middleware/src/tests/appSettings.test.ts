@@ -5,7 +5,6 @@ import { DEFAULT_BOOKMARK_ADD_FORM_SETTINGS, DEFAULT_HOMEPAGE_WIDGET_ORDER, reso
 import {
   asBookmarkAddFormAdvancedRules,
   asBookmarkAddFormPlacements,
-  asBreakpoints,
   asCropped,
   asHanScriptLanguage,
   asMapPinScale,
@@ -106,16 +105,6 @@ test("asScreenshotDefault: rounds and clamps into [min, max], falls back on junk
   assert.equal(asScreenshotDefault(99999, 1280, 320, 3840), 3840);
   assert.equal(asScreenshotDefault(null, 1280, 320, 3840), 1280);
   assert.equal(asScreenshotDefault(Number.NaN, 1280, 320, 3840), 1280);
-});
-
-test("asBreakpoints: dedupes, sorts, rounds and drops non-positive junk", () => {
-  assert.deepEqual(asBreakpoints([1024, 768, 768.4]), [768, 1024]);
-  assert.deepEqual(asBreakpoints([0, -5, Number.NaN, 640]), [640]);
-  // Non-arrays fall back to the default breakpoint list.
-  assert.deepEqual(asBreakpoints(null), [768]);
-  assert.deepEqual(asBreakpoints(undefined), [768]);
-  // An explicitly empty list is respected (user cleared all breakpoints).
-  assert.deepEqual(asBreakpoints([]), []);
 });
 
 test("normalizePlaceTypeDisplay: keeps well-formed entries, coercing visible/sortOrder", () => {

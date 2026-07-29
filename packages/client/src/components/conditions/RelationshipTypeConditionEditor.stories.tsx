@@ -6,21 +6,15 @@ import { useState } from "react";
 import { HttpResponse, http } from "msw";
 
 import { RelationshipTypeConditionEditor } from "./RelationshipTypeConditionEditor";
-
-const NOW = "2026-06-01T00:00:00.000Z";
+import { makeRelationshipType } from "../../test-utils/factories";
 
 function relType(id: string, name: string, slug: string, sortOrder: number): RelationshipType {
-  return {
+  return makeRelationshipType({
     id,
     name,
     slug,
-    description: null,
-    directional: false,
-    builtIn: false,
-    hidden: false,
     sortOrder,
-    createdAt: NOW,
-  };
+  });
 }
 
 const relationshipTypes: RelationshipType[] = [

@@ -13,7 +13,7 @@ import type {
 } from "@eesimple/types";
 import { db } from "@/db";
 import { appSettings } from "@/db/schema";
-import { asModifier, DEFAULT_ADVANCED_SETTINGS, DEFAULT_AUTOMATION, DEFAULT_BOOKMARK_GRAPH, DEFAULT_PERSON_SOURCE_LABELS, DEFAULT_SHORTENER_IGNORE_LIST, DEFAULT_SIDEBAR_CUSTOMIZATION, resolveBookmarkGraph, resolvePersonSourceLabels, ROW_ID } from "./appSettingsShared";
+import { DEFAULT_ADVANCED_SETTINGS, DEFAULT_AUTOMATION, DEFAULT_BOOKMARK_GRAPH, DEFAULT_PERSON_SOURCE_LABELS, DEFAULT_SHORTENER_IGNORE_LIST, DEFAULT_SIDEBAR_CUSTOMIZATION, resolveBookmarkGraph, resolvePersonSourceLabels, ROW_ID } from "./appSettingsShared";
 
 /** Read the opt-in Advanced sidebar-link settings (Coolify, docs, Storybook). */
 export async function getAdvancedSettings(): Promise<AdvancedSettings> {
@@ -133,7 +133,6 @@ export async function getAutomationSettings(): Promise<AutomationSettings> {
       autoApplyTitleTags: appSettings.autoApplyTitleTags,
       autoApplyTitleLocations: appSettings.autoApplyTitleLocations,
       shareBypassInbox: appSettings.shareBypassInbox,
-      sidebarOpenModifier: appSettings.sidebarOpenModifier,
       defaultCategoryId: appSettings.defaultCategoryId,
     })
     .from(appSettings)
@@ -145,7 +144,6 @@ export async function getAutomationSettings(): Promise<AutomationSettings> {
     autoApplyTitleTags: row.autoApplyTitleTags,
     autoApplyTitleLocations: row.autoApplyTitleLocations ?? false,
     shareBypassInbox: row.shareBypassInbox ?? false,
-    sidebarOpenModifier: asModifier(row.sidebarOpenModifier),
     defaultCategoryId: row.defaultCategoryId,
   };
 }
@@ -160,7 +158,6 @@ export async function updateAutomationSettings(
     autoApplyTitleTags: input.autoApplyTitleTags,
     autoApplyTitleLocations: input.autoApplyTitleLocations,
     shareBypassInbox: input.shareBypassInbox,
-    sidebarOpenModifier: asModifier(input.sidebarOpenModifier),
     defaultCategoryId: input.defaultCategoryId,
   };
   await db

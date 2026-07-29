@@ -43,13 +43,22 @@ const ERROR_CODE_MESSAGES: Record<string, Translator> = {
   unsupportedImage: () => i18n.t("Unsupported or invalid image"),
   imageTooLarge: () => i18n.t("Image is too large"),
   maxImagesReached: () => i18n.t("This item already has the maximum number of images"),
+  no_image: () => i18n.t("No image found for that source"),
+  bad_image: () => i18n.t("Image couldn't be loaded"),
+  blocked: () => i18n.t("Request was blocked — wait a moment and try again"),
+  server_error: () => i18n.t("The source returned a server error"),
+  fetch_error: () => i18n.t("The source couldn't be reached"),
+  fetchFailed: () => i18n.t("The page title couldn't be fetched from that URL"),
+  isbnNotFound: () => i18n.t("No book found for that ISBN"),
+  providersUnreachable: () => i18n.t("Couldn't reach the book metadata providers"),
 };
 
 /**
  * Translate a server error `code` to a localized message, or `undefined` when the code has no
  * mapping (so the caller falls back to the raw English `message`). `validation` / `error` /
- * `internal` / `schemaValidation` deliberately have no entry — their server `message` is the
- * specific, human-authored text worth surfacing verbatim.
+ * `internal` / `schemaValidation` / `conflict` deliberately have no entry — their server `message`
+ * is the specific, human-authored text worth surfacing verbatim (a `conflict` message names the
+ * exact clash, e.g. "This URL is already saved.").
  */
 export function translateErrorCode(code: string, params?: ErrorParams): string | undefined {
   return ERROR_CODE_MESSAGES[code]?.(params);

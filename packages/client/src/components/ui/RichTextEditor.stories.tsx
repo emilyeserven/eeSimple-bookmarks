@@ -32,6 +32,7 @@ export const Default: Story = {
   },
 };
 
+/** The editor with no content yet. */
 export const Empty: Story = {
   args: {
     value: "",
@@ -39,6 +40,7 @@ export const Empty: Story = {
   },
 };
 
+/** Non-editable rendering of the same Markdown sample. */
 export const ReadOnly: Story = {
   args: {
     value: SAMPLE,

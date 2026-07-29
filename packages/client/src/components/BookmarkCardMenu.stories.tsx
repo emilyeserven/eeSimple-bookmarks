@@ -91,6 +91,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** Menu with card-editable tags and boolean/rating properties for quick edit. */
 export const WithQuickEdit: Story = {
   args: {
     editableTags,
@@ -98,12 +99,14 @@ export const WithQuickEdit: Story = {
   },
 };
 
+/** Menu including the Delete item via an onDelete handler. */
 export const WithDelete: Story = {
   args: {
     onDelete: noop,
   },
 };
 
+/** A bookmark whose auto image grab failed, surfacing the error in the menu. */
 export const ImageGrabError: Story = {
   args: {
     bookmark: {

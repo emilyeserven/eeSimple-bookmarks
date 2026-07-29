@@ -16,6 +16,7 @@ import { RuleTestPanel } from "./RuleTestPanel";
 
 import { CollapsibleFormSection } from "@/components/CollapsibleFormSection";
 import { Button } from "@/components/ui/button";
+import { RowCard } from "@/components/ui/card";
 import {
   describeFillFilter,
   describeFillRead,
@@ -60,7 +61,7 @@ export function FillRuleCard({
     : undefined;
   const lockedCount = lockedKeys?.size ?? 0;
   return (
-    <div className="space-y-3 rounded-lg border bg-card p-3">
+    <RowCard className="space-y-3 p-3">
       <div className="flex items-end gap-2">
         {dragHandle}
         {isEditing
@@ -175,7 +176,7 @@ export function FillRuleCard({
             property={property}
           />
         )}
-    </div>
+    </RowCard>
   );
 }
 

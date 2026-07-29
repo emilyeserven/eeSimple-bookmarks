@@ -35,8 +35,10 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** The number input with a unit-labelled property and a value. */
 export const Number: Story = {};
 
+/** The boolean property checkbox, checked. */
 export const Boolean: StoryObj<typeof BooleanPropertyField> = {
   render: () => (
     <BooleanPropertyField
@@ -54,6 +56,7 @@ export const Boolean: StoryObj<typeof BooleanPropertyField> = {
   ),
 };
 
+/** The date-time property input in date-only format. */
 export const DateTime: StoryObj<typeof DateTimePropertyField> = {
   render: () => (
     <DateTimePropertyField
@@ -71,6 +74,7 @@ export const DateTime: StoryObj<typeof DateTimePropertyField> = {
   ),
 };
 
+/** The rating-scale property with 3 of 5 stars set. */
 export const Rating: StoryObj<typeof RatingScalePropertyField> = {
   render: () => (
     <RatingScalePropertyField

@@ -51,6 +51,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** A controlled card cycling items between shown, see-more, and hidden. */
 export const ThreeState: Story = {
   render: () => <ThreeStateControlled />,
 };

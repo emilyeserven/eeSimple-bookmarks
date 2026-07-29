@@ -213,15 +213,18 @@ export async function setLanguageUsages(
 }
 
 /**
- * Delete every language usage for an owner. Called from each owner entity's delete service — the
- * polymorphic `ownerId` has no FK, so this is the manual cleanup that prevents orphan rows.
+ * Delete every language usage for an owner — or a batch of owners of the same type. Called from
+ * each owner entity's delete service — the polymorphic `ownerId` has no FK, so this is the manual
+ * cleanup that prevents orphan rows.
  */
 export async function deleteLanguageUsagesForOwner(
   ownerType: LanguageUsageOwnerType,
-  ownerId: string,
+  ownerId: string | string[],
 ): Promise<void> {
+  const ownerIds = Array.isArray(ownerId) ? ownerId : [ownerId];
+  if (ownerIds.length === 0) return;
   await db
     .delete(languageUsages)
-    .where(and(eq(languageUsages.ownerType, ownerType), eq(languageUsages.ownerId, ownerId)));
+    .where(and(eq(languageUsages.ownerType, ownerType), inArray(languageUsages.ownerId, ownerIds)));
   if (ownerType === "bookmark") invalidateBookmarkCache();
 }

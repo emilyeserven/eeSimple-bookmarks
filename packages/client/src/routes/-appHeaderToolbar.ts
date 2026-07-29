@@ -1,7 +1,7 @@
 import type { HeaderBreadcrumbData } from "./-appHeaderCrumbs";
 import type { ToolbarAction } from "@/components/header/toolbarActions";
 
-import { resolveAddChild, resolvePinContext } from "./-appHeaderData";
+import { resolveAddChild, resolvePinContext, usePinExtraCandidates } from "./-appHeaderData";
 
 import { buildToolbarActions } from "@/components/header/toolbarActions";
 import { useHeaderFavoriteContext } from "@/hooks/useHeaderFavoriteContext";
@@ -42,12 +42,15 @@ export function useHeaderToolbarActions(
     mediaTypeId: mediaType?.id,
     customTaxonomyTerm,
   });
+  // Location + saved-filter pins aren't part of the breadcrumb data — resolved by slug here.
+  const pinExtras = usePinExtraCandidates(pathname, pathParts);
   const pinContext = resolvePinContext({
     category,
     website,
     mediaType,
     channel,
     currentTag,
+    ...pinExtras,
   });
   // The header star is resolved generically from the route (all favoritable kinds), not per-entity.
   const favoriteContext = useHeaderFavoriteContext(pathname);

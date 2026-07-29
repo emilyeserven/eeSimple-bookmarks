@@ -37,8 +37,10 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** A file property with no stored file — the upload prompt. */
 export const EmptyFile: Story = {};
 
+/** A stored PDF attachment showing filename and size. */
 export const WithFile: Story = {
   args: {
     value: {
@@ -53,6 +55,7 @@ export const WithFile: Story = {
   },
 };
 
+/** An image-type property rendering its stored image preview. */
 export const ImageProperty: Story = {
   args: {
     property: imageProperty,

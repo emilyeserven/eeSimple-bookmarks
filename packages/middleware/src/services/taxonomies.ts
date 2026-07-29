@@ -8,6 +8,7 @@ import type {
 import { GENRES_MOODS_TAXONOMY_SLUG } from "@eesimple/types";
 import { db } from "@/db";
 import { taxonomies, taxonomyAssignments, taxonomyTerms, type TaxonomyRow } from "@/db/schema";
+import { invalidateBookmarkCache } from "@/services/bookmarkCacheVersion";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { AppError } from "@/utils/errors";
 import { uniqueSlug } from "@/utils/slug";
@@ -186,6 +187,9 @@ export async function deleteTaxonomy(id: string): Promise<boolean> {
   const rows = await db.delete(taxonomies).where(eq(taxonomies.id, id)).returning({
     id: taxonomies.id,
   });
+  // The cascade removes the taxonomy's terms + assignment rows (including bookmark owners) —
+  // matchable data for taxonomy/genre-mood condition leaves.
+  if (rows.length > 0) invalidateBookmarkCache();
   return rows.length > 0;
 }
 

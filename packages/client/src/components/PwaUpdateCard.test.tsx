@@ -4,6 +4,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PwaUpdateCard } from "./PwaUpdateCard";
+import { notifyError, notifySuccess } from "../test-utils/toastSpies";
 
 const checkForUpdate = vi.fn<() => Promise<UpdateCheckOutcome>>(() => Promise.resolve("up-to-date"));
 const applyUpdate = vi.fn<() => void>();
@@ -13,12 +14,7 @@ vi.mock("../hooks/usePwaUpdate", () => ({
   usePwaUpdate: (): PwaUpdateState => state,
 }));
 
-const notifySuccess = vi.fn<(message: string) => void>();
-const notifyError = vi.fn<(message: string) => void>();
-vi.mock("../lib/notifications", () => ({
-  notifySuccess: (message: string) => notifySuccess(message),
-  notifyError: (message: string) => notifyError(message),
-}));
+vi.mock("../lib/notifications", async () => await import("../test-utils/toastSpies"));
 
 describe("PwaUpdateCard", () => {
   beforeEach(() => {

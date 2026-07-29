@@ -11,6 +11,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** The default horizontal rule between stacked content. */
 export const Horizontal: Story = {
   render: () => (
     <div className="space-y-2">
@@ -21,6 +22,7 @@ export const Horizontal: Story = {
   ),
 };
 
+/** A vertical separator between inline items. */
 export const Vertical: Story = {
   render: () => (
     <div className="flex h-8 items-center gap-2">

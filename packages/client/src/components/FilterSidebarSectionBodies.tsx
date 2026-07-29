@@ -12,6 +12,7 @@ import { MultiCombobox } from "./MultiCombobox";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
 import { useLanguages } from "../hooks/useLanguages";
 import { useLanguageUsageLevels } from "../hooks/useLanguageUsageLevels";
+import { useMediaTypeTree } from "../hooks/useMediaTypes";
 import {
   withPeople,
   withCategories,
@@ -40,7 +41,6 @@ import { useBuiltInName, useLanguageName } from "../lib/builtInName";
 import { mediaTypeNodesToOptions } from "../lib/comboboxOptions";
 import { sortFavoritesFirst } from "../lib/favoritesOrder";
 import { sortLanguagesFavoritesFirst } from "../lib/languageOptions";
-import { buildMediaTypeTree } from "../lib/mediaTypeTree";
 import { tagNodesToOptions } from "../lib/tagTree";
 
 /** Tiered-tag filter body: a multi-select tree combobox plus Reset, driving `search`. */
@@ -165,8 +165,12 @@ export function CategoryFilterBody({
 
 /** Multi-select media-type filter body with expandable parent groups. */
 export function MediaTypeFilterBody({
-  mediaTypes, search, onSearchChange,
+  search, onSearchChange,
 }: {
+  /**
+   * Unused since the body reads the nested tree from `useMediaTypeTree()` (the middleware builds
+   * the tree — CLAUDE.md → "Data shaping"); kept so existing mount sites compile unchanged.
+   */
   mediaTypes?: MediaType[];
   search: BookmarkSearch;
   onSearchChange: (next: BookmarkSearch) => void;
@@ -175,7 +179,10 @@ export function MediaTypeFilterBody({
     t,
   } = useTranslation();
   const builtInName = useBuiltInName();
-  const options = mediaTypeNodesToOptions(buildMediaTypeTree(mediaTypes ?? []), builtInName);
+  const {
+    data: mediaTypeTree,
+  } = useMediaTypeTree();
+  const options = mediaTypeNodesToOptions(mediaTypeTree ?? [], builtInName);
   const selected = search.mediaTypes ?? [];
   const filterActive = selected.length > 0 || search.mediaTypePresence !== undefined;
 

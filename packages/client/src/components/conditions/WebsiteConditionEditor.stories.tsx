@@ -27,10 +27,12 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** The website condition with no domains chosen yet. */
 export const Empty: Story = {
   render: () => <Controlled initial={[]} />,
 };
 
+/** The github.com domain preselected. */
 export const WithSelection: Story = {
   render: () => <Controlled initial={["github.com"]} />,
 };

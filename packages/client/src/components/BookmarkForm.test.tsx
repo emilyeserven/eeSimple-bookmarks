@@ -89,12 +89,7 @@ function youtubeWebsite(): Website {
   });
 }
 
-vi.mock("sonner", () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-  },
-}));
+vi.mock("../lib/notifications", async () => await import("../test-utils/toastSpies"));
 vi.mock("../hooks/useBookmarks", () => ({
   useBookmarks: () => ({
     data: allBookmarksData,

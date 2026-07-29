@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { YouTubeChannelGeneralForm } from "./YouTubeChannelGeneralForm";
 import { makeYouTubeChannel } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
+import { notifyError, notifySuccess, resetToastSpies } from "../test-utils/toastSpies";
 
 const updateMutate
   = vi.fn<(vars: { id: string;
@@ -91,18 +92,12 @@ vi.mock("@/hooks/useTags", () => ({
   }),
 }));
 
-const notifyFieldSaved = vi.fn<(label: string) => void>();
-const notifyFieldSaveError = vi.fn<(label: string, cause?: string) => void>();
-vi.mock("../lib/autoSave", () => ({
-  notifyFieldSaved: (label: string) => notifyFieldSaved(label),
-  notifyFieldSaveError: (label: string, cause?: string) => notifyFieldSaveError(label, cause),
-}));
+vi.mock("../lib/notifications", async () => await import("../test-utils/toastSpies"));
 
 describe("YouTubeChannelGeneralForm (auto-save)", () => {
   beforeEach(() => {
     updateMutate.mockReset();
-    notifyFieldSaved.mockReset();
-    notifyFieldSaveError.mockReset();
+    resetToastSpies();
     mutationBehavior = "success";
   });
 
@@ -131,7 +126,7 @@ describe("YouTubeChannelGeneralForm (auto-save)", () => {
         name: "Veritasium HD",
       },
     });
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Name");
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Name");
   });
 
   it("does not save an unchanged name on blur", async () => {
@@ -151,7 +146,7 @@ describe("YouTubeChannelGeneralForm (auto-save)", () => {
     fireEvent.blur(name);
 
     expect(updateMutate).not.toHaveBeenCalled();
-    expect(notifyFieldSaved).not.toHaveBeenCalled();
+    expect(notifySuccess).not.toHaveBeenCalled();
     expect(await screen.findByText("Name is required")).toBeInTheDocument();
   });
 
@@ -167,7 +162,7 @@ describe("YouTubeChannelGeneralForm (auto-save)", () => {
     });
     fireEvent.blur(name);
 
-    await waitFor(() => expect(notifyFieldSaveError).toHaveBeenCalledWith("Name", "offline"));
+    await waitFor(() => expect(notifyError).toHaveBeenCalledWith("Couldn't save Name: offline"));
     expect(name.value).toBe("Veritasium HD");
   });
 
@@ -190,7 +185,7 @@ describe("YouTubeChannelGeneralForm (auto-save)", () => {
         selfIds: ["VERITAS"],
       },
     });
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Self-identifiers");
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Self-identifiers");
   });
 
   it("saves the selfIds array on change when a self-identifier is removed", async () => {
@@ -211,6 +206,6 @@ describe("YouTubeChannelGeneralForm (auto-save)", () => {
         selfIds: [],
       },
     });
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Self-identifiers");
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Self-identifiers");
   });
 });

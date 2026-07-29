@@ -27,14 +27,7 @@ import {
   UnsupportedImageError,
   ValidationError,
 } from "@/utils/errors";
-
-const IMAGE_GRAB_ERROR_MESSAGES: Record<string, string> = {
-  no_image: "No image found for that source",
-  bad_image: "Image couldn't be loaded",
-  blocked: "Request was blocked — wait a moment and try again",
-  server_error: "The source returned a server error",
-  fetch_error: "The source couldn't be reached",
-};
+import { imageGrabErrorReply } from "@/utils/imageGrabError";
 
 const uuidArraySchema = {
   type: "array",
@@ -263,10 +256,8 @@ export async function groupRoutes(app: FastifyInstance): Promise<void> {
     if (result === "not_found") throw new NotFoundError("Group");
     if (result === "no_url") throw new ValidationError("No source configured for that image");
     if (typeof result === "string") {
-      return reply.code(502).send({
-        message: IMAGE_GRAB_ERROR_MESSAGES[result] ?? "Could not fetch an image",
-        code: result,
-      });
+      // Sanctioned discriminated-result → reply.code mapping: emit the standard error envelope shape.
+      return reply.code(502).send(imageGrabErrorReply(result, "image"));
     }
     return reply.code(201).send(result);
   });

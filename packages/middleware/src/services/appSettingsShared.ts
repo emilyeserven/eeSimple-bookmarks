@@ -21,7 +21,6 @@ import type {
   QuickAddDisplay,
   ScratchpadSettings,
   SidebarCustomizationSettings,
-  SidebarOpenModifier,
 } from "@eesimple/types";
 import { DEFAULT_BOOKMARK_GRAPH_SETTINGS, DEFAULT_BOOKMARKS_PER_PAGE, DEFAULT_HOMEPAGE_WIDGET_ORDER, DEFAULT_PERSON_SOURCE_LABEL_SETTINGS, MAP_PIN_SCALE_DEFAULT, MAP_PIN_SCALE_MAX, MAP_PIN_SCALE_MIN } from "@eesimple/types";
 import { db } from "@/db";
@@ -84,14 +83,13 @@ export const DEFAULT_SIDEBAR_CUSTOMIZATION: SidebarCustomizationSettings = {
   seeMoreConnectorLinks: [],
 };
 
-/** Default automation settings (auto-fetch on, Alt modifier), used when seeding / when row absent. */
+/** Default automation settings (auto-fetch on), used when seeding / when row absent. */
 export const DEFAULT_AUTOMATION: AutomationSettings = {
   autoFetchTitle: true,
   autoFetchImage: true,
   autoApplyTitleTags: false,
   autoApplyTitleLocations: false,
   shareBypassInbox: false,
-  sidebarOpenModifier: "alt",
   defaultCategoryId: null,
 };
 
@@ -203,8 +201,6 @@ export const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferenceSettings = {
   mobileHiddenFilters: [],
   defaultBookmarkSort: null,
   searchBoxPinned: false,
-  panelPinned: false,
-  drawerUnpinnedBreakpoints: [768],
   croppedWidth: 16,
   croppedHeight: 9,
   hanScriptLanguage: "ja",
@@ -229,11 +225,6 @@ export function asWidth(value: string | null | undefined): HomepageContentWidth 
 /** Coerce a stored display string to the typed union, defaulting to "collapsible". */
 export function asQuickAddDisplay(value: string | null | undefined): QuickAddDisplay {
   return value === "expanded" ? "expanded" : "collapsible";
-}
-
-/** Coerce a stored modifier string to the typed union, defaulting to "alt". */
-export function asModifier(value: string | null | undefined): SidebarOpenModifier {
-  return value === "ctrl" || value === "shift" || value === "meta" ? value : "alt";
 }
 
 /** Coerce a stored detail-image-size string to the typed union, defaulting to "medium". */
@@ -288,15 +279,6 @@ export function asScreenshotDefault(
 ): number {
   if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
   return Math.min(max, Math.max(min, Math.round(value)));
-}
-
-/** Coerce breakpoints to a deduped, sorted array of positive integers. */
-export function asBreakpoints(value: number[] | null | undefined): number[] {
-  if (!Array.isArray(value)) return [...DEFAULT_DISPLAY_PREFERENCES.drawerUnpinnedBreakpoints];
-  const cleaned = value
-    .filter(n => typeof n === "number" && Number.isFinite(n) && n > 0)
-    .map(n => Math.round(n));
-  return [...new Set(cleaned)].sort((a, b) => a - b);
 }
 
 /** Idempotently seed the settings singleton on first boot. Safe to call on every start. */

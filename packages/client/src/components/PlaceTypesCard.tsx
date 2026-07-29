@@ -8,6 +8,8 @@ import { useTranslation } from "react-i18next";
 
 import { DeletePlaceTypeDialog } from "./DeletePlaceTypeDialog";
 import { useCreatePlaceType, usePlaceTypes, useUpdatePlaceType } from "../hooks/usePlaceTypes";
+import { describeError } from "../lib/apiError";
+import { notifyError, notifySuccess } from "../lib/notifications";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -70,7 +72,14 @@ export function PlaceTypesCard({
           },
         },
         {
-          onSuccess: () => setEditingId(null),
+          onSuccess: () => {
+            setEditingId(null);
+            notifySuccess(t("Renamed to \"{{name}}\"", {
+              name,
+            }));
+          },
+          // Keep the row in edit mode with the user's input so the rename can be retried.
+          onError: error => notifyError(describeError(error)),
         },
       );
     }

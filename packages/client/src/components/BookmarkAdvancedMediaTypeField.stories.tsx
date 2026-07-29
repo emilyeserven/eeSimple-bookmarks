@@ -58,6 +58,7 @@ export const Default: Story = {
   ),
 };
 
+/** A selected media type with the save-as-source-default offer for example.com. */
 export const WithSourceDefaultOffer: Story = {
   render: () => (
     <BookmarkFormHost

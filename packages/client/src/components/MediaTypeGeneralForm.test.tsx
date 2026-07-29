@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MediaTypeGeneralForm } from "./MediaTypeGeneralForm";
 import { makeMediaType as mediaTypeBase } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
+import { notifyError, notifySuccess, resetToastSpies } from "../test-utils/toastSpies";
 
 const updateMutate
   = vi.fn<(vars: { id: string;
@@ -52,12 +53,7 @@ vi.mock("@/hooks/useMediaTypes", () => ({
   }),
 }));
 
-const notifyFieldSaved = vi.fn<(label: string) => void>();
-const notifyFieldSaveError = vi.fn<(label: string, cause?: string) => void>();
-vi.mock("../lib/autoSave", () => ({
-  notifyFieldSaved: (label: string) => notifyFieldSaved(label),
-  notifyFieldSaveError: (label: string, cause?: string) => notifyFieldSaveError(label, cause),
-}));
+vi.mock("../lib/notifications", async () => await import("../test-utils/toastSpies"));
 
 const mediaType = makeMediaType({
   id: "mt-1",
@@ -69,8 +65,7 @@ const mediaType = makeMediaType({
 describe("MediaTypeGeneralForm (auto-save)", () => {
   beforeEach(() => {
     updateMutate.mockReset();
-    notifyFieldSaved.mockReset();
-    notifyFieldSaveError.mockReset();
+    resetToastSpies();
     mutationBehavior = "success";
   });
 
@@ -99,7 +94,7 @@ describe("MediaTypeGeneralForm (auto-save)", () => {
         name: "Videos",
       },
     });
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Name");
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Name");
   });
 
   it("does not save an unchanged field on blur", async () => {
@@ -119,7 +114,7 @@ describe("MediaTypeGeneralForm (auto-save)", () => {
     fireEvent.blur(name);
 
     expect(updateMutate).not.toHaveBeenCalled();
-    expect(notifyFieldSaved).not.toHaveBeenCalled();
+    expect(notifySuccess).not.toHaveBeenCalled();
     expect(await screen.findByText("Name is required")).toBeInTheDocument();
   });
 
@@ -135,7 +130,7 @@ describe("MediaTypeGeneralForm (auto-save)", () => {
     });
     fireEvent.blur(name);
 
-    await waitFor(() => expect(notifyFieldSaveError).toHaveBeenCalledWith("Name", "offline"));
+    await waitFor(() => expect(notifyError).toHaveBeenCalledWith("Couldn't save Name: offline"));
     expect(name.value).toBe("Videos");
   });
 });

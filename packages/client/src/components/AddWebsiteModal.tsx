@@ -1,24 +1,14 @@
 import type { Website } from "@eesimple/types";
 
+import { useId, useState } from "react";
+
 import { useTranslation } from "react-i18next";
-import { z } from "zod";
 
+import { InlineCreateModal } from "./InlineCreateModal";
 import { useCreateWebsite } from "../hooks/useWebsites";
-import { useAppForm } from "../lib/form";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-
-const schema = z.object({
-  domain: z.string().trim().min(1, "Domain is required"),
-  siteName: z.string().trim(),
-});
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface AddWebsiteModalProps {
   open: boolean;
@@ -26,6 +16,10 @@ interface AddWebsiteModalProps {
   onCreated?: (website: Website) => void;
 }
 
+/**
+ * Domain + optional site name modal to create a website by hand — a thin `InlineCreateModal`
+ * wrapper using `nameLabel` for the domain field and `extraFields` for the optional site name.
+ */
 export function AddWebsiteModal({
   open,
   onOpenChange,
@@ -35,82 +29,47 @@ export function AddWebsiteModal({
     t,
   } = useTranslation();
   const createWebsite = useCreateWebsite();
-  const form = useAppForm({
-    defaultValues: {
-      domain: "",
-      siteName: "",
-    },
-    validators: {
-      onChange: schema,
-    },
-    onSubmit: ({
-      value,
-    }) => {
-      createWebsite.mutate(
-        {
-          domain: value.domain.trim(),
-          siteName: value.siteName.trim() || undefined,
-        },
-        {
-          onSuccess: (website) => {
-            onCreated?.(website);
-            onOpenChange(false);
-            form.reset();
-          },
-        },
-      );
-    },
-  });
+  const [siteName, setSiteName] = useState("");
+  const siteNameId = useId();
 
   return (
-    <Dialog
+    <InlineCreateModal
       open={open}
       onOpenChange={onOpenChange}
-    >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t("New website")}</DialogTitle>
-          <DialogDescription>
-            {t("Websites are normally created automatically from bookmark URLs — use this to add one by hand.")}
-          </DialogDescription>
-        </DialogHeader>
-        <form
-          className="space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            void form.handleSubmit();
-          }}
-        >
-          <form.AppField name="domain">
-            {field => (
-              <field.TextField
-                label={t("Domain")}
-                placeholder="example.com"
-              />
-            )}
-          </form.AppField>
-          <form.AppField name="siteName">
-            {field => (
-              <field.TextField
-                label={t("Site name (optional)")}
-                placeholder={t("Defaults to the domain")}
-              />
-            )}
-          </form.AppField>
-          {createWebsite.isError
-            ? <p className="text-sm text-destructive">{createWebsite.error.message}</p>
-            : null}
-          <DialogFooter>
-            <form.AppForm>
-              <form.SubmitButton
-                label={t("Add website")}
-                pendingLabel={t("Adding…")}
-              />
-            </form.AppForm>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+      title={t("New website")}
+      description={t("Websites are normally created automatically from bookmark URLs — use this to add one by hand.")}
+      placeholder="example.com"
+      nameLabel={t("Domain")}
+      nameRequiredMessage="Domain is required"
+      submitLabel={t("Add website")}
+      isError={createWebsite.isError}
+      errorMessage={createWebsite.error?.message}
+      extraFields={(
+        <div className="space-y-1">
+          <Label htmlFor={siteNameId}>{t("Site name (optional)")}</Label>
+          <Input
+            id={siteNameId}
+            placeholder={t("Defaults to the domain")}
+            value={siteName}
+            onChange={e => setSiteName(e.target.value)}
+          />
+        </div>
+      )}
+      onSubmit={(domain, done) => {
+        createWebsite.mutate(
+          {
+            domain,
+            siteName: siteName.trim() || undefined,
+          },
+          {
+            onSuccess: (website) => {
+              onCreated?.(website);
+              setSiteName("");
+              done();
+            },
+          },
+        );
+      }}
+    />
   );
 }

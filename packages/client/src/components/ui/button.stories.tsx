@@ -26,24 +26,28 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** The secondary button variant. */
 export const Secondary: Story = {
   args: {
     variant: "secondary",
   },
 };
 
+/** The destructive button variant. */
 export const Destructive: Story = {
   args: {
     variant: "destructive",
   },
 };
 
+/** The outline button variant. */
 export const Outline: Story = {
   args: {
     variant: "outline",
   },
 };
 
+/** The small button size. */
 export const Small: Story = {
   args: {
     size: "sm",

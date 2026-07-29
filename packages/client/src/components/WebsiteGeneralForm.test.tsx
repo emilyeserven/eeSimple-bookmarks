@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { WebsiteGeneralForm } from "./WebsiteGeneralForm";
 import { makeWebsite as makeWebsiteEntity } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
+import { notifyError, notifySuccess, resetToastSpies } from "../test-utils/toastSpies";
 
 const updateMutate
   = vi.fn<(vars: { id: string;
@@ -95,20 +96,14 @@ vi.mock("@/hooks/useTags", () => ({
   }),
 }));
 
-const notifyFieldSaved = vi.fn<(label: string) => void>();
-const notifyFieldSaveError = vi.fn<(label: string, cause?: string) => void>();
-vi.mock("../lib/autoSave", () => ({
-  notifyFieldSaved: (label: string) => notifyFieldSaved(label),
-  notifyFieldSaveError: (label: string, cause?: string) => notifyFieldSaveError(label, cause),
-}));
+vi.mock("../lib/notifications", async () => await import("../test-utils/toastSpies"));
 
 const website = makeWebsite();
 
 describe("WebsiteGeneralForm (auto-save)", () => {
   beforeEach(() => {
     updateMutate.mockReset();
-    notifyFieldSaved.mockReset();
-    notifyFieldSaveError.mockReset();
+    resetToastSpies();
     mutationBehavior = "success";
   });
 
@@ -137,7 +132,7 @@ describe("WebsiteGeneralForm (auto-save)", () => {
         siteName: "GitHub Inc",
       },
     });
-    expect(notifyFieldSaved).toHaveBeenCalledWith("Site name");
+    expect(notifySuccess).toHaveBeenCalledWith("Updated Site name");
   });
 
   it("does not save an unchanged field on blur", async () => {
@@ -157,7 +152,7 @@ describe("WebsiteGeneralForm (auto-save)", () => {
     fireEvent.blur(siteName);
 
     expect(updateMutate).not.toHaveBeenCalled();
-    expect(notifyFieldSaved).not.toHaveBeenCalled();
+    expect(notifySuccess).not.toHaveBeenCalled();
     expect(await screen.findByText("Site name is required")).toBeInTheDocument();
   });
 
@@ -173,7 +168,7 @@ describe("WebsiteGeneralForm (auto-save)", () => {
     });
     fireEvent.blur(siteName);
 
-    await waitFor(() => expect(notifyFieldSaveError).toHaveBeenCalledWith("Site name", "offline"));
+    await waitFor(() => expect(notifyError).toHaveBeenCalledWith("Couldn't save Site name: offline"));
     expect(siteName.value).toBe("GitHub Inc");
   });
 });

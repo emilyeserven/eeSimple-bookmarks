@@ -8,6 +8,8 @@ import React from "react";
 
 import { Link } from "@tanstack/react-router";
 
+import { ENTITY_ROUTES, matchEntityRoute } from "@/lib/entityRoutes";
+
 /** How a toolbar action behaves once collapsed into the small-screen More menu. */
 export type ToolbarMobile
   /** A self-contained `DropdownMenuItem` (a link, an action, or a stateful toggle). */
@@ -18,9 +20,7 @@ export type ToolbarMobile
       icon: LucideIcon;
       label: string;
       disabled?: boolean;
-      renderModal: (open: boolean, onOpenChange: (open: boolean) => void) => React.ReactNode; }
-  /** Never collapses — stays a standalone icon outside the More menu (the panel toggle). */
-      | { kind: "standalone" };
+      renderModal: (open: boolean, onOpenChange: (open: boolean) => void) => React.ReactNode; };
 
 export interface ToolbarAction {
   key: string;
@@ -33,7 +33,6 @@ export interface ToolbarAction {
 export interface ToolbarContext {
   pathParts: string[];
   listingPage: { key: string;
-    hasFilters: boolean;
     hasSort?: boolean;
     createAction?: (event?: React.MouseEvent) => void;
     /** When set, the header Plus offers "Add bookmark" (with an optional locked category). */
@@ -58,171 +57,52 @@ export interface ToolbarContext {
 }
 
 /**
- * A typed `<Link>` to a taxonomy entity's General **edit** tab, shown on every one of that entity's
- * non-edit pages — the bare listing (`/categories/<slug>`), the `gallery`/`media` listing tabs, and the
- * `info` page — but never on the listing-of-all index (`/categories`) nor on any `…/edit/…` page.
- * Returns `null` elsewhere. Replaced the old header "Info" (view-details) button, now a listing tab.
- * `children` backs both the desktop icon button and the mobile menu row.
+ * A `<Link>` to a slug-routed entity's **edit** page, shown on every one of that entity's non-edit
+ * pages — the bare listing (`/categories/<slug>`), the `gallery`/`media` listing tabs, and the `info`
+ * page — but never on the listing-of-all index (`/categories`) nor on any `…/edit/…` page. Returns
+ * `null` elsewhere. Replaced the old header "Info" (view-details) button, now a listing tab.
+ *
+ * Derived from `ENTITY_ROUTES` via `matchEntityRoute` — the same data the CMD+K registry and
+ * breadcrumbs derive from — so every slug-routed kind (all 19) gets the Edit pencil with no
+ * per-entity branch; the edit path follows the `${prefix}/${slug}/edit` convention (the
+ * `useEntityCommandContext` `editPath`). Custom-taxonomy term pages
+ * (`/taxonomies/$taxonomyKey/$termSlug`) are not an `EntityRouteKind`, so they are linked as an
+ * explicit special case. `children` backs both the desktop icon button and the mobile menu row.
  */
 export function taxonomyEditLink(pathParts: string[], children: React.ReactNode): React.ReactNode {
   // Show only outside the edit surface — never while already editing.
   if (pathParts.includes("edit")) return null;
 
-  // Top-level taxonomies. `length >= 2` includes the bare listing `/<entity>/<slug>`; the listing-of-all
-  // (`length === 1`, e.g. `/categories`) is excluded.
-  if (pathParts[0] === "categories" && pathParts.length >= 2) {
+  const pathname = `/${pathParts.join("/")}`;
+  // Listing-of-all indexes (no slug) and create pages (`new`/`backfill`) match no route.
+  const matched = matchEntityRoute(pathname);
+  if (matched) {
     return (
-      <Link
-        to="/categories/$categorySlug/edit"
-        params={{
-          categorySlug: pathParts[1],
-        }}
-      >
-        {children}
-      </Link>
-    );
-  }
-  if (pathParts[0] === "tags" && pathParts.length >= 2) {
-    return (
-      <Link
-        to="/tags/$tagSlug/edit"
-        params={{
-          tagSlug: pathParts[1],
-        }}
-      >
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      <Link to={`${matched.route.prefix}/${matched.slug}/edit` as any}>
         {children}
       </Link>
     );
   }
 
-  // `/taxonomies/<entity>/<slug>[/<tab>]`. `length >= 3` includes the bare listing at
-  // `/taxonomies/<entity>/<slug>`; the listing-of-all (`length === 2`) is excluded.
-  if (pathParts[0] === "taxonomies" && pathParts.length >= 3) {
-    const slug = pathParts[2];
-    switch (pathParts[1]) {
-      case "websites":
-        return (
-          <Link
-            to="/taxonomies/websites/$websiteSlug/edit"
-            params={{
-              websiteSlug: slug,
-            }}
-          >{children}
-          </Link>
-        );
-      case "media-types":
-        return (
-          <Link
-            to="/taxonomies/media-types/$mediaTypeSlug/edit"
-            params={{
-              mediaTypeSlug: slug,
-            }}
-          >{children}
-          </Link>
-        );
-      case "youtube-channels":
-        return (
-          <Link
-            to="/taxonomies/youtube-channels/$channelSlug/edit"
-            params={{
-              channelSlug: slug,
-            }}
-          >{children}
-          </Link>
-        );
-      case "people":
-        return (
-          <Link
-            to="/taxonomies/people/$personSlug/edit"
-            params={{
-              personSlug: slug,
-            }}
-          >{children}
-          </Link>
-        );
-      case "groups":
-        return (
-          <Link
-            to="/taxonomies/groups/$groupSlug/edit"
-            params={{
-              groupSlug: slug,
-            }}
-          >{children}
-          </Link>
-        );
-      case "group-types":
-        return (
-          <Link
-            to="/taxonomies/group-types/$groupTypeSlug/edit"
-            params={{
-              groupTypeSlug: slug,
-            }}
-          >{children}
-          </Link>
-        );
-      case "newsletters":
-        return (
-          <Link
-            to="/taxonomies/newsletters/$newsletterSlug/edit"
-            params={{
-              newsletterSlug: slug,
-            }}
-          >{children}
-          </Link>
-        );
-      case "relationship-types":
-        return (
-          <Link
-            to="/taxonomies/relationship-types/$relationshipTypeSlug/edit"
-            params={{
-              relationshipTypeSlug: slug,
-            }}
-          >{children}
-          </Link>
-        );
-      case "place-types":
-        return (
-          <Link
-            to="/taxonomies/place-types/$placeTypeSlug/edit"
-            params={{
-              placeTypeSlug: slug,
-            }}
-          >{children}
-          </Link>
-        );
-      case "genres-moods":
-        return (
-          <Link
-            to="/taxonomies/genres-moods/$genreMoodSlug/edit"
-            params={{
-              genreMoodSlug: slug,
-            }}
-          >{children}
-          </Link>
-        );
-      case "languages":
-        return (
-          <Link
-            to="/taxonomies/languages/$languageSlug/edit"
-            params={{
-              languageSlug: slug,
-            }}
-          >{children}
-          </Link>
-        );
-      case "locations":
-        return (
-          <Link
-            to="/taxonomies/locations/$locationSlug/edit"
-            params={{
-              locationSlug: slug,
-            }}
-          >{children}
-          </Link>
-        );
-      default:
-        return null;
-    }
+  // A `/taxonomies/<key>/<slug>` page whose `<key>` is no built-in entity route is a user-created
+  // taxonomy's term page — link the shared term edit route. A built-in `<key>` that reached here has
+  // no real slug (e.g. `/taxonomies/locations/new`), so it gets no Edit link either.
+  const isBuiltInTaxonomySegment = ENTITY_ROUTES.some(
+    route => route.prefix === `/taxonomies/${pathParts[1]}`,
+  );
+  if (pathParts[0] === "taxonomies" && pathParts.length >= 3 && !isBuiltInTaxonomySegment) {
+    return (
+      <Link
+        to="/taxonomies/$taxonomyKey/$termSlug/edit"
+        params={{
+          taxonomyKey: pathParts[1],
+          termSlug: pathParts[2],
+        }}
+      >
+        {children}
+      </Link>
+    );
   }
   return null;
 }

@@ -3,12 +3,10 @@ import type { Category, CustomProperty, MediaType, UpdateCustomPropertyInput } f
 
 import { useEffect, useRef } from "react";
 
-import { useTranslation } from "react-i18next";
-
 import { propertySchema, valuesFromProperty } from "./propertyFormParts";
 import { PropertyCategoriesSection, PropertyMediaTypesSection } from "./PropertyScopeSections";
+import { useCollectionAutoSave } from "../hooks/useCollectionAutoSave";
 import { useUpdateCustomProperty } from "../hooks/useCustomProperties";
-import { useSectionAutoSave } from "../hooks/useSectionAutoSave";
 import { useAppForm } from "../lib/form";
 
 /**
@@ -18,12 +16,10 @@ import { useAppForm } from "../lib/form";
  */
 function ScopeAutoSaver({
   values,
-  label,
   save,
 }: {
   values: Partial<UpdateCustomPropertyInput>;
-  label: string;
-  save: (input: Partial<UpdateCustomPropertyInput>, label: string) => void;
+  save: (input: Partial<UpdateCustomPropertyInput>) => void;
 }) {
   // Skip the seed render: only persist values the user actually changed.
   const seeded = useRef(false);
@@ -32,11 +28,32 @@ function ScopeAutoSaver({
       seeded.current = true;
       return;
     }
-    save(values, label);
-    // The no-op guard lives in `saveSection`; re-run whenever the watched values change.
+    save(values);
+    // The no-op guard lives in `saveNow`; re-run whenever the watched values change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(values)]);
   return null;
+}
+
+/** The shared collection engine bound to one property's update mutation (one request, one toast). */
+function useScopeSectionSave(
+  property: CustomProperty,
+  label: string,
+  initial: Partial<UpdateCustomPropertyInput>,
+) {
+  const updateProperty = useUpdateCustomProperty();
+  const {
+    saveNow,
+  } = useCollectionAutoSave<Partial<UpdateCustomPropertyInput>>({
+    id: property.id,
+    label,
+    persist: (input, callbacks) => updateProperty.mutate({
+      id: property.id,
+      input,
+    }, callbacks),
+    initial,
+  });
+  return saveNow;
 }
 
 /** The Categories edit tab: reuses the shared section; persists `{ allCategories, categoryIds }`. */
@@ -47,19 +64,9 @@ export function PropertyCategoriesEditForm({
   property: CustomProperty;
   categories: Category[];
 }) {
-  const {
-    t,
-  } = useTranslation();
-  const updateProperty = useUpdateCustomProperty();
-  const {
-    saveSection,
-  } = useSectionAutoSave<UpdateCustomPropertyInput, CustomProperty>({
-    id: property.id,
-    update: updateProperty,
-    initial: {
-      allCategories: property.allCategories,
-      categoryIds: property.categoryIds,
-    },
+  const saveNow = useScopeSectionSave(property, "Categories", {
+    allCategories: property.allCategories,
+    categoryIds: property.categoryIds,
   });
 
   const form = useScopeForm(property);
@@ -82,8 +89,7 @@ export function PropertyCategoriesEditForm({
         {values => (
           <ScopeAutoSaver
             values={values}
-            label={t("Categories")}
-            save={saveSection}
+            save={saveNow}
           />
         )}
       </form.Subscribe>
@@ -99,19 +105,9 @@ export function PropertyMediaTypesEditForm({
   property: CustomProperty;
   mediaTypes: MediaType[];
 }) {
-  const {
-    t,
-  } = useTranslation();
-  const updateProperty = useUpdateCustomProperty();
-  const {
-    saveSection,
-  } = useSectionAutoSave<UpdateCustomPropertyInput, CustomProperty>({
-    id: property.id,
-    update: updateProperty,
-    initial: {
-      allMediaTypes: property.allMediaTypes,
-      mediaTypeIds: property.mediaTypeIds,
-    },
+  const saveNow = useScopeSectionSave(property, "Media Types", {
+    allMediaTypes: property.allMediaTypes,
+    mediaTypeIds: property.mediaTypeIds,
   });
 
   const form = useScopeForm(property);
@@ -133,8 +129,7 @@ export function PropertyMediaTypesEditForm({
         {values => (
           <ScopeAutoSaver
             values={values}
-            label={t("Media Types")}
-            save={saveSection}
+            save={saveNow}
           />
         )}
       </form.Subscribe>

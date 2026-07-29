@@ -167,9 +167,11 @@ export interface PromoteTagInput {
   tagId: string;
 }
 
-/** Payload for demoting a taxonomy back into Tags. */
+/**
+ * Payload for demoting a taxonomy back into Tags (`POST /api/taxonomies/:id/demote` — the taxonomy
+ * id rides the URL path, not this body).
+ */
 export interface DemoteTaxonomyInput {
-  taxonomyId: string;
   /** Optional existing tag to nest the taxonomy's terms under; omitted = a new parent tag from the taxonomy name. */
   parentTagId?: string | null;
 }

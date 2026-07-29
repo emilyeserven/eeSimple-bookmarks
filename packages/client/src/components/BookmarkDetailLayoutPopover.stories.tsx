@@ -19,6 +19,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** The layout popover forced open to show its controls. */
 export const Open: Story = {
   args: {
     open: true,

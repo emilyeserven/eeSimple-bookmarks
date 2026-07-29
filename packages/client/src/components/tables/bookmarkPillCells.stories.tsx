@@ -75,6 +75,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** The category pill cell for a bookmark's category. */
 export const Category: Story = {
   render: () => (
     <BookmarkCategoryColumnCell
@@ -84,6 +85,7 @@ export const Category: Story = {
   ),
 };
 
+/** The source cell showing both the website and YouTube channel pills. */
 export const Source: Story = {
   render: () => (
     <BookmarkSourceColumnCell
@@ -95,14 +97,17 @@ export const Source: Story = {
   ),
 };
 
+/** The media-type pill cell. */
 export const MediaType: Story = {
   render: () => <BookmarkMediaTypeColumnCell bookmark={bookmark} />,
 };
 
+/** The tags cell with two tag pills. */
 export const Tags: Story = {
   render: () => <BookmarkTagsColumnCell bookmark={bookmark} />,
 };
 
+/** A rating-scale property cell rendering the bookmark's star value. */
 export const RatingProperty: Story = {
   render: () => (
     <BookmarkPropertyColumnCell

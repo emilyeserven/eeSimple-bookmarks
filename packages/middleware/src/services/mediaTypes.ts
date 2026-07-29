@@ -12,6 +12,7 @@ import { invalidateBookmarkCache } from "@/services/bookmarkCache";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { deleteTaxonomyAssignmentsForOwner } from "@/services/taxonomyAssignments";
 import { deleteEntityNamesForOwner, loadEntityNames } from "@/services/entityNames";
+import { collectSubtreeIds } from "@/utils/parentTree";
 import { bookmarks, mediaTypes, type MediaTypeRow } from "@/db/schema";
 import { AppError } from "@/utils/errors";
 import { slugify, uniqueSlug } from "@/utils/slug";
@@ -393,14 +394,24 @@ export async function deleteMediaType(id: string): Promise<boolean> {
   }).from(mediaTypes).where(eq(mediaTypes.id, id));
   if (!existing) return false;
   if (existing.builtIn) throw new BuiltInMediaTypeError("A built-in media type cannot be deleted");
+  // Collect the whole subtree BEFORE the delete — the parentId cascade removes child media types
+  // too, and their polymorphic (no-FK-on-ownerId) assignment/name rows must be cleaned up along
+  // with the root's.
+  const allMediaTypes = await db
+    .select({
+      id: mediaTypes.id,
+      parentId: mediaTypes.parentId,
+    })
+    .from(mediaTypes);
+  const subtreeIds = [...collectSubtreeIds(allMediaTypes, id)];
   const rows = await db.delete(mediaTypes).where(eq(mediaTypes.id, id)).returning({
     id: mediaTypes.id,
   });
   // The FK sets bookmarks.mediaTypeId to NULL — matchable data (media-type condition leaves).
   if (rows.length > 0) {
     // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
-    await deleteTaxonomyAssignmentsForOwner("mediaType", id);
-    await deleteEntityNamesForOwner("mediaType", id);
+    await deleteTaxonomyAssignmentsForOwner("mediaType", subtreeIds);
+    await deleteEntityNamesForOwner("mediaType", subtreeIds);
     invalidateBookmarkCache();
   }
   return rows.length > 0;

@@ -685,6 +685,22 @@ const migrations: RuntimeMigration[] = [
       await db.execute(sql`CREATE UNIQUE INDEX IF NOT EXISTS "pinned_sidebar_items_entity_unique" ON "pinned_sidebar_items" ("entity_type", "entity_id")`);
     },
   },
+  // The right-hand drawer/panel was removed (issue #1108); these three `app_settings` columns were
+  // dormant drawer-era orphans with no remaining readers. Dropping a column is destructive, so drop
+  // each here (one statement per `db.execute`) so push's diff stays purely additive. Idempotent
+  // (`IF EXISTS`).
+  {
+    name: "drop legacy app_settings.panel_pinned",
+    run: db => db.execute(sql`ALTER TABLE "app_settings" DROP COLUMN IF EXISTS "panel_pinned"`),
+  },
+  {
+    name: "drop legacy app_settings.drawer_unpinned_breakpoints",
+    run: db => db.execute(sql`ALTER TABLE "app_settings" DROP COLUMN IF EXISTS "drawer_unpinned_breakpoints"`),
+  },
+  {
+    name: "drop legacy app_settings.sidebar_open_modifier",
+    run: db => db.execute(sql`ALTER TABLE "app_settings" DROP COLUMN IF EXISTS "sidebar_open_modifier"`),
+  },
 ];
 
 async function main(): Promise<void> {

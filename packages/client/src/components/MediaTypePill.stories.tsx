@@ -23,6 +23,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** A media type without an icon — the pill shows the name only. */
 export const NoIcon: Story = {
   args: {
     mediaType: {

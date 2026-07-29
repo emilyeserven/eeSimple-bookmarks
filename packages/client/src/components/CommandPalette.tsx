@@ -254,12 +254,9 @@ export function CommandPalette() {
                   taxonomy={taxonomy}
                   setInputValue={setInputValue}
                   onSelect={handleSelect}
-                  onAddChild={(kind, parentId) => {
+                  onAddChild={(child) => {
                     handleClose();
-                    setAddChild({
-                      kind,
-                      parentId,
-                    });
+                    setAddChild(child);
                   }}
                   bookmarks={bookmarks}
                   onCreate={handleCreate}
@@ -284,8 +281,7 @@ export function CommandPalette() {
 
       {addChild && (
         <AddChildModal
-          kind={addChild.kind}
-          parentId={addChild.parentId}
+          {...addChild}
           open
           onOpenChange={openState => !openState && setAddChild(null)}
         />

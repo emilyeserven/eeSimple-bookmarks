@@ -239,6 +239,8 @@ export async function createCustomProperty(
     }
     return row.id;
   });
+  // No cache invalidation here on purpose: a brand-new property has no stored values yet, so no
+  // bookmark's matchable data can reference it until a value write (which invalidates) lands.
   // Re-read so callers always get the hydrated shape (categoryIds + operandPropertyIds).
   return (await getCustomProperty(id))!;
 }
@@ -446,6 +448,10 @@ export async function updateCustomProperty(
     return true;
   });
 
+  // Property config changes how stored values evaluate (e.g. an `itemInItemsSourcePropertyId`
+  // rewire, options/scope changes), so condition matching over the cached ConditionInputs must
+  // re-derive.
+  if (found) invalidateBookmarkCache();
   return found ? getCustomProperty(id) : null;
 }
 

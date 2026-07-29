@@ -428,11 +428,21 @@ export async function deleteTag(id: string, reassignToId?: string): Promise<bool
 
   if (reassignToId !== undefined) await reassignTagReferences(id, reassignToId);
 
+  // Collect the whole subtree BEFORE the delete — the parentId cascade removes descendants too, and
+  // their polymorphic (no-FK-on-ownerId) assignment/name rows must be cleaned up along with the root's.
+  const allTags = await db
+    .select({
+      id: tags.id,
+      parentId: tags.parentId,
+    })
+    .from(tags);
+  const subtreeIds = [...collectParentTreeSubtreeIds(allTags, id)];
+
   await db.delete(tags).where(eq(tags.id, id));
   // Cascade removes descendant tags and bookmark_tags links — both feed condition matching.
   // Genre/mood assignments key off (ownerType, ownerId) with no FK on ownerId, so clean them up here.
-  await deleteTaxonomyAssignmentsForOwner("tag", id);
-  await deleteEntityNamesForOwner("tag", id);
+  await deleteTaxonomyAssignmentsForOwner("tag", subtreeIds);
+  await deleteEntityNamesForOwner("tag", subtreeIds);
   invalidateBookmarkCache();
   return true;
 }

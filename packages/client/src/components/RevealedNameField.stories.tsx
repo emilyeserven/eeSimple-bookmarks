@@ -37,6 +37,7 @@ export const Default: Story = {
   ),
 };
 
+/** After a successful title fetch — the field shows the fetched title with undo state. */
 export const AfterTitleFetch: Story = {
   render: () => (
     <BookmarkFormHost

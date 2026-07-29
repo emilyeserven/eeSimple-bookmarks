@@ -36,14 +36,17 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** Three bookmarks laid out in a three-column grid. */
 export const ThreeColumns: Story = {};
 
+/** The same bookmarks stacked in a single column. */
 export const SingleColumn: Story = {
   args: {
     columns: 1,
   },
 };
 
+/** No bookmarks — the grid's empty state. */
 export const Empty: Story = {
   args: {
     bookmarks: [],

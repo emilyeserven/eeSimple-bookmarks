@@ -10,6 +10,9 @@ import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { bookmarkImages, type BookmarkImageRow, bookmarkScreenshots, type BookmarkScreenshotRow, bookmarks } from "@/db/schema";
 import { batchFetch } from "@/services/batchFetch";
+// Import from the leaf `bookmarkCacheVersion` module (not `bookmarkCache`, whose hydration path
+// loads image rows from this module) so the invalidation doesn't form a circular import.
+import { invalidateBookmarkCache } from "@/services/bookmarkCacheVersion";
 import { forgetManifestObject, recordManifestObject } from "@/services/gallery";
 import { buildImageCandidates } from "@/services/imageCandidates";
 import { downloadImage, fetchOgImage } from "@/services/metadata";
@@ -432,6 +435,8 @@ export async function addBookmarkImage(
   await db.update(bookmarks).set({
     imageAutoGrabError: null,
   }).where(eq(bookmarks.id, bookmarkId));
+  // Image presence/main changed — matchable data (has-image conditions) and hydrated rows.
+  invalidateBookmarkCache();
   return bookmarkImageFromRow(row);
 }
 
@@ -463,6 +468,8 @@ export async function setBookmarkImage(
   await db.update(bookmarks).set({
     imageAutoGrabError: null,
   }).where(eq(bookmarks.id, bookmarkId));
+  // Image presence/main changed — matchable data (has-image conditions) and hydrated rows.
+  invalidateBookmarkCache();
   return bookmarkImageFromRow(row);
 }
 
@@ -486,6 +493,8 @@ export async function setMainImage(
     })
     .where(and(eq(bookmarkImages.bookmarkId, bookmarkId), eq(bookmarkImages.id, imageId)))
     .returning();
+  // The main image changed — hydrated rows (and card rendering) read it from the cache.
+  invalidateBookmarkCache();
   return bookmarkImageFromRow(row);
 }
 
@@ -514,6 +523,8 @@ export async function removeBookmarkImageById(
       }).where(and(eq(bookmarkImages.bookmarkId, bookmarkId), eq(bookmarkImages.id, next.id)));
     }
   }
+  // Image presence/main changed — matchable data (has-image conditions) and hydrated rows.
+  invalidateBookmarkCache();
   return true;
 }
 
@@ -598,6 +609,8 @@ export async function storeBookmarkImagesFromCandidates(
   // still matches — but we ALWAYS download the server's freshly-derived URL, never the client's.
   const toStore = allowed.filter(candidate => requested.has(imageMatchKey(candidate.url)));
 
+  // Cache invalidation rides on each successful `addBookmarkImage` below — no image stored means
+  // no matchable data changed, so no extra invalidation is needed here.
   for (const candidate of toStore) {
     const bytes = await downloadImage(candidate.url, bookmark.url);
     if (!bytes) continue;
@@ -617,6 +630,8 @@ export async function removeBookmarkImage(bookmarkId: string): Promise<boolean> 
   const rows = await listBookmarkImageRows(bookmarkId);
   if (rows.length === 0) return false;
   await deleteAllBookmarkImages(bookmarkId);
+  // Image presence changed — matchable data (has-image conditions) and hydrated rows.
+  invalidateBookmarkCache();
   return true;
 }
 
@@ -692,6 +707,8 @@ export async function fetchAndStoreOgImage(bookmarkId: string): Promise<AutoImag
     return error;
   }
 
+  // Cache invalidation rides on the successful `setBookmarkImage` — the failure paths only record
+  // `imageAutoGrabError` (display-only), so image presence never changed there.
   const storeResult = await setBookmarkImage(bookmarkId, bytes, "og");
   if (storeResult === "not_found") return "not_found";
   if (storeResult === "bad_image") {

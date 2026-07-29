@@ -3,7 +3,7 @@ import type { CategorySortMode } from "../lib/categorySort";
 import type { LocationSortMode } from "../lib/locationSort";
 import type { SyncProvider } from "../lib/syncSources/syncSourceTypes";
 import type { WebsiteBookmarkFilter, WebsiteBuiltInFilter, WebsiteIsbnFilter, WebsiteSortMode } from "../lib/websiteListingSort";
-import type { Person, Bookmark, BookmarkDetailImageSize, BookmarkDetailLayout, BookmarkDetailVideoSize, BookmarkImageVisibility, Category, CustomProperty, GenreMood, LocationMapLevelMode, MediaType, PlaceType, RelationshipType, SidebarOpenModifier, TagNode, ViewMode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Person, Bookmark, BookmarkDetailImageSize, BookmarkDetailLayout, BookmarkDetailVideoSize, BookmarkImageVisibility, Category, CustomProperty, GenreMood, LocationMapLevelMode, MediaType, PlaceType, RelationshipType, TagNode, ViewMode, Website, YouTubeChannel } from "@eesimple/types";
 import type { MouseEvent as ReactMouseEvent } from "react";
 
 import { create } from "zustand";
@@ -24,7 +24,7 @@ export type SectionDisplayMode = "both" | "bookmarks" | "sections";
 
 /**
  * UI-pref unions defined once in `@eesimple/types` and re-exported here so existing
- * `../stores/uiStore` importers keep working. `SidebarOpenModifier` and the bookmark-detail sizing
+ * `../stores/uiStore` importers keep working. The bookmark-detail sizing
  * unions now drive server-persisted settings but are still re-exported for back-compat —
  * `LocationMapLevelMode` too (the "Show" mode now persists per level group / per the bookmark-map
  * display preference instead of in this store).
@@ -35,7 +35,6 @@ export type {
   BookmarkDetailVideoSize,
   BookmarkImageVisibility,
   LocationMapLevelMode,
-  SidebarOpenModifier,
   ViewMode,
 };
 
@@ -203,7 +202,6 @@ interface UiState {
   /** Transient: the current listing page's key, image controls flag, filter-sidebar flag, and whether it renders bookmark cards. Cleared when leaving. Never persisted. */
   listingPage: { key: string;
     showsImages: boolean;
-    hasFilters: boolean;
     hasSort?: boolean;
     showsCards: boolean;
     /** True on a tag listing page — gates the section-display control. */
@@ -215,7 +213,6 @@ interface UiState {
     createLabel?: string; } | null;
   setListingPage: (page: { key: string;
     showsImages: boolean;
-    hasFilters: boolean;
     hasSort?: boolean;
     showsCards: boolean;
     showsSectionDisplay?: boolean;
@@ -534,6 +531,7 @@ export const useUiStore = create<UiState>()(
         titleSortLanguage: state.titleSortLanguage,
         hiddenCardFields: state.hiddenCardFields,
         selectedDisplayPreset: state.selectedDisplayPreset,
+        tableColumnWidths: state.tableColumnWidths,
         sidebarWidth: state.sidebarWidth,
         bookmarkGraphSpacing: state.bookmarkGraphSpacing,
         collapsedSidebarSections: state.collapsedSidebarSections,

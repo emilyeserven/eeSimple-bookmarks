@@ -59,7 +59,6 @@ const meta = {
   args: {
     bookmarkId: "bm-relationships",
     initialRelationships: [],
-    onDone: () => {},
   },
 } satisfies Meta<typeof BookmarkRelationshipsEditor>;
 
@@ -67,8 +66,10 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** The editor with no relationships yet. */
 export const Empty: Story = {};
 
+/** Seeded with one non-directional Similar relationship to GitHub. */
 export const WithExistingRelationship: Story = {
   args: {
     initialRelationships,

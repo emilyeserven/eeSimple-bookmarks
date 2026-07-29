@@ -42,6 +42,7 @@ export const Default: Story = {
   },
 };
 
+/** A starts-with title match with a pattern filled in. */
 export const WithPattern: Story = {
   render: () => {
     const [value, setValue] = useState<MatchCondition>({

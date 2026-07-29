@@ -106,9 +106,7 @@ vi.mock("../lib/api/metadata", () => ({
   },
 }));
 
-vi.mock("../lib/notifications", () => ({
-  notifySuccess: vi.fn(),
-}));
+vi.mock("../lib/notifications", async () => await import("../test-utils/toastSpies"));
 
 const queueState = {
   enqueue: enqueueScreenshot,
@@ -325,8 +323,6 @@ describe("useBookmarkImageEditForm", () => {
       secondaryLanguageId: null,
       fallbackLanguageId: null,
       searchBoxPinned: false,
-      panelPinned: false,
-      drawerUnpinnedBreakpoints: [768],
       croppedWidth: 16,
       croppedHeight: 9,
       customPropertyTypeIcons: null,
