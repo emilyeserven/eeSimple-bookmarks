@@ -7,7 +7,13 @@ import { makeBookmark, makeCustomProperty } from "../test-utils/factories";
 import { renderWithRouter } from "../test-utils/router";
 
 // Stub the bookmark hooks so the card-menu editors can assert the update call without a live API.
-const updateMutate = vi.fn<(args: unknown) => void>();
+const updateMutate = vi.fn<(args: unknown, opts?: unknown) => void>();
+
+/** The card saves pass toast callbacks as mutate options — match them loosely. */
+const toastCallbacks = expect.objectContaining({
+  onSuccess: expect.any(Function),
+  onError: expect.any(Function),
+});
 vi.mock("../hooks/useBookmarks", () => ({
   useAutoBookmarkImage: () => ({
     mutate: vi.fn(),
@@ -201,7 +207,7 @@ describe("BookmarkCard", () => {
           },
         ],
       },
-    });
+    }, toastCallbacks);
   });
 
   it("toggles a clickable-in-view boolean by clicking its card badge", async () => {
@@ -243,7 +249,7 @@ describe("BookmarkCard", () => {
           },
         ],
       },
-    });
+    }, toastCallbacks);
   });
 
   it("does not make a boolean card badge clickable when clickableInView is off", async () => {
@@ -304,7 +310,7 @@ describe("BookmarkCard", () => {
           },
         ],
       },
-    });
+    }, toastCallbacks);
   });
 
   it("omits the card-menu editors for properties not opted in", async () => {

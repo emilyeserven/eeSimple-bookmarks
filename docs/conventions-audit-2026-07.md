@@ -8,6 +8,16 @@ hand-maintained registries, and testing/i18n/lint discipline.
 
 Severity legend: 🔴 behavior-affecting bug · 🟠 convention violation · 🟡 doc/dead-surface drift.
 
+> **Status (2026-07-29): addressed on this branch.** Every 🔴/🟠 finding and the doc/dead-surface
+> drift below was fixed in the follow-up commits on `claude/app-conventions-audit-8lsl8h`, and the
+> §13 proposed conventions were recorded in CLAUDE.md (with the supporting primitives —
+> `useCollectionAutoSave`, `imageGrabErrorReply`, `toastSpies`, `registerReset`, the shared
+> `cardFieldKeys` tuple, the derived `taxonomyEditLink` — implemented). Deliberately deferred, as
+> documented decisions rather than code changes: the six uiStore server-migration candidates (§4),
+> the enumerated client-side heavy derivations (§5 — now a closed sanctioned list), the shared
+> `BackLink`/`EmptyState`/skeleton primitives (C-13 — idioms documented instead), and
+> `UpdateHomepageFilterInput` (endpoint no longer exists; left for a dead-surface pass).
+
 ---
 
 ## 1. Behavior-affecting findings (fix first)

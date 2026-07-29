@@ -22,7 +22,12 @@ tooling and architecture of [course-tracker](https://github.com/emilyeserven/cou
   the non-isolated path depends on the fresh-world reset in `test-utils/setup.ts` (a new
   module-level singleton that tests mutate belongs in `test-utils/resetStores.ts`). For the local
   loop, `pnpm test:client:changed` (and `pnpm verify:changed`) run only tests affected by your
-  diff via `vitest --changed`.
+  diff via `vitest --changed`. Two test-double rules: mock the toast stack **only** through the
+  shared `test-utils/toastSpies.ts` seam (never `vi.mock` on `lib/autoSave`, `lib/notifications`,
+  or `sonner` directly — the three sonner-layer tests are the sole exception), and a non-zustand
+  module-level singleton a test mutates registers a plain reset callback via
+  `test-utils/resetStores.ts`'s `registerReset` (zustand stores go in `RESETTABLE_STORES` as
+  before).
 
 ## Monorepo layout
 
@@ -125,7 +130,14 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   `Record<CustomPropertyType, …>` maps (e.g. in `lib/propertyFormat.ts`, `CategoryCustomProperties.tsx`)
   are exhaustive, so a forgotten spot now **fails `tsc`** instead of silently rejecting at the
   modal/API boundary (the PR #341 `image`/`file` drift can no longer happen). Don't reintroduce a
-  literal `["number", "boolean", …]` list anywhere — derive from the tuple. The bookmark-filter UI
+  literal `["number", "boolean", …]` list anywhere — derive from the tuple. **This is the general
+  rule, not a four-tuple special case: any string union that crosses a package boundary (a client
+  zod enum, a middleware JSON-Schema `enum`, a settings value) is declared as an `as const` tuple +
+  `typeof T[number]`** — e.g. `BOOLEAN_LABEL_PRESETS`, `SECTION_ENTRY_TYPES`,
+  `BOOKMARK_ADD_FORM_STANDARD_FIELDS` — and every wire schema spreads the tuple
+  (`z.enum(TUPLE)` / `enum: [...TUPLE]`). A deliberate *subset* list is typed
+  `as const satisfies readonly <Union>[]` with a comment naming it a subset (see
+  `lib/inboxPreFill.ts`) so a renamed member fails `tsc`. The bookmark-filter UI
   dispatches the same way: `components/conditions/PropertyConditionEditor.tsx` routes each property
   through `propertyValueKind()` to one of the exhaustive `*ConditionRow` sub-components
   (`Number`/`DateTime`/`File`/`Boolean`) — adding a value kind means adding a branch there too. The
@@ -237,8 +249,13 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
     (`useHideWebsiteForYouTube` reads `config.hideWebsiteForYouTube`; listing cards resolve it per-card,
     other surfaces/table use the config value). The old per-page/global field-visibility + image
     controls, the global "hide website for YouTube" toggle, and **Display Presets** were removed in favor
-    of this. The `hiddenCardFields` key list (`STANDARD_CARD_FIELDS` + custom-property ids in
-    `lib/bookmarkCardFields.ts`) is shared with homepage sections — keep in sync.
+    of this. The canonical card-field key lists are the
+    `STANDARD_CARD_FIELD_KEYS` / `HEADER_CARD_FIELD_KEYS` tuples in
+    `packages/types/src/cardFieldKeys.ts` — the client labels (`lib/bookmarkCardFieldDefs.ts`, an
+    exhaustive `satisfies Record<StandardCardFieldKey, …>`) and the middleware defaults
+    (`services/cardDisplayDefaults.ts`) both **derive** from them, so the two sides can no longer
+    drift. The `hiddenCardFields` key list (those keys + custom-property ids) is shared with
+    homepage sections.
   - **Field placements** — a `CardFieldPlacement` places one field into a section's `fields` (or one of
     the four `image-*` overlay corners). Order within a section/corner matters (the boards are sortable;
     the card renders in array order). A placement carries `scale`/`mobileScale` (image corners),
@@ -271,7 +288,22 @@ Package-scoped commands use `pnpm --filter=@eesimple/<name>`.
   *discriminated result union* (external-fetch/image-grab), and then only in the same envelope shape. A
   new client-translatable `code` needs both an `ErrorCode` union entry (in
   `packages/middleware/src/utils/errors.ts` — the union is middleware-local, not in `@eesimple/types`)
-  and a client `errorMessages.ts` entry (a non-`tsc`-enforced sync point). **See the `api-errors` skill.**
+  and a client `errorMessages.ts` entry (a non-`tsc`-enforced sync point). The five image-grab
+  result kinds (`no_image`/`bad_image`/`blocked`/`server_error`/`fetch_error`) are union members
+  with client entries, and every image-grab route maps them through the **single
+  `utils/imageGrabError.ts` `imageGrabErrorReply(kind, noun)` helper** — never a per-route message
+  map. `conflict` (like `validation`) is *deliberately unmapped* client-side: its server `message`
+  names the exact clash and surfaces verbatim. **See the `api-errors` skill.**
+- **Shared payload types must be consumed, and new types go in a domain module.** A
+  request/response type declared in `@eesimple/types` for an endpoint must be imported by the route
+  that implements it (type the parsed body with it beside the JSON schema — see `routes/gallery.ts`
+  / `routes/taxonomies.ts`); don't declare aspirational payload types, which is how orphaned type
+  surface accumulates. New types land in (or get) a domain module (`customProperties.ts`,
+  `entityLayouts.ts`, `cardFieldKeys.ts`, …), not appended to the `index.ts` god-barrel —
+  `index.ts` re-exports.
+- **Deprecation sunset:** a `@deprecated` export "retained for existing references" must actually
+  have references — when a grep shows zero, delete it in the same change instead of letting it
+  linger.
 
 ## Page-header breadcrumbs
 
@@ -380,13 +412,14 @@ that matches the surface — don't invent a new structure for a one-off page.
   loses the entity context and breaks deep-linking. Reference: `routes/categories.$categorySlug._hub.tsx`
   + `._hub.index.tsx` + `-categoryListing.tsx`. **The header shows an Edit (pencil) icon, not an Info
   icon** — Info is now a listing tab, so `viewDetailsAction`/`taxonomyViewLink` were removed;
-  `taxonomyEditLink` (`components/header/toolbarActionTypes.tsx`) now renders the Edit button on the bare
-  listing + its gallery/media/info tabs (a new entity gets it from the length-based guard, no per-entity
-  branch). The `_hub` header is the `<h1>` title plus any entity-specific chrome (the tree entities'
+  `taxonomyEditLink` (`components/header/toolbarActionTypes.tsx`) renders the Edit button on the bare
+  listing + its gallery/info tabs, **derived from `ENTITY_ROUTES` via `matchEntityRoute`** (every
+  slug-routed kind gets it with zero per-entity code; custom-taxonomy term pages are the one special
+  case). Don't reintroduce a per-entity switch there. The `_hub` header is the `<h1>` title plus any entity-specific chrome (the tree entities'
   sub-items chip row: Tags' "Sub-tags:", Locations' "Sub-locations:", and Languages' clearable
   `?usageLevel=` badge). **Newsletters** are the bespoke listing entity — their `_hub` strip is
   `Issues | Info` (the "listing" is the import-group issues list, not bookmarks).
-- **Card boxes** — two distinct uses of the card token, never for detail/edit page content:
+- **Card boxes** — three documented uses of the card token, never for detail/edit page content:
   - **List/row cards**: use `<RowCard>` from `@/components/ui/card` (renders `rounded-lg border
     bg-card`). Pass padding (`p-4`) or layout utilities (`group relative`) via `className`. Used in
     `WebsiteManager`, `MediaTypeManager`, `YouTubeChannelManager`,
@@ -395,6 +428,16 @@ that matches the surface — don't invent a new structure for a one-off page.
   - **Settings panels**: use the shadcn `<Card>` with `<CardHeader>`, `<CardContent>`, etc.
     (`DisplaySettings`, `AutomationsSettings`, `LinkParsingSettings`,
     `HomepageSectionsSettings`).
+  - **Drag-chip rows**: the compact `rounded-md border bg-card` token for sortable chips/rows
+    (`SortableFilterRow`, `HomepageWidgetOrderList`, the card-field-zone `FieldChip`) — keep the
+    exact class string. (One sanctioned `RowCard` hold-out: a semantic `<li>` list row may
+    hand-roll the `rounded-lg` token until `RowCard` grows `asChild` — see
+    `NotificationsBellPopover`; a collapse-trigger `<button>`'s chrome is not a card use at all.)
+
+  The hand-rolled "← Back to X" link, inline `"Loading…"` text, muted empty-state `<p>`, and
+  "X not found" fallbacks are the current consistent micro-idioms — reuse the existing class
+  strings/wording verbatim rather than inventing variants; promoting them to shared primitives
+  (`BackLink`/`EmptyState`/skeletons) is an open follow-up, not something to do piecemeal.
 - **Entity view/edit = the `EntityWorkbench` descriptor** (the URL-driven right drawer/panel was
   removed in issue #1108 — there is no more `components/panel/`, `drawerSearch`, `dOpen`/`dCT`/…
   params, or `useEditPanelClick`/`usePanelControls`; every affordance now just navigates to the full
@@ -682,9 +725,14 @@ Channels, Tags, Autofill) **auto-saves per field — there is no Save button.** 
 field persists on its own and fires a toast that **names the field** and is recorded in the
 Notifications log (the header **bell popover**, `components/NotificationsBellPopover.tsx`, over the
 `notificationStore` — this is the history home since the right drawer was removed in issue #1108).
-The single implementation is `hooks/useFieldAutoSave.ts` (the
-`saveField` engine: single-field PATCH, deep-equal no-op skip, invalid skip, success-only snapshot
-advance) + `lib/autoSave.ts` (`notifyFieldSaved` / `notifyFieldSaveError` wording). **Reference:
+There are exactly **two** engines, both toasting via
+`lib/autoSave.ts` (`notifyFieldSaved` / `notifyFieldSaveError` wording): **per-field** saves go
+through `hooks/useFieldAutoSave.ts` (the `saveField` engine: single-field PATCH, deep-equal no-op
+skip, invalid skip, success-only snapshot advance); **whole-collection debounced saves** — a tab
+persisting one value *set* with one section-named toast — go through
+`hooks/useCollectionAutoSave.ts` (serialize-compare no-op skip, shared debounce, success-only
+snapshot advance; behind the bookmark Properties / Languages / Names / Related tabs and the
+property scope sections). Don't hand-roll either shape. **Reference:
 `components/CategoryGeneralForm.tsx`.** The full recipe + rules live in the **`toast-notifications`**
 skill — consult it before building or changing an edit tab. In short:
 
@@ -705,7 +753,9 @@ skill — consult it before building or changing an edit tab. In short:
   explicit submit button — `PropertyForm` (full) and `TagForm` stay submit-driven for create while
   their per-tab **edit** forms auto-save. **Bookmark edit** also auto-saves per field now (General tab
   scalars via `useFieldAutoSave` + a bespoke `saveUrl`; the Properties tab debounce-persists the whole
-  value set like the Languages tab, one "Properties" toast) — the **only** Save button left on bookmark
+  value set like the Languages tab, one "Properties" toast; the Related tab debounce-persists the
+  relationship set the same way via `useCollectionAutoSave` — one "Related bookmarks" toast, and an
+  incomplete draft row never fires a save) — the **only** Save button left on bookmark
   edit is the Image tab's, which applies the staged multi-image picker intent (uploads/kept/main/
   removals) that can't be expressed as a single field; every other Image action already saves
   immediately. **Bookmark edit is now the single layout-driven `?tab=` route (#1163)** — the per-tab
@@ -714,7 +764,12 @@ skill — consult it before building or changing an edit tab. In short:
   `LanguageUsagesTabEditor` / `BookmarkImageEditForm` / `BookmarkVideoEditForm`), so none of these save
   semantics changed; the General Delete danger zone is a `BookmarkEditView` fixture (bookmarks are
   id-routed, off the workbench `useDelete` control). See **Content hierarchies → Bookmarks are
-  layout-driven**. **Local-only Zustand prefs** stay instant with **no toast**
+  layout-driven**. `LocationAncestorsSection`'s "Save ancestors" button is the one documented
+  entity-edit exception beyond create flows (multi-location create-and-reparent can't be expressed
+  as a single field save; it still fires field-named toasts). **Settings-page inline managers**
+  (place types, location relations, usage levels, taxonomies, …) toast every rename/mutation with
+  `notifySuccess`/`notifyError` — a server write with no toast is a bug, not a style choice.
+  **Local-only Zustand prefs** stay instant with **no toast**
   (nothing persists server-side). The no-toast carve-out is **only** for *ephemeral, device-local
   view prefs* in `uiStore` — what now remains there is `theme`, `collapsedSidebarSections`, the
   physical sizing (`sidebarWidth`/`panelWidth`/`tableColumnWidths`), open/closed state
@@ -731,9 +786,13 @@ skill — consult it before building or changing an edit tab. In short:
   hooks (`useCroppedWidth`, …) and written with a `notifySuccess` toast —
   **including the inline popovers** that set the same prefs (detail-layout) and the on-blur Cropped
   W/H inputs. Don't misclassify a should-persist setting as a local pref: that's exactly what shipped
-  those pages toast-less (and non-syncing) before the move. (The `panelPinned`/
-  `drawerUnpinnedBreakpoints`/`sidebarOpenModifier` keys of these groups are dormant orphans left over
-  from the removed right drawer — issue #1108.)
+  those pages toast-less (and non-syncing) before the move. (The drawer-era `panelPinned`/
+  `drawerUnpinnedBreakpoints`/`sidebarOpenModifier` keys were removed end to end — type, column,
+  service, schema, hooks — in the conventions-audit sweep; `migrate.ts` drops the columns.) Known
+  device-local `uiStore` keys flagged as *future server-migration candidates* (deliberate, pending an
+  owner decision — don't treat them as precedent for new should-persist keys):
+  `hideLocationMapAdminBorders`, `bookmarkGraphSpacing`, `selectedDisplayPreset`, `hiddenCardFields`,
+  and the three global sort modes (`locationSortMode`/`categorySortMode`/`websiteSortMode`).
 
 ## Data shaping: middleware vs. client
 
@@ -748,7 +807,9 @@ instead.
 - **Counts** — `computeTagBookmarkCounts` (subtree + own counts) in `services/tags.ts` and its
   locations twin, both thin wrappers over the generic `parentId`-tree helpers in
   `utils/parentTree.ts` (children map, subtree ids, subtree bookmark counts — reuse these for any
-  new tree taxonomy); the category bookmark-count subquery in `services/categories.ts`. The client
+  new tree taxonomy); the category bookmark-count subquery in `services/categories.ts`; the saved-filter
+  sidebar counts (`listSavedFilters` computes `bookmarkCount` over the bookmark cache with the
+  shared search predicates). The client
   renders the number; it doesn't tally rows.
 - **Trees** — `buildTagTree` / the media-type tree returned by `/api/tags/tree` and
   `/api/media-types/tree`. The client only flattens for indentation.
@@ -801,6 +862,15 @@ instead.
   list is already in cache; an endpoint would only duplicate logic. (Facet slider bounds are the
   exception that *did* move: `effectiveBounds` now prefers the search response's `numberBounds`,
   since the client no longer holds the whole set.)
+- **The enumerated heavy derivations** — `lib/bookmarkHierarchy.ts` (relationship tree),
+  `lib/bookmarkGraph.ts` + `useBookmarkGraph` (pairwise related-bookmark scoring — the acknowledged
+  heaviest; first candidate for a server endpoint if it grows), `lib/relationshipTypeCards.ts`,
+  `lib/locationRelationCards.ts`, `useRelatedBookmarks`, `useBookmarksSharingMediaSource`. **This
+  list is exhaustive** — a module may call itself "a sanctioned client-side derivation" in a
+  docstring only if it is named here, and adding one is a CLAUDE.md edit. Relatedly, plain
+  whole-cache `useBookmarks()` reads on non-listing surfaces (palette data, previews, basket) are
+  tolerated at current scale, but a *count* or *filter* over the whole set that an endpoint already
+  computes must use the endpoint — the saved-filter pin counts were the reference violation.
 - **Card Display resolution** — `lib/cardDisplayRules.ts` (`resolveCardDisplay` +
   `useResolveCardDisplay`) evaluates the shared `evaluateConditions` against each rendered bookmark in
   the listing grid (`BookmarkListPane`) to decide that card's **per-section** visibility (each
@@ -944,21 +1014,33 @@ custom taxonomy uses:
   service is `services/taxonomyAssignments.ts` (`getOwnerTaxonomyTerms` / `setOwnerTaxonomyTerms` /
   `listTermIdsByOwnerType`); `services/genreMoodAssignments.ts` is a thin **legacy shim** that scopes
   those generic calls to the G&M taxonomy id.
-- Because `ownerId` has **no cascade FK**, every owner's `delete*` service must clean up its rows via
-  **`deleteTaxonomyAssignmentsForOwner(ownerType, id)`** — one call removes *every* taxonomy's rows
-  (G&M included) for that owner. Bookmarks do this across **all three** bookmark-delete paths
+- Because `ownerId` has **no cascade FK**, every owner's `delete*` service must run the **three
+  polymorphic owner-cleanups**: `deleteTaxonomyAssignmentsForOwner(ownerType, ids)` (one call
+  removes *every* taxonomy's rows, G&M included), `deleteEntityNamesForOwner(ownerType, ids)`
+  (see **Multilingual display names** — `ENTITY_NAME_OWNER_TYPES` in
+  `packages/types/src/entityNames.ts`), and — for the four `LANGUAGE_USAGE_OWNER_TYPES` owners —
+  `deleteLanguageUsagesForOwner(ownerType, ids)`. All three accept an id **or an id array**
+  (batched). **A `parentId`-tree taxonomy's delete must collect the whole subtree's ids *before*
+  the cascade delete** (via `utils/parentTree.ts`) and run the cleanups for every subtree id — the
+  FK cascade removes descendant rows in-DB but knows nothing about the polymorphic tables. Each
+  polymorphic *value* service invalidates the bookmark cache only for
+  `ownerType === "bookmark"`, importing from the leaf `bookmarkCacheVersion` module where a direct
+  `bookmarkCache` import would be circular (see `services/entityNames.ts`). Bookmarks do this across **all three** bookmark-delete paths
   (`deleteBookmark`/`bulkDeleteBookmarks`/`deleteOrphanedBookmarks`) via `cleanupGenreMoodAssignments`,
   which deletes the bookmark's `taxonomy_assignments` rows. Bookmark-owner writes call
   `invalidateBookmarkCache()`. **Image cleanup is separate and per-entity**, not a generic owner
   registry: each entity that stores images has its own table + service (`bookmarkImages` / `groupImages`
   / `personImages` / `youtubeChannelImages`; `socialImages` is a fetch-only helper), and its own delete
-  path removes its images. There is **no** `deleteTaxonomyImagesForOwner` / `TAXONOMY_IMAGE_OWNER_TYPES`
+  path removes its images — **reading the stored object key *before* the delete cascade and calling
+  `deleteObject` after** (the cascade destroys the row that holds the key; forgetting the ordering
+  silently leaks S3 objects). Bookmark-image *writes* are matchable data (`imagePresenceBids` feeds
+  the fillable-fields condition) — every `bookmarkImages` mutation calls `invalidateBookmarkCache()`. There is **no** `deleteTaxonomyImagesForOwner` / `TAXONOMY_IMAGE_OWNER_TYPES`
   / `services/taxonomyImages.ts` — the `taxonomy_images` table exists as a schema pattern, but there is
   no shared taxonomy-image owner-cleanup helper.
 - **Bookmarks** carry `genreMoods: BookmarkGenreMood[]` (hydrated via a batched join on
   `ownerType='bookmark'`, linked in the create/update tx like `bookmarkTags`, submitted as
-  `genreMoodIds`) and expose a placeable **`genreMoods`** card field (kept in sync in both
-  `STANDARD_CARD_FIELDS` and the middleware `STANDARD_CARD_FIELD_KEYS`).
+  `genreMoodIds`) and expose a placeable **`genreMoods`** card field (both sides derive from the shared
+  `packages/types/src/cardFieldKeys.ts` tuple).
 - **Cross-taxonomy UI is one reusable component** — `components/GenreMoodAssignmentSection.tsx` (over
   the generic `components/TaxonomyAssignmentSection.tsx`; `ownerType`/`ownerId` props, auto-saving
   multi-select with inline create) — dropped into **every** owner's edit General form. Adding a new
@@ -1222,7 +1304,11 @@ recipe.** The load-bearing pieces:
 **Term-level favorites** (Custom Taxonomies + Genres & Moods): one `taxonomy_terms.isFavorite` column,
 surfaced through **both** `services/taxonomyTerms.ts` and `services/genreMoods.ts`; the sidebar reads all
 starred terms via `GET /api/taxonomy-terms/favorites` (`listFavoriteTaxonomyTerms` →
-`useFavoriteTaxonomyTerms()`), grouped by `taxonomyId`. **`isFavorite` is update-only** — never in a
+`useFavoriteTaxonomyTerms()`), grouped by `taxonomyId`. Terms light **all three** starring
+surfaces: the listing-row toggle (`TaxonomyTermTreeList` via `useTaxonomyTermFavoriteToggle`), the
+header star (a `"taxonomy-term"` entry in `FAVORITE_ENTITY_CONFIGS`, resolved by
+`useTaxonomyTermPageContext`), and the CMD+K **"Current Term"** group (star / New sub-term / Edit
+in `CommandPaletteDefaultView.tsx`). **`isFavorite` is update-only** — never in a
 Create input/body/insert (the Autofill/Import-Rules route bodies that alias `createRuleBody.properties`
 must spread instead), and the read-interface field is **optional** (the mapper always sets it) to avoid
 breaking construction sites.
@@ -1262,6 +1348,21 @@ additive (no `migrate.ts` step) per **Database schema changes**.
 - **Accepted edge case:** a stored default (e.g. a website's default media type) pointing at a
   now-hidden value renders blank in *its* picker — same as today's deleted-value behavior; unhiding
   restores it. Bookmark cards are unaffected (they render the embedded value, not a picker).
+
+## Internationalization
+
+The client UI is translated with **react-i18next** using **English-phrase (natural) keys** — wrap
+every user-facing string in `t()` (or `i18n.t()` outside components); the key *is* the English
+phrase, so an untranslated locale falls back to readable English.
+`packages/client/src/locales/ja.json` is the Japanese catalog: most values are English placeholders
+awaiting translation, and **owner-authored Japanese values are sacred** — automated sessions may
+add/prune placeholder keys but must never write, machine-translate, or overwrite a real Japanese
+value. Tooling (`scripts/i18n.mjs`): `pnpm i18n:extract` registers new keys, `pnpm i18n:status`
+reports coverage + orphaned keys, `pnpm i18n:check-stale` finds translated keys whose source string
+no longer exists. CI runs a dedicated **advisory** `i18n` job that writes coverage to the step
+summary and deliberately never fails the PR — nothing automatically catches a missed `t()`, so the
+wrap-everything rule is review-enforced. See the **`i18n`** skill for locale-aware formatting and
+the test/Storybook integration.
 
 ## Generated files (do not edit)
 
@@ -1415,8 +1516,12 @@ from the two nav data modules, so favoritability comes for free:
   `settingsPages.ts` covers a label that must differ from the sidebar title, e.g. newsletters).
 - Only a page on **neither surface** (e.g. `/settings/extension`, `/taxonomies/place-types`) goes in
   the hand-listed `STANDALONE_PAGES` remainder in `settingsPages.ts`.
+A `/settings/*` alias that merely mirrors a canonical page **redirects**
+(mirroring `settings.saved-filters.tsx`) instead of rendering a second live copy.
 `settingsPages.test.ts` asserts the derivation (every sidebar item / settings tab resolves) — extend
-it only for standalone pages. The CMD+K palette's Pages/Taxonomies/Settings nav groups derive from
+it only for standalone pages — **and walks the route tree**, failing if any live (non-redirect)
+`/settings/**` or `/taxonomies/**` leaf doesn't resolve via `findSettingsPage`, so a new page can no
+longer ship silently unstarrable. The CMD+K palette's Pages/Taxonomies/Settings nav groups derive from
 the same modules (`CommandPaletteNavGroups.tsx`), so they also pick the page up automatically.
 
 ## CMD+K palette sync
