@@ -7,6 +7,17 @@ import { placeTypesApi } from "../lib/api/taxonomies";
 
 const PLACE_TYPES_KEY = ["place-types"] as const;
 
+function invalidatePlaceTypeConsumers(queryClient: ReturnType<typeof useQueryClient>) {
+  void queryClient.invalidateQueries({
+    queryKey: PLACE_TYPES_KEY,
+  });
+  // A rename/reassign/delete ripples into locations (each embeds its place type), so refresh
+  // anything keyed on locations too.
+  void queryClient.invalidateQueries({
+    queryKey: ["locations"],
+  });
+}
+
 export function usePlaceTypes() {
   return useQuery({
     queryKey: PLACE_TYPES_KEY,
@@ -43,11 +54,7 @@ export function useUpdatePlaceType() {
     }: { id: string;
       input: UpdatePlaceTypeInput; }) =>
       placeTypesApi.update(id, input),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: PLACE_TYPES_KEY,
-      });
-    },
+    onSuccess: () => invalidatePlaceTypeConsumers(queryClient),
   });
 }
 
@@ -58,26 +65,11 @@ export function useDeletePlaceType() {
       id, reassignTo,
     }: { id: string;
       reassignTo?: string; }) => placeTypesApi.remove(id, reassignTo),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: PLACE_TYPES_KEY,
-      });
-      // Reassignment rewrites locations' place type, so refresh anything keyed on locations too.
-      void queryClient.invalidateQueries({
-        queryKey: ["locations"],
-      });
-    },
+    onSuccess: () => invalidatePlaceTypeConsumers(queryClient),
   });
 }
 
 export function useBulkDeletePlaceTypes() {
   const queryClient = useQueryClient();
-  return useBulkDeleteEntity(placeTypesApi.bulkDelete, () => {
-    void queryClient.invalidateQueries({
-      queryKey: PLACE_TYPES_KEY,
-    });
-    void queryClient.invalidateQueries({
-      queryKey: ["locations"],
-    });
-  });
+  return useBulkDeleteEntity(placeTypesApi.bulkDelete, () => invalidatePlaceTypeConsumers(queryClient));
 }

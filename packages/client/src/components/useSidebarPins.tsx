@@ -6,7 +6,7 @@ import * as React from "react";
 import { Filter, Globe, MapPin, MonitorPlay, Tags } from "lucide-react";
 
 import { TAXONOMY_LISTING_PINS } from "./usePinManagerData";
-import { bookmarkMatchesSearch, bookmarkSearchEquals, validateBookmarkSearch } from "../lib/bookmarkSearch";
+import { bookmarkSearchEquals, validateBookmarkSearch } from "../lib/bookmarkSearch";
 
 import { CategoryIcon } from "@/lib/icons";
 
@@ -31,7 +31,7 @@ export interface ResolvedPin {
 type PinResolveData = Pick<
   SidebarEntityData,
   "categories" | "allTags" | "allWebsites" | "allMediaTypes" | "allChannels" | "savedFilters"
-  | "allBookmarks" | "allLocations"
+  | "allLocations"
 >;
 
 /** Everything a per-entity pin resolver needs beyond the pin itself. */
@@ -143,17 +143,16 @@ export const PIN_RESOLVERS: Record<PinnedSidebarEntityType, PinResolver> = {
   }) => {
     const e = (data.savedFilters ?? []).find(f => f.id === pin.entityId);
     if (!e) return [];
-    const search = validateBookmarkSearch(e.filters);
-    const bookmarkCount = (data.allBookmarks ?? []).filter(b => bookmarkMatchesSearch(b, search)).length;
     return [{
       id: pin.id,
       label: e.name,
       icon: <Filter />,
       link: {
         kind: "filter",
-        search,
+        search: validateBookmarkSearch(e.filters),
       },
-      bookmarkCount,
+      // Computed server-side by the saved-filters list endpoint, like every other pin kind.
+      bookmarkCount: e.bookmarkCount,
       isActive: pathname.startsWith("/bookmarks") && bookmarkSearchEquals(currentBookmarkSearch, e.filters),
     }];
   },
@@ -201,7 +200,7 @@ export function useResolvedPins(
 ): ResolvedPin[] {
   const {
     categories, allTags, allWebsites, allMediaTypes, allChannels, savedFilters, pinnedItems,
-    allBookmarks, allLocations,
+    allLocations,
   } = data;
   return React.useMemo((): ResolvedPin[] => {
     // Rebuild the data bag from the granular slices so the memo tracks each slice (not `data`'s identity).
@@ -213,7 +212,6 @@ export function useResolvedPins(
         allMediaTypes,
         allChannels,
         savedFilters,
-        allBookmarks,
         allLocations,
       },
       pathname,
@@ -228,7 +226,7 @@ export function useResolvedPins(
         }),
       ));
   }, [pinnedItems, categories, allTags, allWebsites, allMediaTypes, allChannels, savedFilters,
-    allBookmarks, allLocations, pathname, currentBookmarkCategories, currentBookmarkSearch]);
+    allLocations, pathname, currentBookmarkCategories, currentBookmarkSearch]);
 }
 
 /**
@@ -242,26 +240,23 @@ export function useViewableFilters(
   currentBookmarkSearch: Record<string, unknown>,
 ): ResolvedPin[] {
   const {
-    savedFilters, allBookmarks,
+    savedFilters,
   } = data;
   return React.useMemo((): ResolvedPin[] => {
     return (savedFilters ?? [])
       .filter(filter => filter.viewableOnline)
-      .map((filter): ResolvedPin => {
-        const search = validateBookmarkSearch(filter.filters);
-        const bookmarkCount = (allBookmarks ?? []).filter(b => bookmarkMatchesSearch(b, search)).length;
-        return {
-          id: filter.id,
-          label: filter.name,
-          icon: <Filter />,
-          link: {
-            kind: "filter",
-            search,
-          },
-          bookmarkCount,
-          isActive: pathname.startsWith("/bookmarks") && bookmarkSearchEquals(currentBookmarkSearch, filter.filters),
-          sectionId: null,
-        };
-      });
-  }, [savedFilters, allBookmarks, pathname, currentBookmarkSearch]);
+      .map((filter): ResolvedPin => ({
+        id: filter.id,
+        label: filter.name,
+        icon: <Filter />,
+        link: {
+          kind: "filter",
+          search: validateBookmarkSearch(filter.filters),
+        },
+        // Computed server-side by the saved-filters list endpoint.
+        bookmarkCount: filter.bookmarkCount,
+        isActive: pathname.startsWith("/bookmarks") && bookmarkSearchEquals(currentBookmarkSearch, filter.filters),
+        sectionId: null,
+      }));
+  }, [savedFilters, pathname, currentBookmarkSearch]);
 }

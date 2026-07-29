@@ -1,13 +1,19 @@
 import { asc, eq } from "drizzle-orm";
 import type {
+  Bookmark,
+  BookmarkSearch,
   BulkDeleteResult,
   CreateSavedFilterInput,
   SavedFilter,
+  TagDescendants,
   UpdateSavedFilterInput,
 } from "@eesimple/types";
+import { bookmarkMatchesSearch, validateBookmarkSearch } from "@eesimple/types";
 import { db } from "@/db";
 import { bulkDeleteEntities } from "@/services/bulkDelete";
 import { savedFilters, type SavedFilterRow } from "@/db/schema";
+import { getBookmarkEvaluationData } from "@/services/bookmarkCache";
+import { hydrateBookmarkRows } from "@/services/bookmarkHydration";
 import { uniqueSlug } from "@/utils/slug";
 import { takenSlugsOf } from "@/utils/taxonomySlugs";
 
@@ -27,12 +33,66 @@ function toSavedFilter(row: SavedFilterRow): SavedFilter {
 const takenSlugs = (excludeId?: string) =>
   takenSlugsOf(savedFilters, savedFilters.slug, savedFilters.id, excludeId);
 
+/**
+ * Whether a bookmark passes the tag-*inclusion* filter, expanded to each tag's whole subtree —
+ * mirrors `searchBookmarks`' `passesTagInclusion` (the shared facet table deliberately leaves
+ * inclusion to the data source); presence/exclude stay inside `bookmarkMatchesSearch`.
+ */
+function passesTagInclusion(
+  bookmark: Bookmark,
+  search: BookmarkSearch,
+  tagDescendants: TagDescendants,
+): boolean {
+  if (!search.tags || search.tags.length === 0 || search.tagPresence === "exclude") return true;
+  const allowed = new Set<string>();
+  for (const id of search.tags) {
+    for (const descendantId of tagDescendants(id)) allowed.add(descendantId);
+  }
+  return bookmark.tags.some(tag => allowed.has(tag.id));
+}
+
+/**
+ * Count the hydrated bookmarks matching one saved filter's serialized search, via the exact same
+ * shared `@eesimple/types` predicates the listing search runs — never a re-implementation. Pure,
+ * exported for tests.
+ */
+export function countBookmarksMatchingFilter(
+  filters: Record<string, unknown>,
+  bookmarks: Bookmark[],
+  tagDescendants: TagDescendants,
+): number {
+  const search = validateBookmarkSearch(filters);
+  let count = 0;
+  for (const bookmark of bookmarks) {
+    if (passesTagInclusion(bookmark, search, tagDescendants) && bookmarkMatchesSearch(bookmark, search)) {
+      count += 1;
+    }
+  }
+  return count;
+}
+
+/**
+ * List saved filters, each carrying its current `bookmarkCount` — the "load once → evaluate the
+ * shared predicate in-memory" pattern (CLAUDE.md → "Data shaping", mirrors
+ * `listHomepageSectionBookmarks`). Counts are display-only: this read never touches
+ * `invalidateBookmarkCache()`.
+ */
 export async function listSavedFilters(): Promise<SavedFilter[]> {
   const rows = await db
     .select()
     .from(savedFilters)
     .orderBy(asc(savedFilters.name));
-  return rows.map(toSavedFilter);
+  const filters = rows.map(toSavedFilter);
+  if (filters.length === 0) return filters;
+
+  const {
+    baseRows, tagDescendants,
+  } = await getBookmarkEvaluationData();
+  const hydrated = baseRows.length > 0 ? await hydrateBookmarkRows(baseRows) : [];
+  return filters.map(filter => ({
+    ...filter,
+    bookmarkCount: countBookmarksMatchingFilter(filter.filters, hydrated, tagDescendants),
+  }));
 }
 
 export async function getSavedFilterById(id: string): Promise<SavedFilter | null> {

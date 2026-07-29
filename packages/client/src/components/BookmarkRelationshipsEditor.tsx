@@ -1,7 +1,7 @@
 import type { ComboboxOption } from "./Combobox";
-import type { BookmarkRelationship } from "@eesimple/types";
+import type { BookmarkRelationship, UpdateBookmarkRelationshipEntry } from "@eesimple/types";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Plus, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -13,13 +13,18 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { useUpdateBookmarkRelationships, useBookmarks } from "@/hooks/useBookmarks";
+import { useCollectionAutoSave } from "@/hooks/useCollectionAutoSave";
 import { useRelationshipTypes } from "@/hooks/useRelationshipTypes";
 import { useBuiltInName } from "@/lib/builtInName";
 
 interface BookmarkRelationshipsEditorProps {
   bookmarkId: string;
   initialRelationships: BookmarkRelationship[];
-  onDone: () => void;
+  /**
+   * Unused since the editor moved to debounced auto-save (edit-tab standard — no Save/Cancel
+   * buttons); kept so existing mount sites compile unchanged.
+   */
+  onDone?: () => void;
 }
 
 /** A single editable relationship row in the editor's working state. */
@@ -47,10 +52,35 @@ function newDraft(): RelationshipDraft {
 
 const LABEL_SUGGESTIONS_ID = "relationship-label-suggestions";
 
+/**
+ * Shape the complete draft rows for the replace-all PATCH. An incomplete draft row (no bookmark or
+ * no type picked yet) is filtered out, so adding an empty row never fires a save.
+ */
+function relationshipsFromDrafts(
+  drafts: RelationshipDraft[],
+  directionalTypeIds: Set<string>,
+): UpdateBookmarkRelationshipEntry[] {
+  return drafts
+    .filter(d => d.bookmarkId !== "" && d.relationshipTypeId !== "")
+    .map((d) => {
+      const directional = directionalTypeIds.has(d.relationshipTypeId);
+      const label = d.label.trim();
+      return {
+        bookmarkId: d.bookmarkId,
+        relationshipTypeId: d.relationshipTypeId,
+        label: label.length > 0 ? label : null,
+        ...(directional
+          ? {
+            direction: d.otherIsParent ? ("parent" as const) : ("child" as const),
+          }
+          : {}),
+      };
+    });
+}
+
 export function BookmarkRelationshipsEditor({
   bookmarkId,
   initialRelationships,
-  onDone,
 }: BookmarkRelationshipsEditorProps) {
   const {
     t,
@@ -120,35 +150,28 @@ export function BookmarkRelationshipsEditor({
     setDrafts(prev => prev.filter(d => d.key !== key));
   }
 
-  function handleSave() {
-    const relationships = drafts
-      .filter(d => d.bookmarkId !== "" && d.relationshipTypeId !== "")
-      .map((d) => {
-        const directional = directionalTypeIds.has(d.relationshipTypeId);
-        const label = d.label.trim();
-        return {
-          bookmarkId: d.bookmarkId,
-          relationshipTypeId: d.relationshipTypeId,
-          label: label.length > 0 ? label : null,
-          ...(directional
-            ? {
-              direction: d.otherIsParent ? ("parent" as const) : ("child" as const),
-            }
-            : {}),
-        };
-      });
-    updateRelationships.mutate(
-      {
-        id: bookmarkId,
-        input: {
-          relationships,
-        },
+  // Debounced whole-set auto-save (edit-tab standard — no Save button): whenever the *complete*
+  // rows change from the last-saved set, replace the bookmark's relationships in one PATCH with a
+  // single "Related bookmarks" toast. Incomplete draft rows stay local-only until filled in.
+  const {
+    queueSave,
+  } = useCollectionAutoSave<UpdateBookmarkRelationshipEntry[]>({
+    id: bookmarkId,
+    label: "Related bookmarks",
+    persist: (relationships, callbacks) => updateRelationships.mutate({
+      id: bookmarkId,
+      input: {
+        relationships,
       },
-      {
-        onSuccess: onDone,
-      },
-    );
-  }
+    }, callbacks),
+  });
+
+  useEffect(() => {
+    // Wait for the relationship types so directional flags resolve before the snapshot seeds —
+    // otherwise the loaded `direction` values would register as a change and fire a spurious save.
+    if (relationshipTypes === undefined) return;
+    queueSave(relationshipsFromDrafts(drafts, directionalTypeIds));
+  }, [drafts, directionalTypeIds, relationshipTypes, queueSave]);
 
   return (
     <div className="space-y-6">
@@ -250,23 +273,6 @@ export function BookmarkRelationshipsEditor({
           </Button>
         </div>
       </LabeledSection>
-
-      <div className="flex gap-2">
-        <Button
-          onClick={handleSave}
-          disabled={updateRelationships.isPending}
-        >
-          {updateRelationships.isPending ? t("Saving…") : t("Save")}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onDone}
-          disabled={updateRelationships.isPending}
-        >
-          {t("Cancel")}
-        </Button>
-      </div>
     </div>
   );
 }

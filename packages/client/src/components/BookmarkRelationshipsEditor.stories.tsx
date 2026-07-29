@@ -59,7 +59,6 @@ const meta = {
   args: {
     bookmarkId: "bm-relationships",
     initialRelationships: [],
-    onDone: () => {},
   },
 } satisfies Meta<typeof BookmarkRelationshipsEditor>;
 

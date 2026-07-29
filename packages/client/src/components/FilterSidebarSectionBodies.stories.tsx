@@ -1,4 +1,7 @@
+import type { MediaTypeNode } from "@eesimple/types";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { HttpResponse, http } from "msw";
 
 import {
   CategoryFilterBody,
@@ -14,6 +17,11 @@ import {
   sampleMediaTypes,
   sampleTagTree,
 } from "../test-utils/story-mocks";
+
+const mediaTypeTree: MediaTypeNode[] = sampleMediaTypes.map(mediaType => ({
+  ...mediaType,
+  children: [],
+}));
 
 const meta = {
   title: "Filters/FilterSidebarSectionBodies",
@@ -47,11 +55,18 @@ export const Tags: StoryObj<typeof TagsFilterBody> = {
   },
 };
 
-/** Media-type filter body with expandable parent groups. */
+/** Media-type filter body with expandable parent groups (tree served by `/api/media-types/tree`). */
 export const MediaType: StoryObj<typeof MediaTypeFilterBody> = {
   render: args => <MediaTypeFilterBody {...args} />,
+  parameters: {
+    msw: {
+      handlers: [
+        ...apiHandlers,
+        http.get("/api/media-types/tree", () => HttpResponse.json(mediaTypeTree)),
+      ],
+    },
+  },
   args: {
-    mediaTypes: sampleMediaTypes,
     search: {},
     onSearchChange: () => {},
   },
