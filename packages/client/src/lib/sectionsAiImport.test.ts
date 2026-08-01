@@ -49,6 +49,7 @@ describe("buildSectionsImportPrompt", () => {
   it("includes the title, subtree, fallback parent, and JSON-only instruction", () => {
     const prompt = buildSectionsImportPrompt({
       bookmarkTitle: "Fluent Python",
+      includeTags: true,
       parentTagName: "programming",
       subtreeText: "- programming\n  - python",
     });
@@ -62,6 +63,7 @@ describe("buildSectionsImportPrompt", () => {
   it("omits the reuse list when no parent tag is selected, but still allows tags", () => {
     const prompt = buildSectionsImportPrompt({
       bookmarkTitle: null,
+      includeTags: true,
       parentTagName: null,
       subtreeText: null,
     });
@@ -69,6 +71,33 @@ describe("buildSectionsImportPrompt", () => {
     expect(prompt).not.toContain("exactly as written");
     expect(prompt).toContain("Tagging rules:");
     expect(prompt).toContain("Respond with ONLY a JSON object");
+  });
+
+  it("drops the tagging rules and the tags/newTags shape when tagging is off", () => {
+    const prompt = buildSectionsImportPrompt({
+      bookmarkTitle: "Fluent Python",
+      includeTags: false,
+      parentTagName: null,
+      subtreeText: null,
+    });
+    expect(prompt).toContain("\"Fluent Python\"");
+    expect(prompt).toContain("Structure rules:");
+    expect(prompt).toContain("Do not tag the sections");
+    expect(prompt).toContain("Respond with ONLY a JSON object");
+    expect(prompt).not.toContain("Tagging rules:");
+    expect(prompt).not.toContain("\"tags\"");
+    expect(prompt).not.toContain("\"newTags\"");
+  });
+
+  it("ignores a selected parent tag when tagging is off", () => {
+    const prompt = buildSectionsImportPrompt({
+      bookmarkTitle: null,
+      includeTags: false,
+      parentTagName: "programming",
+      subtreeText: "- programming\n  - python",
+    });
+    expect(prompt).not.toContain("- programming\n  - python");
+    expect(prompt).not.toContain("as the fallback");
   });
 });
 

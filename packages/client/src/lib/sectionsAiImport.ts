@@ -105,16 +105,35 @@ const OUTPUT_EXAMPLE = `{
   ]
 }`;
 
+/** The tags-free shape asked for when the user only wants a table of contents. */
+const UNTAGGED_OUTPUT_EXAMPLE = `{
+  "sections": [
+    {
+      "name": "Chapter 1: Getting Started",
+      "startPage": 1,
+      "endPage": 18,
+      "children": [
+        { "name": "1.1 Installing Python", "startPage": 3 }
+      ]
+    },
+    { "name": "Appendix" }
+  ]
+}`;
+
 /**
  * Assemble the ready-to-paste prompt. `subtreeText` (from {@link renderTagSubtree}) and
  * `parentTagName` are set together when the user picked a parent tag — the prompt then embeds the
- * subtree as the reuse list and names the parent as the fallback home for new tags. The prompt text
- * is AI-facing, not UI, so it is deliberately not translated (the AI-autotag precedent).
+ * subtree as the reuse list and names the parent as the fallback home for new tags. When
+ * `includeTags` is false the tagging rules are dropped entirely and the requested shape carries no
+ * `tags`/`newTags` at all, so the AI transcribes a plain table of contents (the parent tag, if any,
+ * is ignored). The prompt text is AI-facing, not UI, so it is deliberately not translated (the
+ * AI-autotag precedent).
  */
 export function buildSectionsImportPrompt({
-  bookmarkTitle, parentTagName, subtreeText,
+  bookmarkTitle, includeTags, parentTagName, subtreeText,
 }: {
   bookmarkTitle: string | null;
+  includeTags: boolean;
   parentTagName: string | null;
   subtreeText: string | null;
 }): string {
@@ -127,6 +146,9 @@ export function buildSectionsImportPrompt({
     "- Nested entries (sub-chapters) go in their parent's \"children\" array. Use at most one level of nesting; fold anything deeper into its nearest sub-chapter.",
     "- Copy entry names verbatim, including any numbering (e.g. \"1.2 Types\").",
     "- Include \"startPage\" whenever a page number is printed for the entry. Include \"endPage\" only when an explicit page range is printed — end pages are derived automatically otherwise.",
+    ...(includeTags
+      ? []
+      : ["- Do not tag the sections and do not add any other fields — a plain table of contents is all that is wanted."]),
   ].join("\n");
   const tagging = parentTagName && subtreeText
     ? [
@@ -141,8 +163,9 @@ export function buildSectionsImportPrompt({
       "- Optionally suggest up to 3 short topical \"tags\" per section describing what it covers. Leaving \"tags\" empty is fine.",
       "- List every tag name you use once in \"newTags\"; a tag may name another \"newTags\" entry as its \"parent\" (parents listed before children).",
     ].join("\n");
-  const output = `Respond with ONLY a JSON object — no prose and no code fences. Use exactly this shape:\n${OUTPUT_EXAMPLE}`;
-  return [task, structure, tagging, output].join("\n\n");
+  const output = `Respond with ONLY a JSON object — no prose and no code fences. Use exactly this shape:\n${
+    includeTags ? OUTPUT_EXAMPLE : UNTAGGED_OUTPUT_EXAMPLE}`;
+  return [task, structure, ...(includeTags ? [tagging] : []), output].join("\n\n");
 }
 
 /** Coerce a page value (number or numeric string) to a positive integer, else undefined. */
