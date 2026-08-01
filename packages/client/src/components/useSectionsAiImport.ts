@@ -22,7 +22,9 @@ import { randomId } from "../lib/utils";
 
 /**
  * Controller for the Sections "AI import" dialog: generates the prompt (embedding the selected
- * parent tag's subtree), parses the pasted AI JSON, tracks the tag review decisions
+ * parent tag's subtree, or asking for a plain table of contents when `includeTags` is off — the
+ * toggle is authoritative, so tags in the response are ignored rather than merely unrequested),
+ * parses the pasted AI JSON, tracks the tag review decisions
  * (reject / rename), and on apply creates the accepted new tags then replaces the Sections editor
  * value via `onApply` — the Kavita-import pattern, so nothing persists until the Properties tab's
  * debounce auto-save runs. All decision logic lives in the pure `lib/sectionsAiImport.ts` helpers;
@@ -48,6 +50,7 @@ export function useSectionsAiImport({
   const createTag = useCreateTag();
 
   const [open, setOpen] = useState(false);
+  const [includeTags, setIncludeTags] = useState(true);
   const [parentTagId, setParentTagId] = useState<string | undefined>(undefined);
   const [pasteText, setPasteText] = useState("");
   const [rejected, setRejected] = useState<Set<string>>(new Set());
@@ -64,15 +67,18 @@ export function useSectionsAiImport({
   const prompt = useMemo(
     () => buildSectionsImportPrompt({
       bookmarkTitle,
+      includeTags,
       parentTagName: parentNode?.name ?? null,
       subtreeText: parentNode ? renderTagSubtree(parentNode) : null,
     }),
-    [bookmarkTitle, parentNode],
+    [bookmarkTitle, includeTags, parentNode],
   );
   const parseState = useMemo(() => parseSectionsImportText(pasteText), [pasteText]);
+  // With tagging off, any `tags` the AI returned anyway are ignored end to end — no review rows, no
+  // tag creation, no `tagIds` on the imported entries.
   const tagReview = useMemo(
-    () => (parseState.kind === "ok" ? classifySuggestedTags(parseState.payload, tags ?? []) : []),
-    [parseState, tags],
+    () => (includeTags && parseState.kind === "ok" ? classifySuggestedTags(parseState.payload, tags ?? []) : []),
+    [includeTags, parseState, tags],
   );
 
   function handleOpenChange(next: boolean): void {
@@ -166,6 +172,8 @@ export function useSectionsAiImport({
     open,
     handleOpenChange,
     tree,
+    includeTags,
+    setIncludeTags,
     parentTagId,
     setParentTagId,
     parentName: parentNode?.name ?? null,

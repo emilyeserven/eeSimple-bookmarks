@@ -9,6 +9,7 @@ import { useSectionsAiImport } from "./useSectionsAiImport";
 import { tagNodesToOptions } from "../lib/tagTree";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogClose,
@@ -28,6 +29,10 @@ import { Textarea } from "@/components/ui/textarea";
  * an AI alongside photos of a book's table of contents, paste the AI's JSON back, review the parsed
  * sections + suggested tags (reject / rename new tags), and import — replacing the editor's current
  * list, to be persisted by the surrounding form's own save (the Kavita-import pattern).
+ *
+ * Unchecking "Tag the sections" drops the whole tagging half: the prompt asks for a plain table of
+ * contents, the parent-tag picker and the tag review rows are hidden, and no tag is created or
+ * attached even if the pasted response carries some.
  */
 export function SectionsAiImportDialog({
   bookmarkTitle, allowedTypes, onApply,
@@ -76,22 +81,39 @@ export function SectionsAiImportDialog({
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="ai-import-parent-tag">{t("Parent tag for suggestions (optional)")}</Label>
-            <TreeCombobox
-              id="ai-import-parent-tag"
-              options={tagNodesToOptions(ai.tree ?? [])}
-              value={ai.parentTagId}
-              placeholder={t("Select a parent tag…")}
-              leadingOption={{
-                value: "",
-                label: t("(no tag suggestions)"),
-              }}
-              onValueChange={value => ai.setParentTagId(value || undefined)}
-            />
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="ai-import-include-tags"
+                checked={ai.includeTags}
+                onCheckedChange={checked => ai.setIncludeTags(checked === true)}
+              />
+              <Label htmlFor="ai-import-include-tags">{t("Tag the sections")}</Label>
+            </div>
             <p className="text-xs text-muted-foreground">
-              {t("Its tag tree is embedded in the prompt so the AI reuses your existing tags.")}
+              {t("Uncheck to transcribe the table of contents only — the prompt asks for no tags, and any the AI returns anyway are ignored.")}
             </p>
           </div>
+          {ai.includeTags
+            ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="ai-import-parent-tag">{t("Parent tag for suggestions (optional)")}</Label>
+                <TreeCombobox
+                  id="ai-import-parent-tag"
+                  options={tagNodesToOptions(ai.tree ?? [])}
+                  value={ai.parentTagId}
+                  placeholder={t("Select a parent tag…")}
+                  leadingOption={{
+                    value: "",
+                    label: t("(no tag suggestions)"),
+                  }}
+                  onValueChange={value => ai.setParentTagId(value || undefined)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t("Its tag tree is embedded in the prompt so the AI reuses your existing tags.")}
+                </p>
+              </div>
+            )
+            : null}
           <div className="space-y-1.5">
             <Label htmlFor="ai-import-prompt">{t("Prompt")}</Label>
             <Textarea
@@ -126,7 +148,13 @@ export function SectionsAiImportDialog({
               ? <p className="text-sm text-destructive">{t("Could not parse JSON. Paste the AI's JSON response.")}</p>
               : null}
             {ai.parseState.kind === "invalid"
-              ? <p className="text-sm text-destructive">{t("JSON must be a { sections, newTags } object where every section has a name.")}</p>
+              ? (
+                <p className="text-sm text-destructive">
+                  {ai.includeTags
+                    ? t("JSON must be a { sections, newTags } object where every section has a name.")
+                    : t("JSON must be a { sections } object where every section has a name.")}
+                </p>
+              )
               : null}
           </div>
           {ai.parseState.kind === "ok"
