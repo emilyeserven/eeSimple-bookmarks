@@ -6,6 +6,7 @@ import type { FetchIsbnMetadataResult, KavitaSeriesDetail, PodcastFeedResult } f
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
+import { useStableSyncSourceFetch } from "./useStableSyncSourceFetch";
 import { bookmarksApi } from "../lib/api/bookmarks";
 import { kavitaApi } from "../lib/api/kavita";
 import { metadataApi } from "../lib/api/metadata";
@@ -16,7 +17,7 @@ import {
   buildBookmarkPlexDiff,
   buildBookmarkPodcastDiff,
 } from "../lib/syncSources/bookmarkDiff";
-import { numRef, resolveSyncSourceFetch, strRef } from "../lib/syncSources/syncSourceQuery";
+import { numRef, strRef } from "../lib/syncSources/syncSourceQuery";
 
 /**
  * Re-scans a bookmark's URL via the consolidated `GET /api/scan` and diffs the result (title,
@@ -90,7 +91,7 @@ export function useBookmarkSyncSource(provider: SyncProvider, enabled: boolean):
     imageUrl: strRef(provider.refs, "currentImageUrl"),
   };
 
-  return resolveSyncSourceFetch([
+  return useStableSyncSourceFetch([
     {
       active: enabled && url !== null,
       isPending: scanQuery.isPending,

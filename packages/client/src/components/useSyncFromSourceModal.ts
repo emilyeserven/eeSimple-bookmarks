@@ -6,6 +6,11 @@ import { useBookmarkSyncSource } from "@/hooks/useBookmarkSyncSource";
 import { useImageOnlyTaxonomySyncSource } from "@/hooks/useImageOnlyTaxonomySyncSource";
 import { useLocationSyncSource } from "@/hooks/useLocationSyncSource";
 
+/** Whether two selection sets hold the same keys, so a re-seed that changes nothing can bail out. */
+function sameKeys(a: Set<string>, b: Set<string>): boolean {
+  return a.size === b.size && [...a].every(key => b.has(key));
+}
+
 /**
  * State + orchestration for {@link SyncFromSourceModal}. Dispatches to the per-kind fetch hook
  * (each gated so only the active one runs while the modal is open), tracks the per-row checkbox
@@ -41,17 +46,20 @@ export function useSyncFromSourceModal(provider: SyncProvider, open: boolean, on
   // selects everything (the intent is "pull it all fresh, overwriting"), off falls back to each
   // row's fill-empty default. Manual per-row toggles between these events are preserved (they don't
   // change the deps). Closing the modal clears both so a re-open starts clean.
+  //
+  // The seed is applied through a bail-if-unchanged functional update: `new Set(...)` is a fresh
+  // reference every time, so an unconditional `setSelectedKeys` would re-render on every run. This
+  // hook's `allRows` dep is only as stable as the source hook's `diff` — keeping the update a no-op
+  // when the selection is already correct is what stops a churning source from spinning the render
+  // loop into React's "Maximum update depth exceeded" (see `useStableSyncSourceFetch`).
   useEffect(() => {
-    if (!open) {
-      setSelectedKeys(new Set());
-      setRegeocode(false);
-      return;
-    }
-    setSelectedKeys(
-      regeocode
+    const next = open
+      ? (regeocode
         ? new Set(allRows.map(row => row.key))
-        : new Set(allRows.filter(row => row.defaultChecked).map(row => row.key)),
-    );
+        : new Set(allRows.filter(row => row.defaultChecked).map(row => row.key)))
+      : new Set<string>();
+    setSelectedKeys(current => (sameKeys(current, next) ? current : next));
+    if (!open) setRegeocode(false);
   }, [open, allRows, regeocode]);
 
   const toggle = useCallback((key: string, checked: boolean) => {
