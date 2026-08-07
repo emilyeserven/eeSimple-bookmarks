@@ -3,9 +3,10 @@ import type { SyncProvider, SyncSourceFetch } from "../lib/syncSources/syncSourc
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
+import { useStableSyncSourceFetch } from "./useStableSyncSourceFetch";
 import { request } from "../lib/api/client";
 import { buildImageTaxonomyDiff } from "../lib/syncSources/imageTaxonomyDiff";
-import { resolveSyncSourceFetch, strRef } from "../lib/syncSources/syncSourceQuery";
+import { strRef } from "../lib/syncSources/syncSourceQuery";
 
 /** The preview endpoint (returns `{ imageUrl }`) for a JSON-preview source, or null when not resolvable. */
 function previewPath(kind: string | null, entityId: string, refs: SyncProvider["refs"]): string | null {
@@ -51,7 +52,7 @@ export function useImageOnlyTaxonomySyncSource(provider: SyncProvider, enabled: 
   const plexRatingKey = strRef(provider.refs, "plexRatingKey");
   const plexImageUrl = plexRatingKey ? `/api/plex/poster?ratingKey=${encodeURIComponent(plexRatingKey)}` : null;
 
-  return resolveSyncSourceFetch([
+  return useStableSyncSourceFetch([
     {
       active: enabled && isPlex,
       isPending: false,

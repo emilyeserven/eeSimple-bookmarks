@@ -5,9 +5,10 @@ import type { LocationLookupResult } from "@eesimple/types";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
+import { useStableSyncSourceFetch } from "./useStableSyncSourceFetch";
 import { locationsApi } from "../lib/api/taxonomies";
 import { buildLocationDiff } from "../lib/syncSources/locationDiff";
-import { numRef, resolveSyncSourceFetch, strRef } from "../lib/syncSources/syncSourceQuery";
+import { numRef, strRef } from "../lib/syncSources/syncSourceQuery";
 
 /**
  * Re-geocodes a location by its name (Nominatim, or Wikidata when it's pinned to Wikidata
@@ -36,7 +37,7 @@ export function useLocationSyncSource(provider: SyncProvider, enabled: boolean):
     countryCode: strRef(provider.refs, "currentCountryCode"),
   };
 
-  return resolveSyncSourceFetch([
+  return useStableSyncSourceFetch([
     {
       active: enabled && name !== null,
       isPending: query.isPending,
