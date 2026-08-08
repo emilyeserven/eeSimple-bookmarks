@@ -55,12 +55,15 @@ export function RatingRangeInput({
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <Select
         value={from === null ? RATING_RANGE_NONE : String(from)}
         onValueChange={setFrom}
       >
-        <SelectTrigger className="w-40">
+        <SelectTrigger
+          size="auto"
+          className="min-w-40 flex-1"
+        >
           <SelectValue placeholder={t("From")} />
         </SelectTrigger>
         <SelectContent>
@@ -81,7 +84,10 @@ export function RatingRangeInput({
         disabled={from === null}
         onValueChange={setTo}
       >
-        <SelectTrigger className="w-40">
+        <SelectTrigger
+          size="auto"
+          className="min-w-40 flex-1"
+        >
           <SelectValue placeholder={t("To")} />
         </SelectTrigger>
         <SelectContent>

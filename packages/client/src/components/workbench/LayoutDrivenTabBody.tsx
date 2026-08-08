@@ -8,6 +8,7 @@ import { LabeledSection } from "../LabeledSection";
 
 import { Separator } from "@/components/ui/separator";
 import { sectionColumnsClass } from "@/lib/layoutColumns";
+import { cn } from "@/lib/utils";
 import { visibleSectionsForTab } from "@/lib/workbenchLayout";
 
 interface Props<E extends { id: string }> {
@@ -48,7 +49,13 @@ function SectionFields<E extends { id: string }>({
   // (see `sectionColumnsClass`) reflow against the section's own width, not the viewport.
   return (
     <div className="@container">
-      <div className={sectionColumnsClass(section.columns)}>
+      {/*
+        `*:min-w-0` targets the field roots as *direct children* rather than wrapping each in a div:
+        grid items default to `min-width: auto`, so an over-wide field would expand its track
+        instead of being constrained. A wrapper would break the field roots that carry
+        `col-span-full` (e.g. `ChoicesPropertyField`'s radio branch, `ChoicesCheckboxList`).
+      */}
+      <div className={cn(sectionColumnsClass(section.columns), "*:min-w-0")}>
         {fieldKeys.map((key) => {
           const render = mode === "edit" ? fields[key]?.edit : fields[key]?.view;
           return render

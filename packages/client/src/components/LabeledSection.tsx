@@ -33,7 +33,17 @@ export function LabeledSection({
         <h3 className="text-sm font-semibold">{title}</h3>
         {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
       </div>
-      <div className="md:col-span-4">{children}</div>
+      {/*
+        `min-w-0` so an over-wide child (a long select label, a wide table) is constrained by the
+        column instead of expanding the 5-col grid and spilling out of the page shell.
+      */}
+      <div
+        className="
+          min-w-0
+          md:col-span-4
+        "
+      >{children}
+      </div>
     </section>
   );
 }
