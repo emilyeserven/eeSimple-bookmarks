@@ -1,12 +1,12 @@
 /**
- * Pure helpers behind the AI Bulk Edit action page: resolve which bookmarks are targeted (individual
- * picks unioned with whole taxonomy groups, tree taxonomies matching their subtrees), build the
- * multi-bookmark prompt (shared field rules + vocabulary once, then one compact context block per
- * bookmark headed by its id), and parse the AI's `{ "bookmarks": [{ "id", … }] }` reply back into
- * per-bookmark proposals. Reuses the single-bookmark machinery from `bookmarkAiUpdate.ts` (the
- * per-object parser, the rules/vocabulary/example blocks, the current-value formatter) — the review
- * and apply halves stay in `bookmarkAiUpdateReview.ts`, run per bookmark with prefixed row keys.
- * No hooks, no I/O — everything is unit-tested directly.
+ * Pure helpers behind the AI Bulk Edit action page: build the multi-bookmark prompt (shared field
+ * rules + vocabulary once, then one compact context block per bookmark headed by its id) and parse
+ * the AI's `{ "bookmarks": [{ "id", … }] }` reply back into per-bookmark proposals. Reuses the
+ * single-bookmark machinery from `bookmarkAiUpdate.ts` (the per-object parser, the
+ * rules/vocabulary/example blocks), the shared context block from `aiBookmarkContext.ts`, and the
+ * shared target resolution from `aiBookmarkTargets.ts` — the review and apply halves stay in
+ * `bookmarkAiUpdateReview.ts`, run per bookmark with prefixed row keys. No hooks, no I/O —
+ * everything is unit-tested directly.
  */
 
 import type {
@@ -16,113 +16,16 @@ import type {
 import type { AiUpdateCreation, AiUpdateReviewRow } from "./bookmarkAiUpdateReview";
 import type { Bookmark, CustomProperty, Tag } from "@eesimple/types";
 
+import { buildBookmarkContextBlock } from "./aiBookmarkContext";
 import {
   buildAiUpdateExample,
   buildAiUpdateRulesBlock,
   buildAiUpdateVocabularyBlock,
   DEFAULT_BOOKMARK_AI_UPDATE_TEMPLATE,
   parseBookmarkAiUpdateObject,
-  propertyCurrentDisplay,
   resolveCheckedProperties,
   stripCodeFence,
 } from "./bookmarkAiUpdate";
-import { subtreeIds } from "./tagTree";
-
-// ---------------------------------------------------------------------------------------------------
-// Target selection
-// ---------------------------------------------------------------------------------------------------
-
-/** The bulk-edit target selection: individual bookmark ids plus whole-taxonomy-group ids. */
-export interface AiBulkEditSelection {
-  bookmarkIds: string[];
-  categoryIds: string[];
-  /** Selected tags match their whole subtree (a parent tag targets its sub-tags' bookmarks too). */
-  tagIds: string[];
-  /** Selected media types match their whole subtree. */
-  mediaTypeIds: string[];
-  websiteIds: string[];
-  youtubeChannelIds: string[];
-  personIds: string[];
-  groupIds: string[];
-  /** Selected genres/moods match their whole subtree. */
-  genreMoodIds: string[];
-}
-
-export const EMPTY_AI_BULK_EDIT_SELECTION: AiBulkEditSelection = {
-  bookmarkIds: [],
-  categoryIds: [],
-  tagIds: [],
-  mediaTypeIds: [],
-  websiteIds: [],
-  youtubeChannelIds: [],
-  personIds: [],
-  groupIds: [],
-  genreMoodIds: [],
-};
-
-/** Above this many targeted bookmarks the page shows a non-blocking size warning (UI-only). */
-export const AI_BULK_EDIT_SOFT_WARNING_THRESHOLD = 25;
-
-/** A minimal parent/children tree node, satisfied by TagNode / MediaTypeNode / GenreMoodNode. */
-interface SubtreeNode {
-  id: string;
-  children: SubtreeNode[];
-}
-
-/** The trees used to expand tree-taxonomy selections to their subtrees (absent = exact-id match). */
-export interface AiBulkEditTrees {
-  tagTree?: SubtreeNode[];
-  mediaTypeTree?: SubtreeNode[];
-  genreMoodTree?: SubtreeNode[];
-}
-
-/**
- * Expand selected tree-taxonomy ids to include every descendant. A missing tree (still loading)
- * falls back to the exact ids; a selected id absent from the tree (stale) is kept as-is.
- */
-function expandTreeSelection(selected: string[], tree: SubtreeNode[] | undefined): Set<string> {
-  const result = new Set(selected);
-  if (!tree || selected.length === 0) return result;
-  const want = new Set(selected);
-  const visit = (node: SubtreeNode): void => {
-    if (want.has(node.id)) {
-      for (const id of subtreeIds(node)) result.add(id);
-    }
-    node.children.forEach(visit);
-  };
-  tree.forEach(visit);
-  return result;
-}
-
-/**
- * The targeted bookmarks: individually selected OR matching ANY selected group (union), deduped for
- * free by the single pass, in the input list's stable order. Empty selections match nothing.
- */
-export function resolveBulkTargets(
-  bookmarks: Bookmark[],
-  selection: AiBulkEditSelection,
-  trees: AiBulkEditTrees = {},
-): Bookmark[] {
-  const individual = new Set(selection.bookmarkIds);
-  const categoryIds = new Set(selection.categoryIds);
-  const tagIds = expandTreeSelection(selection.tagIds, trees.tagTree);
-  const mediaTypeIds = expandTreeSelection(selection.mediaTypeIds, trees.mediaTypeTree);
-  const genreMoodIds = expandTreeSelection(selection.genreMoodIds, trees.genreMoodTree);
-  const websiteIds = new Set(selection.websiteIds);
-  const youtubeChannelIds = new Set(selection.youtubeChannelIds);
-  const personIds = new Set(selection.personIds);
-  const groupIds = new Set(selection.groupIds);
-  return bookmarks.filter(bookmark =>
-    individual.has(bookmark.id)
-    || categoryIds.has(bookmark.categoryId)
-    || bookmark.tags.some(tag => tagIds.has(tag.id))
-    || (bookmark.mediaType !== null && mediaTypeIds.has(bookmark.mediaType.id))
-    || (bookmark.website !== null && websiteIds.has(bookmark.website.id))
-    || (bookmark.youtubeChannel !== null && youtubeChannelIds.has(bookmark.youtubeChannel.id))
-    || bookmark.people.some(person => personIds.has(person.id))
-    || bookmark.groups.some(group => groupIds.has(group.id))
-    || bookmark.genreMoods.some(genreMood => genreMoodIds.has(genreMood.id)));
-}
 
 // ---------------------------------------------------------------------------------------------------
 // Prompt building
@@ -194,43 +97,6 @@ function buildTagGuidanceNote(args: AiBulkEditPromptArgs): string | null {
   return lines.length > 0 ? lines.join("\n") : null;
 }
 
-/** `label: value` context line, omitted (null) when the value is empty. */
-function contextLine(label: string, value: string | null | undefined): string | null {
-  return value != null && value !== "" ? `- ${label}: ${value}` : null;
-}
-
-/**
- * One compact context block for one bookmark, headed by its bracketed id. URL and description always
- * ride along (cheap, high-signal); other standard fields appear only when checked; checked custom
- * properties show their current value.
- */
-function buildBookmarkBlock(
-  bookmark: Bookmark,
-  checked: ReadonlySet<AiUpdatableFieldKey>,
-  checkedProperties: CustomProperty[],
-  categoryNameById: Map<string, string>,
-): string {
-  const names = bookmark.names
-    .map(name => `[${name.language.name}] ${name.value}`)
-    .join("; ");
-  const lines = [
-    contextLine("URL", bookmark.url),
-    contextLine("Description", bookmark.description),
-    checked.has("category") ? contextLine("Category", categoryNameById.get(bookmark.categoryId)) : null,
-    checked.has("mediaType") ? contextLine("Media type", bookmark.mediaType?.name) : null,
-    checked.has("tags") ? contextLine("Tags", bookmark.tags.map(tag => tag.name).join(", ")) : null,
-    checked.has("people") ? contextLine("People", bookmark.people.map(person => person.name).join(", ")) : null,
-    checked.has("groups") ? contextLine("Groups", bookmark.groups.map(group => group.name).join(", ")) : null,
-    checked.has("names") ? contextLine("Names", names) : null,
-    checked.has("year") ? contextLine("Year", bookmark.year != null ? String(bookmark.year) : null) : null,
-    checked.has("isbn") ? contextLine("ISBN", bookmark.isbn) : null,
-    checked.has("priority") ? contextLine("Priority", String(bookmark.priority)) : null,
-    ...checkedProperties.map(property =>
-      contextLine(property.name, propertyCurrentDisplay(property, bookmark))),
-  ].filter((line): line is string => line !== null);
-  return [`[${bookmark.id}] ${bookmark.title}`, ...lines].join("\n");
-}
-
 /**
  * Assemble the ready-to-paste bulk prompt: template + the multi-bookmark instruction → per-field
  * output rules ONCE → existing vocabulary ONCE → one context block per bookmark → the strict-JSON
@@ -246,7 +112,7 @@ export function buildAiBulkEditPrompt(args: AiBulkEditPromptArgs): string {
   const checkedSet = new Set(args.checked);
   const categoryNameById = new Map(args.categories.map(category => [category.id, category.name]));
   const blocks = args.bookmarks.map(bookmark =>
-    buildBookmarkBlock(bookmark, checkedSet, checkedProperties, categoryNameById));
+    buildBookmarkContextBlock(bookmark, checkedSet, checkedProperties, categoryNameById));
   const example = {
     bookmarks: [{
       id: args.bookmarks[0]?.id ?? "<id>",

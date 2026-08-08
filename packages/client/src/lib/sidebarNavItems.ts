@@ -13,6 +13,7 @@ import {
   ListFilter,
   Mail,
   MapPin,
+  MessageCircleQuestion,
   MonitorPlay,
   Share2,
   SlidersHorizontal,
@@ -135,6 +136,11 @@ export const actionItems = [
     title: i18n.t("AI Bulk Edit"),
     to: "/ai-bulk-edit",
     icon: WandSparkles,
+  },
+  {
+    title: i18n.t("AI Prompt Builder"),
+    to: "/ai-prompt-builder",
+    icon: MessageCircleQuestion,
   },
 ] as const;
 

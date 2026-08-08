@@ -5,6 +5,7 @@
 export * from "./appSettings/advanced";
 export * from "./appSettings/aiAutotag";
 export * from "./appSettings/aiBulkEdit";
+export * from "./appSettings/aiPromptBuilder";
 export * from "./appSettings/aiSummarization";
 export * from "./appSettings/automation";
 export * from "./appSettings/bookmarkAddForm";

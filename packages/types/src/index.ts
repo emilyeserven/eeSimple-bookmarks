@@ -22,6 +22,7 @@ import type { SocialAccountRef, SocialLink } from "./socialMedia.js";
 import type { BookmarkTaxonomyTerm } from "./taxonomies.js";
 import type { WebsiteScanObservation } from "./websiteScanObservations.js";
 
+export * from "./aiPromptBuilder.js";
 export * from "./autofillMerge.js";
 export * from "./amazon.js";
 export * from "./bookmarkAddForm.js";

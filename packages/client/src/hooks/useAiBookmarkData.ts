@@ -8,6 +8,7 @@ import type {
   MediaType,
   MediaTypeNode,
   Person,
+  SavedFilter,
   Tag,
   TagNode,
   Website,
@@ -22,12 +23,16 @@ import { useGroups } from "./useGroups";
 import { useLanguages } from "./useLanguages";
 import { useMediaTypes, useMediaTypeTree } from "./useMediaTypes";
 import { usePeople } from "./usePeople";
+import { useSavedFilters } from "./useSavedFilters";
 import { useTags, useTagTree } from "./useTags";
 import { useWebsites } from "./useWebsites";
 import { useYouTubeChannels } from "./useYouTubeChannels";
 
-/** Everything the AI Bulk Edit page reads: full entity lists, the subtree-expansion trees, and properties. */
-export interface AiBulkEditData {
+/**
+ * Everything an AI bookmark-targeting page (AI Bulk Edit, AI Prompt Builder) reads: full entity
+ * lists, the subtree-expansion trees, the saved filters usable as targets, and custom properties.
+ */
+export interface AiBookmarkData {
   bookmarks: Bookmark[];
   properties: CustomProperty[];
   categories: Category[];
@@ -38,7 +43,8 @@ export interface AiBulkEditData {
   languages: Language[];
   websites: Website[];
   youtubeChannels: YouTubeChannel[];
-  /** Concrete node types (assignable to `AiBulkEditTrees`) so the pickers keep their real shapes. */
+  savedFilters: SavedFilter[];
+  /** Concrete node types (assignable to `AiBookmarkTargetTrees`) so the pickers keep their real shapes. */
   trees: {
     tagTree?: TagNode[];
     mediaTypeTree?: MediaTypeNode[];
@@ -47,7 +53,7 @@ export interface AiBulkEditData {
 }
 
 /** The flat taxonomy/vocabulary lists shared by the pickers, the prompt, and the per-bookmark review. */
-function useAiBulkEditLists(): Pick<AiBulkEditData, "categories" | "tags" | "mediaTypes" | "people" | "groups" | "languages"> {
+function useAiBookmarkLists(): Pick<AiBookmarkData, "categories" | "tags" | "mediaTypes" | "people" | "groups" | "languages" | "savedFilters"> {
   const {
     data: categories,
   } = useCategories();
@@ -66,6 +72,9 @@ function useAiBulkEditLists(): Pick<AiBulkEditData, "categories" | "tags" | "med
   const {
     data: languages,
   } = useLanguages();
+  const {
+    data: savedFilters,
+  } = useSavedFilters();
   return {
     categories: categories ?? [],
     tags: tags ?? [],
@@ -73,17 +82,18 @@ function useAiBulkEditLists(): Pick<AiBulkEditData, "categories" | "tags" | "med
     people: people ?? [],
     groups: groups ?? [],
     languages: languages ?? [],
+    savedFilters: savedFilters ?? [],
   };
 }
 
 /**
- * Bundles the AI Bulk Edit page's queries (the fallow hook-density split): the full hydrated
+ * Bundles an AI bookmark-targeting page's queries (the fallow hook-density split): the full hydrated
  * bookmark list (the established in-memory picker/matching backing), the flat lists, and the three
  * trees used for subtree expansion. Loading states resolve to empty lists — the page degrades to
  * empty pickers until the queries land.
  */
-export function useAiBulkEditData(): AiBulkEditData {
-  const lists = useAiBulkEditLists();
+export function useAiBookmarkData(): AiBookmarkData {
+  const lists = useAiBookmarkLists();
   const {
     data: bookmarks,
   } = useBookmarks();

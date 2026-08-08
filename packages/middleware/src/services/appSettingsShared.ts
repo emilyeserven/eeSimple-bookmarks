@@ -3,6 +3,7 @@ import type {
   AdvancedSettings,
   AiAutotagSettings,
   AiBulkEditSettings,
+  AiPromptBuilderSettings,
   AiSummarizationSettings,
   BookmarkAiUpdateSettings,
   TagReparentSettings,
@@ -186,6 +187,11 @@ export const DEFAULT_AI_BULK_EDIT: AiBulkEditSettings = {
   aiBulkEditPrompt: "",
   aiBulkEditExcludedTagIds: [],
   aiBulkEditPreferLeafTags: true,
+};
+
+/** Default AI Prompt Builder settings (empty preamble), used when the row/column is absent. */
+export const DEFAULT_AI_PROMPT_BUILDER: AiPromptBuilderSettings = {
+  aiPromptBuilderPrompt: "",
 };
 
 /** Default display/detail preferences, used when seeding / when row absent. */

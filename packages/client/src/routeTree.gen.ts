@@ -20,6 +20,7 @@ import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as BookmarksRouteImport } from './routes/bookmarks'
 import { Route as AutofillRouteImport } from './routes/autofill'
 import { Route as AiSummarizationRouteImport } from './routes/ai-summarization'
+import { Route as AiPromptBuilderRouteImport } from './routes/ai-prompt-builder'
 import { Route as AiBulkEditRouteImport } from './routes/ai-bulk-edit'
 import { Route as AiAutotagRouteImport } from './routes/ai-autotag'
 import { Route as IndexRouteImport } from './routes/index'
@@ -325,6 +326,11 @@ const AutofillRoute = AutofillRouteImport.update({
 const AiSummarizationRoute = AiSummarizationRouteImport.update({
   id: '/ai-summarization',
   path: '/ai-summarization',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiPromptBuilderRoute = AiPromptBuilderRouteImport.update({
+  id: '/ai-prompt-builder',
+  path: '/ai-prompt-builder',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AiBulkEditRoute = AiBulkEditRouteImport.update({
@@ -1749,6 +1755,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai-autotag': typeof AiAutotagRoute
   '/ai-bulk-edit': typeof AiBulkEditRoute
+  '/ai-prompt-builder': typeof AiPromptBuilderRoute
   '/ai-summarization': typeof AiSummarizationRoute
   '/autofill': typeof AutofillRouteWithChildren
   '/bookmarks': typeof BookmarksRouteWithChildren
@@ -2001,6 +2008,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai-autotag': typeof AiAutotagRoute
   '/ai-bulk-edit': typeof AiBulkEditRoute
+  '/ai-prompt-builder': typeof AiPromptBuilderRoute
   '/ai-summarization': typeof AiSummarizationRoute
   '/quick-add': typeof QuickAddRoute
   '/autofill/backfill': typeof AutofillBackfillRoute
@@ -2183,6 +2191,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/ai-autotag': typeof AiAutotagRoute
   '/ai-bulk-edit': typeof AiBulkEditRoute
+  '/ai-prompt-builder': typeof AiPromptBuilderRoute
   '/ai-summarization': typeof AiSummarizationRoute
   '/autofill': typeof AutofillRouteWithChildren
   '/bookmarks': typeof BookmarksRouteWithChildren
@@ -2449,6 +2458,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ai-autotag'
     | '/ai-bulk-edit'
+    | '/ai-prompt-builder'
     | '/ai-summarization'
     | '/autofill'
     | '/bookmarks'
@@ -2701,6 +2711,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ai-autotag'
     | '/ai-bulk-edit'
+    | '/ai-prompt-builder'
     | '/ai-summarization'
     | '/quick-add'
     | '/autofill/backfill'
@@ -2882,6 +2893,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ai-autotag'
     | '/ai-bulk-edit'
+    | '/ai-prompt-builder'
     | '/ai-summarization'
     | '/autofill'
     | '/bookmarks'
@@ -3147,6 +3159,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AiAutotagRoute: typeof AiAutotagRoute
   AiBulkEditRoute: typeof AiBulkEditRoute
+  AiPromptBuilderRoute: typeof AiPromptBuilderRoute
   AiSummarizationRoute: typeof AiSummarizationRoute
   AutofillRoute: typeof AutofillRouteWithChildren
   BookmarksRoute: typeof BookmarksRouteWithChildren
@@ -3253,6 +3266,13 @@ declare module '@tanstack/react-router' {
       path: '/ai-summarization'
       fullPath: '/ai-summarization'
       preLoaderRoute: typeof AiSummarizationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-prompt-builder': {
+      id: '/ai-prompt-builder'
+      path: '/ai-prompt-builder'
+      fullPath: '/ai-prompt-builder'
+      preLoaderRoute: typeof AiPromptBuilderRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ai-bulk-edit': {
@@ -6514,6 +6534,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiAutotagRoute: AiAutotagRoute,
   AiBulkEditRoute: AiBulkEditRoute,
+  AiPromptBuilderRoute: AiPromptBuilderRoute,
   AiSummarizationRoute: AiSummarizationRoute,
   AutofillRoute: AutofillRouteWithChildren,
   BookmarksRoute: BookmarksRouteWithChildren,

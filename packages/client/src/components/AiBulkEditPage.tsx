@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-import { AiBulkEditTargets } from "./AiBulkEditTargets";
+import { AiBookmarkTargets } from "./AiBookmarkTargets";
 import { BookmarkAiUpdateReviewList } from "./BookmarkAiUpdateReview";
 import { BookmarkAiUpdateFieldPicker } from "./BookmarkAiUpdateTab";
 import { TagPicker } from "./TagPicker";
@@ -41,7 +41,7 @@ export function AiBulkEditPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <AiBulkEditTargets controller={controller} />
+          <AiBookmarkTargets controller={controller} />
         </CardContent>
       </Card>
 

@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import type {
   AiAutotagSettings,
   AiBulkEditSettings,
+  AiPromptBuilderSettings,
   AiSummarizationSettings,
   BookmarkAiUpdateSettings,
   HomepageContentSettings,
@@ -10,6 +11,7 @@ import type {
   UpdateAiAutotagInput,
   UpdateAiSummarizationInput,
   UpdateAiBulkEditInput,
+  UpdateAiPromptBuilderInput,
   UpdateBookmarkAiUpdateInput,
   UpdateHomepageContentInput,
   UpdateScratchpadInput,
@@ -18,7 +20,7 @@ import type {
 import { resolveHomepageWidgetOrder } from "@eesimple/types";
 import { db } from "@/db";
 import { appSettings } from "@/db/schema";
-import { asQuickAddDisplay, asWidth, DEFAULT_AI_AUTOTAG, DEFAULT_AI_BULK_EDIT, DEFAULT_AI_SUMMARIZATION, DEFAULT_BOOKMARK_AI_UPDATE, DEFAULT_HOMEPAGE_CONTENT, DEFAULT_SCRATCHPAD, DEFAULT_SHORTENER_IGNORE_LIST, DEFAULT_TAG_REPARENT, ROW_ID } from "./appSettingsShared";
+import { asQuickAddDisplay, asWidth, DEFAULT_AI_AUTOTAG, DEFAULT_AI_BULK_EDIT, DEFAULT_AI_PROMPT_BUILDER, DEFAULT_AI_SUMMARIZATION, DEFAULT_BOOKMARK_AI_UPDATE, DEFAULT_HOMEPAGE_CONTENT, DEFAULT_SCRATCHPAD, DEFAULT_SHORTENER_IGNORE_LIST, DEFAULT_TAG_REPARENT, ROW_ID } from "./appSettingsShared";
 
 /** Read just the homepage-content settings shown/edited on the homepage settings page. */
 export async function getHomepageContentSettings(): Promise<HomepageContentSettings> {
@@ -284,6 +286,40 @@ export async function updateAiBulkEditSettings(
     aiBulkEditPrompt: input.aiBulkEditPrompt,
     aiBulkEditExcludedTagIds: input.aiBulkEditExcludedTagIds,
     aiBulkEditPreferLeafTags: input.aiBulkEditPreferLeafTags,
+  };
+  await db
+    .insert(appSettings)
+    .values({
+      id: ROW_ID,
+      ...next,
+    })
+    .onConflictDoUpdate({
+      target: appSettings.id,
+      set: next,
+    });
+  return next;
+}
+
+/** Read the AI Prompt Builder preamble (coalescing the nullable column to an empty string). */
+export async function getAiPromptBuilderSettings(): Promise<AiPromptBuilderSettings> {
+  const [row] = await db
+    .select({
+      aiPromptBuilderPrompt: appSettings.aiPromptBuilderPrompt,
+    })
+    .from(appSettings)
+    .where(eq(appSettings.id, ROW_ID));
+  if (!row) return DEFAULT_AI_PROMPT_BUILDER;
+  return {
+    aiPromptBuilderPrompt: row.aiPromptBuilderPrompt ?? "",
+  };
+}
+
+/** Replace the AI Prompt Builder preamble, upserting the singleton. Returns the stored value. */
+export async function updateAiPromptBuilderSettings(
+  input: UpdateAiPromptBuilderInput,
+): Promise<AiPromptBuilderSettings> {
+  const next: AiPromptBuilderSettings = {
+    aiPromptBuilderPrompt: input.aiPromptBuilderPrompt,
   };
   await db
     .insert(appSettings)

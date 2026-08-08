@@ -15,6 +15,7 @@ import type {
   UpdateHomepageContentInput,
   UpdatePersonSourceLabelInput,
   UpdateAiBulkEditInput,
+  UpdateAiPromptBuilderInput,
   UpdateBookmarkAiUpdateInput,
   UpdateScratchpadInput,
   UpdateSidebarCustomizationInput,
@@ -44,6 +45,7 @@ import {
   getAdvancedSettings,
   getAiAutotagSettings,
   getAiBulkEditSettings,
+  getAiPromptBuilderSettings,
   getAiSummarizationSettings,
   getAutomationSettings,
   getBookmarkAddFormSettings,
@@ -67,6 +69,7 @@ import {
   updateAdvancedSettings,
   updateAiAutotagSettings,
   updateAiBulkEditSettings,
+  updateAiPromptBuilderSettings,
   updateAiSummarizationSettings,
   updateAutomationSettings,
   updateBookmarkAddFormSettings,
@@ -498,6 +501,28 @@ export async function appSettingsRoutes(app: FastifyInstance): Promise<void> {
       },
     },
   }, async req => updateAiBulkEditSettings(req.body as UpdateAiBulkEditInput));
+
+  app.get("/api/app-settings/ai-prompt-builder", {
+    schema: {
+      tags: ["app-settings"],
+    },
+  }, async () => getAiPromptBuilderSettings());
+
+  app.put("/api/app-settings/ai-prompt-builder", {
+    schema: {
+      tags: ["app-settings"],
+      body: {
+        type: "object",
+        required: ["aiPromptBuilderPrompt"],
+        additionalProperties: false,
+        properties: {
+          aiPromptBuilderPrompt: {
+            type: "string",
+          },
+        },
+      },
+    },
+  }, async req => updateAiPromptBuilderSettings(req.body as UpdateAiPromptBuilderInput));
 
   app.get("/api/app-settings/connectors", {
     schema: {

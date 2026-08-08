@@ -15,6 +15,7 @@ export function labelOverrides(): Record<string, string> {
     "saved-filters": i18n.t("Saved Filters"),
     "ai-summarization": i18n.t("AI Summarization"),
     "ai-autotag": i18n.t("AI Autotag"),
+    "ai-prompt-builder": i18n.t("AI Prompt Builder"),
     "bookmark-add": i18n.t("Bookmark Add Form"),
   };
 }
