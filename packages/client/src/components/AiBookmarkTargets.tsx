@@ -1,13 +1,14 @@
 import type { ComboboxOption } from "./Combobox";
-import type { AiBulkEditController } from "../hooks/useAiBulkEdit";
-import type { AiBulkEditSelection } from "../lib/aiBulkEdit";
+import type { AiBookmarkData } from "../hooks/useAiBookmarkData";
+import type { AiBookmarkTargetSelection } from "../lib/aiBookmarkTargets";
+import type { Bookmark } from "@eesimple/types";
 
 import { useTranslation } from "react-i18next";
 
 import { MultiCombobox } from "./MultiCombobox";
 import { TagPicker } from "./TagPicker";
 import { TreeMultiCombobox } from "./TreeMultiCombobox";
-import { AI_BULK_EDIT_SOFT_WARNING_THRESHOLD } from "../lib/aiBulkEdit";
+import { AI_TARGET_SOFT_WARNING_THRESHOLD } from "../lib/aiBookmarkTargets";
 import { useBasketStore } from "../stores/basketStore";
 
 import { Button } from "@/components/ui/button";
@@ -39,14 +40,25 @@ function nameOptions(items: { id: string;
 }
 
 /**
- * The Targets card of the AI Bulk Edit page: an individual-bookmark multi-select plus the eight
- * taxonomy-group pickers (tree taxonomies match their whole subtree), with a live targeted-bookmark
- * count and a non-blocking size warning past the soft threshold.
+ * The slice of an AI targeting page's controller this card drives — deliberately narrow so both the
+ * AI Bulk Edit and AI Prompt Builder controllers satisfy it without either depending on the other.
  */
-export function AiBulkEditTargets({
+export interface AiBookmarkTargetsController {
+  data: AiBookmarkData;
+  selection: AiBookmarkTargetSelection;
+  setSelectionField: <K extends keyof AiBookmarkTargetSelection>(key: K, values: string[]) => void;
+  targets: Bookmark[];
+}
+
+/**
+ * The shared Targets card of the AI action pages: an individual-bookmark multi-select plus the eight
+ * taxonomy-group pickers (tree taxonomies match their whole subtree) and a saved-filter picker, with
+ * a live targeted-bookmark count and a non-blocking size warning past the soft threshold.
+ */
+export function AiBookmarkTargets({
   controller,
 }: {
-  controller: AiBulkEditController;
+  controller: AiBookmarkTargetsController;
 }) {
   const {
     t,
@@ -55,7 +67,7 @@ export function AiBulkEditTargets({
     data, selection, setSelectionField, targets,
   } = controller;
   const basketIds = useBasketStore(s => s.bookmarkIds);
-  const pick = (key: keyof AiBulkEditSelection) => (values: string[]) => setSelectionField(key, values);
+  const pick = (key: keyof AiBookmarkTargetSelection) => (values: string[]) => setSelectionField(key, values);
   const bookmarkOptions: ComboboxOption[] = data.bookmarks.map(bookmark => ({
     value: bookmark.id,
     label: bookmark.title,
@@ -174,13 +186,21 @@ export function AiBulkEditTargets({
             placeholder={t("All bookmarks with a genre/mood…")}
           />
         </PickerField>
+        <PickerField label={t("Saved filters")}>
+          <MultiCombobox
+            options={nameOptions(data.savedFilters)}
+            values={selection.savedFilterIds}
+            onValuesChange={pick("savedFilterIds")}
+            placeholder={t("Every bookmark a saved filter matches…")}
+          />
+        </PickerField>
       </div>
       <p className="text-sm font-medium">
         {t("{{count}} bookmarks selected", {
           count: targets.length,
         })}
       </p>
-      {targets.length > AI_BULK_EDIT_SOFT_WARNING_THRESHOLD && (
+      {targets.length > AI_TARGET_SOFT_WARNING_THRESHOLD && (
         <p
           className="
             text-sm text-amber-600

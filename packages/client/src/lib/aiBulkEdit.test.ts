@@ -1,101 +1,20 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 
+import { AI_TARGET_SOFT_WARNING_THRESHOLD } from "./aiBookmarkTargets";
 import {
-  AI_BULK_EDIT_SOFT_WARNING_THRESHOLD,
   buildAiBulkEditPrompt,
   dedupeBulkCreations,
   describeAiBulkEditResult,
-  EMPTY_AI_BULK_EDIT_SELECTION,
   parseAiBulkEditText,
   prefixReviewRows,
   resolveAiBulkEditTagVocabulary,
-  resolveBulkTargets,
 } from "./aiBulkEdit";
 import { aiFieldKeyForProperty, listAiBulkUpdatableFields } from "./bookmarkAiUpdate";
 import { makeBookmark, makeCustomProperty, makeTag } from "../test-utils/factories";
 
-import type { AiBulkEditPromptArgs, AiBulkEditSelection } from "./aiBulkEdit";
+import type { AiBulkEditPromptArgs } from "./aiBulkEdit";
 import type { AiUpdateReviewRow } from "./bookmarkAiUpdateReview";
-
-function selection(overrides: Partial<AiBulkEditSelection>): AiBulkEditSelection {
-  return {
-    ...EMPTY_AI_BULK_EDIT_SELECTION,
-    ...overrides,
-  };
-}
-
-const bmTag = (id: string, name: string) => ({
-  id,
-  name,
-  slug: name,
-  parentId: null,
-  editableOnCard: false,
-});
-
-describe("resolveBulkTargets", () => {
-  const bookmarks = [
-    makeBookmark({
-      id: "b1",
-      categoryId: "cat-1",
-    }),
-    makeBookmark({
-      id: "b2",
-      categoryId: "cat-2",
-      tags: [bmTag("t-child", "child")],
-    }),
-    makeBookmark({
-      id: "b3",
-      categoryId: "cat-2",
-      website: {
-        id: "w1",
-        domain: "example.com",
-        siteName: "Example",
-        slug: "example",
-      },
-    }),
-  ];
-
-  it("matches nothing for an empty selection", () => {
-    expect(resolveBulkTargets(bookmarks, EMPTY_AI_BULK_EDIT_SELECTION)).toEqual([]);
-  });
-
-  it("unions individual picks with group matches, deduped in stable order", () => {
-    const targets = resolveBulkTargets(bookmarks, selection({
-      bookmarkIds: ["b3"],
-      categoryIds: ["cat-1"],
-    }));
-    expect(targets.map(bookmark => bookmark.id)).toEqual(["b1", "b3"]);
-  });
-
-  it("does not double-count a bookmark matching several groups", () => {
-    const targets = resolveBulkTargets(bookmarks, selection({
-      bookmarkIds: ["b3"],
-      categoryIds: ["cat-2"],
-      websiteIds: ["w1"],
-    }));
-    expect(targets.map(bookmark => bookmark.id)).toEqual(["b2", "b3"]);
-  });
-
-  it("expands a selected tag to its subtree when the tree is provided", () => {
-    const tagTree = [{
-      id: "t-parent",
-      children: [{
-        id: "t-child",
-        children: [],
-      }],
-    }];
-    expect(resolveBulkTargets(bookmarks, selection({
-      tagIds: ["t-parent"],
-    }), {
-      tagTree,
-    }).map(bookmark => bookmark.id)).toEqual(["b2"]);
-    // Without the tree, only exact-id matches apply.
-    expect(resolveBulkTargets(bookmarks, selection({
-      tagIds: ["t-parent"],
-    }))).toEqual([]);
-  });
-});
 
 describe("buildAiBulkEditPrompt", () => {
   function promptArgs(overrides: Partial<AiBulkEditPromptArgs> = {}): AiBulkEditPromptArgs {
@@ -212,7 +131,7 @@ describe("buildAiBulkEditPrompt", () => {
   });
 
   it("keeps the soft-warning threshold out of the prompt", () => {
-    expect(buildAiBulkEditPrompt(promptArgs())).not.toContain(String(AI_BULK_EDIT_SOFT_WARNING_THRESHOLD));
+    expect(buildAiBulkEditPrompt(promptArgs())).not.toContain(String(AI_TARGET_SOFT_WARNING_THRESHOLD));
   });
 });
 

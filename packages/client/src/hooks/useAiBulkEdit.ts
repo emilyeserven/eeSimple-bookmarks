@@ -1,9 +1,7 @@
+import type { AiBookmarkData } from "./useAiBookmarkData";
 import type { AiBulkBookmarkPlan } from "./useAiBulkEditApply";
-import type { AiBulkEditData } from "./useAiBulkEditData";
-import type {
-  AiBulkEditParseState,
-  AiBulkEditSelection,
-} from "../lib/aiBulkEdit";
+import type { AiBookmarkTargetSelection } from "../lib/aiBookmarkTargets";
+import type { AiBulkEditParseState } from "../lib/aiBulkEdit";
 import type { AiUpdatableField, AiUpdatableFieldKey } from "../lib/bookmarkAiUpdate";
 import type { AiUpdateReviewContext, AiUpdateReviewRow } from "../lib/bookmarkAiUpdateReview";
 import type { Bookmark } from "@eesimple/types";
@@ -12,16 +10,15 @@ import { useMemo, useState } from "react";
 
 import { useTranslation } from "react-i18next";
 
+import { useAiBookmarkData } from "./useAiBookmarkData";
 import { useAiBulkEditApply } from "./useAiBulkEditApply";
-import { useAiBulkEditData } from "./useAiBulkEditData";
 import { useAiBulkEditForm } from "./useAiBulkEditForm";
+import { EMPTY_AI_BOOKMARK_TARGET_SELECTION, resolveBookmarkTargets } from "../lib/aiBookmarkTargets";
 import {
   buildAiBulkEditPrompt,
-  EMPTY_AI_BULK_EDIT_SELECTION,
   parseAiBulkEditText,
   prefixReviewRows,
   resolveAiBulkEditTagVocabulary,
-  resolveBulkTargets,
 } from "../lib/aiBulkEdit";
 import { listAiBulkUpdatableFields } from "../lib/bookmarkAiUpdate";
 import { buildAiUpdateApplyPlan, buildAiUpdateReview } from "../lib/bookmarkAiUpdateReview";
@@ -37,9 +34,9 @@ export interface AiBulkEditReviewSection {
 }
 
 export interface AiBulkEditController {
-  data: AiBulkEditData;
-  selection: AiBulkEditSelection;
-  setSelectionField: <K extends keyof AiBulkEditSelection>(key: K, values: string[]) => void;
+  data: AiBookmarkData;
+  selection: AiBookmarkTargetSelection;
+  setSelectionField: <K extends keyof AiBookmarkTargetSelection>(key: K, values: string[]) => void;
   targets: Bookmark[];
   fields: AiUpdatableField[];
   checkedFields: ReadonlySet<AiUpdatableFieldKey>;
@@ -68,15 +65,15 @@ export interface AiBulkEditController {
 }
 
 /** Targets sub-hook: the selection state plus its resolved bookmark list. */
-function useAiBulkEditTargets(data: AiBulkEditData): {
-  selection: AiBulkEditSelection;
+function useAiBulkEditTargets(data: AiBookmarkData): {
+  selection: AiBookmarkTargetSelection;
   setSelectionField: AiBulkEditController["setSelectionField"];
   targets: Bookmark[];
 } {
-  const [selection, setSelection] = useState<AiBulkEditSelection>(EMPTY_AI_BULK_EDIT_SELECTION);
+  const [selection, setSelection] = useState<AiBookmarkTargetSelection>(EMPTY_AI_BOOKMARK_TARGET_SELECTION);
   const targets = useMemo(
-    () => resolveBulkTargets(data.bookmarks, selection, data.trees),
-    [data.bookmarks, selection, data.trees],
+    () => resolveBookmarkTargets(data.bookmarks, selection, data.trees, data.savedFilters),
+    [data.bookmarks, selection, data.trees, data.savedFilters],
   );
   return {
     selection,
@@ -98,7 +95,7 @@ export function useAiBulkEdit(): AiBulkEditController {
   const {
     t,
   } = useTranslation();
-  const data = useAiBulkEditData();
+  const data = useAiBookmarkData();
   const {
     selection, setSelectionField, targets,
   } = useAiBulkEditTargets(data);

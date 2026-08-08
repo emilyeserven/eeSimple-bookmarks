@@ -1922,6 +1922,9 @@ export const appSettings = pgTable("app_settings", {
   // When on (the default), the AI Bulk Edit prompt drops parent tags from the vocabulary and prefers
   // leaf tags. Nullable = push-safe additive (null coalesced to true in the service).
   aiBulkEditPreferLeafTags: boolean("ai_bulk_edit_prefer_leaf_tags"),
+  // Reusable preamble for the AI Prompt Builder action page (ask an AI a question about a set of
+  // bookmarks). Nullable = push-safe additive (null coalesced to "" in the service).
+  aiPromptBuilderPrompt: text("ai_prompt_builder_prompt"),
   // Free-form Markdown note shown in the sidebar footer Scratchpad.
   // Nullable = push-safe additive (null coalesced to "" in the service).
   scratchpadText: text("scratchpad_text"),
