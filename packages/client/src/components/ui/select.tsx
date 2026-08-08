@@ -30,7 +30,13 @@ function SelectValue({
 function SelectTrigger({
   className, size = "default", children, ...props
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
-  size?: "sm" | "default";
+  /**
+   * `default`/`sm` are the fixed-height compact triggers (single-line, clipped at the border).
+   * `auto` grows the trigger to fit its content — the selected label wraps onto as many lines as it
+   * needs instead of being clipped or ellipsised. Use it wherever the option labels are
+   * user-authored and therefore of unbounded length (custom-property fields, rating scales).
+   */
+  size?: "sm" | "default" | "auto";
 }) {
   return (
     <SelectPrimitive.Trigger
@@ -38,19 +44,24 @@ function SelectTrigger({
       data-size={size}
       className={cn(
         `
-          flex w-fit items-center justify-between gap-2 rounded-md border
-          border-input bg-transparent px-3 py-2 text-sm whitespace-nowrap
-          shadow-xs transition-[color,box-shadow] outline-none
+          flex w-fit max-w-full min-w-0 items-center justify-between gap-2
+          overflow-hidden rounded-md border border-input bg-transparent px-3
+          py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow]
+          outline-none
           focus-visible:border-ring focus-visible:ring-[3px]
           focus-visible:ring-ring/50
           disabled:cursor-not-allowed disabled:opacity-50
           aria-invalid:border-destructive aria-invalid:ring-destructive/20
           data-placeholder:text-muted-foreground
+          data-[size=auto]:h-auto data-[size=auto]:min-h-9
+          data-[size=auto]:text-left data-[size=auto]:whitespace-normal
           data-[size=default]:h-9
           data-[size=sm]:h-8
-          *:data-[slot=select-value]:flex
+          *:data-[slot=select-value]:flex *:data-[slot=select-value]:min-w-0
           *:data-[slot=select-value]:items-center
           *:data-[slot=select-value]:gap-2
+          *:data-[slot=select-value]:overflow-hidden
+          data-[size=auto]:*:data-[slot=select-value]:wrap-break-word
           dark:bg-input/30
           dark:hover:bg-input/50
           dark:aria-invalid:ring-destructive/40
@@ -80,9 +91,10 @@ function SelectContent({
         className={cn(
           `
             relative z-50 max-h-(--radix-select-content-available-height)
-            min-w-32 origin-(--radix-select-content-transform-origin)
-            overflow-x-hidden overflow-y-auto rounded-md border bg-popover
-            text-popover-foreground shadow-md
+            max-w-(--radix-select-content-available-width) min-w-32
+            origin-(--radix-select-content-transform-origin) overflow-x-hidden
+            overflow-y-auto rounded-md border bg-popover text-popover-foreground
+            shadow-md
             data-[side=bottom]:slide-in-from-top-2
             data-[side=left]:slide-in-from-right-2
             data-[side=right]:slide-in-from-left-2
@@ -150,7 +162,7 @@ function SelectItem({
       className={cn(
         `
           relative flex w-full cursor-default rounded-sm py-1.5 pr-8 pl-2
-          text-sm outline-hidden select-none
+          text-sm wrap-break-word outline-hidden select-none
           focus:bg-accent focus:text-accent-foreground
           data-disabled:pointer-events-none data-disabled:opacity-50
           [&_svg]:pointer-events-none [&_svg]:shrink-0

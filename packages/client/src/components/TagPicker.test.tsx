@@ -25,6 +25,14 @@ const tree: TagNode[] = [
       },
     ],
   },
+  {
+    ...makeTag({
+      id: "docs",
+      name: "docs",
+      slug: "docs",
+    }),
+    children: [],
+  },
 ];
 
 describe("TagPicker", () => {
@@ -49,6 +57,21 @@ describe("TagPicker", () => {
       />,
     );
     expect(screen.getByRole("combobox")).toHaveTextContent("tools");
+  });
+
+  it("trigger lists every selected tag rather than collapsing to a count", () => {
+    render(
+      <TagPicker
+        tree={tree}
+        selectedIds={["dev", "tools", "docs"]}
+        onToggle={vi.fn()}
+      />,
+    );
+    const trigger = screen.getByRole("combobox");
+    expect(trigger).toHaveTextContent("dev");
+    expect(trigger).toHaveTextContent("tools");
+    expect(trigger).toHaveTextContent("docs");
+    expect(trigger).not.toHaveTextContent("3 selected");
   });
 
   it("calls onToggle with the tag id when an item is selected", () => {

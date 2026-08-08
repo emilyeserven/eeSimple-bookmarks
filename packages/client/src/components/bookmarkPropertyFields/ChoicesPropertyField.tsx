@@ -110,7 +110,11 @@ export function ChoicesPropertyField({
         value={selectedValues[0] ?? ""}
         onValueChange={value => onChange(value ? [value] : [])}
       >
-        <SelectTrigger id={fieldId}>
+        <SelectTrigger
+          id={fieldId}
+          size="auto"
+          className="w-full"
+        >
           <SelectValue placeholder={t("Select…")} />
         </SelectTrigger>
         <SelectContent>

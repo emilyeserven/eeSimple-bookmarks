@@ -67,7 +67,7 @@ interface TreeMultiComboboxProps {
  * In tree mode (no search term) parent nodes show a chevron to expand/collapse their children. In
  * search mode the tree is pruned to matching nodes plus their ancestors (kept for context) and
  * rendered fully expanded, so indentation and parent/child relationships stay visible instead of
- * collapsing into a flat list.
+ * collapsing into a flat list. Like {@link MultiCombobox}, the trigger lists every selected label.
  */
 export function TreeMultiCombobox({
   options,
@@ -107,20 +107,18 @@ export function TreeMultiCombobox({
   const allNodes = React.useMemo(() => flattenOptions(options), [options]);
   const selectedOptions = allNodes.filter(node => selectedSet.has(node.value));
 
+  // Every selected option is listed, however many there are — the trigger grows taller rather than
+  // collapsing to a count, so what is selected is never hidden behind a summary.
   const summary
     = selectedOptions.length === 0
       ? (placeholder ?? t("Select…"))
-      : selectedOptions.length <= 2
-        ? (
-          <LocalizedNameSummary
-            options={selectedOptions}
-            secondaryLanguage={secondaryLanguage}
-            fallbackLanguage={fallbackLanguage}
-          />
-        )
-        : t("{{count}} selected", {
-          count: selectedOptions.length,
-        });
+      : (
+        <LocalizedNameSummary
+          options={selectedOptions}
+          secondaryLanguage={secondaryLanguage}
+          fallbackLanguage={fallbackLanguage}
+        />
+      );
 
   function toggle(value: string) {
     onValuesChange(
@@ -153,14 +151,15 @@ export function TreeMultiCombobox({
       onOpenChange={handleOpenChange}
       dataSlot="tree-multi-combobox"
       triggerClassName={cn(`
-        h-auto min-h-9 w-full justify-between font-normal whitespace-normal
+        h-auto min-h-9 w-full justify-between py-1.5 font-normal
+        whitespace-normal
       `, className)}
-      labelWrapperClassName="flex min-w-0 items-center gap-2"
-      chevronClassName="opacity-50"
+      labelWrapperClassName="min-w-0 text-left wrap-break-word"
+      chevronClassName="ml-2 shrink-0 opacity-50"
       id={id}
       aria-label={ariaLabel}
       isEmpty={selectedOptions.length === 0}
-      triggerLabel={<span className="wrap-break-word">{summary}</span>}
+      triggerLabel={summary}
       onClear={() => onValuesChange([])}
       shouldFilter={false}
       searchPlaceholder={searchPlaceholder}

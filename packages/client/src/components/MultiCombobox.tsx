@@ -38,7 +38,8 @@ interface MultiComboboxProps {
 
 /**
  * Searchable multi-select built from shadcn `Popover` + `Command`, mirroring {@link Combobox}.
- * Selecting an option toggles it; the trigger shows the chosen labels (or a count when many).
+ * Selecting an option toggles it; the trigger lists **every** chosen label, growing taller as they
+ * wrap rather than collapsing to a count.
  */
 export function MultiCombobox({
   options,
