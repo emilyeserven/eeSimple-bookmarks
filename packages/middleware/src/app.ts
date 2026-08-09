@@ -30,6 +30,7 @@ import { favoriteSettingsPageRoutes } from "@/routes/favoriteSettingsPages";
 import { savedFilterRoutes } from "@/routes/savedFilters";
 import { maintenanceRoutes } from "@/routes/maintenance";
 import { linkHealthRoutes } from "@/routes/linkHealth";
+import { duplicatesRoutes } from "@/routes/duplicates";
 import { collectionInsightsRoutes } from "@/routes/collectionInsights";
 import { languageRoutes } from "@/routes/languages";
 import { languageUsageLevelRoutes } from "@/routes/languageUsageLevels";
@@ -286,6 +287,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(aiAutotagRoutes);
   await app.register(maintenanceRoutes);
   await app.register(linkHealthRoutes);
+  await app.register(duplicatesRoutes);
   await app.register(collectionInsightsRoutes);
   await app.register(galleryRoutes);
 

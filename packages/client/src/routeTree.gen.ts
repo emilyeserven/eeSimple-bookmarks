@@ -152,6 +152,7 @@ import { Route as SettingsAdvancedManageMediaRouteImport } from './routes/settin
 import { Route as SettingsAdvancedManageDataRouteImport } from './routes/settings.advanced.manage-data'
 import { Route as SettingsAdvancedLinkHealthRouteImport } from './routes/settings.advanced.link-health'
 import { Route as SettingsAdvancedLayoutIssuesRouteImport } from './routes/settings.advanced.layout-issues'
+import { Route as SettingsAdvancedDuplicatesRouteImport } from './routes/settings.advanced.duplicates'
 import { Route as SettingsAdvancedDatabaseUsageRouteImport } from './routes/settings.advanced.database-usage'
 import { Route as SettingsAdvancedConnectorsRouteImport } from './routes/settings.advanced.connectors'
 import { Route as SavedFiltersFilterSlugInfoRouteImport } from './routes/saved-filters.$filterSlug.info'
@@ -1048,6 +1049,12 @@ const SettingsAdvancedLayoutIssuesRoute =
     path: '/layout-issues',
     getParentRoute: () => SettingsAdvancedRoute,
   } as any)
+const SettingsAdvancedDuplicatesRoute =
+  SettingsAdvancedDuplicatesRouteImport.update({
+    id: '/duplicates',
+    path: '/duplicates',
+    getParentRoute: () => SettingsAdvancedRoute,
+  } as any)
 const SettingsAdvancedDatabaseUsageRoute =
   SettingsAdvancedDatabaseUsageRouteImport.update({
     id: '/database-usage',
@@ -1849,6 +1856,7 @@ export interface FileRoutesByFullPath {
   '/saved-filters/$filterSlug/info': typeof SavedFiltersFilterSlugInfoRoute
   '/settings/advanced/connectors': typeof SettingsAdvancedConnectorsRoute
   '/settings/advanced/database-usage': typeof SettingsAdvancedDatabaseUsageRoute
+  '/settings/advanced/duplicates': typeof SettingsAdvancedDuplicatesRoute
   '/settings/advanced/layout-issues': typeof SettingsAdvancedLayoutIssuesRoute
   '/settings/advanced/link-health': typeof SettingsAdvancedLinkHealthRoute
   '/settings/advanced/manage-data': typeof SettingsAdvancedManageDataRoute
@@ -2064,6 +2072,7 @@ export interface FileRoutesByTo {
   '/saved-filters/$filterSlug/info': typeof SavedFiltersFilterSlugInfoRoute
   '/settings/advanced/connectors': typeof SettingsAdvancedConnectorsRoute
   '/settings/advanced/database-usage': typeof SettingsAdvancedDatabaseUsageRoute
+  '/settings/advanced/duplicates': typeof SettingsAdvancedDuplicatesRoute
   '/settings/advanced/layout-issues': typeof SettingsAdvancedLayoutIssuesRoute
   '/settings/advanced/link-health': typeof SettingsAdvancedLinkHealthRoute
   '/settings/advanced/manage-data': typeof SettingsAdvancedManageDataRoute
@@ -2290,6 +2299,7 @@ export interface FileRoutesById {
   '/saved-filters/$filterSlug/info': typeof SavedFiltersFilterSlugInfoRoute
   '/settings/advanced/connectors': typeof SettingsAdvancedConnectorsRoute
   '/settings/advanced/database-usage': typeof SettingsAdvancedDatabaseUsageRoute
+  '/settings/advanced/duplicates': typeof SettingsAdvancedDuplicatesRoute
   '/settings/advanced/layout-issues': typeof SettingsAdvancedLayoutIssuesRoute
   '/settings/advanced/link-health': typeof SettingsAdvancedLinkHealthRoute
   '/settings/advanced/manage-data': typeof SettingsAdvancedManageDataRoute
@@ -2558,6 +2568,7 @@ export interface FileRouteTypes {
     | '/saved-filters/$filterSlug/info'
     | '/settings/advanced/connectors'
     | '/settings/advanced/database-usage'
+    | '/settings/advanced/duplicates'
     | '/settings/advanced/layout-issues'
     | '/settings/advanced/link-health'
     | '/settings/advanced/manage-data'
@@ -2773,6 +2784,7 @@ export interface FileRouteTypes {
     | '/saved-filters/$filterSlug/info'
     | '/settings/advanced/connectors'
     | '/settings/advanced/database-usage'
+    | '/settings/advanced/duplicates'
     | '/settings/advanced/layout-issues'
     | '/settings/advanced/link-health'
     | '/settings/advanced/manage-data'
@@ -2998,6 +3010,7 @@ export interface FileRouteTypes {
     | '/saved-filters/$filterSlug/info'
     | '/settings/advanced/connectors'
     | '/settings/advanced/database-usage'
+    | '/settings/advanced/duplicates'
     | '/settings/advanced/layout-issues'
     | '/settings/advanced/link-health'
     | '/settings/advanced/manage-data'
@@ -4218,6 +4231,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsAdvancedLayoutIssuesRouteImport
       parentRoute: typeof SettingsAdvancedRoute
     }
+    '/settings/advanced/duplicates': {
+      id: '/settings/advanced/duplicates'
+      path: '/duplicates'
+      fullPath: '/settings/advanced/duplicates'
+      preLoaderRoute: typeof SettingsAdvancedDuplicatesRouteImport
+      parentRoute: typeof SettingsAdvancedRoute
+    }
     '/settings/advanced/database-usage': {
       id: '/settings/advanced/database-usage'
       path: '/database-usage'
@@ -5392,6 +5412,7 @@ const SavedFiltersRouteWithChildren = SavedFiltersRoute._addFileChildren(
 interface SettingsAdvancedRouteChildren {
   SettingsAdvancedConnectorsRoute: typeof SettingsAdvancedConnectorsRoute
   SettingsAdvancedDatabaseUsageRoute: typeof SettingsAdvancedDatabaseUsageRoute
+  SettingsAdvancedDuplicatesRoute: typeof SettingsAdvancedDuplicatesRoute
   SettingsAdvancedLayoutIssuesRoute: typeof SettingsAdvancedLayoutIssuesRoute
   SettingsAdvancedLinkHealthRoute: typeof SettingsAdvancedLinkHealthRoute
   SettingsAdvancedManageDataRoute: typeof SettingsAdvancedManageDataRoute
@@ -5404,6 +5425,7 @@ interface SettingsAdvancedRouteChildren {
 const SettingsAdvancedRouteChildren: SettingsAdvancedRouteChildren = {
   SettingsAdvancedConnectorsRoute: SettingsAdvancedConnectorsRoute,
   SettingsAdvancedDatabaseUsageRoute: SettingsAdvancedDatabaseUsageRoute,
+  SettingsAdvancedDuplicatesRoute: SettingsAdvancedDuplicatesRoute,
   SettingsAdvancedLayoutIssuesRoute: SettingsAdvancedLayoutIssuesRoute,
   SettingsAdvancedLinkHealthRoute: SettingsAdvancedLinkHealthRoute,
   SettingsAdvancedManageDataRoute: SettingsAdvancedManageDataRoute,
