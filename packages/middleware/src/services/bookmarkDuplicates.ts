@@ -4,6 +4,7 @@ import type {
   BookmarkUrlDuplicateResult,
   BookmarkUrlSummary,
 } from "@eesimple/types";
+import { mostSpecificParamRule } from "@eesimple/types";
 import { db } from "@/db";
 import { bookmarks } from "@/db/schema";
 import { getWebsiteByAnyDomain, normalizeDomain } from "@/services/websites";
@@ -121,16 +122,9 @@ export async function checkBookmarkUrlDuplicate(
   const domain = normalizeDomain(url);
   const website = domain ? await getWebsiteByAnyDomain(domain) : null;
 
-  // Find the most-specific matching rule (longest pathSuffix wins, mirrors urlCleanup applyParamRules).
-  const matchingRule = website?.paramRules.length
-    ? website.paramRules
-      .filter(r => r.pathSuffix === "" || (
-        r.matchMode === "contains"
-          ? parsed.pathname.includes(r.pathSuffix)
-          : parsed.pathname.endsWith(r.pathSuffix)
-      ))
-      .sort((a, b) => b.pathSuffix.length - a.pathSuffix.length)[0] ?? null
-    : null;
+  // Find the most-specific matching rule (longest pathSuffix wins) — the shared predicate the
+  // whole-collection duplicates scan also uses.
+  const matchingRule = mostSpecificParamRule(website?.paramRules ?? [], parsed.pathname);
 
   if (!matchingRule) {
     const pathMatch = pathCandidates[0] ?? null;

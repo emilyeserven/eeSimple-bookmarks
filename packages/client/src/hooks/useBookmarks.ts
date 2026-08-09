@@ -20,7 +20,7 @@ const TAGS_KEY = ["tags"] as const;
 const LOCATIONS_KEY = ["locations"] as const;
 
 /** Invalidate every query whose data a bookmark write can change (the list + all source counts). */
-function invalidateBookmarkRelatedQueries(queryClient: QueryClient): void {
+export function invalidateBookmarkRelatedQueries(queryClient: QueryClient): void {
   for (const key of [BOOKMARKS_KEY, CATEGORIES_KEY, MEDIA_TYPES_KEY, WEBSITES_KEY, YOUTUBE_CHANNELS_KEY]) {
     void queryClient.invalidateQueries({
       queryKey: key,

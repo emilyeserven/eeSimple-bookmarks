@@ -4,6 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   Cable,
   Camera,
+  CopyCheck,
   Database,
   Filter,
   FolderOpen,
@@ -181,6 +182,11 @@ export const advancedNav: readonly SettingsTabNavItem[] = [
     to: "/settings/advanced/link-health",
     label: i18n.t("Link Health"),
     icon: HeartPulse,
+  },
+  {
+    to: "/settings/advanced/duplicates",
+    label: i18n.t("Duplicates"),
+    icon: CopyCheck,
   },
   {
     to: "/settings/advanced/updates",

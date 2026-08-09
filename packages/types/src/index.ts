@@ -36,6 +36,7 @@ export * from "./bookmarkTextSearch.js";
 export * from "./cardFieldKeys.js";
 export * from "./collectionInsights.js";
 export * from "./customPropertyFilter.js";
+export * from "./duplicates.js";
 export * from "./honto.js";
 export * from "./oreilly.js";
 export * from "./entityNames.js";
