@@ -50,6 +50,15 @@ describe("settingsPages registry", () => {
     expect(page?.icon).toBeDefined();
   });
 
+  it("resolves the standalone Insights dashboard page", () => {
+    const page = findSettingsPage("/insights");
+    expect(page).toMatchObject({
+      path: "/insights",
+      label: "Insights",
+    });
+    expect(page?.icon).toBeDefined();
+  });
+
   it("resolves the standalone Page Layouts settings section", () => {
     const page = findSettingsPage("/settings/page-layouts");
     expect(page).toMatchObject({

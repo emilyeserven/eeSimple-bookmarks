@@ -13,6 +13,7 @@ import { Route as TagsRouteImport } from './routes/tags'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SavedFiltersRouteImport } from './routes/saved-filters'
 import { Route as QuickAddRouteImport } from './routes/quick-add'
+import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as ImportRulesRouteImport } from './routes/import-rules'
 import { Route as CustomPropertiesRouteImport } from './routes/custom-properties'
@@ -292,6 +293,11 @@ const SavedFiltersRoute = SavedFiltersRouteImport.update({
 const QuickAddRoute = QuickAddRouteImport.update({
   id: '/quick-add',
   path: '/quick-add',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InsightsRoute = InsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InboxRoute = InboxRouteImport.update({
@@ -1770,6 +1776,7 @@ export interface FileRoutesByFullPath {
   '/custom-properties': typeof CustomPropertiesRouteWithChildren
   '/import-rules': typeof ImportRulesRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
+  '/insights': typeof InsightsRoute
   '/quick-add': typeof QuickAddRoute
   '/saved-filters': typeof SavedFiltersRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
@@ -2018,6 +2025,7 @@ export interface FileRoutesByTo {
   '/ai-bulk-edit': typeof AiBulkEditRoute
   '/ai-prompt-builder': typeof AiPromptBuilderRoute
   '/ai-summarization': typeof AiSummarizationRoute
+  '/insights': typeof InsightsRoute
   '/quick-add': typeof QuickAddRoute
   '/autofill/backfill': typeof AutofillBackfillRoute
   '/categories/$categorySlug': typeof CategoriesCategorySlugHubIndexRoute
@@ -2208,6 +2216,7 @@ export interface FileRoutesById {
   '/custom-properties': typeof CustomPropertiesRouteWithChildren
   '/import-rules': typeof ImportRulesRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
+  '/insights': typeof InsightsRoute
   '/quick-add': typeof QuickAddRoute
   '/saved-filters': typeof SavedFiltersRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
@@ -2476,6 +2485,7 @@ export interface FileRouteTypes {
     | '/custom-properties'
     | '/import-rules'
     | '/inbox'
+    | '/insights'
     | '/quick-add'
     | '/saved-filters'
     | '/settings'
@@ -2724,6 +2734,7 @@ export interface FileRouteTypes {
     | '/ai-bulk-edit'
     | '/ai-prompt-builder'
     | '/ai-summarization'
+    | '/insights'
     | '/quick-add'
     | '/autofill/backfill'
     | '/categories/$categorySlug'
@@ -2913,6 +2924,7 @@ export interface FileRouteTypes {
     | '/custom-properties'
     | '/import-rules'
     | '/inbox'
+    | '/insights'
     | '/quick-add'
     | '/saved-filters'
     | '/settings'
@@ -3180,6 +3192,7 @@ export interface RootRouteChildren {
   CustomPropertiesRoute: typeof CustomPropertiesRouteWithChildren
   ImportRulesRoute: typeof ImportRulesRouteWithChildren
   InboxRoute: typeof InboxRouteWithChildren
+  InsightsRoute: typeof InsightsRoute
   QuickAddRoute: typeof QuickAddRoute
   SavedFiltersRoute: typeof SavedFiltersRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
@@ -3230,6 +3243,13 @@ declare module '@tanstack/react-router' {
       path: '/quick-add'
       fullPath: '/quick-add'
       preLoaderRoute: typeof QuickAddRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/insights': {
+      id: '/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof InsightsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/inbox': {
@@ -6564,6 +6584,7 @@ const rootRouteChildren: RootRouteChildren = {
   CustomPropertiesRoute: CustomPropertiesRouteWithChildren,
   ImportRulesRoute: ImportRulesRouteWithChildren,
   InboxRoute: InboxRouteWithChildren,
+  InsightsRoute: InsightsRoute,
   QuickAddRoute: QuickAddRoute,
   SavedFiltersRoute: SavedFiltersRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,

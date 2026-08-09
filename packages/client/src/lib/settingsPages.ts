@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
-import { Captions, ClipboardList, Languages, LayoutDashboard, Link2, MapPinned, Puzzle, Shapes, Tags, Waypoints } from "lucide-react";
+import { Captions, ChartColumn, ClipboardList, Languages, LayoutDashboard, Link2, MapPinned, Puzzle, Shapes, Tags, Waypoints } from "lucide-react";
 
 import { SETTINGS_TAB_SECTIONS } from "./settingsNav";
 import { actionItems, customizationItems, taxonomyItems } from "./sidebarNavItems";
@@ -31,6 +31,14 @@ export interface SettingsPage {
 
 /** Favoritable pages that appear on neither the sidebar nor a tabbed settings section. */
 const STANDALONE_PAGES: readonly SettingsPage[] = [
+  {
+    // The Collection Insights dashboard. It lives in the sidebar's top `navItems` group, which is
+    // not one of the derived surfaces above (only taxonomy/action/customization items are), so it
+    // is hand-listed here.
+    path: "/insights",
+    label: i18n.t("Insights"),
+    icon: ChartColumn,
+  },
   {
     // A tab-less /settings leaf (see `settingsNav` in routes/settings.tsx).
     path: "/settings/extension",

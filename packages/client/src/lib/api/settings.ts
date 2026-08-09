@@ -16,6 +16,7 @@ import type {
   BookmarkGraphSettings,
   CardDisplayConfig,
   CardFieldTemplate,
+  CollectionInsights,
   ConnectorsAppSettings,
   CreateCardFieldTemplateInput,
   CreateCustomAspectRatioInput,
@@ -340,6 +341,11 @@ export const pinnedSidebarItemsApi = {
   remove: (id: string) => request<undefined>(`/pinned-sidebar-items/${id}`, {
     method: "DELETE",
   }),
+};
+
+/** The read-only Collection Insights dashboard snapshot. */
+export const insightsApi = {
+  get: () => request<CollectionInsights>("/insights"),
 };
 
 export const pinnedSectionsApi = {
