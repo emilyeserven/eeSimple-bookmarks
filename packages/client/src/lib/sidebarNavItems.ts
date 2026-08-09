@@ -2,6 +2,7 @@ import {
   Bookmark,
   Bot,
   Building2,
+  ChartColumn,
   Clapperboard,
   Drama,
   FileInput,
@@ -49,6 +50,11 @@ export const navItems = [
     title: i18n.t("Bookmarks"),
     to: "/bookmarks",
     icon: Bookmark,
+  },
+  {
+    title: i18n.t("Insights"),
+    to: "/insights",
+    icon: ChartColumn,
   },
 ] as const;
 
