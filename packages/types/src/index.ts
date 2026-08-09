@@ -54,6 +54,7 @@ export * from "./isbn.js";
 export * from "./isbnScrape.js";
 export * from "./labeledWebsites.js";
 export * from "./languageUsages.js";
+export * from "./linkHealth.js";
 export * from "./locationRelations.js";
 export * from "./locations.js";
 export * from "./parseTemplates.js";

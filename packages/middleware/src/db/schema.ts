@@ -87,6 +87,18 @@ export const bookmarks = pgTable("bookmarks", {
   // applies cleanly to existing rows (push-safe additive change). NULL means never attempted or
   // the last attempt succeeded.
   imageAutoGrabError: text("image_auto_grab_error"),
+  // Link Health (dead-link checker) result of the last on-demand URL reachability check.
+  // Display-only maintenance data — NOT matchable, so writes never call
+  // `invalidateBookmarkCache()` (the `imageAutoGrabError` precedent). All nullable so
+  // `drizzle-kit push` applies cleanly to existing rows (push-safe additive change).
+  // "ok" | "broken" | null (never checked).
+  linkCheckStatus: text("link_check_status"),
+  // HTTP status as a string (e.g. "404") or a LinkCheckErrorKind ("timeout" | "network_error" |
+  // "blocked"); null when the last check succeeded.
+  linkCheckDetail: text("link_check_detail"),
+  linkCheckedAt: timestamp("link_checked_at", {
+    withTimezone: true,
+  }),
   // "image" | "screenshot" | null. null ("auto") reproduces today's fallback
   // (prefer image, else screenshot). Nullable so `drizzle-kit push` applies cleanly to existing
   // rows (push-safe additive change).

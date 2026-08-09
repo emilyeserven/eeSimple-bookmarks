@@ -1,11 +1,12 @@
 import type { ActivityRow } from "../lib/headerActivity";
 import type { LucideIcon } from "lucide-react";
 
-import { Camera, Download, Film, ImageDown } from "lucide-react";
+import { Camera, Download, Film, ImageDown, Link2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { useAutoFetchCompletionToast, useAutoFetchStatus, useAutoFetchWithFallbackCompletionToast, useAutoFetchWithFallbackStatus } from "./useGallery";
 import { useActiveImports, useImportCompletionToasts } from "./useImports";
+import { useLinkCheckCompletionToast, useLinkCheckStatus } from "./useLinkHealth";
 import { useActiveReelArchiveJobs, useReelArchiveCompletionToast } from "./useReelArchive";
 import { useScreenshotQueue } from "./useScreenshotQueue";
 import { useBackfillChannelImagesCompletionToast, useBackfillChannelImagesStatus } from "./useYouTubeChannels";
@@ -51,6 +52,9 @@ export function useHeaderActivity(): HeaderActivity {
   const {
     data: channels,
   } = useBackfillChannelImagesStatus();
+  const {
+    data: linkCheck,
+  } = useLinkCheckStatus();
   // Owns the screenshot-queue side effects (invalidation + completion toast) and returns its snapshot.
   const screenshots = useScreenshotQueue();
 
@@ -59,6 +63,7 @@ export function useHeaderActivity(): HeaderActivity {
   useAutoFetchCompletionToast(missing);
   useAutoFetchWithFallbackCompletionToast(fallback);
   useBackfillChannelImagesCompletionToast(channels);
+  useLinkCheckCompletionToast(linkCheck);
 
   const sections: ActivitySection[] = [];
 
@@ -99,6 +104,16 @@ export function useHeaderActivity(): HeaderActivity {
       title: t("Channel avatars"),
       icon: ImageDown,
       rows: [channelRow],
+    });
+  }
+
+  const linkCheckRow = fetchRow("link-check", t("Checking links"), linkCheck);
+  if (linkCheckRow) {
+    sections.push({
+      key: "link-check",
+      title: t("Link Health"),
+      icon: Link2,
+      rows: [linkCheckRow],
     });
   }
 
