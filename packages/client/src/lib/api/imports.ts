@@ -2,6 +2,8 @@ import type {
   ActiveImport,
   AutoFetchJobStatus,
   BlockImportItemInput,
+  BrokenBookmark,
+  LinkRecheckResult,
   CreateNewsletterInput,
   DeleteOrphansResult,
   GalleryCatalog,
@@ -157,6 +159,20 @@ export const maintenanceApi = {
   deleteOrphanInboxItems: () =>
     request<OrphanDeleteResult>("/maintenance/orphan-inbox-items", {
       method: "DELETE",
+    }),
+};
+
+/** Link Health: the on-demand dead-link batch check, its status poll, and the broken-link list. */
+export const linkHealthApi = {
+  start: () =>
+    request<AutoFetchJobStatus>("/link-health/check", {
+      method: "POST",
+    }),
+  status: () => request<AutoFetchJobStatus>("/link-health/check/status"),
+  broken: () => request<BrokenBookmark[]>("/link-health/broken"),
+  recheck: (bookmarkId: string) =>
+    request<LinkRecheckResult>(`/link-health/bookmarks/${bookmarkId}/check`, {
+      method: "POST",
     }),
 };
 

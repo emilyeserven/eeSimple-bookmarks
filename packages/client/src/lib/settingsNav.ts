@@ -9,6 +9,7 @@ import {
   FolderOpen,
   Forward,
   HardDrive,
+  HeartPulse,
   History,
   Image,
   Inbox,
@@ -175,6 +176,11 @@ export const advancedNav: readonly SettingsTabNavItem[] = [
     to: "/settings/advanced/manage-data",
     label: i18n.t("Manage Data"),
     icon: Database,
+  },
+  {
+    to: "/settings/advanced/link-health",
+    label: i18n.t("Link Health"),
+    icon: HeartPulse,
   },
   {
     to: "/settings/advanced/updates",

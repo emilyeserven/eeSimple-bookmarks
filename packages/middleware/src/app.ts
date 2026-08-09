@@ -29,6 +29,7 @@ import { pinnedSidebarItemRoutes } from "@/routes/pinnedSidebarItems";
 import { favoriteSettingsPageRoutes } from "@/routes/favoriteSettingsPages";
 import { savedFilterRoutes } from "@/routes/savedFilters";
 import { maintenanceRoutes } from "@/routes/maintenance";
+import { linkHealthRoutes } from "@/routes/linkHealth";
 import { languageRoutes } from "@/routes/languages";
 import { languageUsageLevelRoutes } from "@/routes/languageUsageLevels";
 import { languageUsageRoutes } from "@/routes/languageUsages";
@@ -283,6 +284,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(aiSummarizationRoutes);
   await app.register(aiAutotagRoutes);
   await app.register(maintenanceRoutes);
+  await app.register(linkHealthRoutes);
   await app.register(galleryRoutes);
 
   return app;

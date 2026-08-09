@@ -149,6 +149,7 @@ import { Route as SettingsAdvancedUpdatesRouteImport } from './routes/settings.a
 import { Route as SettingsAdvancedScanPipelineRouteImport } from './routes/settings.advanced.scan-pipeline'
 import { Route as SettingsAdvancedManageMediaRouteImport } from './routes/settings.advanced.manage-media'
 import { Route as SettingsAdvancedManageDataRouteImport } from './routes/settings.advanced.manage-data'
+import { Route as SettingsAdvancedLinkHealthRouteImport } from './routes/settings.advanced.link-health'
 import { Route as SettingsAdvancedLayoutIssuesRouteImport } from './routes/settings.advanced.layout-issues'
 import { Route as SettingsAdvancedDatabaseUsageRouteImport } from './routes/settings.advanced.database-usage'
 import { Route as SettingsAdvancedConnectorsRouteImport } from './routes/settings.advanced.connectors'
@@ -1029,6 +1030,12 @@ const SettingsAdvancedManageDataRoute =
     path: '/manage-data',
     getParentRoute: () => SettingsAdvancedRoute,
   } as any)
+const SettingsAdvancedLinkHealthRoute =
+  SettingsAdvancedLinkHealthRouteImport.update({
+    id: '/link-health',
+    path: '/link-health',
+    getParentRoute: () => SettingsAdvancedRoute,
+  } as any)
 const SettingsAdvancedLayoutIssuesRoute =
   SettingsAdvancedLayoutIssuesRouteImport.update({
     id: '/layout-issues',
@@ -1836,6 +1843,7 @@ export interface FileRoutesByFullPath {
   '/settings/advanced/connectors': typeof SettingsAdvancedConnectorsRoute
   '/settings/advanced/database-usage': typeof SettingsAdvancedDatabaseUsageRoute
   '/settings/advanced/layout-issues': typeof SettingsAdvancedLayoutIssuesRoute
+  '/settings/advanced/link-health': typeof SettingsAdvancedLinkHealthRoute
   '/settings/advanced/manage-data': typeof SettingsAdvancedManageDataRoute
   '/settings/advanced/manage-media': typeof SettingsAdvancedManageMediaRoute
   '/settings/advanced/scan-pipeline': typeof SettingsAdvancedScanPipelineRoute
@@ -2049,6 +2057,7 @@ export interface FileRoutesByTo {
   '/settings/advanced/connectors': typeof SettingsAdvancedConnectorsRoute
   '/settings/advanced/database-usage': typeof SettingsAdvancedDatabaseUsageRoute
   '/settings/advanced/layout-issues': typeof SettingsAdvancedLayoutIssuesRoute
+  '/settings/advanced/link-health': typeof SettingsAdvancedLinkHealthRoute
   '/settings/advanced/manage-data': typeof SettingsAdvancedManageDataRoute
   '/settings/advanced/manage-media': typeof SettingsAdvancedManageMediaRoute
   '/settings/advanced/scan-pipeline': typeof SettingsAdvancedScanPipelineRoute
@@ -2273,6 +2282,7 @@ export interface FileRoutesById {
   '/settings/advanced/connectors': typeof SettingsAdvancedConnectorsRoute
   '/settings/advanced/database-usage': typeof SettingsAdvancedDatabaseUsageRoute
   '/settings/advanced/layout-issues': typeof SettingsAdvancedLayoutIssuesRoute
+  '/settings/advanced/link-health': typeof SettingsAdvancedLinkHealthRoute
   '/settings/advanced/manage-data': typeof SettingsAdvancedManageDataRoute
   '/settings/advanced/manage-media': typeof SettingsAdvancedManageMediaRoute
   '/settings/advanced/scan-pipeline': typeof SettingsAdvancedScanPipelineRoute
@@ -2539,6 +2549,7 @@ export interface FileRouteTypes {
     | '/settings/advanced/connectors'
     | '/settings/advanced/database-usage'
     | '/settings/advanced/layout-issues'
+    | '/settings/advanced/link-health'
     | '/settings/advanced/manage-data'
     | '/settings/advanced/manage-media'
     | '/settings/advanced/scan-pipeline'
@@ -2752,6 +2763,7 @@ export interface FileRouteTypes {
     | '/settings/advanced/connectors'
     | '/settings/advanced/database-usage'
     | '/settings/advanced/layout-issues'
+    | '/settings/advanced/link-health'
     | '/settings/advanced/manage-data'
     | '/settings/advanced/manage-media'
     | '/settings/advanced/scan-pipeline'
@@ -2975,6 +2987,7 @@ export interface FileRouteTypes {
     | '/settings/advanced/connectors'
     | '/settings/advanced/database-usage'
     | '/settings/advanced/layout-issues'
+    | '/settings/advanced/link-health'
     | '/settings/advanced/manage-data'
     | '/settings/advanced/manage-media'
     | '/settings/advanced/scan-pipeline'
@@ -4171,6 +4184,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsAdvancedManageDataRouteImport
       parentRoute: typeof SettingsAdvancedRoute
     }
+    '/settings/advanced/link-health': {
+      id: '/settings/advanced/link-health'
+      path: '/link-health'
+      fullPath: '/settings/advanced/link-health'
+      preLoaderRoute: typeof SettingsAdvancedLinkHealthRouteImport
+      parentRoute: typeof SettingsAdvancedRoute
+    }
     '/settings/advanced/layout-issues': {
       id: '/settings/advanced/layout-issues'
       path: '/layout-issues'
@@ -5353,6 +5373,7 @@ interface SettingsAdvancedRouteChildren {
   SettingsAdvancedConnectorsRoute: typeof SettingsAdvancedConnectorsRoute
   SettingsAdvancedDatabaseUsageRoute: typeof SettingsAdvancedDatabaseUsageRoute
   SettingsAdvancedLayoutIssuesRoute: typeof SettingsAdvancedLayoutIssuesRoute
+  SettingsAdvancedLinkHealthRoute: typeof SettingsAdvancedLinkHealthRoute
   SettingsAdvancedManageDataRoute: typeof SettingsAdvancedManageDataRoute
   SettingsAdvancedManageMediaRoute: typeof SettingsAdvancedManageMediaRoute
   SettingsAdvancedScanPipelineRoute: typeof SettingsAdvancedScanPipelineRoute
@@ -5364,6 +5385,7 @@ const SettingsAdvancedRouteChildren: SettingsAdvancedRouteChildren = {
   SettingsAdvancedConnectorsRoute: SettingsAdvancedConnectorsRoute,
   SettingsAdvancedDatabaseUsageRoute: SettingsAdvancedDatabaseUsageRoute,
   SettingsAdvancedLayoutIssuesRoute: SettingsAdvancedLayoutIssuesRoute,
+  SettingsAdvancedLinkHealthRoute: SettingsAdvancedLinkHealthRoute,
   SettingsAdvancedManageDataRoute: SettingsAdvancedManageDataRoute,
   SettingsAdvancedManageMediaRoute: SettingsAdvancedManageMediaRoute,
   SettingsAdvancedScanPipelineRoute: SettingsAdvancedScanPipelineRoute,
