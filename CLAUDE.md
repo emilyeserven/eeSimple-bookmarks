@@ -1047,9 +1047,49 @@ custom taxonomy uses:
   owner = add it to `GENRE_MOOD_OWNER_TYPES` and drop the section into that entity's edit form; don't
   hand-roll a per-owner junction table.
 
-Genres & Moods is **display/classification data, not a matchable condition leaf** today (no autofill/
-homepage/card-rule Genre condition yet) — a filter facet + condition leaf is the sanctioned follow-up
-(see `add-condition-type`/`filterable-facet`).
+Genres & Moods is both **filterable and matchable**: the `genreMoods`/`genreMoodPresence` search facet
+(a `FILTER_FACETS` registry entry) and the `genre-mood` condition leaf. Every **other** user-created
+taxonomy gets the same two capabilities generically — see **Custom-taxonomy filters & conditions**.
+
+## Custom-taxonomy filters & conditions
+
+Every user-created taxonomy is **filterable** (a bookmark-search facet) and **matchable** (a condition
+leaf in autofill rules / homepage sections / card display), with no per-taxonomy code. Both surfaces
+share one gate: **`hooks/useUserTaxonomies.ts`** — non-hidden, at least one term, and **excluding
+Genres & Moods**, which keeps its own bespoke facet + leaf (including it would double the vocabulary).
+Add a taxonomy in the UI and it acquires both surfaces automatically.
+
+- **Facet.** `BookmarkSearch.taxonomyTerms` / `.taxonomyTermPresence` are **`Record<taxonomyId, …>`**,
+  not flat arrays — one entry per filtered taxonomy. Semantics: **any-of within** a taxonomy, **ANDed
+  across** taxonomies, and presence is **scoped per taxonomy** (`"missing"` means "carries no term
+  from *this* taxonomy"). Matching is **exact** — a parent term does not imply its children, mirroring
+  the Genres & Moods facet. One `BOOKMARK_SEARCH_FACETS` entry covers every taxonomy, so the server
+  needs no change (the shared matcher runs in `searchBookmarks`, and the search body is schema-free).
+- **Taxonomies are dynamic id-keyed facets — they follow the *custom property* model, not
+  `FILTER_FACETS`.** `FilterFacetKey` is a literal union, so a user-defined taxonomy can't be one.
+  Like properties, they get parallel helpers (`taxonomyHasActiveSelection` /
+  `taxonomySelectionSummary` / `taxonomyVisibilityHint`), a `visibleTaxonomies` slot in
+  `computeFilterVisibility`, an `OrderedFilterItem` variant, and a `TaxonomyFilterPill` — so they
+  fully participate in filter **ordering**, **on-demand reveal**, and the Display → Filters settings
+  list. Don't try to widen `FilterFacetKey` with a template literal; the exhaustive switches over it
+  are load-bearing.
+- **`FilterSections` (the mobile filter modal) is *at* fallow's cognitive cap**, and fallow scores a
+  component's **prop count**, so adding either a prop or a hook there tips it over. `TaxonomyFilterSections`
+  is therefore self-fetching *and* self-separating (it owns its leading `<Separator />` and returns
+  `null` when empty) and renders after `SeparatedSections` rather than as one of its entries. Keep it
+  that way — a "tidy-up" that threads the taxonomy list in as a prop will redden `fallow-audit`.
+- **Condition leaf.** `TaxonomyCondition` (`{ type: "taxonomy", taxonomyId, termIds, cascadeTermIds? }`)
+  already existed in `@eesimple/types` + the evaluator + the middleware JSON schema; what was missing
+  was the client editor. It is **multi-instance** in `conditionsFieldTree.ts` (`taxonomyLeaves`, like
+  `propertyLeaves`) — one leaf per taxonomy, keyed by `taxonomyId`, not a single named slot.
+  `TaxonomyConditionSections` merges leaves **in place** so a leaf whose taxonomy was later hidden or
+  deleted round-trips instead of being dropped when another section is edited. Per-term subtree
+  **cascade is opt-in** here (the "+ children" checkbox), unlike the exact-match facet.
+- **`useConditionEvaluateOptions` builds `taxonomyTermDescendants` from `useAllTaxonomyTerms()`** —
+  the flat `GET /api/taxonomy-terms` list spanning *every* taxonomy, matching how the server's
+  `bookmarkCache` builds it. It previously read Genres & Moods alone, which silently no-op'd cascade
+  for every other taxonomy's terms. Term ids are globally unique, so one descendant map serves both
+  the `taxonomy` leaf and the legacy `genre-mood` leaf.
 
 ## Metadata fetching & connectors
 

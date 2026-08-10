@@ -1,6 +1,7 @@
 import type { BookmarkSearch, OwnerLanguageUsage } from "./bookmarkSearch.js";
 import type { SectionEntryType } from "./customProperties.js";
 import type { Bookmark, BookmarkGenreMood, BookmarkPerson, BookmarkLocation, BookmarkTag } from "./index.js";
+import type { BookmarkTaxonomyTerm } from "./taxonomies.js";
 
 import { validateBookmarkSearch } from "./bookmarkSearch.js";
 import { bookmarkMatchesFilters } from "./customPropertyFilter.js";
@@ -14,6 +15,7 @@ type SearchableBookmark = Pick<
   | "website"
   | "tags"
   | "genreMoods"
+  | "taxonomyTerms"
   | "locations"
   | "people"
   | "numberValues"
@@ -98,10 +100,20 @@ function bookmarkPlaceTypeKeys(bookmarkLocations: BookmarkLocation[]): string[] 
   return Array.from(new Set(keys));
 }
 
-/** A multi-select place-type filter passes when empty or the bookmark has a location with a matching place type. */
-export function passesPlaceTypesFilter(selected: string[] | undefined, keys: string[]): boolean {
+/**
+ * A multi-select "any match" filter over a bookmark's multi-valued dimension (place-type keys,
+ * Genres & Moods ids, taxonomy term ids): passes when nothing is selected, or when the bookmark
+ * carries at least one of the selected values.
+ */
+export function passesAnyOfFilter(selected: string[] | undefined, owned: string[]): boolean {
   if (!selected || selected.length === 0) return true;
-  return keys.some(key => selected.includes(key));
+  return owned.some(value => selected.includes(value));
+}
+
+/** The exclusion counterpart of {@link passesAnyOfFilter}: passes when nothing is selected, or the bookmark carries none of the selected values. */
+export function passesNoneOfFilter(selected: string[] | undefined, owned: string[]): boolean {
+  if (!selected || selected.length === 0) return true;
+  return !owned.some(value => selected.includes(value));
 }
 
 /** The Genres & Moods ids carried by a bookmark. */
@@ -109,22 +121,29 @@ function bookmarkGenreMoodIds(genreMoods: BookmarkGenreMood[]): string[] {
   return genreMoods.map(entry => entry.id);
 }
 
-/** A multi-select Genres & Moods filter passes when empty or the bookmark carries a matching entry. */
-export function passesGenreMoodsFilter(selected: string[] | undefined, ids: string[]): boolean {
-  if (!selected || selected.length === 0) return true;
-  return ids.some(id => selected.includes(id));
-}
-
-/** An exclusion Genres & Moods filter passes when empty or the bookmark carries none of the excluded entries. */
-export function passesGenreMoodsExclusion(selected: string[] | undefined, ids: string[]): boolean {
-  if (!selected || selected.length === 0) return true;
-  return !ids.some(id => selected.includes(id));
-}
-
-/** An exclusion place-type filter passes when empty (no filter) or none of the bookmark's location place types are in the excluded list. */
-export function passesPlaceTypesExclusion(selected: string[] | undefined, keys: string[]): boolean {
-  if (!selected || selected.length === 0) return true;
-  return !keys.some(key => selected.includes(key));
+/**
+ * Per-taxonomy term filters, **ANDed across taxonomies**: each filtered taxonomy narrows
+ * independently, so a term selected in two taxonomies requires the bookmark to match in both. Within
+ * one taxonomy the ids are "any match". Presence is evaluated against only that taxonomy's terms, so
+ * "missing" means "carries no term from *this* taxonomy" rather than "carries no terms at all".
+ */
+function passesTaxonomyTermFilters(
+  bookmarkTerms: BookmarkTaxonomyTerm[],
+  search: BookmarkSearch,
+): boolean {
+  const selections = search.taxonomyTerms;
+  const presences = search.taxonomyTermPresence;
+  const taxonomyIds = new Set([...Object.keys(selections ?? {}), ...Object.keys(presences ?? {})]);
+  for (const taxonomyId of taxonomyIds) {
+    const owned = bookmarkTerms.filter(term => term.taxonomyId === taxonomyId).map(term => term.id);
+    const selected = selections?.[taxonomyId];
+    const mode = presences?.[taxonomyId];
+    const passes = mode === "exclude"
+      ? passesNoneOfFilter(selected, owned)
+      : passesAnyOfFilter(selected, owned) && passesPresence(mode, owned.length > 0);
+    if (!passes) return false;
+  }
+  return true;
 }
 
 /** A "has"/"missing" presence filter checks whether the dimension is present. "exclude" is handled elsewhere; returns true so it doesn't double-filter. */
@@ -306,18 +325,23 @@ const BOOKMARK_SEARCH_FACETS: BookmarkSearchFacet[] = [
   // Place types are multi-valued (a bookmark can carry several locations), so "any match" like tags.
   {
     matches: (bookmark, search) => search.placeTypePresence === "exclude"
-      ? passesPlaceTypesExclusion(search.placeTypes, bookmarkPlaceTypeKeys(bookmark.locations))
-      : passesPlaceTypesFilter(search.placeTypes, bookmarkPlaceTypeKeys(bookmark.locations))
+      ? passesNoneOfFilter(search.placeTypes, bookmarkPlaceTypeKeys(bookmark.locations))
+      : passesAnyOfFilter(search.placeTypes, bookmarkPlaceTypeKeys(bookmark.locations))
         && passesPresence(search.placeTypePresence, bookmarkPlaceTypeKeys(bookmark.locations).length > 0),
     isActive: search => hasItems(search.placeTypes) || search.placeTypePresence !== undefined,
   },
   // Genres & Moods are multi-valued (a bookmark can carry several), so "any match" like place types.
   {
     matches: (bookmark, search) => search.genreMoodPresence === "exclude"
-      ? passesGenreMoodsExclusion(search.genreMoods, bookmarkGenreMoodIds(bookmark.genreMoods))
-      : passesGenreMoodsFilter(search.genreMoods, bookmarkGenreMoodIds(bookmark.genreMoods))
+      ? passesNoneOfFilter(search.genreMoods, bookmarkGenreMoodIds(bookmark.genreMoods))
+      : passesAnyOfFilter(search.genreMoods, bookmarkGenreMoodIds(bookmark.genreMoods))
         && passesPresence(search.genreMoodPresence, bookmark.genreMoods.length > 0),
     isActive: search => hasItems(search.genreMoods) || search.genreMoodPresence !== undefined,
+  },
+  // User-created taxonomies: one keyed entry per filtered taxonomy, ANDed across taxonomies.
+  {
+    matches: (bookmark, search) => passesTaxonomyTermFilters(bookmark.taxonomyTerms, search),
+    isActive: search => hasEntries(search.taxonomyTerms) || hasEntries(search.taxonomyTermPresence),
   },
   // Tags: inclusion is subtree-expanded by the caller (server query / search service); this facet handles presence and exclude.
   {

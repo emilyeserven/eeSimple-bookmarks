@@ -20,6 +20,7 @@ import {
   createTaxonomyTerm,
   deleteTaxonomyTerm,
   getTaxonomyTermTree,
+  listAllTaxonomyTerms,
   listFavoriteTaxonomyTerms,
   listTaxonomyTerms,
   updateTaxonomyTerm,
@@ -335,12 +336,18 @@ export async function taxonomyRoutes(app: FastifyInstance): Promise<void> {
     return reply.code(201).send(term);
   });
 
-  // Literal path — registered before `/api/taxonomy-terms/:id` so it wins over the param route.
+  // Literal paths — registered before `/api/taxonomy-terms/:id` so they win over the param route.
   app.get("/api/taxonomy-terms/favorites", {
     schema: {
       tags: ["taxonomies"],
     },
   }, async () => listFavoriteTaxonomyTerms());
+
+  app.get("/api/taxonomy-terms", {
+    schema: {
+      tags: ["taxonomies"],
+    },
+  }, async () => listAllTaxonomyTerms());
 
   app.patch("/api/taxonomy-terms/:id", {
     schema: {

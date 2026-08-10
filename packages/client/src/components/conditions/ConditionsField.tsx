@@ -16,6 +16,7 @@ import {
 } from "./conditionEditors";
 import { Section } from "./ConditionsFieldSection";
 import { buildRootChildren, splitRootConditions } from "./conditionsFieldTree";
+import { TaxonomyConditionSections } from "./TaxonomyConditionSections";
 
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -109,7 +110,7 @@ export function ConditionsField({
   const leaves = splitRootConditions(value);
   const {
     matches, urlMatches, categoryLeaf, websiteLeaf, tagLeaf, locationLeaf, youtubeChannelLeaf, mediaTypeLeaf,
-    genreMoodLeaf, relationshipTypeLeaf, languageUsageLeaf, propertyLeaves, fillableLeaf, counts,
+    genreMoodLeaf, relationshipTypeLeaf, languageUsageLeaf, propertyLeaves, taxonomyLeaves, fillableLeaf, counts,
   } = leaves;
 
   const commit = (next: Parameters<typeof buildRootChildren>[1]) =>
@@ -302,6 +303,13 @@ export function ConditionsField({
             })}
         />
       </CountSection>
+
+      <TaxonomyConditionSections
+        leaves={taxonomyLeaves}
+        onChange={taxonomies => commit({
+          taxonomies,
+        })}
+      />
 
       <CountSection
         title={i18n.t("Relationship Type")}

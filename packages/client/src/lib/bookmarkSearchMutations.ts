@@ -358,6 +358,46 @@ export function withChoicesFilter(
   };
 }
 
+/**
+ * Return a copy of `search` with one taxonomy's term filter set, or cleared when `ids` is empty.
+ * Keyed by taxonomy id, so setting one taxonomy's terms leaves every other taxonomy's filter intact.
+ */
+export function withTaxonomyTerms(
+  search: BookmarkSearch,
+  taxonomyId: string,
+  ids: string[],
+): BookmarkSearch {
+  return {
+    ...search,
+    taxonomyTerms: patchRecord(search.taxonomyTerms, taxonomyId, ids.length > 0 ? ids : undefined),
+  };
+}
+
+/**
+ * Return a copy of `search` with one taxonomy's presence mode set or cleared. Mirrors the other
+ * multi-valued facets: `"missing"` also clears that taxonomy's term selection (picking a term
+ * contradicts "carries none of its terms"); `"exclude"` keeps the selection as the exclusion list.
+ */
+export function withTaxonomyTermPresence(
+  search: BookmarkSearch,
+  taxonomyId: string,
+  mode: "has" | "missing" | "exclude" | undefined,
+): BookmarkSearch {
+  const next = {
+    ...search,
+    taxonomyTermPresence: patchRecord(search.taxonomyTermPresence, taxonomyId, mode),
+  };
+  return mode === "missing" ? withTaxonomyTerms(next, taxonomyId, []) : next;
+}
+
+/** Return a copy of `search` with every filter for one taxonomy (terms + presence) cleared. */
+export function withTaxonomyFilterReset(
+  search: BookmarkSearch,
+  taxonomyId: string,
+): BookmarkSearch {
+  return withTaxonomyTermPresence(withTaxonomyTerms(search, taxonomyId, []), taxonomyId, undefined);
+}
+
 /** Return a copy of `search` with the sections-presence filter set or cleared. "exclude" keeps existing sectionTypes as the exclusion list; "missing" does not clear them. */
 export function withSectionsPresence(
   search: BookmarkSearch,

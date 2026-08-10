@@ -205,6 +205,19 @@ vi.mock("../hooks/useGenreMoods", () => ({
     error: null,
   }),
 }));
+// `useConditionEvaluateOptions` builds its taxonomy-term cascade map from the flat all-terms query,
+// so the create form reaches this module even though it renders no taxonomy picker itself.
+vi.mock("../hooks/useTaxonomies", () => ({
+  useAllTaxonomyTerms: () => ({
+    data: [],
+  }),
+  useTaxonomies: () => ({
+    data: [],
+  }),
+  useTaxonomyTermTree: () => ({
+    data: [],
+  }),
+}));
 vi.mock("../hooks/useLocationRelations", () => ({
   useLocationRelations: () => ({
     data: [],

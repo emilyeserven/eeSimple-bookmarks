@@ -28,6 +28,8 @@ export interface ConditionSummary {
   relationshipTypes: number;
   /** Number of language-usage leaves in the tree. */
   languageUsages: number;
+  /** Number of selected custom-taxonomy term ids, summed across every `taxonomy` leaf in the tree. */
+  taxonomyTerms: number;
   properties: number;
   /** Number of fillable-fields leaves in the tree. */
   fillableFields: number;
@@ -47,6 +49,7 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
   let genreMoods = 0;
   let relationshipTypes = 0;
   let languageUsages = 0;
+  let taxonomyTerms = 0;
   let properties = 0;
   let fillableFields = 0;
   for (const child of tree.children) {
@@ -63,6 +66,7 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
     else if (child.type === "genre-mood") genreMoods += child.genreMoodIds.length;
     else if (child.type === "relationship-type") relationshipTypes += child.relationshipTypeIds.length;
     else if (child.type === "language-usage") languageUsages += 1;
+    else if (child.type === "taxonomy") taxonomyTerms += child.termIds.length;
     else if (child.type === "property") properties += 1;
     else if (child.type === "fillable-fields") fillableFields += 1;
   }
@@ -79,6 +83,7 @@ export function summarizeConditions(tree: ConditionTree): ConditionSummary {
     genreMoods,
     relationshipTypes,
     languageUsages,
+    taxonomyTerms,
     properties,
     fillableFields,
     combinator: tree.combinator,
@@ -170,6 +175,11 @@ const BREAKDOWN_LABELS: {
     key: "languageUsages",
     singular: "language usage",
     plural: "language usages",
+  },
+  {
+    key: "taxonomyTerms",
+    singular: "taxonomy term",
+    plural: "taxonomy terms",
   },
   {
     key: "properties",

@@ -16,6 +16,7 @@ import { flattenTree } from "../lib/tagTree";
 const TAXONOMIES_KEY = ["taxonomies"] as const;
 const BOOKMARKS_KEY = ["bookmarks"] as const;
 const FAVORITE_TERMS_KEY = ["taxonomy-terms", "favorites"] as const;
+const ALL_TERMS_KEY = ["taxonomy-terms", "all"] as const;
 
 const termTreeKey = (taxonomyId: string) => [...TAXONOMIES_KEY, taxonomyId, "terms", "tree"] as const;
 
@@ -24,6 +25,18 @@ export function useFavoriteTaxonomyTerms() {
   return useQuery({
     queryKey: FAVORITE_TERMS_KEY,
     queryFn: taxonomiesApi.favoriteTerms,
+  });
+}
+
+/**
+ * Every taxonomy term across every taxonomy, flat. Backs the shared condition cascade resolver
+ * (`useConditionEvaluateOptions`), which needs one descendant map spanning all taxonomies — one
+ * cached request instead of a tree request per taxonomy.
+ */
+export function useAllTaxonomyTerms() {
+  return useQuery({
+    queryKey: ALL_TERMS_KEY,
+    queryFn: taxonomiesApi.allTerms,
   });
 }
 
@@ -74,6 +87,9 @@ export function useTaxonomyInvalidation() {
     });
     void queryClient.invalidateQueries({
       queryKey: FAVORITE_TERMS_KEY,
+    });
+    void queryClient.invalidateQueries({
+      queryKey: ALL_TERMS_KEY,
     });
     if (taxonomyId) {
       void queryClient.invalidateQueries({

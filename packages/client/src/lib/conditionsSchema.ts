@@ -26,6 +26,7 @@ export const autofillConditionsValidator = z.custom<ConditionTree>().superRefine
   let emptyRelationshipType = false;
   let emptyLocation = false;
   let emptyLanguageUsage = false;
+  let emptyTaxonomy = false;
   const walk = (node: ConditionNode) => {
     if (node.type === "group") {
       node.children.forEach(walk);
@@ -48,6 +49,7 @@ export const autofillConditionsValidator = z.custom<ConditionTree>().superRefine
     if (node.type === "relationship-type" && node.relationshipTypeIds.length === 0) emptyRelationshipType = true;
     if (node.type === "location" && node.locationIds.length === 0) emptyLocation = true;
     if (node.type === "language-usage" && node.languageIds.length === 0 && node.usageLevelIds.length === 0) emptyLanguageUsage = true;
+    if (node.type === "taxonomy" && node.termIds.length === 0) emptyTaxonomy = true;
   };
   walk(tree);
 
@@ -97,6 +99,12 @@ export const autofillConditionsValidator = z.custom<ConditionTree>().superRefine
     ctx.addIssue({
       code: "custom",
       message: i18n.t("Pick at least one language or usage level."),
+    });
+  }
+  if (emptyTaxonomy) {
+    ctx.addIssue({
+      code: "custom",
+      message: i18n.t("Pick at least one taxonomy term."),
     });
   }
 });

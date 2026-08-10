@@ -9,10 +9,10 @@ import {
   buildTaxonomyTermDescendants,
 } from "@eesimple/types";
 
-import { useGenreMoods } from "./useGenreMoods";
 import { useLocations } from "./useLocations";
 import { useMediaTypes } from "./useMediaTypes";
 import { useTags } from "./useTags";
+import { useAllTaxonomyTerms } from "./useTaxonomies";
 
 /** Map a flat `{ id, parentId }`-carrying list to the shape `build*Descendants` expects. */
 function idParent(rows: readonly { id: string;
@@ -26,11 +26,11 @@ function idParent(rows: readonly { id: string;
 
 /**
  * The shared client-side {@link EvaluateOptions} for `evaluateConditions` — the four hierarchical
- * cascade resolvers (Tags, Locations, Media Types, Genres & Moods), built once from the already-cached
- * flat taxonomy lists. Every client surface that evaluates a condition tree against a bookmark
- * (card display rules, section visibility, the add-form effective config) routes through this so all
- * of them honor the per-item cascade toggle identically — and consistently with the server's
- * `BookmarkEvaluationData`. Mirrors `useResolveCardDisplay`'s memoize-descendants-once shape.
+ * cascade resolvers (Tags, Locations, Media Types, and taxonomy terms), built once from the
+ * already-cached flat taxonomy lists. Every client surface that evaluates a condition tree against a
+ * bookmark (card display rules, section visibility, the add-form effective config) routes through
+ * this so all of them honor the per-item cascade toggle identically — and consistently with the
+ * server's `BookmarkEvaluationData`. Mirrors `useResolveCardDisplay`'s memoize-descendants-once shape.
  */
 export function useConditionEvaluateOptions(): EvaluateOptions {
   const {
@@ -43,15 +43,18 @@ export function useConditionEvaluateOptions(): EvaluateOptions {
     data: mediaTypes = [],
   } = useMediaTypes();
   const {
-    data: genreMoods = [],
-  } = useGenreMoods();
+    data: taxonomyTerms = [],
+  } = useAllTaxonomyTerms();
 
   return useMemo<EvaluateOptions>(() => ({
     tagDescendants: buildTagDescendants(idParent(tags)),
     locationDescendants: buildLocationDescendants(idParent(locations)),
     mediaTypeDescendants: buildMediaTypeDescendants(idParent(mediaTypes)),
-    // Genres & Moods is part of the taxonomy engine now; its tree backs both the taxonomy leaf and
-    // the legacy genre-mood leaf cascade toggle.
-    taxonomyTermDescendants: buildTaxonomyTermDescendants(idParent(genreMoods)),
-  }), [tags, locations, mediaTypes, genreMoods]);
+    // Spans EVERY taxonomy, not just Genres & Moods: term ids are globally unique, so one descendant
+    // map serves both the `taxonomy` leaf (any user taxonomy) and the legacy `genre-mood` leaf, whose
+    // entries live in the same `taxonomy_terms` table. Matches how the server's `bookmarkCache`
+    // builds it from all rows — sourcing it from G&M alone silently no-op'd cascade for every other
+    // taxonomy's terms.
+    taxonomyTermDescendants: buildTaxonomyTermDescendants(idParent(taxonomyTerms)),
+  }), [tags, locations, mediaTypes, taxonomyTerms]);
 }
