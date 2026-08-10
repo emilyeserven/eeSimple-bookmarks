@@ -39,8 +39,8 @@ interface UseBookmarkTableColumnsArgs {
 
 /**
  * Column definitions for a bookmark listing Table view: fixed taxonomy columns plus one column per
- * applicable, listing-visible custom property. Reuses the same pills, formatters, and
- * `hiddenCardFields` toggles as the bookmark cards so the two views stay consistent. Display state
+ * applicable, listing-visible custom property. Reuses the same pills, formatters, and resolved
+ * card-field visibility as the bookmark cards so the two views stay consistent. Display state
  * comes from `pageKey` (listings) or explicit overrides (DB-backed homepage sections).
  */
 export function useBookmarkTableColumns({

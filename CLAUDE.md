@@ -772,7 +772,7 @@ skill — consult it before building or changing an edit tab. In short:
   **Local-only Zustand prefs** stay instant with **no toast**
   (nothing persists server-side). The no-toast carve-out is **only** for *ephemeral, device-local
   view prefs* in `uiStore` — what now remains there is `theme`, `collapsedSidebarSections`, the
-  physical sizing (`sidebarWidth`/`panelWidth`/`tableColumnWidths`), open/closed state
+  physical sizing (`sidebarWidth`/`tableColumnWidths`), open/closed state
   (`addBookmarkFormOpen`/`collapsedHomepageSectionIds`), the page-level listing prefs
   (`bookmarkColumns`/`viewMode`/`bookmarkImageMode`/…), and the transient filter/header state. A
   setting that must **stick across devices/browsers** belongs in the server-side `app_settings`
@@ -791,8 +791,11 @@ skill — consult it before building or changing an edit tab. In short:
   service, schema, hooks — in the conventions-audit sweep; `migrate.ts` drops the columns.) Known
   device-local `uiStore` keys flagged as *future server-migration candidates* (deliberate, pending an
   owner decision — don't treat them as precedent for new should-persist keys):
-  `hideLocationMapAdminBorders`, `bookmarkGraphSpacing`, `selectedDisplayPreset`, `hiddenCardFields`,
-  and the three global sort modes (`locationSortMode`/`categorySortMode`/`websiteSortMode`).
+  `hideLocationMapAdminBorders`, `bookmarkGraphSpacing`, and the three global sort modes
+  (`locationSortMode`/`categorySortMode`/`websiteSortMode`). (The former `selectedDisplayPreset` /
+  `hiddenCardFields` / `bookmarkImageLayout` / `bookmarkCornerOverlays` per-page keys were **deleted**,
+  not migrated: the Card Display consolidation removed every reader, so they were dead state the store
+  kept persisting. The persist `version` bump to 3 drops them from existing browsers' stored blobs.)
 
 ## Data shaping: middleware vs. client
 

@@ -3,7 +3,7 @@ import type { CategorySortMode } from "../lib/categorySort";
 import type { LocationSortMode } from "../lib/locationSort";
 import type { SyncProvider } from "../lib/syncSources/syncSourceTypes";
 import type { WebsiteBookmarkFilter, WebsiteBuiltInFilter, WebsiteIsbnFilter, WebsiteSortMode } from "../lib/websiteListingSort";
-import type { Person, Bookmark, BookmarkDetailImageSize, BookmarkDetailLayout, BookmarkDetailVideoSize, BookmarkImageVisibility, Category, CustomProperty, GenreMood, LocationMapLevelMode, MediaType, PlaceType, RelationshipType, TagNode, ViewMode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Person, Bookmark, BookmarkDetailImageSize, BookmarkDetailLayout, BookmarkDetailVideoSize, BookmarkImageVisibility, Category, CustomProperty, GenreMood, HomepageSectionImageLayout, LocationMapLevelMode, MediaType, PlaceType, RelationshipType, TagNode, ViewMode, Website, YouTubeChannel } from "@eesimple/types";
 import type { MouseEvent as ReactMouseEvent } from "react";
 
 import { create } from "zustand";
@@ -11,9 +11,6 @@ import { persist } from "zustand/middleware";
 
 /** The user's theme preference. `system` follows the OS `prefers-color-scheme`. */
 export type Theme = "light" | "dark" | "system";
-
-/** Per-section image layout preference for 2-column homepage sections. */
-export type HomepageSectionImageLayout = "above" | "side";
 
 /**
  * How a tag page's `?taggedSections` listing renders each card: the full card plus the Tagged
@@ -34,6 +31,7 @@ export type {
   BookmarkDetailLayout,
   BookmarkDetailVideoSize,
   BookmarkImageVisibility,
+  HomepageSectionImageLayout,
   LocationMapLevelMode,
   ViewMode,
 };
@@ -111,14 +109,6 @@ interface UiState {
    */
   titleSortLanguage: Record<string, string>;
   setTitleSortLanguage: (pageKey: string, languageId: string) => void;
-  /** Card field keys hidden per listing page (standard field key or custom-property id). Empty/absent = all shown. */
-  hiddenCardFields: Record<string, string[]>;
-  toggleCardField: (pageKey: string, fieldKey: string) => void;
-  /** Replace the hidden card-field list for a page wholesale (used when applying a display preset). */
-  setHiddenCardFields: (pageKey: string, fieldKeys: string[]) => void;
-  /** The display preset last applied per listing page (drives the "update preset" offer). Keyed by pageKey → preset id. */
-  selectedDisplayPreset: Record<string, string>;
-  setSelectedDisplayPreset: (pageKey: string, presetId: string) => void;
   /** Persisted per-listing table column widths (px), keyed by pageKey → columnId. */
   tableColumnWidths: Record<string, Record<string, number>>;
   setTableColumnWidths: (pageKey: string, widths: Record<string, number>) => void;
@@ -190,12 +180,6 @@ interface UiState {
    */
   hideLocationMapAdminBorders: boolean;
   setHideLocationMapAdminBorders: (hide: boolean) => void;
-  /** Per-listing image layout for 2-column listing pages: "above" (default) or "side". Keyed by a stable page key. */
-  bookmarkImageLayout: Record<string, HomepageSectionImageLayout>;
-  setBookmarkImageLayout: (pageKey: string, layout: HomepageSectionImageLayout) => void;
-  /** Per-listing toggle (default true) for whether custom properties placed in an image corner are overlaid on card images. Keyed by a stable page key. */
-  bookmarkCornerOverlays: Record<string, boolean>;
-  setBookmarkCornerOverlays: (pageKey: string, value: boolean) => void;
   /** Transient: live filter data from the active listing page. Cleared when leaving a listing page. Never persisted. */
   filterContext: FilterContextData | null;
   setFilterContext: (ctx: FilterContextData | null) => void;
@@ -307,31 +291,6 @@ export const useUiStore = create<UiState>()(
           [pageKey]: languageId,
         },
       })),
-      hiddenCardFields: {},
-      toggleCardField: (pageKey, fieldKey) => set((state) => {
-        const current = state.hiddenCardFields[pageKey] ?? [];
-        return {
-          hiddenCardFields: {
-            ...state.hiddenCardFields,
-            [pageKey]: current.includes(fieldKey)
-              ? current.filter(x => x !== fieldKey)
-              : [...current, fieldKey],
-          },
-        };
-      }),
-      setHiddenCardFields: (pageKey, fieldKeys) => set(state => ({
-        hiddenCardFields: {
-          ...state.hiddenCardFields,
-          [pageKey]: fieldKeys,
-        },
-      })),
-      selectedDisplayPreset: {},
-      setSelectedDisplayPreset: (pageKey, presetId) => set(state => ({
-        selectedDisplayPreset: {
-          ...state.selectedDisplayPreset,
-          [pageKey]: presetId,
-        },
-      })),
       tableColumnWidths: {},
       setTableColumnWidths: (pageKey, widths) => set(state => ({
         tableColumnWidths: {
@@ -432,20 +391,6 @@ export const useUiStore = create<UiState>()(
           ? state.collapsedHomepageSectionIds.filter(x => x !== id)
           : [...state.collapsedHomepageSectionIds, id],
       })),
-      bookmarkImageLayout: {},
-      setBookmarkImageLayout: (pageKey, layout) => set(state => ({
-        bookmarkImageLayout: {
-          ...state.bookmarkImageLayout,
-          [pageKey]: layout,
-        },
-      })),
-      bookmarkCornerOverlays: {},
-      setBookmarkCornerOverlays: (pageKey, value) => set(state => ({
-        bookmarkCornerOverlays: {
-          ...state.bookmarkCornerOverlays,
-          [pageKey]: value,
-        },
-      })),
       filterContext: null,
       setFilterContext: ctx => set({
         filterContext: ctx,
@@ -504,7 +449,7 @@ export const useUiStore = create<UiState>()(
     }),
     {
       name: "eesimple-ui",
-      version: 2,
+      version: 3,
       migrate: (persistedState: unknown, version: number) => {
         let s = persistedState as Record<string, unknown>;
         if (version === 0) {
@@ -518,6 +463,19 @@ export const useUiStore = create<UiState>()(
             bookmarkImageMode: converted,
           };
         }
+        if (version < 3) {
+          // The per-page card-display prefs these keys held are now governed by the single
+          // server-side CardDisplayConfig (Settings -> Display -> Card Display), so the stored
+          // values can never be read again. Drop them so the blob stops carrying dead weight.
+          const {
+            hiddenCardFields: _hiddenCardFields,
+            selectedDisplayPreset: _selectedDisplayPreset,
+            bookmarkImageLayout: _bookmarkImageLayout,
+            bookmarkCornerOverlays: _bookmarkCornerOverlays,
+            ...rest
+          } = s;
+          s = rest;
+        }
         return s;
       },
       partialize: state => ({
@@ -529,8 +487,6 @@ export const useUiStore = create<UiState>()(
         viewMode: state.viewMode,
         sectionDisplayMode: state.sectionDisplayMode,
         titleSortLanguage: state.titleSortLanguage,
-        hiddenCardFields: state.hiddenCardFields,
-        selectedDisplayPreset: state.selectedDisplayPreset,
         tableColumnWidths: state.tableColumnWidths,
         sidebarWidth: state.sidebarWidth,
         bookmarkGraphSpacing: state.bookmarkGraphSpacing,
@@ -543,8 +499,6 @@ export const useUiStore = create<UiState>()(
         categorySortMode: state.categorySortMode,
         websiteSortMode: state.websiteSortMode,
         hideLocationMapAdminBorders: state.hideLocationMapAdminBorders,
-        bookmarkImageLayout: state.bookmarkImageLayout,
-        bookmarkCornerOverlays: state.bookmarkCornerOverlays,
       }),
     },
   ),
