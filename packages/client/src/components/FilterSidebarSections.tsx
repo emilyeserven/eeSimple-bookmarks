@@ -22,6 +22,7 @@ import {
   WebsiteFilterSection,
   YouTubeChannelFilterSection,
 } from "./FilterSidebarSectionRows";
+import { TaxonomyFilterSections } from "./TaxonomyFilterSection";
 import { resolvePropertiesVisibility } from "../lib/filterSections";
 import { Separator } from "./ui/separator";
 
@@ -76,166 +77,179 @@ export function FilterSections({
   });
 
   return (
-    <SeparatedSections
-      sections={[
-        {
-          key: "tags",
-          show: sectionShown(hasTags, t("Tags")),
-          node: (
-            <TagsFilterSection
-              tree={tree}
-              search={search}
-              onSearchChange={onSearchChange}
-            />
-          ),
-        },
-        {
-          key: "categories",
-          show: sectionShown(hasCategoryFilter, t("Category")),
-          node: (
-            <CategoryFilterSection
-              categories={categories}
-              search={search}
-              onSearchChange={onSearchChange}
-            />
-          ),
-        },
-        {
-          key: "media-types",
-          show: sectionShown(hasMediaTypeFilter, t("Media type")),
-          node: (
-            <MediaTypeFilterSection
-              mediaTypes={mediaTypes}
-              search={search}
-              onSearchChange={onSearchChange}
-            />
-          ),
-        },
-        {
-          key: "channels",
-          show: sectionShown(hasChannelFilter, t("YouTube channel")),
-          node: (
-            <YouTubeChannelFilterSection
-              youtubeChannels={youtubeChannels}
-              search={search}
-              onSearchChange={onSearchChange}
-            />
-          ),
-        },
-        {
-          key: "websites",
-          show: sectionShown(hasWebsiteFilter, t("Website")),
-          node: (
-            <WebsiteFilterSection
-              websites={websites}
-              search={search}
-              onSearchChange={onSearchChange}
-            />
-          ),
-        },
-        {
-          key: "relationship-types",
-          show: sectionShown(hasRelationshipTypeFilter, t("Relationship type")),
-          node: (
-            <RelationshipTypeFilterSection
-              relationshipTypes={relationshipTypes}
-              search={search}
-              onSearchChange={onSearchChange}
-            />
-          ),
-        },
-        {
+    <>
+      <SeparatedSections
+        sections={[
+          {
+            key: "tags",
+            show: sectionShown(hasTags, t("Tags")),
+            node: (
+              <TagsFilterSection
+                tree={tree}
+                search={search}
+                onSearchChange={onSearchChange}
+              />
+            ),
+          },
+          {
+            key: "categories",
+            show: sectionShown(hasCategoryFilter, t("Category")),
+            node: (
+              <CategoryFilterSection
+                categories={categories}
+                search={search}
+                onSearchChange={onSearchChange}
+              />
+            ),
+          },
+          {
+            key: "media-types",
+            show: sectionShown(hasMediaTypeFilter, t("Media type")),
+            node: (
+              <MediaTypeFilterSection
+                mediaTypes={mediaTypes}
+                search={search}
+                onSearchChange={onSearchChange}
+              />
+            ),
+          },
+          {
+            key: "channels",
+            show: sectionShown(hasChannelFilter, t("YouTube channel")),
+            node: (
+              <YouTubeChannelFilterSection
+                youtubeChannels={youtubeChannels}
+                search={search}
+                onSearchChange={onSearchChange}
+              />
+            ),
+          },
+          {
+            key: "websites",
+            show: sectionShown(hasWebsiteFilter, t("Website")),
+            node: (
+              <WebsiteFilterSection
+                websites={websites}
+                search={search}
+                onSearchChange={onSearchChange}
+              />
+            ),
+          },
+          {
+            key: "relationship-types",
+            show: sectionShown(hasRelationshipTypeFilter, t("Relationship type")),
+            node: (
+              <RelationshipTypeFilterSection
+                relationshipTypes={relationshipTypes}
+                search={search}
+                onSearchChange={onSearchChange}
+              />
+            ),
+          },
+          {
           // A self-managed facet (not in the FILTER_FACETS on-demand registry): its two vocabularies
           // are always-seeded built-ins and the section self-fetches them, so it is shown whenever it
           // has options and returns null otherwise.
-          key: "language-usages",
-          show: sectionShown(true, t("Language usage")),
-          node: (
-            <LanguageUsageFilterSection
-              search={search}
-              onSearchChange={onSearchChange}
-            />
-          ),
-        },
-        {
-          key: "people",
-          show: sectionShown(hasPersonFilter, t("Person")),
-          node: (
-            <PersonFilterSection
-              people={people}
-              search={search}
-              onSearchChange={onSearchChange}
-            />
-          ),
-        },
-        {
-          key: "place-types",
-          show: sectionShown(hasPlaceTypeFilter, t("Place type")),
-          node: (
-            <PlaceTypeFilterSection
-              placeTypes={placeTypes}
-              search={search}
-              onSearchChange={onSearchChange}
-            />
-          ),
-        },
-        {
-          key: "genre-moods",
-          show: sectionShown(hasGenreMoodFilter, t("Genres & Moods")),
-          node: (
-            <GenreMoodFilterSection
-              genreMoods={genreMoods}
-              search={search}
-              onSearchChange={onSearchChange}
-            />
-          ),
-        },
-        {
-          key: "sections",
-          show: sectionShown(hasSectionsFilter, t("Sections")),
-          node: (
-            <SectionsFilterSection
-              search={search}
-              onSearchChange={onSearchChange}
-            />
-          ),
-        },
-        {
-          key: "media-source",
-          show: sectionShown(hasMediaSourceFilter, t("Media source")),
-          node: (
-            <MediaSourceFilterSection
-              search={search}
-              onSearchChange={onSearchChange}
-            />
-          ),
-        },
-        {
-          key: "fillable-fields",
-          show: sectionShown(hasFillableFieldsFilter, t("Fillable fields")),
-          node: (
-            <FillableFieldsFilterSection
-              search={search}
-              onSearchChange={onSearchChange}
-            />
-          ),
-        },
-        {
-          key: "properties",
-          show: showProperties,
-          node: (
-            <PropertiesFilterSection
-              enabledProperties={enabledProperties}
-              categories={categories}
-              bookmarks={bookmarks}
-              search={search}
-              onSearchChange={onSearchChange}
-              nameFilter={propertyNameFilter}
-            />
-          ),
-        },
-      ]}
-    />
+            key: "language-usages",
+            show: sectionShown(true, t("Language usage")),
+            node: (
+              <LanguageUsageFilterSection
+                search={search}
+                onSearchChange={onSearchChange}
+              />
+            ),
+          },
+          {
+            key: "people",
+            show: sectionShown(hasPersonFilter, t("Person")),
+            node: (
+              <PersonFilterSection
+                people={people}
+                search={search}
+                onSearchChange={onSearchChange}
+              />
+            ),
+          },
+          {
+            key: "place-types",
+            show: sectionShown(hasPlaceTypeFilter, t("Place type")),
+            node: (
+              <PlaceTypeFilterSection
+                placeTypes={placeTypes}
+                search={search}
+                onSearchChange={onSearchChange}
+              />
+            ),
+          },
+          {
+            key: "genre-moods",
+            show: sectionShown(hasGenreMoodFilter, t("Genres & Moods")),
+            node: (
+              <GenreMoodFilterSection
+                genreMoods={genreMoods}
+                search={search}
+                onSearchChange={onSearchChange}
+              />
+            ),
+          },
+          {
+            key: "sections",
+            show: sectionShown(hasSectionsFilter, t("Sections")),
+            node: (
+              <SectionsFilterSection
+                search={search}
+                onSearchChange={onSearchChange}
+              />
+            ),
+          },
+          {
+            key: "media-source",
+            show: sectionShown(hasMediaSourceFilter, t("Media source")),
+            node: (
+              <MediaSourceFilterSection
+                search={search}
+                onSearchChange={onSearchChange}
+              />
+            ),
+          },
+          {
+            key: "fillable-fields",
+            show: sectionShown(hasFillableFieldsFilter, t("Fillable fields")),
+            node: (
+              <FillableFieldsFilterSection
+                search={search}
+                onSearchChange={onSearchChange}
+              />
+            ),
+          },
+          {
+            key: "properties",
+            show: showProperties,
+            node: (
+              <PropertiesFilterSection
+                enabledProperties={enabledProperties}
+                categories={categories}
+                bookmarks={bookmarks}
+                search={search}
+                onSearchChange={onSearchChange}
+                nameFilter={propertyNameFilter}
+              />
+            ),
+          },
+        ]}
+      />
+      {/*
+        A self-managed facet family rendered after the registry sections rather than as one of them:
+        the taxonomy set is user-defined and dynamic, so it is keyed by taxonomy id like custom
+        properties. It owns its own leading separator and returns null when no taxonomy has terms,
+        so it can never leave `SeparatedSections` drawing a divider above nothing.
+      */}
+      <TaxonomyFilterSections
+        search={search}
+        onSearchChange={onSearchChange}
+        nameFilter={sectionFilter}
+      />
+    </>
   );
 }
 

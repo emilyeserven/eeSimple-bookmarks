@@ -25,6 +25,7 @@ import {
 import { LanguageUsageFilterPill } from "./LanguageUsageFilterPill";
 import { PropertyFilterPill } from "./PropertyFilterPill";
 import { SavedFiltersSection } from "./SavedFiltersSection";
+import { TaxonomyFilterPill } from "./TaxonomyFilterPill";
 import { Badge } from "./ui/badge";
 import {
   DropdownMenu,
@@ -45,7 +46,7 @@ import {
   withWebsitePresence,
   withYouTubeChannelPresence,
 } from "../lib/bookmarkSearch";
-import { facetHasActiveSelection, facetSelectionSummary, languageUsageHasActiveSelection, propertyHasActiveSelection } from "../lib/filterFacets";
+import { facetHasActiveSelection, facetSelectionSummary, languageUsageHasActiveSelection, propertyHasActiveSelection, taxonomyHasActiveSelection } from "../lib/filterFacets";
 
 export interface FilterPillsRowProps extends FilterFacetInputs {
   /**
@@ -294,10 +295,11 @@ export function FilterPillsRow(props: FilterPillsRowProps) {
     orderedItems, addableFilters, revealFilter, ctx, t,
   } = useFilterPillsRow(props);
 
-  const isActive = (item: (typeof orderedItems)[number]) =>
-    item.kind === "property"
-      ? propertyHasActiveSelection(item.property.id, search)
-      : facetHasActiveSelection(item.facet.key, search);
+  const isActive = (item: (typeof orderedItems)[number]) => {
+    if (item.kind === "property") return propertyHasActiveSelection(item.property.id, search);
+    if (item.kind === "taxonomy") return taxonomyHasActiveSelection(item.taxonomy.id, search);
+    return facetHasActiveSelection(item.facet.key, search);
+  };
   const visibleItems = activeOnly ? orderedItems.filter(isActive) : orderedItems;
   const languageUsageActive = languageUsageHasActiveSelection(search);
 
@@ -329,6 +331,16 @@ export function FilterPillsRow(props: FilterPillsRowProps) {
               key={item.key}
               property={item.property}
               bookmarks={bookmarks}
+              search={search}
+              onSearchChange={onSearchChange}
+            />
+          );
+        }
+        if (item.kind === "taxonomy") {
+          return (
+            <TaxonomyFilterPill
+              key={item.key}
+              taxonomy={item.taxonomy}
               search={search}
               onSearchChange={onSearchChange}
             />

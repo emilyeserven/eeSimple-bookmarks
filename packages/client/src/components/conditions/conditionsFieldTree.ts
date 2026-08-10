@@ -11,6 +11,7 @@ import type {
   PropertyCondition,
   RelationshipTypeCondition,
   TagCondition,
+  TaxonomyCondition,
   WebsiteCondition,
   YouTubeChannelCondition,
 } from "@eesimple/types";
@@ -36,6 +37,12 @@ export interface RootConditionLeaves {
   relationshipTypeLeaf: RelationshipTypeCondition | undefined;
   languageUsageLeaf: LanguageUsageCondition | undefined;
   propertyLeaves: PropertyCondition[];
+  /**
+   * One leaf per user-created taxonomy the tree filters on, keyed by the leaf's own `taxonomyId`.
+   * Multi-instance like {@link RootConditionLeaves.propertyLeaves} (rather than a single named slot)
+   * because the taxonomy set is user-defined — a tree can carry a leaf for each.
+   */
+  taxonomyLeaves: TaxonomyCondition[];
   fillableLeaf: FillableFieldsCondition | undefined;
   /** Nested groups (not editable in this v1 UI), preserved so the tree round-trips. */
   nestedGroups: ConditionNode[];
@@ -67,6 +74,7 @@ export interface RootConditionPatch {
   relationshipType?: RelationshipTypeCondition | null;
   languageUsage?: LanguageUsageCondition | null;
   properties?: PropertyCondition[];
+  taxonomies?: TaxonomyCondition[];
   fillable?: FillableFieldsCondition | null;
 }
 
@@ -97,6 +105,7 @@ export function splitRootConditions(value: ConditionTree): RootConditionLeaves {
     relationshipTypeLeaf,
     languageUsageLeaf,
     propertyLeaves: value.children.filter((child): child is PropertyCondition => child.type === "property"),
+    taxonomyLeaves: value.children.filter((child): child is TaxonomyCondition => child.type === "taxonomy"),
     fillableLeaf,
     nestedGroups: value.children.filter(child => child.type === "group"),
     counts: {
@@ -153,6 +162,8 @@ export function buildRootChildren(
       leaf => leaf.languageIds.length > 0 || leaf.usageLevelIds.length > 0,
     ),
     ...(next.properties ?? current.propertyLeaves),
+    // Drop a taxonomy leaf whose selection was emptied, matching every other leaf's "empty = absent".
+    ...(next.taxonomies ?? current.taxonomyLeaves).filter(leaf => leaf.termIds.length > 0),
     ...resolveLeaf(next.fillable, current.fillableLeaf, () => true),
     ...current.nestedGroups,
   ];

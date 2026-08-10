@@ -210,6 +210,37 @@ export function propertySelectionSummary(
 }
 
 /**
+ * Whether a user-created taxonomy (by id) currently has any applied filter in `search`. Taxonomies
+ * are dynamic, id-keyed facets like custom properties — they aren't {@link FilterFacetKey}s, so they
+ * get their own active/summary helpers rather than an arm in the exhaustive switches above.
+ */
+export function taxonomyHasActiveSelection(taxonomyId: string, search: BookmarkSearch): boolean {
+  return (
+    (search.taxonomyTerms?.[taxonomyId]?.length ?? 0) > 0
+    || search.taxonomyTermPresence?.[taxonomyId] !== undefined
+  );
+}
+
+/**
+ * A compact summary of one taxonomy's current selection. Mirrors {@link facetSelectionSummary}'s
+ * shape so `FilterPill` renders it unmodified.
+ */
+export function taxonomySelectionSummary(
+  taxonomyId: string,
+  search: BookmarkSearch,
+): FacetSelectionSummary {
+  return {
+    count: count(search.taxonomyTerms?.[taxonomyId]),
+    presence: search.taxonomyTermPresence?.[taxonomyId],
+  };
+}
+
+/** The hover hint for a custom-taxonomy filter row (a taxonomy is gated on having terms to pick). */
+export function taxonomyVisibilityHint(t: TFunction): string {
+  return t("Appears when the taxonomy has terms.");
+}
+
+/**
  * Whether the language-usage filter (two multi-selects, not a {@link FilterFacetKey}) currently has
  * any applied selection in `search`.
  */

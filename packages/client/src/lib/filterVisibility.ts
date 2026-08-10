@@ -1,8 +1,8 @@
 import type { BookmarkSearch } from "./bookmarkSearch";
 import type { FilterFacetKey } from "./filterFacets";
-import type { Bookmark, Person, Category, CustomProperty, GenreMood, MediaType, PlaceType, RelationshipType, TagNode, Website, YouTubeChannel } from "@eesimple/types";
+import type { Bookmark, Person, Category, CustomProperty, GenreMood, MediaType, PlaceType, RelationshipType, TagNode, Taxonomy, Website, YouTubeChannel } from "@eesimple/types";
 
-import { FILTER_FACETS, facetHasActiveSelection, propertyHasActiveSelection } from "./filterFacets";
+import { FILTER_FACETS, facetHasActiveSelection, propertyHasActiveSelection, taxonomyHasActiveSelection } from "./filterFacets";
 
 /** The bookmark fields the presence-only facets' (media-source, fillable-fields) data checks read. */
 export type MediaSourceBookmark = Pick<Bookmark, "plexRatingKey" | "kavitaSeriesId" | "isbn" | "feedUrl" | "hasFillableFields" | "hasAnyFillableField">;
@@ -19,6 +19,11 @@ export interface FilterFacetInputs {
   people?: Person[];
   placeTypes?: PlaceType[];
   genreMoods?: GenreMood[];
+  /**
+   * User-created taxonomies, each a dynamic id-keyed facet (like custom properties). Already filtered
+   * to the ones worth offering — non-hidden and carrying at least one term; see `useUserTaxonomies`.
+   */
+  taxonomies?: Taxonomy[];
   /** Bookmarks in view, used to check whether any carries a Plex/Kavita/ISBN/feed identity. */
   bookmarks?: MediaSourceBookmark[];
 }
@@ -31,6 +36,8 @@ export interface FilterVisibility {
   facetVisible: Record<FilterFacetKey, boolean>;
   /** Enabled properties that are currently revealed. */
   visibleProperties: CustomProperty[];
+  /** User-created taxonomies that are currently revealed. */
+  visibleTaxonomies: Taxonomy[];
   /** The on-demand filters that have data but aren't shown yet — offered in the Add-filter menu. */
   addableFilters: { key: string;
     label: string; }[];
@@ -71,13 +78,16 @@ export function computeFilterVisibility(
   added: Set<string>,
 ): FilterVisibility {
   const enabledProperties = inputs.properties.filter(p => p.enabled);
+  const taxonomies = inputs.taxonomies ?? [];
   const facetData = computeFacetData(inputs);
 
   // A filter shows when it isn't on-demand, has been added this session, or already has a value.
   const revealed = (key: string, active: boolean) =>
     !onDemand.includes(key) || added.has(key) || active;
 
-  const hasFilters = Object.values(facetData).some(Boolean) || enabledProperties.length > 0;
+  const hasFilters = Object.values(facetData).some(Boolean)
+    || enabledProperties.length > 0
+    || taxonomies.length > 0;
 
   const facetVisible = Object.fromEntries(FILTER_FACETS.map(facet => [
     facet.key,
@@ -86,6 +96,9 @@ export function computeFilterVisibility(
 
   const visibleProperties = enabledProperties.filter(p =>
     revealed(p.id, propertyHasActiveSelection(p.id, search)));
+
+  const visibleTaxonomies = taxonomies.filter(taxonomy =>
+    revealed(taxonomy.id, taxonomyHasActiveSelection(taxonomy.id, search)));
 
   const addableFilters = [
     ...FILTER_FACETS
@@ -107,12 +120,22 @@ export function computeFilterVisibility(
         key: property.id,
         label: property.name,
       })),
+    ...taxonomies
+      .filter(taxonomy =>
+        onDemand.includes(taxonomy.id)
+        && !added.has(taxonomy.id)
+        && !taxonomyHasActiveSelection(taxonomy.id, search))
+      .map(taxonomy => ({
+        key: taxonomy.id,
+        label: taxonomy.name,
+      })),
   ];
 
   return {
     hasFilters,
     facetVisible,
     visibleProperties,
+    visibleTaxonomies,
     addableFilters,
   };
 }

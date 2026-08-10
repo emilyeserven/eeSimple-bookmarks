@@ -116,6 +116,32 @@ describe("validateBookmarkSearch", () => {
     });
   });
 
+  it("keeps well-formed per-taxonomy term records and drops malformed entries", () => {
+    expect(validateBookmarkSearch({
+      taxonomyTerms: {
+        "tax-1": ["term-1", 2, null, "term-2"],
+        "tax-2": [],
+        "tax-3": "not-an-array",
+      },
+      taxonomyTermPresence: {
+        "tax-1": "exclude",
+        "tax-2": "nonsense",
+      },
+    })).toEqual({
+      taxonomyTerms: {
+        "tax-1": ["term-1", "term-2"],
+      },
+      taxonomyTermPresence: {
+        "tax-1": "exclude",
+      },
+    });
+    // An entirely empty record is not an active filter.
+    expect(validateBookmarkSearch({
+      taxonomyTerms: {},
+      taxonomyTermPresence: {},
+    })).toEqual({});
+  });
+
   it("keeps a valid relationshipTypes array and drops malformed entries", () => {
     expect(validateBookmarkSearch({
       relationshipTypes: ["rt-1", 2, null, "rt-2"],
@@ -528,6 +554,7 @@ describe("bookmarkMatchesSearch", () => {
     relationships: [],
     languageUsages: [],
     genreMoods: [],
+    taxonomyTerms: [],
     isbn: null,
     plexRatingKey: null,
     kavitaSeriesId: null,
@@ -718,6 +745,110 @@ describe("bookmarkMatchesSearch", () => {
       genreMoods: ["gm-2"],
       genreMoodPresence: "exclude",
     })).toBe(true);
+  });
+
+  it("applies per-taxonomy term include, presence, and exclude filters", () => {
+    const withTerms = {
+      ...bookmark,
+      taxonomyTerms: [{
+        id: "term-1",
+        name: "Hardcover",
+        slug: "hardcover",
+        parentId: null,
+        taxonomyId: "tax-1",
+      }],
+    };
+    // include (any-of, scoped to the taxonomy)
+    expect(bookmarkMatchesSearch(withTerms, {
+      taxonomyTerms: {
+        "tax-1": ["term-1"],
+      },
+    })).toBe(true);
+    expect(bookmarkMatchesSearch(withTerms, {
+      taxonomyTerms: {
+        "tax-1": ["term-2"],
+      },
+    })).toBe(false);
+    // A term id selected under the wrong taxonomy key must not match.
+    expect(bookmarkMatchesSearch(withTerms, {
+      taxonomyTerms: {
+        "tax-2": ["term-1"],
+      },
+    })).toBe(false);
+    // presence is scoped per taxonomy: "missing" on an unfiltered taxonomy is satisfied.
+    expect(bookmarkMatchesSearch(withTerms, {
+      taxonomyTermPresence: {
+        "tax-1": "has",
+      },
+    })).toBe(true);
+    expect(bookmarkMatchesSearch(withTerms, {
+      taxonomyTermPresence: {
+        "tax-2": "has",
+      },
+    })).toBe(false);
+    expect(bookmarkMatchesSearch(withTerms, {
+      taxonomyTermPresence: {
+        "tax-2": "missing",
+      },
+    })).toBe(true);
+    // exclude
+    expect(bookmarkMatchesSearch(withTerms, {
+      taxonomyTerms: {
+        "tax-1": ["term-1"],
+      },
+      taxonomyTermPresence: {
+        "tax-1": "exclude",
+      },
+    })).toBe(false);
+    expect(bookmarkMatchesSearch(withTerms, {
+      taxonomyTerms: {
+        "tax-1": ["term-2"],
+      },
+      taxonomyTermPresence: {
+        "tax-1": "exclude",
+      },
+    })).toBe(true);
+  });
+
+  it("ANDs term filters across taxonomies but ORs them within one", () => {
+    const withTerms = {
+      ...bookmark,
+      taxonomyTerms: [
+        {
+          id: "term-1",
+          name: "Hardcover",
+          slug: "hardcover",
+          parentId: null,
+          taxonomyId: "tax-1",
+        },
+        {
+          id: "term-9",
+          name: "Owned",
+          slug: "owned",
+          parentId: null,
+          taxonomyId: "tax-2",
+        },
+      ],
+    };
+    // Within one taxonomy: any of the selected ids matches.
+    expect(bookmarkMatchesSearch(withTerms, {
+      taxonomyTerms: {
+        "tax-1": ["term-1", "term-2"],
+      },
+    })).toBe(true);
+    // Across taxonomies: both must match.
+    expect(bookmarkMatchesSearch(withTerms, {
+      taxonomyTerms: {
+        "tax-1": ["term-1"],
+        "tax-2": ["term-9"],
+      },
+    })).toBe(true);
+    expect(bookmarkMatchesSearch(withTerms, {
+      taxonomyTerms: {
+        "tax-1": ["term-1"],
+        "tax-2": ["term-8"],
+      },
+    })).toBe(false);
   });
 
   it("applies the people include, presence, and exclude filters", () => {
@@ -1234,6 +1365,7 @@ describe("bookmarkMatchesSearch — exclude mode", () => {
     relationships: [],
     languageUsages: [],
     genreMoods: [],
+    taxonomyTerms: [],
     isbn: null,
     plexRatingKey: null,
     kavitaSeriesId: null,

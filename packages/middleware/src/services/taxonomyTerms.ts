@@ -131,6 +131,18 @@ export async function listTaxonomyTerms(taxonomyId: string): Promise<TaxonomyTer
   return rows.map(row => toTaxonomyTerm(row, counts.get(row.id), namesMap.get(row.id)));
 }
 
+/**
+ * Every term across every taxonomy, ordered by name. Deliberately count-free and name-free (unlike
+ * {@link listTaxonomyTerms}): its consumer is the client's shared cascade resolver, which only needs
+ * each term's `id`/`taxonomyId`/`parentId` to build the descendant map for a `taxonomy` condition
+ * leaf's "+ children" toggle. Keeping it a single flat query mirrors how the Tags / Locations /
+ * Media Types resolvers are fed, instead of firing one tree request per taxonomy.
+ */
+export async function listAllTaxonomyTerms(): Promise<TaxonomyTerm[]> {
+  const rows = await db.select().from(taxonomyTerms).orderBy(asc(taxonomyTerms.name));
+  return rows.map(row => toTaxonomyTerm(row));
+}
+
 /** Every term flagged as a favorite, across all taxonomies. */
 export async function listFavoriteTaxonomyTerms(): Promise<TaxonomyTerm[]> {
   const rows = await db.select().from(taxonomyTerms).where(eq(taxonomyTerms.isFavorite, true));

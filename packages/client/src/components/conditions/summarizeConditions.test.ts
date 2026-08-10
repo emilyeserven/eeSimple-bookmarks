@@ -30,6 +30,7 @@ describe("summarizeConditions", () => {
       genreMoods: 0,
       relationshipTypes: 0,
       languageUsages: 0,
+      taxonomyTerms: 0,
       properties: 0,
       fillableFields: 0,
       combinator: "and",

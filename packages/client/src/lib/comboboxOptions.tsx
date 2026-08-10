@@ -164,14 +164,23 @@ export function mediaTypeNodesToOptions(
   });
 }
 
+/** The minimum a `parentId`-tree node must expose to become a nested `TreeComboboxOption`. */
+interface NamedTreeNode {
+  id: string;
+  name: string;
+  names?: EntityName[];
+  children: NamedTreeNode[];
+}
+
 /**
- * Convert a `GenreMoodNode` tree into nested `TreeComboboxOption[]` (icon-less), preserving the
- * parent→child structure so the condition picker can expand/collapse and offer the per-item cascade
- * toggle. Unlike {@link genreMoodTreeComboboxOptions} (a flat, depth-indented list), this keeps a real
- * `children` array. Optionally exclude a subtree of ids.
+ * Convert any named `parentId`-tree (Genres & Moods, custom taxonomy terms, …) into nested
+ * `TreeComboboxOption[]` (icon-less), preserving the parent→child structure so the condition picker
+ * can expand/collapse and offer the per-item cascade toggle. Unlike the flat, depth-indented
+ * `*TreeComboboxOptions` helpers, this keeps a real `children` array. Optionally exclude a subtree
+ * of ids.
  */
-export function genreMoodNodesToOptions(
-  nodes: GenreMoodNode[],
+export function namedTreeNodesToOptions(
+  nodes: NamedTreeNode[],
   excludeIds?: Set<string>,
 ): TreeComboboxOption[] {
   return nodes.flatMap((node) => {
@@ -181,8 +190,16 @@ export function genreMoodNodesToOptions(
         value: node.id,
         label: node.name,
         names: node.names,
-        children: genreMoodNodesToOptions(node.children, excludeIds),
+        children: namedTreeNodesToOptions(node.children, excludeIds),
       },
     ];
   });
+}
+
+/** {@link namedTreeNodesToOptions} pinned to a `GenreMoodNode` tree. */
+export function genreMoodNodesToOptions(
+  nodes: GenreMoodNode[],
+  excludeIds?: Set<string>,
+): TreeComboboxOption[] {
+  return namedTreeNodesToOptions(nodes, excludeIds);
 }

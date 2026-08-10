@@ -25,11 +25,13 @@ import {
   useUpdateDisplayPreferenceSettings,
 } from "../hooks/useAppSettings";
 import { useCustomProperties } from "../hooks/useCustomProperties";
+import { useUserTaxonomies } from "../hooks/useUserTaxonomies";
 import {
   applyFilterOrder,
   FILTER_FACETS,
   facetVisibilityHint,
   propertyVisibilityHint,
+  taxonomyVisibilityHint,
 } from "../lib/filterFacets";
 
 import {
@@ -54,6 +56,7 @@ export function DisplayFiltersSettings() {
   const {
     data: properties,
   } = useCustomProperties();
+  const taxonomies = useUserTaxonomies();
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -77,7 +80,12 @@ export function DisplayFiltersSettings() {
       label: property.name,
       hint: propertyVisibilityHint(t),
     }));
-  const rows = applyFilterOrder([...facetRows, ...propertyRows], filterOrder);
+  const taxonomyRows: FilterConfigRow[] = taxonomies.map(taxonomy => ({
+    key: taxonomy.id,
+    label: taxonomy.name,
+    hint: taxonomyVisibilityHint(t),
+  }));
+  const rows = applyFilterOrder([...facetRows, ...propertyRows, ...taxonomyRows], filterOrder);
   const rowKeys = rows.map(row => row.key);
 
   /** Persist a patch onto the whole display-preferences object with the standard toast. */

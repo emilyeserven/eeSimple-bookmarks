@@ -62,6 +62,21 @@ export interface BookmarkSearch {
   genreMoods?: string[];
   /** Filter bookmarks by Genres & Moods: "has" = has any, "missing" = none, "exclude" = does not have the selected entries. */
   genreMoodPresence?: "has" | "missing" | "exclude";
+  /**
+   * Restrict to bookmarks carrying at least one of the selected term ids, keyed by **taxonomy id** —
+   * one entry per user-created taxonomy being filtered on (empty/absent = all). Within a taxonomy the
+   * ids are an "any match" filter like Genres & Moods; across taxonomies the entries are ANDed, so a
+   * bookmark must satisfy every filtered taxonomy independently. Matching is **exact** (a parent term
+   * does not imply its children), mirroring the Genres & Moods facet; the `taxonomy` condition leaf is
+   * where per-id subtree cascade is opt-in.
+   */
+  taxonomyTerms?: Record<string, string[]>;
+  /**
+   * Filter by a taxonomy's terms, keyed by taxonomy id: "has" = carries any term from that taxonomy,
+   * "missing" = carries none of its terms, "exclude" = does not carry the selected terms. Scoped per
+   * taxonomy, so "missing" on one taxonomy says nothing about the others.
+   */
+  taxonomyTermPresence?: Record<string, "has" | "missing" | "exclude">;
   num?: Record<string, [number, number]>;
   bool?: Record<string, boolean>;
   /** `[from, to]` date/time range bounds (canonical strings, either `null`) keyed by property id. */
@@ -155,7 +170,8 @@ function parseDateRecord(raw: unknown): Record<string, [string | null, string | 
   return result;
 }
 
-function parseChoicesRecord(raw: unknown): Record<string, string[]> {
+/** Parse a `Record<id, string[]>` filter map, dropping non-string entries and empty lists. Shared by `choices` (keyed by property id) and `taxonomyTerms` (keyed by taxonomy id). */
+function parseStringListRecord(raw: unknown): Record<string, string[]> {
   if (raw === null || typeof raw !== "object") return {};
   const result: Record<string, string[]> = {};
   for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
@@ -278,11 +294,13 @@ export function validateBookmarkSearch(search: Record<string, unknown>): Bookmar
     placeTypePresence: validPresence(search.placeTypePresence),
     genreMoods: validStringList(search.genreMoods),
     genreMoodPresence: validPresence(search.genreMoodPresence),
+    taxonomyTerms: nonEmptyRecord(parseStringListRecord(search.taxonomyTerms)),
+    taxonomyTermPresence: nonEmptyRecord(parsePresenceRecord(search.taxonomyTermPresence)),
     num: nonEmptyRecord(parseNumRecord(search.num)),
     bool: nonEmptyRecord(parseBoolRecord(search.bool)),
     date: nonEmptyRecord(parseDateRecord(search.date)),
     presence: nonEmptyRecord(parsePresenceRecord(search.presence)),
-    choices: nonEmptyRecord(parseChoicesRecord(search.choices)),
+    choices: nonEmptyRecord(parseStringListRecord(search.choices)),
     sectionsPresence: validPresence(search.sectionsPresence),
     sectionTypes: validSectionTypes(search.sectionTypes),
     mediaSourcePresence: validHasMissingPresence(search.mediaSourcePresence),

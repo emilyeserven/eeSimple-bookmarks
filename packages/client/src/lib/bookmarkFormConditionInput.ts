@@ -15,6 +15,11 @@ export interface BookmarkFormConditionValues {
   tagIds: string[];
   locationIds: string[];
   genreMoodIds: string[];
+  /**
+   * Term ids picked for any other user-created taxonomy on the create form. Optional so existing
+   * callers that don't collect them keep compiling; they simply can't fire a `taxonomy` leaf yet.
+   */
+  taxonomyTermIds?: string[];
 }
 
 /**
@@ -41,8 +46,9 @@ export function formStateToConditionInput(
     categoryId: values.categoryId,
     tagIds: new Set(values.tagIds),
     locationIds: new Set(values.locationIds),
-    // G&M ids are taxonomy term ids now, matched via the taxonomy/legacy-genre-mood leaves.
-    taxonomyTermIds: new Set(values.genreMoodIds),
+    // One flat set across every taxonomy: G&M ids are taxonomy term ids too, so the legacy
+    // `genre-mood` leaf and the generic `taxonomy` leaf both match against this.
+    taxonomyTermIds: new Set([...values.genreMoodIds, ...(values.taxonomyTermIds ?? [])]),
     youtubeChannelId: values.youtubeChannelId || null,
     mediaTypeId,
     numberValues: new Map([

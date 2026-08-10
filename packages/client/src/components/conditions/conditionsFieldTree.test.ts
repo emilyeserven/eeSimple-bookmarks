@@ -203,3 +203,70 @@ describe("buildRootChildren", () => {
     expect(children.some(child => child.type === "property")).toBe(false);
   });
 });
+
+describe("taxonomy leaves", () => {
+  const withTaxonomies: ConditionTree = {
+    type: "group",
+    combinator: "and",
+    children: [
+      {
+        type: "taxonomy",
+        taxonomyId: "tax-1",
+        termIds: ["term-1", "term-2"],
+      },
+      {
+        type: "taxonomy",
+        taxonomyId: "tax-2",
+        termIds: ["term-9"],
+        cascadeTermIds: ["term-9"],
+      },
+    ],
+  };
+
+  it("collects one leaf per taxonomy, keyed by taxonomyId", () => {
+    const leaves = splitRootConditions(withTaxonomies);
+    expect(leaves.taxonomyLeaves).toHaveLength(2);
+    expect(leaves.taxonomyLeaves.map(leaf => leaf.taxonomyId)).toEqual(["tax-1", "tax-2"]);
+    // Round-trips untouched when nothing is patched.
+    expect(buildRootChildren(leaves, {})).toEqual(withTaxonomies.children);
+  });
+
+  it("replaces the whole taxonomy leaf list when patched", () => {
+    const leaves = splitRootConditions(withTaxonomies);
+    const children = buildRootChildren(leaves, {
+      taxonomies: [{
+        type: "taxonomy",
+        taxonomyId: "tax-1",
+        termIds: ["term-3"],
+      }],
+    });
+    expect(children.filter(child => child.type === "taxonomy")).toEqual([{
+      type: "taxonomy",
+      taxonomyId: "tax-1",
+      termIds: ["term-3"],
+    }]);
+  });
+
+  it("drops a taxonomy leaf whose term selection was emptied", () => {
+    const leaves = splitRootConditions(withTaxonomies);
+    const children = buildRootChildren(leaves, {
+      taxonomies: [
+        {
+          type: "taxonomy",
+          taxonomyId: "tax-1",
+          termIds: [],
+        },
+        {
+          type: "taxonomy",
+          taxonomyId: "tax-2",
+          termIds: ["term-9"],
+        },
+      ],
+    });
+    expect(children.filter(child => child.type === "taxonomy")).toEqual([{
+      type: "taxonomy",
+      taxonomyId: "tax-2",
+      termIds: ["term-9"],
+    }]);
+  });
+});

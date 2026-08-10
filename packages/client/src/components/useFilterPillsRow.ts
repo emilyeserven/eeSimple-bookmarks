@@ -1,7 +1,7 @@
 import type { FilterPillsRowProps } from "./FilterPillsRow";
 import type { BookmarkSearch } from "../lib/bookmarkSearch";
 import type { FilterFacetKey } from "../lib/filterFacets";
-import type { CustomProperty } from "@eesimple/types";
+import type { CustomProperty, Taxonomy } from "@eesimple/types";
 import type { TFunction } from "i18next";
 
 import { useState } from "react";
@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 
 import { useIsMobile } from "../hooks/use-mobile";
 import { useFilterOrder, useMobileHiddenFilters, useOnDemandFilters } from "../hooks/useAppSettings";
+import { useUserTaxonomies } from "../hooks/useUserTaxonomies";
 import { FILTER_FACETS, applyFilterOrder } from "../lib/filterFacets";
 import { computeFilterVisibility } from "../lib/filterVisibility";
 
@@ -21,7 +22,7 @@ export interface FacetBodyContext {
   t: TFunction;
 }
 
-/** A single ordered filter pill: either a standard facet or a custom property. */
+/** A single ordered filter pill: a standard facet, a custom property, or a user-created taxonomy. */
 export type OrderedFilterItem
   = | { kind: "facet";
     key: string;
@@ -29,7 +30,10 @@ export type OrderedFilterItem
       label: string; }; }
       | { kind: "property";
         key: string;
-        property: CustomProperty; };
+        property: CustomProperty; }
+        | { kind: "taxonomy";
+          key: string;
+          taxonomy: Taxonomy; };
 
 /**
  * Owns the pill row's derived state so `FilterPillsRow` itself stays template-only (fallow's
@@ -53,10 +57,16 @@ export function useFilterPillsRow(props: FilterPillsRowProps) {
   const revealFilter = (key: string) => setAdded(prev => new Set(prev).add(key));
 
   const effectiveOnDemand = isMobile ? [...onDemand, ...mobileHidden] : onDemand;
+  // Self-fetched rather than threaded through every listing route: the taxonomy set is dynamic, so
+  // there is no static prop for it (the same reason each taxonomy's picker fetches its own terms).
+  const taxonomies = useUserTaxonomies();
 
   const {
-    facetVisible, visibleProperties, addableFilters,
-  } = computeFilterVisibility(props, search, effectiveOnDemand, added);
+    facetVisible, visibleProperties, visibleTaxonomies, addableFilters,
+  } = computeFilterVisibility({
+    ...props,
+    taxonomies,
+  }, search, effectiveOnDemand, added);
 
   const orderedItems: OrderedFilterItem[] = applyFilterOrder(
     [
@@ -71,6 +81,11 @@ export function useFilterPillsRow(props: FilterPillsRowProps) {
         kind: "property" as const,
         key: property.id,
         property,
+      })),
+      ...visibleTaxonomies.map(taxonomy => ({
+        kind: "taxonomy" as const,
+        key: taxonomy.id,
+        taxonomy,
       })),
     ],
     filterOrder,
