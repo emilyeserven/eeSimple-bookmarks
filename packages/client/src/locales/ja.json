@@ -3506,6 +3506,7 @@
   "{{title}} saved": "{{title}} saved",
   "{{title}} — ⌘/Ctrl+click to open the link in a new tab": "{{title}} — ⌘/Ctrl+click to open the link in a new tab",
   "{{total}} matching · {{needCount}} need backfill · {{selectedCount}} selected": "{{total}} matching · {{needCount}} need backfill · {{selectedCount}} selected",
+  "{{value}} of {{total}} bookmarks ({{share}}%)": "{{value}} of {{total}} bookmarks ({{share}}%)",
   "Σ {{operands}}": "Σ {{operands}}",
   "—": "—",
   "— Leave unchanged —": "— Leave unchanged —",
