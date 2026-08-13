@@ -18,6 +18,13 @@ interface InsightsBookmarkRow {
   linkCheckStatus: string | null;
 }
 
+/** The display fields a breakdown needs for one group (a category / media type / website). */
+interface InsightsGroup {
+  name: string;
+  /** Nullable at the DB level (backfilled at boot); a group without one renders unlinked. */
+  slug: string | null;
+}
+
 /** How many groups a breakdown lists before collapsing the tail into `otherCount`. */
 const BREAKDOWN_TOP_N = 8;
 
@@ -58,19 +65,19 @@ export function bucketAddedPerMonth(
 /**
  * Tally bookmarks per FK value into a top-N breakdown: descending by count with a name tie-break
  * (deterministic output), the tail summed into `otherCount`, and NULL — or an id missing from
- * `names`, which shouldn't occur since the FKs null on delete — into `noneCount`.
+ * `groups`, which shouldn't occur since the FKs null on delete — into `noneCount`.
  */
 export function buildBreakdown(
   rows: readonly InsightsBookmarkRow[],
   fk: "categoryId" | "mediaTypeId" | "websiteId",
-  names: ReadonlyMap<string, string>,
+  groups: ReadonlyMap<string, InsightsGroup>,
   topN = BREAKDOWN_TOP_N,
 ): InsightsBreakdown {
   const counts = new Map<string, number>();
   let noneCount = 0;
   for (const row of rows) {
     const id = row[fk];
-    if (id === null || !names.has(id)) {
+    if (id === null || !groups.has(id)) {
       noneCount++;
       continue;
     }
@@ -79,7 +86,8 @@ export function buildBreakdown(
   const sorted = [...counts.entries()]
     .map(([id, count]) => ({
       id,
-      name: names.get(id) ?? "",
+      name: groups.get(id)?.name ?? "",
+      slug: groups.get(id)?.slug ?? null,
       count,
     }))
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
@@ -88,6 +96,18 @@ export function buildBreakdown(
     otherCount: sorted.slice(topN).reduce((sum, slice) => sum + slice.count, 0),
     noneCount,
   };
+}
+
+/** Index a taxonomy's `{ id, name, slug }` selection by id for `buildBreakdown`. */
+function toGroupMap(
+  rows: readonly { id: string;
+    name: string;
+    slug: string | null; }[],
+): Map<string, InsightsGroup> {
+  return new Map(rows.map(row => [row.id, {
+    name: row.name,
+    slug: row.slug,
+  }]));
 }
 
 /** Load and aggregate the whole `/insights` snapshot. */
@@ -103,23 +123,26 @@ export async function getCollectionInsights(now = new Date()): Promise<Collectio
     db.select({
       id: categories.id,
       name: categories.name,
+      slug: categories.slug,
     }).from(categories),
     db.select({
       id: mediaTypes.id,
       name: mediaTypes.name,
+      slug: mediaTypes.slug,
     }).from(mediaTypes),
     db.select({
       id: websites.id,
       name: websites.siteName,
+      slug: websites.slug,
     }).from(websites),
     db.select({
       id: tags.id,
     }).from(tags),
   ]);
 
-  const categoryNames = new Map(categoryRows.map(row => [row.id, row.name]));
-  const mediaTypeNames = new Map(mediaTypeRows.map(row => [row.id, row.name]));
-  const websiteNames = new Map(websiteRows.map(row => [row.id, row.name]));
+  const categoryGroups = toGroupMap(categoryRows);
+  const mediaTypeGroups = toGroupMap(mediaTypeRows);
+  const websiteGroups = toGroupMap(websiteRows);
 
   return {
     totals: {
@@ -130,9 +153,9 @@ export async function getCollectionInsights(now = new Date()): Promise<Collectio
       brokenLinks: bookmarkRows.filter(row => row.linkCheckStatus === "broken").length,
     },
     addedPerMonth: bucketAddedPerMonth(bookmarkRows, now),
-    byCategory: buildBreakdown(bookmarkRows, "categoryId", categoryNames),
-    byMediaType: buildBreakdown(bookmarkRows, "mediaTypeId", mediaTypeNames),
-    topWebsites: buildBreakdown(bookmarkRows, "websiteId", websiteNames),
+    byCategory: buildBreakdown(bookmarkRows, "categoryId", categoryGroups),
+    byMediaType: buildBreakdown(bookmarkRows, "mediaTypeId", mediaTypeGroups),
+    topWebsites: buildBreakdown(bookmarkRows, "websiteId", websiteGroups),
     capturedAt: new Date().toISOString(),
   };
 }

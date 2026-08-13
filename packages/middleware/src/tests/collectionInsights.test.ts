@@ -82,10 +82,20 @@ function bookmarkRow(overrides: {
 }
 
 test("buildBreakdown sorts desc with name tie-break, cuts at N, and routes NULL/unknown to noneCount", () => {
-  const names = new Map([
-    ["c1", "Beta"],
-    ["c2", "Alpha"],
-    ["c3", "Gamma"],
+  const groups = new Map([
+    ["c1", {
+      name: "Beta",
+      slug: "beta",
+    }],
+    ["c2", {
+      name: "Alpha",
+      slug: "alpha",
+    }],
+    // Slug not backfilled yet — the slice still counts, it just can't be linked.
+    ["c3", {
+      name: "Gamma",
+      slug: null,
+    }],
   ]);
   const rows = [
     bookmarkRow({
@@ -112,17 +122,19 @@ test("buildBreakdown sorts desc with name tie-break, cuts at N, and routes NULL/
     }),
   ];
 
-  const breakdown = buildBreakdown(rows, "categoryId", names, 2);
+  const breakdown = buildBreakdown(rows, "categoryId", groups, 2);
   // c1 and c2 tie at 2 — Alpha (c2) wins the name tie-break.
   assert.deepEqual(breakdown.slices, [
     {
       id: "c2",
       name: "Alpha",
+      slug: "alpha",
       count: 2,
     },
     {
       id: "c1",
       name: "Beta",
+      slug: "beta",
       count: 2,
     },
   ]);
@@ -149,18 +161,21 @@ test("getCollectionInsights composes totals, chart, and breakdowns from the fixt
     {
       id: "c1",
       name: "Dev",
+      slug: "dev",
     },
   ]);
   fakeDb.setRows(schema.mediaTypes, [
     {
       id: "m1",
       name: "Video",
+      slug: "video",
     },
   ]);
   fakeDb.setRows(schema.websites, [
     {
       id: "w1",
       name: "GitHub",
+      slug: "github",
     },
   ]);
   fakeDb.setRows(schema.tags, [
@@ -186,6 +201,7 @@ test("getCollectionInsights composes totals, chart, and breakdowns from the fixt
     {
       id: "c1",
       name: "Dev",
+      slug: "dev",
       count: 2,
     },
   ]);
@@ -194,6 +210,7 @@ test("getCollectionInsights composes totals, chart, and breakdowns from the fixt
     {
       id: "m1",
       name: "Video",
+      slug: "video",
       count: 1,
     },
   ]);
@@ -201,6 +218,7 @@ test("getCollectionInsights composes totals, chart, and breakdowns from the fixt
     {
       id: "w1",
       name: "GitHub",
+      slug: "github",
       count: 1,
     },
   ]);

@@ -42,18 +42,30 @@ export function InsightsPage() {
           breakdown={data.byCategory}
           total={data.totals.bookmarks}
           noneLabel={t("Uncategorized")}
+          slicePrefix="/categories"
+          noneSearch={{
+            categoryPresence: "missing",
+          }}
         />
         <InsightsBreakdownCard
           title={t("By media type")}
           breakdown={data.byMediaType}
           total={data.totals.bookmarks}
           noneLabel={t("No media type")}
+          slicePrefix="/taxonomies/media-types"
+          noneSearch={{
+            mediaTypePresence: "missing",
+          }}
         />
         <InsightsBreakdownCard
           title={t("Top websites")}
           breakdown={data.topWebsites}
           total={data.totals.bookmarks}
           noneLabel={t("No website")}
+          slicePrefix="/taxonomies/websites"
+          noneSearch={{
+            websitePresence: "missing",
+          }}
         />
       </div>
     </div>

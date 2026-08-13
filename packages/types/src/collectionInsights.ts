@@ -24,6 +24,12 @@ export interface InsightsMonthPoint {
 export interface InsightsSlice {
   id: string;
   name: string;
+  /**
+   * URL slug of the group's own entity page, so the client can deep-link the row. `null` for a row
+   * whose entity has no slug yet (the columns are nullable and backfilled at boot) — such a row
+   * renders as plain text rather than a link.
+   */
+  slug: string | null;
   count: number;
 }
 
