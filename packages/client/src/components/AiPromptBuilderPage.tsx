@@ -34,7 +34,7 @@ export function AiPromptBuilderPage() {
         <CardHeader>
           <CardTitle>{t("Bookmarks to Ask About")}</CardTitle>
           <CardDescription>
-            {t("Pick individual bookmarks, whole taxonomy groups, and/or saved filters — every matching bookmark is included.")}
+            {t("Pick individual bookmarks, whole taxonomy groups, and/or saved filters, then choose whether a bookmark has to match any of your picks or all of them.")}
           </CardDescription>
         </CardHeader>
         <CardContent>

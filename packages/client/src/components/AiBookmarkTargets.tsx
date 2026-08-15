@@ -1,6 +1,6 @@
 import type { ComboboxOption } from "./Combobox";
 import type { AiBookmarkData } from "../hooks/useAiBookmarkData";
-import type { AiBookmarkTargetSelection } from "../lib/aiBookmarkTargets";
+import type { AiBookmarkTargetMatchMode, AiBookmarkTargetSelection } from "../lib/aiBookmarkTargets";
 import type { Bookmark } from "@eesimple/types";
 
 import { useTranslation } from "react-i18next";
@@ -13,6 +13,7 @@ import { useBasketStore } from "../stores/basketStore";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { categoryComboboxOptions, genreMoodTreeComboboxOptions, mediaTypeNodesToOptions } from "@/lib/comboboxOptions";
 
 /** A labeled picker row of the Targets card. */
@@ -47,7 +48,47 @@ export interface AiBookmarkTargetsController {
   data: AiBookmarkData;
   selection: AiBookmarkTargetSelection;
   setSelectionField: <K extends keyof AiBookmarkTargetSelection>(key: K, values: string[]) => void;
+  matchMode: AiBookmarkTargetMatchMode;
+  setMatchMode: (mode: AiBookmarkTargetMatchMode) => void;
   targets: Bookmark[];
+}
+
+/**
+ * The Any/All switch over everything picked above. "Any" unions the selected items (the default);
+ * "All" intersects them, so a bookmark must match every single selected item — two selected tags
+ * mean "carries both", not "carries either". Radix clears a single-value toggle group when the
+ * active item is pressed again, so an empty value is ignored rather than left unset.
+ */
+function MatchModeToggle({
+  mode, onModeChange,
+}: {
+  mode: AiBookmarkTargetMatchMode;
+  onModeChange: (mode: AiBookmarkTargetMatchMode) => void;
+}) {
+  const {
+    t,
+  } = useTranslation();
+  return (
+    <div className="space-y-1.5">
+      <Label>{t("Combine the selections above")}</Label>
+      <ToggleGroup
+        type="single"
+        variant="outline"
+        value={mode}
+        onValueChange={(value) => {
+          if (value === "any" || value === "all") onModeChange(value);
+        }}
+      >
+        <ToggleGroupItem value="any">{t("Match any")}</ToggleGroupItem>
+        <ToggleGroupItem value="all">{t("Match all")}</ToggleGroupItem>
+      </ToggleGroup>
+      <p className="text-xs text-muted-foreground">
+        {mode === "all"
+          ? t("Only bookmarks matching EVERY selected item — e.g. a bookmark in the selected category that also carries every selected tag.")
+          : t("Bookmarks matching AT LEAST ONE selected item — every pick adds more bookmarks.")}
+      </p>
+    </div>
+  );
 }
 
 /**
@@ -64,7 +105,7 @@ export function AiBookmarkTargets({
     t,
   } = useTranslation();
   const {
-    data, selection, setSelectionField, targets,
+    data, selection, setSelectionField, matchMode, setMatchMode, targets,
   } = controller;
   const basketIds = useBasketStore(s => s.bookmarkIds);
   const pick = (key: keyof AiBookmarkTargetSelection) => (values: string[]) => setSelectionField(key, values);
@@ -195,6 +236,10 @@ export function AiBookmarkTargets({
           />
         </PickerField>
       </div>
+      <MatchModeToggle
+        mode={matchMode}
+        onModeChange={setMatchMode}
+      />
       <p className="text-sm font-medium">
         {t("{{count}} bookmarks selected", {
           count: targets.length,

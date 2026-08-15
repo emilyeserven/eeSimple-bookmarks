@@ -69,6 +69,9 @@ export interface AiBulkEditPromptArgs {
   /** Category id → name, to render each bookmark's current category in its context block. */
   categories: { id: string;
     name: string; }[];
+  /** Every tag, so a checked `sections` property can name the tags its entries carry. */
+  tags?: { id: string;
+    name: string; }[];
   /** Vocabulary lists, embedded once when the matching relation field is checked. */
   categoryNames: string[];
   mediaTypeNames: string[];
@@ -111,8 +114,9 @@ export function buildAiBulkEditPrompt(args: AiBulkEditPromptArgs): string {
   const checkedProperties = resolveCheckedProperties(args.checked, args.properties);
   const checkedSet = new Set(args.checked);
   const categoryNameById = new Map(args.categories.map(category => [category.id, category.name]));
+  const tagNameById = new Map((args.tags ?? []).map(tag => [tag.id, tag.name]));
   const blocks = args.bookmarks.map(bookmark =>
-    buildBookmarkContextBlock(bookmark, checkedSet, checkedProperties, categoryNameById));
+    buildBookmarkContextBlock(bookmark, checkedSet, checkedProperties, categoryNameById, tagNameById));
   const example = {
     bookmarks: [{
       id: args.bookmarks[0]?.id ?? "<id>",

@@ -11,6 +11,8 @@ import type { Bookmark, CustomProperty } from "@eesimple/types";
 
 import { propertyAppliesToCategory, propertyAppliesToMediaType } from "@eesimple/types";
 
+import { buildSectionsContextValue } from "./aiSectionContext";
+
 /** A standard (non-property) field the AI may update. Relations are expressed by NAME in the JSON. */
 export const AI_STANDARD_FIELD_KEYS = [
   "title",
@@ -188,10 +190,23 @@ export interface BookmarkAiUpdatePromptArgs {
   categoryNames: string[];
   mediaTypeNames: string[];
   tagNames: string[];
+  /** Every tag, so a checked `sections` property can name the tags its entries carry. */
+  tags?: { id: string;
+    name: string; }[];
+}
+
+/** Extra context a property's current-value renderer can use (only `sections` reads it today). */
+export interface PropertyDisplayOptions {
+  /** Tag id → name, so a section entry's `tagIds` render as names in the sections detail. */
+  tagNameById?: ReadonlyMap<string, string>;
 }
 
 /** The stored value of one per-type array for a property, or undefined when the bookmark has none. */
-export function propertyCurrentDisplay(property: CustomProperty, bookmark: Bookmark): string {
+export function propertyCurrentDisplay(
+  property: CustomProperty,
+  bookmark: Bookmark,
+  options: PropertyDisplayOptions = {},
+): string {
   switch (property.type) {
     case "number":
     case "calculate":
@@ -219,8 +234,12 @@ export function propertyCurrentDisplay(property: CustomProperty, bookmark: Bookm
       return entry ? `${entry.current} of ${entry.total}` : "(not set)";
     }
     case "sections": {
+      // Rendered in full (every entry, its position, link and completion) — prompts routinely ask
+      // about the section list itself, which the old "N sections" count could never answer.
       const entry = bookmark.sectionsValues.find(v => v.propertyId === property.id);
-      return entry && entry.sections.length > 0 ? `${entry.sections.length} sections` : "(not set)";
+      return buildSectionsContextValue(entry, {
+        tagNameById: options.tagNameById,
+      });
     }
     case "text": {
       const entry = bookmark.textValues.find(v => v.propertyId === property.id);
@@ -241,6 +260,7 @@ function buildContextBlock(args: BookmarkAiUpdatePromptArgs, checkedProperties: 
   const {
     bookmark,
   } = args;
+  const tagNameById = new Map((args.tags ?? []).map(tag => [tag.id, tag.name]));
   const names = bookmark.names
     .map(name => `[${name.language.name}] ${name.value}`)
     .join("; ");
@@ -259,7 +279,9 @@ function buildContextBlock(args: BookmarkAiUpdatePromptArgs, checkedProperties: 
     contextLine("ISBN", bookmark.isbn),
     contextLine("Priority", String(bookmark.priority)),
     ...checkedProperties.map(property =>
-      contextLine(property.name, propertyCurrentDisplay(property, bookmark))),
+      contextLine(property.name, propertyCurrentDisplay(property, bookmark, {
+        tagNameById,
+      }))),
   ].filter((line): line is string => line !== null);
   return ["Bookmark context:", ...lines].join("\n");
 }

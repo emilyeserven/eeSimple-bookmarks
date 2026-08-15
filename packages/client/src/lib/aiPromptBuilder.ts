@@ -56,6 +56,9 @@ export interface AiPromptBuilderArgs {
   /** Category id → name, to render each bookmark's category in its context block. */
   categories: { id: string;
     name: string; }[];
+  /** Every tag, so a checked `sections` property can name the tags its entries carry. */
+  tags?: { id: string;
+    name: string; }[];
 }
 
 /**
@@ -69,8 +72,9 @@ export function buildAiPromptBuilderPrompt(args: AiPromptBuilderArgs): string {
   const checkedProperties = resolveCheckedProperties(args.contextFields, args.properties);
   const checkedSet = new Set(args.contextFields);
   const categoryNameById = new Map(args.categories.map(category => [category.id, category.name]));
+  const tagNameById = new Map((args.tags ?? []).map(tag => [tag.id, tag.name]));
   const blocks = args.bookmarks.map(bookmark =>
-    buildBookmarkContextBlock(bookmark, checkedSet, checkedProperties, categoryNameById));
+    buildBookmarkContextBlock(bookmark, checkedSet, checkedProperties, categoryNameById, tagNameById));
   return [
     template,
     question ? `Question:\n${question}` : null,

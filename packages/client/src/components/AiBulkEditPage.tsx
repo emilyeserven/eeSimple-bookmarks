@@ -37,7 +37,7 @@ export function AiBulkEditPage() {
         <CardHeader>
           <CardTitle>{t("Target Bookmarks")}</CardTitle>
           <CardDescription>
-            {t("Pick individual bookmarks and/or whole taxonomy groups — every matching bookmark is included.")}
+            {t("Pick individual bookmarks and/or whole taxonomy groups, then choose whether a bookmark has to match any of your picks or all of them.")}
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -117,6 +117,52 @@ describe("buildAiPromptBuilderPrompt", () => {
     expect(prompt).toContain("- Rating: (not set)");
   });
 
+  it("spells out a selected sections property entry by entry, naming its tags", () => {
+    const property = makeCustomProperty({
+      id: "p1",
+      slug: "sections",
+      name: "Sections",
+      type: "sections",
+      sectionsTiered: true,
+    });
+    const prompt = buildAiPromptBuilderPrompt(args({
+      contextFields: [aiFieldKeyForProperty("p1")],
+      properties: [property],
+      tags: [{
+        id: "t1",
+        name: "Reference",
+      }],
+      bookmarks: [makeBookmark({
+        id: "b1",
+        title: "First",
+        sectionsValues: [{
+          propertyId: "p1",
+          exhaustive: false,
+          sections: [{
+            id: "s1",
+            name: "Part One",
+            type: "page",
+            startValue: "1",
+            endValue: "40",
+            completed: true,
+            tagIds: ["t1"],
+            children: [{
+              id: "s1a",
+              name: "Intro",
+              type: "page",
+              startValue: "1",
+            }],
+          }],
+        }],
+      })],
+    }));
+    // The tally counts LEAVES (the shared `countSectionLeaves` rule), so the parent's own tick does
+    // not count — its unfinished child is the only leaf.
+    expect(prompt).toContain("- Sections: 1 section, 1 sub-item, 0 of 1 done");
+    expect(prompt).toContain("  1. Part One — page 1–40 — done — tags: Reference");
+    expect(prompt).toContain("    1.1. Intro — page 1 — not done");
+  });
+
   it("never asks for JSON — nothing is parsed back", () => {
     const prompt = buildAiPromptBuilderPrompt(args({
       contextFields: ["tags", "category"],

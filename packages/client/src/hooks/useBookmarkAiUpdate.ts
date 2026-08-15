@@ -206,6 +206,7 @@ export function useBookmarkAiUpdate(bookmark: Bookmark): BookmarkAiUpdateControl
     categoryNames: ctx.categories.map(category => category.name),
     mediaTypeNames: ctx.mediaTypes.map(mediaType => mediaType.name),
     tagNames: ctx.tags.map(tag => tag.name),
+    tags: ctx.tags,
   }), [form.bookmarkAiUpdatePrompt, bookmark, checked, properties, ctx]);
   const parseState = useMemo(
     () => parseBookmarkAiUpdateText(applyText, checked, properties),
