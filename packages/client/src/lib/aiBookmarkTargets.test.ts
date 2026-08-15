@@ -134,4 +134,98 @@ describe("resolveBookmarkTargets", () => {
   it("exposes a soft warning threshold for the targets card", () => {
     expect(AI_TARGET_SOFT_WARNING_THRESHOLD).toBeGreaterThan(0);
   });
+
+  describe("match mode \"all\"", () => {
+    it("matches nothing for an empty selection", () => {
+      expect(resolveBookmarkTargets(bookmarks, EMPTY_AI_BOOKMARK_TARGET_SELECTION, {}, [], "all")).toEqual([]);
+    });
+
+    it("requires every picker's selection at once", () => {
+      const both = resolveBookmarkTargets(bookmarks, selection({
+        categoryIds: ["cat-2"],
+        websiteIds: ["w1"],
+      }), {}, [], "all");
+      expect(both.map(bookmark => bookmark.id)).toEqual(["b3"]);
+      // The same selection in "any" mode is a union.
+      expect(resolveBookmarkTargets(bookmarks, selection({
+        categoryIds: ["cat-2"],
+        websiteIds: ["w1"],
+      }), {}, [], "any").map(bookmark => bookmark.id)).toEqual(["b2", "b3"]);
+    });
+
+    it("requires EVERY selected item within one picker, not just one of them", () => {
+      const multiTag = [
+        makeBookmark({
+          id: "m1",
+          tags: [bmTag("t-a", "a")],
+        }),
+        makeBookmark({
+          id: "m2",
+          tags: [bmTag("t-a", "a"), bmTag("t-b", "b")],
+        }),
+      ];
+      expect(resolveBookmarkTargets(multiTag, selection({
+        tagIds: ["t-a", "t-b"],
+      }), {}, [], "all").map(bookmark => bookmark.id)).toEqual(["m2"]);
+    });
+
+    it("expands each selected tree id to its own subtree independently", () => {
+      const tagTree = [
+        {
+          id: "t-parent",
+          children: [{
+            id: "t-child",
+            children: [],
+          }],
+        },
+        {
+          id: "t-other",
+          children: [],
+        },
+      ];
+      const tagged = [
+        makeBookmark({
+          id: "m1",
+          tags: [bmTag("t-child", "child")],
+        }),
+        makeBookmark({
+          id: "m2",
+          tags: [bmTag("t-child", "child"), bmTag("t-other", "other")],
+        }),
+      ];
+      expect(resolveBookmarkTargets(tagged, selection({
+        tagIds: ["t-parent", "t-other"],
+      }), {
+        tagTree,
+      }, [], "all").map(bookmark => bookmark.id)).toEqual(["m2"]);
+    });
+
+    it("intersects an individual pick with a group so a mismatched pick drops out", () => {
+      expect(resolveBookmarkTargets(bookmarks, selection({
+        bookmarkIds: ["b3"],
+        categoryIds: ["cat-1"],
+      }), {}, [], "all")).toEqual([]);
+    });
+
+    it("intersects saved filters with the other pickers", () => {
+      const filters = [
+        savedFilter("f1", {
+          categories: ["cat-2"],
+        }),
+        savedFilter("f2", {
+          websites: ["w1"],
+        }),
+      ];
+      expect(resolveBookmarkTargets(bookmarks, selection({
+        savedFilterIds: ["f1", "f2"],
+      }), {}, filters, "all").map(bookmark => bookmark.id)).toEqual(["b3"]);
+    });
+
+    it("ignores a stale filter id rather than failing the whole intersection", () => {
+      expect(resolveBookmarkTargets(bookmarks, selection({
+        categoryIds: ["cat-1"],
+        savedFilterIds: ["gone"],
+      }), {}, [], "all").map(bookmark => bookmark.id)).toEqual(["b1"]);
+    });
+  });
 });

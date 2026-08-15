@@ -17,13 +17,15 @@ function contextLine(label: string, value: string | null | undefined): string | 
 /**
  * One compact context block for one bookmark, headed by its bracketed id. URL and description always
  * ride along (cheap, high-signal); other standard fields appear only when checked; checked custom
- * properties show their current value.
+ * properties show their current value — a checked `sections` property spelling out every entry, so
+ * `tagNameById` is threaded through to name the tags those entries carry.
  */
 export function buildBookmarkContextBlock(
   bookmark: Bookmark,
   checked: ReadonlySet<AiUpdatableFieldKey>,
   checkedProperties: CustomProperty[],
   categoryNameById: Map<string, string>,
+  tagNameById?: ReadonlyMap<string, string>,
 ): string {
   const names = bookmark.names
     .map(name => `[${name.language.name}] ${name.value}`)
@@ -41,7 +43,9 @@ export function buildBookmarkContextBlock(
     checked.has("isbn") ? contextLine("ISBN", bookmark.isbn) : null,
     checked.has("priority") ? contextLine("Priority", String(bookmark.priority)) : null,
     ...checkedProperties.map(property =>
-      contextLine(property.name, propertyCurrentDisplay(property, bookmark))),
+      contextLine(property.name, propertyCurrentDisplay(property, bookmark, {
+        tagNameById,
+      }))),
   ].filter((line): line is string => line !== null);
   return [`[${bookmark.id}] ${bookmark.title}`, ...lines].join("\n");
 }

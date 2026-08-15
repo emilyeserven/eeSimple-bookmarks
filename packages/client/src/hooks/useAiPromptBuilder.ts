@@ -1,5 +1,5 @@
 import type { AiBookmarkData } from "./useAiBookmarkData";
-import type { AiBookmarkTargetSelection } from "../lib/aiBookmarkTargets";
+import type { AiBookmarkTargetMatchMode, AiBookmarkTargetSelection } from "../lib/aiBookmarkTargets";
 import type { AiUpdatableField, AiUpdatableFieldKey } from "../lib/bookmarkAiUpdate";
 import type { Bookmark } from "@eesimple/types";
 
@@ -9,7 +9,11 @@ import { useTranslation } from "react-i18next";
 
 import { useAiBookmarkData } from "./useAiBookmarkData";
 import { useAiPromptBuilderForm } from "./useAiPromptBuilderForm";
-import { EMPTY_AI_BOOKMARK_TARGET_SELECTION, resolveBookmarkTargets } from "../lib/aiBookmarkTargets";
+import {
+  DEFAULT_AI_TARGET_MATCH_MODE,
+  EMPTY_AI_BOOKMARK_TARGET_SELECTION,
+  resolveBookmarkTargets,
+} from "../lib/aiBookmarkTargets";
 import { buildAiPromptBuilderPrompt, listAiContextFields } from "../lib/aiPromptBuilder";
 import { copyText } from "../lib/clipboard";
 import { notifyError } from "../lib/notifications";
@@ -18,6 +22,9 @@ export interface AiPromptBuilderController {
   data: AiBookmarkData;
   selection: AiBookmarkTargetSelection;
   setSelectionField: <K extends keyof AiBookmarkTargetSelection>(key: K, values: string[]) => void;
+  /** Whether a bookmark needs to match ANY selected item or ALL of them. */
+  matchMode: AiBookmarkTargetMatchMode;
+  setMatchMode: (mode: AiBookmarkTargetMatchMode) => void;
   targets: Bookmark[];
   /** The free-form question asked about the targeted bookmarks. */
   question: string;
@@ -39,12 +46,15 @@ export interface AiPromptBuilderController {
 function useAiPromptBuilderTargets(data: AiBookmarkData): {
   selection: AiBookmarkTargetSelection;
   setSelectionField: AiPromptBuilderController["setSelectionField"];
+  matchMode: AiBookmarkTargetMatchMode;
+  setMatchMode: (mode: AiBookmarkTargetMatchMode) => void;
   targets: Bookmark[];
 } {
   const [selection, setSelection] = useState<AiBookmarkTargetSelection>(EMPTY_AI_BOOKMARK_TARGET_SELECTION);
+  const [matchMode, setMatchMode] = useState<AiBookmarkTargetMatchMode>(DEFAULT_AI_TARGET_MATCH_MODE);
   const targets = useMemo(
-    () => resolveBookmarkTargets(data.bookmarks, selection, data.trees, data.savedFilters),
-    [data.bookmarks, selection, data.trees, data.savedFilters],
+    () => resolveBookmarkTargets(data.bookmarks, selection, data.trees, data.savedFilters, matchMode),
+    [data.bookmarks, selection, data.trees, data.savedFilters, matchMode],
   );
   return {
     selection,
@@ -52,6 +62,8 @@ function useAiPromptBuilderTargets(data: AiBookmarkData): {
       ...prev,
       [key]: values,
     })),
+    matchMode,
+    setMatchMode,
     targets,
   };
 }
@@ -67,7 +79,7 @@ export function useAiPromptBuilder(): AiPromptBuilderController {
   } = useTranslation();
   const data = useAiBookmarkData();
   const {
-    selection, setSelectionField, targets,
+    selection, setSelectionField, matchMode, setMatchMode, targets,
   } = useAiPromptBuilderTargets(data);
   const {
     form, patchForm,
@@ -85,7 +97,8 @@ export function useAiPromptBuilder(): AiPromptBuilderController {
     contextFields: [...checkedFields],
     properties: data.properties,
     categories: data.categories,
-  }), [form.aiPromptBuilderPrompt, question, targets, checkedFields, data.properties, data.categories]);
+    tags: data.tags,
+  }), [form.aiPromptBuilderPrompt, question, targets, checkedFields, data.properties, data.categories, data.tags]);
 
   function toggleField(key: AiUpdatableFieldKey): void {
     setCheckedFields((prev) => {
@@ -111,6 +124,8 @@ export function useAiPromptBuilder(): AiPromptBuilderController {
     data,
     selection,
     setSelectionField,
+    matchMode,
+    setMatchMode,
     targets,
     question,
     setQuestion,

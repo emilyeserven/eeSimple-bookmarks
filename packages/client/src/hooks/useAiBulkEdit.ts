@@ -1,6 +1,6 @@
 import type { AiBookmarkData } from "./useAiBookmarkData";
 import type { AiBulkBookmarkPlan } from "./useAiBulkEditApply";
-import type { AiBookmarkTargetSelection } from "../lib/aiBookmarkTargets";
+import type { AiBookmarkTargetMatchMode, AiBookmarkTargetSelection } from "../lib/aiBookmarkTargets";
 import type { AiBulkEditParseState } from "../lib/aiBulkEdit";
 import type { AiUpdatableField, AiUpdatableFieldKey } from "../lib/bookmarkAiUpdate";
 import type { AiUpdateReviewContext, AiUpdateReviewRow } from "../lib/bookmarkAiUpdateReview";
@@ -13,7 +13,11 @@ import { useTranslation } from "react-i18next";
 import { useAiBookmarkData } from "./useAiBookmarkData";
 import { useAiBulkEditApply } from "./useAiBulkEditApply";
 import { useAiBulkEditForm } from "./useAiBulkEditForm";
-import { EMPTY_AI_BOOKMARK_TARGET_SELECTION, resolveBookmarkTargets } from "../lib/aiBookmarkTargets";
+import {
+  DEFAULT_AI_TARGET_MATCH_MODE,
+  EMPTY_AI_BOOKMARK_TARGET_SELECTION,
+  resolveBookmarkTargets,
+} from "../lib/aiBookmarkTargets";
 import {
   buildAiBulkEditPrompt,
   parseAiBulkEditText,
@@ -37,6 +41,9 @@ export interface AiBulkEditController {
   data: AiBookmarkData;
   selection: AiBookmarkTargetSelection;
   setSelectionField: <K extends keyof AiBookmarkTargetSelection>(key: K, values: string[]) => void;
+  /** Whether a bookmark needs to match ANY selected item or ALL of them. */
+  matchMode: AiBookmarkTargetMatchMode;
+  setMatchMode: (mode: AiBookmarkTargetMatchMode) => void;
   targets: Bookmark[];
   fields: AiUpdatableField[];
   checkedFields: ReadonlySet<AiUpdatableFieldKey>;
@@ -68,12 +75,15 @@ export interface AiBulkEditController {
 function useAiBulkEditTargets(data: AiBookmarkData): {
   selection: AiBookmarkTargetSelection;
   setSelectionField: AiBulkEditController["setSelectionField"];
+  matchMode: AiBookmarkTargetMatchMode;
+  setMatchMode: (mode: AiBookmarkTargetMatchMode) => void;
   targets: Bookmark[];
 } {
   const [selection, setSelection] = useState<AiBookmarkTargetSelection>(EMPTY_AI_BOOKMARK_TARGET_SELECTION);
+  const [matchMode, setMatchMode] = useState<AiBookmarkTargetMatchMode>(DEFAULT_AI_TARGET_MATCH_MODE);
   const targets = useMemo(
-    () => resolveBookmarkTargets(data.bookmarks, selection, data.trees, data.savedFilters),
-    [data.bookmarks, selection, data.trees, data.savedFilters],
+    () => resolveBookmarkTargets(data.bookmarks, selection, data.trees, data.savedFilters, matchMode),
+    [data.bookmarks, selection, data.trees, data.savedFilters, matchMode],
   );
   return {
     selection,
@@ -81,6 +91,8 @@ function useAiBulkEditTargets(data: AiBookmarkData): {
       ...prev,
       [key]: values,
     })),
+    matchMode,
+    setMatchMode,
     targets,
   };
 }
@@ -97,7 +109,7 @@ export function useAiBulkEdit(): AiBulkEditController {
   } = useTranslation();
   const data = useAiBookmarkData();
   const {
-    selection, setSelectionField, targets,
+    selection, setSelectionField, matchMode, setMatchMode, targets,
   } = useAiBulkEditTargets(data);
   const {
     form, patchForm,
@@ -123,6 +135,7 @@ export function useAiBulkEdit(): AiBulkEditController {
     checked,
     properties: data.properties,
     categories: data.categories,
+    tags: data.tags,
     categoryNames: data.categories.map(category => category.name),
     mediaTypeNames: data.mediaTypes.map(mediaType => mediaType.name),
     tagNames: resolveAiBulkEditTagVocabulary(data.tags, {
@@ -213,6 +226,8 @@ export function useAiBulkEdit(): AiBulkEditController {
     data,
     selection,
     setSelectionField,
+    matchMode,
+    setMatchMode,
     targets,
     fields,
     checkedFields,
