@@ -40,6 +40,7 @@ export function ImageBlacklistForm() {
         plexEndpoint: data.plexEndpoint,
         plexToken: null,
         youtubeApiKey: null,
+        cartoApiKey: null,
         imageUrlBlacklist: patterns,
         useNoCookieYoutubeEmbeds: data.useNoCookieYoutubeEmbeds,
       },

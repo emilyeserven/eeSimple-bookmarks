@@ -18,6 +18,7 @@ const connectorsSettings: ConnectorsAppSettings = {
   plexEndpoint: "",
   plexTokenSet: false,
   youtubeApiKeySet: false,
+  cartoApiKeySet: false,
   imageUrlBlacklist: [],
   useNoCookieYoutubeEmbeds: true,
 };
@@ -124,6 +125,7 @@ export const YoutubeConfigured: Story = {
         http.get("/api/app-settings/connectors", () => HttpResponse.json({
           ...connectorsSettings,
           youtubeApiKeySet: true,
+          cartoApiKeySet: false,
         } satisfies ConnectorsAppSettings)),
         ...apiHandlers,
       ],

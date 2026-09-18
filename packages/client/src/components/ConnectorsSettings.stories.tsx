@@ -4,52 +4,10 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { HttpResponse, http } from "msw";
 
 import { ConnectorsSettings } from "./ConnectorsSettings";
+import { makeConnectorsStatus } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const connectorsStatus: ConnectorsStatus = {
-  hostedMetadata: {
-    enabled: false,
-    provider: null,
-    baseUrl: null,
-  },
-  youtubeDataApi: {
-    enabled: false,
-  },
-  youtubeEmbed: {
-    useNoCookie: true,
-  },
-  instagram: {
-    apiKey: false,
-  },
-  instagramReelArchive: {
-    enabled: false,
-  },
-  objectStorage: {
-    configured: false,
-  },
-  archiveBox: {
-    enabled: false,
-    baseUrl: null,
-  },
-  kavita: {
-    enabled: false,
-    baseUrl: null,
-    sidebarUrl: null,
-  },
-  plex: {
-    enabled: false,
-    baseUrl: null,
-    machineIdentifier: null,
-  },
-  geocoding: {
-    enabled: true,
-    endpoint: "https://nominatim.openstreetmap.org",
-  },
-  wikidata: {
-    enabled: true,
-    endpoint: "https://www.wikidata.org",
-  },
-};
+const connectorsStatus: ConnectorsStatus = makeConnectorsStatus();
 
 const connectorsSettings: ConnectorsAppSettings = {
   hostedMetadataEndpoint: "",
@@ -63,6 +21,7 @@ const connectorsSettings: ConnectorsAppSettings = {
   plexEndpoint: "",
   plexTokenSet: false,
   youtubeApiKeySet: false,
+  cartoApiKeySet: false,
   imageUrlBlacklist: [],
   useNoCookieYoutubeEmbeds: true,
 };
@@ -116,6 +75,9 @@ export const ProvidersActive: Story = {
             baseUrl: "http://localhost:32400",
             machineIdentifier: "abc123",
           },
+          basemap: {
+            cartoApiKey: "carto-demo-key",
+          },
         } satisfies ConnectorsStatus)),
         http.get("/api/app-settings/connectors", () => HttpResponse.json({
           ...connectorsSettings,
@@ -128,6 +90,7 @@ export const ProvidersActive: Story = {
           plexEndpoint: "http://localhost:32400",
           plexTokenSet: true,
           youtubeApiKeySet: true,
+          cartoApiKeySet: true,
         } satisfies ConnectorsAppSettings)),
         ...apiHandlers,
       ],

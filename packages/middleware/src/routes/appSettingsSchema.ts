@@ -330,7 +330,7 @@ export const placeTypeDisplayBody = {
 
 export const connectorsBody = {
   type: "object",
-  required: ["hostedMetadataEndpoint", "hostedMetadataProvider", "hostedMetadataApiKey", "archiveBoxEndpoint", "kavitaEndpoint", "kavitaSidebarUrl", "kavitaApiKey", "plexEndpoint", "plexToken", "youtubeApiKey", "imageUrlBlacklist", "useNoCookieYoutubeEmbeds"],
+  required: ["hostedMetadataEndpoint", "hostedMetadataProvider", "hostedMetadataApiKey", "archiveBoxEndpoint", "kavitaEndpoint", "kavitaSidebarUrl", "kavitaApiKey", "plexEndpoint", "plexToken", "youtubeApiKey", "cartoApiKey", "imageUrlBlacklist", "useNoCookieYoutubeEmbeds"],
   additionalProperties: false,
   properties: {
     hostedMetadataEndpoint: {
@@ -369,6 +369,11 @@ export const connectorsBody = {
     },
     youtubeApiKey: {
       // null = leave the stored key unchanged; "" = clear; any other string = set new key.
+      type: ["string", "null"],
+    },
+    cartoApiKey: {
+      // CARTO basemap tiles key. null = leave the stored key unchanged; "" = clear; any other
+      // string = set new key.
       type: ["string", "null"],
     },
     imageUrlBlacklist: {

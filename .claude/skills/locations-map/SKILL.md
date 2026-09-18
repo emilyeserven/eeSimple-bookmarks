@@ -87,8 +87,12 @@ everything downstream depends on the stable normalized value, never the prop ref
 `useMapLevelMode(scope, groups)` resolves the persisted "Show" mode from the anchor(s) and writes a
 change through to *every* anchor (a bookmark can have several); an anchor-less map falls back to session
 `fallbackMode`. `LocationMap` turns the resulting `displayConfig` + tree into Leaflet markers/polygons
-(`collectMapped` → `toRenderItems`), swapping the tile layer to a borderless CARTO style when
-`hideAdminBorders`.
+(`collectMapped` → `toRenderItems`), delegating the base layer to `components/BasemapTileLayer.tsx`,
+which swaps to a borderless CARTO style when `hideAdminBorders`. The tile URLs live in the pure
+`lib/basemapTiles.ts`; CARTO requires an API key (else its tiles carry an "API KEY REQUIRED"
+watermark), read from `GET /api/connectors` (`basemap.cartoApiKey`) and set on **Settings →
+Connectors**. Keep the `useConnectors()` read in `BasemapTileLayer`, not `LocationMap` — the latter
+is a complexity-cap target.
 
 **When adding a per-map control**, thread it through `LevelsControls` (`lib/locationLevels.ts`), assemble
 it in `useLocationMapLevelControls`, and render it in the shared `LevelsFooter` — not in each overlay.

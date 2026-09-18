@@ -14,8 +14,9 @@ import {
 } from "@eesimple/types";
 import { Link } from "@tanstack/react-router";
 import { geoJSON, latLngBounds } from "leaflet";
-import { GeoJSON, MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
+import { GeoJSON, MapContainer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
 
+import { BasemapTileLayer } from "./BasemapTileLayer";
 import { LocalizedNameLabel } from "./LocalizedNameLabel";
 import { LocationMapDebugModal } from "./LocationMapDebugModal";
 import { LocationMapFootnotes } from "./LocationMapFootnotes";
@@ -138,18 +139,6 @@ function toFeature(boundary: LocationBoundary): Feature {
     properties: {},
   };
 }
-
-/** Standard OpenStreetMap raster tiles — renders country/state/prefecture administrative borders. */
-const OSM_TILE_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
-const OSM_ATTRIBUTION = "© OpenStreetMap contributors";
-/**
- * CARTO's "Positron" raster tiles — a lighter, non-obtrusive basemap style that omits administrative
- * boundary lines. Used when the "hide borders" option is on, since the OSM standard style bakes
- * country/prefecture/state borders into the tile images themselves (nothing our own GeoJSON layers
- * draw), so hiding them means swapping the whole base tile layer rather than toggling a feature.
- */
-const BORDERLESS_TILE_URL = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
-const BORDERLESS_ATTRIBUTION = "© OpenStreetMap contributors © CARTO";
 
 /** A map viewport (center + zoom) persisted across this map's remounts to seed the next one. */
 export interface MapView {
@@ -542,10 +531,7 @@ export function LocationMap({
           scrollWheelZoom
           className={cn("isolate", className)}
         >
-          <TileLayer
-            attribution={hideAdminBorders ? BORDERLESS_ATTRIBUTION : OSM_ATTRIBUTION}
-            url={hideAdminBorders ? BORDERLESS_TILE_URL : OSM_TILE_URL}
-          />
+          <BasemapTileLayer hideAdminBorders={hideAdminBorders} />
           <FitBounds
             items={items}
             hadBase={hadBase}

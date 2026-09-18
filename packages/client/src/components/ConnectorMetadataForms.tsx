@@ -2,6 +2,7 @@
 // its own module under `connectorForms/` (sharing the `CheckConnectionResult` / `ApiKeyHint` parts);
 // this shell re-exports them so consumers keep importing from `./ConnectorMetadataForms`.
 export { ArchiveBoxForm } from "./connectorForms/ArchiveBoxForm";
+export { CartoForm } from "./connectorForms/CartoForm";
 export { HostedMetadataForm } from "./connectorForms/HostedMetadataForm";
 export { ImageBlacklistForm } from "./connectorForms/ImageBlacklistForm";
 export { KavitaForm } from "./connectorForms/KavitaForm";

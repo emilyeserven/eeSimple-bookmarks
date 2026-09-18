@@ -5,8 +5,12 @@ import { appSettings } from "@/db/schema";
 import { encryptionEnabled, maybeDecrypt, maybeEncrypt } from "@/utils/crypto";
 import { ROW_ID } from "./appSettingsShared";
 
-/** Read the hosted-metadata connector settings, merging db values with env-var fallbacks. */
-export async function getConnectorsSettings(): Promise<ConnectorsAppSettings> {
+/**
+ * The one row read of the `app_settings` singleton behind {@link getConnectorsSettings}. Split out
+ * so the per-connector mappers below can each be a small pure function over the same row shape
+ * (the combined mapper was over fallow's cyclomatic cap — one `?.`/`??`/`||` per field adds up).
+ */
+async function selectConnectorsRow() {
   const [row] = await db
     .select({
       hostedMetadataEndpoint: appSettings.hostedMetadataEndpoint,
@@ -19,27 +23,56 @@ export async function getConnectorsSettings(): Promise<ConnectorsAppSettings> {
       plexEndpoint: appSettings.plexEndpoint,
       plexToken: appSettings.plexToken,
       youtubeApiKey: appSettings.youtubeApiKey,
+      cartoApiKey: appSettings.cartoApiKey,
       imageUrlBlacklist: appSettings.imageUrlBlacklist,
       useNoCookieYoutubeEmbeds: appSettings.useNoCookieYoutubeEmbeds,
     })
     .from(appSettings)
     .where(eq(appSettings.id, ROW_ID));
-  const endpoint = row?.hostedMetadataEndpoint ?? process.env.HOSTED_METADATA_ENDPOINT ?? "";
-  const provider = row?.hostedMetadataProvider ?? process.env.HOSTED_METADATA_PROVIDER ?? "";
-  const hasStoredKey = Boolean(row?.hostedMetadataApiKey);
-  const hasEnvKey = Boolean(process.env.HOSTED_METADATA_API_KEY);
+  return row;
+}
+
+/** The stored connector columns, or `undefined` when the singleton row doesn't exist yet. */
+type ConnectorsRow = Awaited<ReturnType<typeof selectConnectorsRow>>;
+
+/** Hosted-metadata (Browserless/Microlink) fields: stored value, else env var, else unset. */
+function hostedMetadataFields(row: ConnectorsRow) {
   return {
-    hostedMetadataEndpoint: endpoint,
-    hostedMetadataProvider: provider,
-    hostedMetadataApiKeySet: hasStoredKey || hasEnvKey,
-    encryptionEnabled: encryptionEnabled(),
-    archiveBoxEndpoint: row?.archiveBoxEndpoint ?? process.env.ARCHIVEBOX_ENDPOINT ?? "",
+    hostedMetadataEndpoint: row?.hostedMetadataEndpoint ?? process.env.HOSTED_METADATA_ENDPOINT ?? "",
+    hostedMetadataProvider: row?.hostedMetadataProvider ?? process.env.HOSTED_METADATA_PROVIDER ?? "",
+    hostedMetadataApiKeySet: Boolean(row?.hostedMetadataApiKey) || Boolean(process.env.HOSTED_METADATA_API_KEY),
+  };
+}
+
+/** Self-hosted media-server fields (Kavita + Plex); their keys/tokens are reported as booleans only. */
+function mediaServerFields(row: ConnectorsRow) {
+  return {
     kavitaEndpoint: row?.kavitaEndpoint ?? process.env.KAVITA_ENDPOINT ?? "",
+    // Display-only browser-facing override, so no env-var fallback.
     kavitaSidebarUrl: row?.kavitaSidebarUrl ?? "",
     kavitaApiKeySet: Boolean(row?.kavitaApiKey) || Boolean(process.env.KAVITA_API_KEY),
     plexEndpoint: row?.plexEndpoint ?? process.env.PLEX_ENDPOINT ?? "",
     plexTokenSet: Boolean(row?.plexToken) || Boolean(process.env.PLEX_TOKEN),
+  };
+}
+
+/** Key-only connectors: whether a key is stored or supplied by its env var. Never the raw value. */
+function apiKeyFlags(row: ConnectorsRow) {
+  return {
     youtubeApiKeySet: Boolean(row?.youtubeApiKey) || Boolean(process.env.YOUTUBE_API_KEY),
+    cartoApiKeySet: Boolean(row?.cartoApiKey) || Boolean(process.env.CARTO_API_KEY),
+  };
+}
+
+/** Read the connector settings, merging db values with env-var fallbacks. */
+export async function getConnectorsSettings(): Promise<ConnectorsAppSettings> {
+  const row = await selectConnectorsRow();
+  return {
+    ...hostedMetadataFields(row),
+    ...mediaServerFields(row),
+    ...apiKeyFlags(row),
+    encryptionEnabled: encryptionEnabled(),
+    archiveBoxEndpoint: row?.archiveBoxEndpoint ?? process.env.ARCHIVEBOX_ENDPOINT ?? "",
     imageUrlBlacklist: row?.imageUrlBlacklist ?? [],
     useNoCookieYoutubeEmbeds: row?.useNoCookieYoutubeEmbeds ?? true,
   };
@@ -287,6 +320,33 @@ export async function getDecryptedYoutubeApiKey(): Promise<string | null> {
   return process.env.YOUTUBE_API_KEY ?? null;
 }
 
+/**
+ * Retrieve the decrypted CARTO basemap API key. Checks the database first (decrypting if
+ * encrypted), then falls back to the `CARTO_API_KEY` env var.
+ *
+ * Unlike the other keys here, this one is served to the browser (`GET /api/connectors`): CARTO's
+ * raster tiles are fetched by Leaflet itself, so the key has to ride in the tile URL. It is a
+ * low-value, fair-use basemap key, not a server credential.
+ */
+export async function getDecryptedCartoApiKey(): Promise<string | null> {
+  try {
+    const [row] = await db
+      .select({
+        cartoApiKey: appSettings.cartoApiKey,
+      })
+      .from(appSettings)
+      .where(eq(appSettings.id, ROW_ID));
+    if (row?.cartoApiKey) {
+      const decrypted = maybeDecrypt(row.cartoApiKey);
+      if (decrypted) return decrypted;
+    }
+  }
+  catch {
+    // DB unavailable (e.g. test environment) — fall through to env var.
+  }
+  return process.env.CARTO_API_KEY ?? null;
+}
+
 /** Replace the hosted-metadata connector settings, upserting the singleton. */
 export async function updateConnectorsSettings(
   input: UpdateConnectorsSettingsInput,
@@ -322,6 +382,11 @@ export async function updateConnectorsSettings(
   if (input.youtubeApiKey !== null) {
     set.youtubeApiKey = input.youtubeApiKey.trim()
       ? maybeEncrypt(input.youtubeApiKey.trim())
+      : null;
+  }
+  if (input.cartoApiKey !== null) {
+    set.cartoApiKey = input.cartoApiKey.trim()
+      ? maybeEncrypt(input.cartoApiKey.trim())
       : null;
   }
   await db

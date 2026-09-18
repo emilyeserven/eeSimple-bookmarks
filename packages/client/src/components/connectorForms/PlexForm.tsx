@@ -72,6 +72,7 @@ export function PlexForm() {
           plexEndpoint: endpoint,
           plexToken: field === "token" ? token : null,
           youtubeApiKey: null,
+          cartoApiKey: null,
           imageUrlBlacklist: data.imageUrlBlacklist,
           useNoCookieYoutubeEmbeds: data.useNoCookieYoutubeEmbeds,
         },
