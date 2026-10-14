@@ -4,53 +4,16 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { HttpResponse, http } from "msw";
 
 import { BookmarkKavitaField } from "./BookmarkKavitaField";
-import { makeBookmark } from "../test-utils/factories";
+import { makeBookmark, makeConnectorsStatus } from "../test-utils/factories";
 import { apiHandlers } from "../test-utils/story-mocks";
 
-const connectorsStatus: ConnectorsStatus = {
-  hostedMetadata: {
-    enabled: false,
-    provider: null,
-    baseUrl: null,
-  },
-  youtubeDataApi: {
-    enabled: false,
-  },
-  youtubeEmbed: {
-    useNoCookie: true,
-  },
-  instagram: {
-    apiKey: false,
-  },
-  instagramReelArchive: {
-    enabled: false,
-  },
-  objectStorage: {
-    configured: false,
-  },
-  archiveBox: {
-    enabled: false,
-    baseUrl: null,
-  },
+const connectorsStatus: ConnectorsStatus = makeConnectorsStatus({
   kavita: {
     enabled: true,
     baseUrl: "http://localhost:5000",
     sidebarUrl: null,
   },
-  plex: {
-    enabled: false,
-    baseUrl: null,
-    machineIdentifier: null,
-  },
-  geocoding: {
-    enabled: true,
-    endpoint: "https://nominatim.openstreetmap.org",
-  },
-  wikidata: {
-    enabled: true,
-    endpoint: "https://www.wikidata.org",
-  },
-};
+});
 
 const seriesResults: KavitaSeriesResult[] = [
   {

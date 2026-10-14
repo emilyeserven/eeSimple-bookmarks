@@ -981,6 +981,9 @@ export function makeConnectorsStatus(overrides: Partial<ConnectorsStatus> = {}):
       enabled: true,
       endpoint: "https://www.wikidata.org",
     },
+    basemap: {
+      cartoApiKey: null,
+    },
     ...overrides,
   };
 }

@@ -1969,6 +1969,10 @@ export const appSettings = pgTable("app_settings", {
   // when APP_SECRET is configured. Nullable = push-safe additive; the YOUTUBE_API_KEY env var is
   // used as fallback when null.
   youtubeApiKey: text("youtube_api_key"),
+  // API key for CARTO basemap tiles (the Locations map's borderless style), configured from
+  // Settings → Connectors; stored encrypted when APP_SECRET is configured. Nullable = push-safe
+  // additive; the CARTO_API_KEY env var is used as fallback when null.
+  cartoApiKey: text("carto_api_key"),
   // YouTube embed host preference (Settings → Connectors): true/null = privacy-enhanced
   // youtube-nocookie.com (the default); false = plain youtube.com. Nullable = push-safe additive.
   useNoCookieYoutubeEmbeds: boolean("use_no_cookie_youtube_embeds"),

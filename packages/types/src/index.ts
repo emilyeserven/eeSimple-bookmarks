@@ -3610,6 +3610,17 @@ export interface ConnectorsStatus {
    */
   wikidata: { enabled: boolean;
     endpoint: string; };
+  /**
+   * CARTO basemap tiles for the Locations map's "hide administrative borders" style. CARTO enforces
+   * an API key on `basemaps.cartocdn.com`; without one the tiles render with an "API KEY REQUIRED"
+   * watermark (a free key is available within their fair-use limit at https://carto.com/basemaps/apikey/).
+   *
+   * This is the **one** connector whose raw key is returned to the client, and deliberately so:
+   * Leaflet fetches the tiles from the browser, so the key has to be in the tile URL. It is a
+   * low-value, referrer-restrictable, fair-use key, not a server credential — unlike every other
+   * key here, which stays inside the middleware. `null` when none is configured.
+   */
+  basemap: { cartoApiKey: string | null };
 }
 
 /** Hosted-metadata connector settings from `GET /api/app-settings/connectors`. Never exposes the raw key. */
@@ -3638,6 +3649,12 @@ export interface ConnectorsAppSettings {
   plexTokenSet: boolean;
   /** Whether a YouTube Data API v3 key is stored (encrypted or plain); the raw value is never returned. */
   youtubeApiKeySet: boolean;
+  /**
+   * Whether a CARTO basemap API key is stored (encrypted or plain). This settings payload never
+   * returns the raw value; the key itself is served — by design — on `GET /api/connectors`, since
+   * the browser needs it to build the map's tile URL (see `ConnectorsStatus.basemap`).
+   */
+  cartoApiKeySet: boolean;
   /**
    * Patterns that exclude matching candidate images from a URL scan. Each entry is a case-insensitive
    * substring, or a simple `*` glob (e.g. `*.doubleclick.net/*`). Applied to every candidate image
@@ -3691,6 +3708,13 @@ export interface UpdateConnectorsSettingsInput {
    * Any other string = encrypt and store as the new key.
    */
   youtubeApiKey: string | null;
+  /**
+   * Raw CARTO basemap API key to store (encrypted at rest when `APP_SECRET` is set).
+   * `null` = leave the stored key unchanged.
+   * `""` = clear the stored key.
+   * Any other string = encrypt and store as the new key.
+   */
+  cartoApiKey: string | null;
   /** Image-URL blacklist patterns; replaces the stored list wholesale. */
   imageUrlBlacklist: string[];
   /** Whether YouTube embeds use the privacy-enhanced `youtube-nocookie.com` host. */

@@ -49,6 +49,9 @@ vi.mock("../hooks/useConnectors", () => ({
         enabled: true,
         endpoint: "https://www.wikidata.org",
       },
+      basemap: {
+        cartoApiKey: null,
+      },
     },
   }),
 }));
@@ -74,6 +77,7 @@ vi.mock("../hooks/useAppSettings", () => ({
       plexEndpoint: "",
       plexTokenSet: false,
       youtubeApiKeySet: false,
+      cartoApiKeySet: false,
     },
   }),
   useUpdateConnectorsSettings: () => ({
@@ -93,13 +97,15 @@ describe("ConnectorsSettings", () => {
     expect(screen.getByLabelText("API key")).toBeInTheDocument();
     // The YouTube card renders with its editable form (API key field).
     expect(screen.getByLabelText("YouTube API key")).toBeInTheDocument();
+    // The CARTO basemap card renders with its editable form (API key field).
+    expect(screen.getByLabelText("CARTO API key")).toBeInTheDocument();
 
     // Only youtubeDataApi is enabled among the env-gated connectors → one Active status badge
     // (plus the filter bar's "Active" toggle label). The rest (hostedMetadata,
-    // instagramReelArchive, archiveBox, kavita, plex) are disabled → five Inactive status badges
-    // (plus the filter bar's "Inactive" toggle label). Confirms the badges are derived from live
-    // connector state, not hardcoded.
+    // instagramReelArchive, archiveBox, kavita, plex, basemap) are disabled → six Inactive status
+    // badges (plus the filter bar's "Inactive" toggle label). Confirms the badges are derived from
+    // live connector state, not hardcoded.
     expect(screen.getAllByText("Active")).toHaveLength(2);
-    expect(screen.getAllByText("Inactive")).toHaveLength(6);
+    expect(screen.getAllByText("Inactive")).toHaveLength(7);
   });
 });

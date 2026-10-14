@@ -7,15 +7,20 @@ import { hostedMetadataEnabledAsync, hostedMetadataProviderAsync } from "@/servi
 import { instagramApiEnabled } from "@/services/socialImages";
 import { kavitaEnabledAsync } from "@/services/kavita";
 import { getPlexMachineIdentifier, plexEnabledAsync } from "@/services/plex";
-import { getActiveHostedEndpoint, getActiveKavitaEndpoint, getActiveKavitaSidebarUrl, getActivePlexEndpoint, getYoutubeEmbedUsesNoCookie } from "@/services/appSettings";
+import { getActiveHostedEndpoint, getActiveKavitaEndpoint, getActiveKavitaSidebarUrl, getActivePlexEndpoint, getDecryptedCartoApiKey, getYoutubeEmbedUsesNoCookie } from "@/services/appSettings";
 import { youtubeApiEnabledAsync } from "@/services/youtube";
 import { isObjectStoreConfigured } from "@/utils/objectStore";
 
 /**
  * Connector status, mounted under `/api`. Reports which optional/gated metadata connectors are
  * configured so the Settings → Connectors page can show live Active/Inactive badges. Carries no
- * secrets — only booleans, the hosted provider's name, and the (non-secret) ArchiveBox base URL the
- * client needs to build archive link-outs — so it's safe over the unauthenticated API.
+ * server credentials — only booleans, the hosted provider's name, and the (non-secret) ArchiveBox
+ * base URL the client needs to build archive link-outs.
+ *
+ * The one exception is `basemap.cartoApiKey`, returned raw on purpose: CARTO's map tiles are
+ * fetched by Leaflet in the browser, so that key has to reach the client to go in the tile URL.
+ * It's a low-value, referrer-restrictable, fair-use basemap key — not a server credential — and
+ * every other key here still stays inside the middleware.
  */
 export async function connectorsRoutes(app: FastifyInstance): Promise<void> {
   app.get("/api/connectors", {
@@ -77,6 +82,10 @@ export async function connectorsRoutes(app: FastifyInstance): Promise<void> {
       wikidata: {
         enabled: wikidataEnabled(),
         endpoint: wikidataEndpoint(),
+      },
+      basemap: {
+        // Browser-facing by design — Leaflet fetches CARTO's tiles directly. See the file doc above.
+        cartoApiKey: await getDecryptedCartoApiKey(),
       },
     };
   });

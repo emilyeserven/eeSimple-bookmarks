@@ -5,7 +5,7 @@ import { useState } from "react";
 import { OEMBED_PROVIDERS } from "@eesimple/types";
 import { useTranslation } from "react-i18next";
 
-import { ArchiveBoxForm, HostedMetadataForm, ImageBlacklistForm, KavitaForm, PlexForm, YoutubeForm } from "./ConnectorMetadataForms";
+import { ArchiveBoxForm, CartoForm, HostedMetadataForm, ImageBlacklistForm, KavitaForm, PlexForm, YoutubeForm } from "./ConnectorMetadataForms";
 import { useConnectors } from "../hooks/useConnectors";
 
 import { Badge } from "@/components/ui/badge";
@@ -324,6 +324,31 @@ export function ConnectorsSettings() {
           </CardHeader>
           <CardContent>
             <Provides items={[t("Coordinates"), t("Country"), t("Ancestors"), t("Area outline"), t("Map URL")]} />
+          </CardContent>
+        </Card>
+      ),
+    },
+    {
+      id: "basemap",
+      status: envStatus(data ? Boolean(data.basemap.cartoApiKey) : undefined),
+      node: (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle>{t("Basemap (CARTO)")}</CardTitle>
+              <StatusBadge enabled={data ? Boolean(data.basemap.cartoApiKey) : undefined} />
+            </div>
+            <CardDescription>
+              {t("Optional. The Locations map's \"hide administrative borders\" style is drawn with CARTO's basemap tiles, which now require an API key — without one those tiles carry an \"API KEY REQUIRED\" watermark. The default bordered basemap is OpenStreetMap and needs no key, so the map works either way. A key can also be set with the")}
+              {" "}
+              <code>CARTO_API_KEY</code>
+              {" "}
+              {t("env var.")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <CartoForm />
+            <Provides items={[t("Borderless map tiles")]} />
           </CardContent>
         </Card>
       ),
