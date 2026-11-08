@@ -1,0 +1,85 @@
+# Local / single-host deployment: Postgres + the app gateway, with optional Garage object storage.
+#
+#   docker compose up -d --build                      # db + app (builds the image locally)
+#   docker compose --profile storage up -d --build    # …plus Garage for /api/files
+#
+# On a Raspberry Pi, layer docker-compose.pi.yml on top to pull a prebuilt arm64 image instead of
+# building on the Pi (see README → "Raspberry Pi").
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - POSTGRES_DB=${POSTGRES_DB:-app}
+    # Conservative memory settings that suit a 2–4 GB Raspberry Pi; raise on roomier hosts.
+    command:
+      - postgres
+      - -c
+      - shared_buffers=${POSTGRES_SHARED_BUFFERS:-128MB}
+      - -c
+      - max_connections=${POSTGRES_MAX_CONNECTIONS:-30}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Set to 1 to also build Storybook (served at /storybook when DOCS_ENABLED). Memory-heavy.
+        BUILD_STORYBOOK: ${BUILD_STORYBOOK:-0}
+    restart: unless-stopped
+    ports:
+      - "${GATEWAY_HOST_PORT:-3000}:3000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-app}
+      # Set to true/1 to expose the Swagger docs at /docs and Storybook at /storybook.
+      - DOCS_ENABLED=${DOCS_ENABLED:-}
+      # Cap V8's heap so the API + gateway fit comfortably next to Postgres on a small Pi.
+      - NODE_OPTIONS=${NODE_OPTIONS:---max-old-space-size=384}
+      # Slow hardware: give the API longer to come up before the gateway reports it unhealthy.
+      - MIDDLEWARE_WAIT_TIMEOUT_MS=${MIDDLEWARE_WAIT_TIMEOUT_MS:-120000}
+      - DB_POOL_MAX=${DB_POOL_MAX:-5}
+      # Object storage (only used when the `storage` profile is up and keys are set).
+      - S3_ENDPOINT=${S3_ENDPOINT:-http://garage:3900}
+      - S3_REGION=${S3_REGION:-garage}
+      - S3_BUCKET=${S3_BUCKET:-app}
+      - S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID:-}
+      - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY:-}
+    depends_on:
+      db:
+        condition: service_healthy
+      garage:
+        condition: service_started
+        # Garage is optional — only started with `--profile storage`.
+        required: false
+
+  garage:
+    # S3-compatible object storage. See README → "Object storage (Garage)".
+    # Built from garage.Dockerfile so garage.toml is baked into the image (a host bind mount of the
+    # config is unreliable on some PaaS compose build packs). dxflrs/garage is multi-arch (arm64 ok).
+    profiles: ["storage"]
+    build:
+      context: .
+      dockerfile: garage.Dockerfile
+    restart: unless-stopped
+    volumes:
+      - garage-meta:/var/lib/garage/meta
+      - garage-data:/var/lib/garage/data
+    ports:
+      # S3 API — exposed on the host so `pnpm dev` (middleware on the host) and the AWS CLI reach it.
+      - "${GARAGE_S3_HOST_PORT:-3900}:3900"
+
+volumes:
+  pgdata:
+  garage-meta:
+  garage-data:

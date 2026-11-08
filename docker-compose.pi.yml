@@ -1,0 +1,12 @@
+# Raspberry Pi override: run a PREBUILT multi-arch image instead of building on the Pi.
+#
+#   APP_IMAGE=ghcr.io/<owner>/<repo>:latest \
+#     docker compose -f docker-compose.yml -f docker-compose.pi.yml up -d
+#
+# The image is produced by .github/workflows/docker-publish.yml (linux/amd64 + linux/arm64).
+# Building directly on a Pi also works (`docker compose up -d --build`) — just slower.
+services:
+  gateway:
+    image: ${APP_IMAGE:?Set APP_IMAGE to your published image, e.g. ghcr.io/owner/repo:latest}
+    pull_policy: always
+    build: !reset null

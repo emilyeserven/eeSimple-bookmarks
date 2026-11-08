@@ -1,0 +1,64 @@
+{
+  "name": "app-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.13.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "description": "Self-hostable full-stack TypeScript starter (Fastify + Drizzle + React/TanStack), Raspberry Pi friendly",
+  "scripts": {
+    "build": "pnpm -r run clean && pnpm --filter=@app/types build && pnpm --filter=@app/middleware --filter=@app/client -r build",
+    "start": "pnpm --filter=@app/gateway start",
+    "test": "pnpm run -r test",
+    "test:client:changed": "pnpm --filter=@app/client exec vitest run --changed origin/main",
+    "dev": "docker compose up --wait db && pnpm --filter=@app/middleware run push:dev && concurrently -n \"types,server,ui\" -c \"yellow,blue,green\" \"pnpm --filter=@app/types --stream run dev\" \"pnpm --filter=@app/middleware --stream run dev\" \"pnpm --filter=@app/client --stream run dev\"",
+    "lint": "eslint . --cache --cache-location node_modules/.cache/eslint/ --cache-strategy content",
+    "lint:fix": "eslint . --fix --cache --cache-location node_modules/.cache/eslint/ --cache-strategy content",
+    "verify:changed": "node scripts/verify-changed.mjs",
+    "i18n:extract": "node scripts/i18n.mjs extract",
+    "i18n:status": "node scripts/i18n.mjs status",
+    "i18n:check-stale": "node scripts/i18n.mjs check-stale",
+    "fallow": "fallow",
+    "fallow:sync-skill": "rm -rf .claude/skills/fallow && cp -R node_modules/fallow/skills/fallow .claude/skills/fallow",
+    "fallow:check-skill": "node scripts/check-fallow-skill.mjs",
+    "typecheck": "pnpm --filter=@app/types build && pnpm -r --filter=@app/middleware --filter=@app/client run typecheck",
+    "studio": "pnpm --filter=@app/middleware run studio",
+    "push:dev": "pnpm --filter=@app/middleware run push:dev",
+    "push:prod": "pnpm --filter=@app/middleware run push:prod",
+    "prepare": "husky",
+    "rename": "node scripts/rename-project.mjs"
+  },
+  "dependencies": {
+    "concurrently": "10.0.3"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "21.0.2",
+    "@commitlint/config-conventional": "21.0.2",
+    "@emilyeserven/eslint-config": "^1.1.4",
+    "@eslint/js": "9.39.4",
+    "@stylistic/eslint-plugin": "~5.10.0",
+    "@tanstack/eslint-plugin-query": "~5.101.0",
+    "@tanstack/eslint-plugin-router": "~1.162.0",
+    "@tanstack/router-plugin": "~1.168.18",
+    "@typescript-eslint/parser": "~8.61.1",
+    "eslint": "9.39.4",
+    "eslint-import-resolver-typescript": "~4.4.5",
+    "eslint-plugin-better-tailwindcss": "~4.6.0",
+    "eslint-plugin-import": "~2.32.0",
+    "eslint-plugin-react": "~7.37.5",
+    "eslint-plugin-react-hooks": "~5.2.0",
+    "eslint-plugin-react-refresh": "~0.5.3",
+    "fallow": "^2.100.0",
+    "globals": "~17.6.0",
+    "husky": "9.1.7",
+    "lint-staged": "17.0.7",
+    "tailwindcss": "~4.3.1",
+    "typescript": "5.9.3",
+    "typescript-eslint": "~8.61.1"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs}": "eslint --fix --cache --cache-location node_modules/.cache/eslint/ --cache-strategy content"
+  }
+}

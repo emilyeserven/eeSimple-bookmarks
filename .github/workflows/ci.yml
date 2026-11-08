@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-pnpm
+      - name: Typecheck
+        run: pnpm typecheck
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-pnpm
+      - name: Build types
+        run: pnpm --filter=@app/types build
+      - name: Lint
+        run: pnpm lint
+
+  # Client (Vitest) and server (node --test) suites run as parallel jobs so the middleware/types
+  # runtime stays off the client suite's critical path.
+  test-client:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-pnpm
+      - name: Build types
+        run: pnpm --filter=@app/types build
+      - name: Test client
+        run: pnpm --filter=@app/client run test
+
+  test-server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-pnpm
+      - name: Build types
+        run: pnpm --filter=@app/types build
+      - name: Test middleware
+        run: pnpm --filter=@app/middleware run test
+      - name: Test types
+        run: pnpm --filter=@app/types run test
+
+  i18n:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-pnpm
+      - name: i18n coverage & stale check
+        # Informational only — ja.json is owner-authored and untranslated is a normal, permanent
+        # state, so this job never fails the PR (see pnpm i18n:status / i18n:check-stale).
+        shell: bash
+        run: |
+          echo "## i18n" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Coverage" >> "$GITHUB_STEP_SUMMARY"
+          pnpm i18n:status >> "$GITHUB_STEP_SUMMARY" 2>&1
+          echo "### Stale keys" >> "$GITHUB_STEP_SUMMARY"
+          pnpm i18n:check-stale >> "$GITHUB_STEP_SUMMARY" 2>&1
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-pnpm
+      - name: Build
+        run: pnpm build
+      # The production Docker build skips the memory-heavy Storybook build by default so a small
+      # host (e.g. a Raspberry Pi) can't OOM. This step is the real regression gate for Storybook,
+      # on a roomy runner. `pnpm build` already built types/dist, which Storybook resolves from.
+      - name: Build Storybook
+        run: pnpm --filter=@app/client run build-storybook

@@ -1,0 +1,71 @@
+{
+  "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
+  "entry": [
+    "packages/middleware/src/index.ts",
+    "packages/middleware/src/tests/**/*.ts",
+    "packages/gateway/server.js",
+    "packages/client/src/main.tsx",
+    "packages/client/src/routes/**/*.tsx",
+    "packages/client/src/test-utils/**/*.{ts,tsx}",
+    "**/vite.config.ts",
+    "**/drizzle.config.ts",
+    "scripts/*.mjs"
+  ],
+  "ignorePatterns": ["**/*.gen.ts", "**/dist/**", ".claude/**"],
+  // `pg` is the Postgres driver loaded by Drizzle at runtime (never imported by name in source).
+  // `pino-pretty` is the pino log transport loaded by name via `{ transport: { target: "pino-pretty" } }`
+  // in app.ts — pino resolves it dynamically, so there is no ES import for fallow to see.
+  // The eslint-* / typescript-eslint / @tanstack/eslint-plugin-* packages are peerDependencies of
+  // `@emilyeserven/eslint-config` (see pnpm-lock.yaml). Peer deps are NOT installed transitively, so
+  // this repo must declare them in package.json, but `eslint.config.js` only imports the shared
+  // config and never references the plugins by name -- so fallow's import-graph detector can't see
+  // they're used. They are required; list them here so the audit reflects real health.
+  "ignoreDependencies": [
+    "pg",
+    "pino-pretty",
+    "@eslint/js",
+    "@stylistic/eslint-plugin",
+    "@tanstack/eslint-plugin-query",
+    "@tanstack/eslint-plugin-router",
+    "@typescript-eslint/parser",
+    "eslint-import-resolver-typescript",
+    "eslint-plugin-better-tailwindcss",
+    "eslint-plugin-import",
+    "eslint-plugin-react",
+    "eslint-plugin-react-hooks",
+    "eslint-plugin-react-refresh",
+    "typescript-eslint"
+  ],
+  "ignoreExportsUsedInFile": true,
+  "rules": {
+    "unused-files": "error",
+    "unused-exports": "warn",
+    "unused-types": "off",
+    "unused-dependencies": "error",
+    "unused-dev-dependencies": "error"
+  },
+  "duplicates": {
+    "enabled": true,
+    "threshold": 6.2,
+    "ignore": [
+      "**/routeTree.gen.ts",
+      "packages/middleware/src/routes/**",
+      "**/*.test.ts",
+      "**/*.test.tsx"
+    ]
+  },
+  "health": {
+    "maxCyclomatic": 30,
+    "maxCognitive": 25,
+    "maxCrap": 1000000
+  },
+  // shadcn/ui drops raw primitives here; many sub-exports are intentionally unused until needed.
+  "overrides": [
+    {
+      "files": ["packages/client/src/components/ui/**"],
+      "rules": {
+        "unused-exports": "off"
+      }
+    }
+  ]
+}
