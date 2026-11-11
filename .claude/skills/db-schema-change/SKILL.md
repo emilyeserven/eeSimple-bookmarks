@@ -12,6 +12,8 @@ description: >-
 
 # Database schema changes
 
+> **Background reference:** the former CLAUDE.md section "Database schema changes" now lives in [`reference.md`](reference.md) beside this file. Read it before changing this area.
+
 There is **no versioned-migration folder** (no `drizzle/`, no journal, no `generate`). On boot the
 gateway runs `dist/db/migrate.js` (the runtime pre-steps), then `drizzle-kit push` **without
 `--force`**, which diffs `packages/middleware/src/db/schema.ts` against the live database. The whole
