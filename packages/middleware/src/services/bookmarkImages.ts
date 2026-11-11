@@ -211,10 +211,7 @@ export async function takeAndStoreScreenshot(
     return "bad_image";
   }
 
-  const processed = await processImage(rawBytes, {
-    ...await getImageProcessingOptions(),
-    fullPage: opts?.fullPage === true,
-  });
+  const processed = await processImage(rawBytes, await getImageProcessingOptions());
   if ("error" in processed) return "bad_image";
 
   return storeScreenshotBytes(bookmarkId, processed, {
