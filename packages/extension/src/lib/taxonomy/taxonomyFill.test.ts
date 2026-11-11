@@ -1,9 +1,8 @@
 // @vitest-environment node
-// Side-effect import: the classic extension script assigns `globalThis.eesimpleTaxonomyFill`.
 // Pure fetch/string logic — no DOM — so it opts into the faster node environment.
-import "../../public/extension/taxonomyFill.js";
-
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+import * as taxonomyFill from "./taxonomyFill";
 
 interface ResolveResult {
   id: string | null;
@@ -50,7 +49,7 @@ interface TaxonomyFill {
     name: string; }[]) => string;
 }
 
-const tax = (globalThis as unknown as { eesimpleTaxonomyFill: TaxonomyFill }).eesimpleTaxonomyFill;
+const tax = taxonomyFill as unknown as TaxonomyFill;
 
 /** A minimal `fetch` Response stand-in carrying only what resolveTaxonomyId reads. */
 function jsonResponse(ok: boolean, body: unknown, status = ok ? 200 : 400): Response {

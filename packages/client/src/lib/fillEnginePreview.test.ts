@@ -1,3 +1,5 @@
+import type { FillEngineResult } from "./fillEnginePreview";
+
 import type { WebsiteExtensionFillRule } from "@eesimple/types";
 
 import { describe, expect, it } from "vitest";
@@ -86,7 +88,7 @@ describe("previewMatchesExpected", () => {
   });
 
   it("compares against entries when present", () => {
-    const sections = {
+    const sections: FillEngineResult = {
       ruleId: "s",
       values: [""],
       entries: [{

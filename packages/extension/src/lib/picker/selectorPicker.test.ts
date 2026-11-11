@@ -1,9 +1,7 @@
-// Side-effect imports: the classic extension scripts assign `globalThis.eesimpleFillEngine`
-// (used by the sample-value preview) / `globalThis.eesimpleSelectorPicker`.
-import "../../public/extension/fillEngine.js";
-import "../../public/extension/selectorPicker.js";
-
 import { describe, expect, it } from "vitest";
+
+import { start, teardown } from "./pickerOverlay";
+import * as generators from "./selectorGenerators";
 
 interface GenResult {
   selector: string;
@@ -28,7 +26,11 @@ interface SelectorPicker {
   teardown(): void;
 }
 
-const picker = (globalThis as unknown as { eesimpleSelectorPicker: SelectorPicker }).eesimpleSelectorPicker;
+const picker = {
+  ...generators,
+  start,
+  teardown,
+} as unknown as SelectorPicker;
 
 /** Parse fixture HTML into an isolated document (also exercises the `doc` parameter). */
 function docFrom(html: string): Document {

@@ -10,7 +10,7 @@ tooling and architecture of [course-tracker](https://github.com/emilyeserven/cou
 - **Runtime & build:** Node 22, pnpm 10, TypeScript 5.9 (strict, ES2022, `moduleResolution: bundler`)
 - **Frontend:** React 19, Vite, TanStack Router/Query/Form, Tailwind CSS 4
 - **Backend:** Fastify 5, Drizzle ORM, PostgreSQL, Swagger UI, `fast-xml-parser` (podcast RSS/XML feeds)
-- **Testing:** Vitest + Testing Library (client), Node test runner (middleware). Pure client
+- **Testing:** Vitest + Testing Library (client), Vitest + jsdom (extension), Node test runner (middleware). Pure client
   `.test.ts` files opt into the faster `node` environment with a first-line
   `// @vitest-environment node` pragma — see the **`vitest-node-environment`** skill for the
   decision rule, the **`what-not-to-test`** skill for what deliberately has no test at all, and
@@ -31,16 +31,27 @@ tooling and architecture of [course-tracker](https://github.com/emilyeserven/cou
 
 ## Monorepo layout
 
-Four packages under `packages/`:
+Five packages under `packages/`:
 
 - **types** (`@eesimple/types`) — shared TypeScript definitions; builds to `dist`.
 - **middleware** (`@eesimple/middleware`) — Fastify API. Layered `src/`: `db/` (Drizzle schema +
   client + seed), `routes/`, `services/`, `utils/`, `tests/`, `app.ts`, `index.ts`.
 - **client** (`@eesimple/client`) — React frontend. `src/`: `routes/` (file-based), `components/`,
   `hooks/`, `lib/`, `stores/`, `test-utils/`.
+- **extension** (`@eesimple/extension`) — the Chrome/Edge MV3 browser extension, TypeScript built with
+  [WXT](https://wxt.dev). `src/entrypoints/` (background worker, popup, and the two injected unlisted
+  scripts `fillEngine` / `selectorPicker`), `src/lib/` (fill engine, selector picker, taxonomy
+  match-or-create, screenshot capture, host access), `src/popup/` (the popup's screens + the
+  `fill/` review-row builders and apply phases). Typed against `@eesimple/types` (no hand-copied
+  registries). `pnpm --filter=@eesimple/extension build` emits `.output/eesimple-extension.zip`,
+  which the client build copies to `dist/extension/` for the Settings → Extension download. The
+  client's rule previews import its engine via `@eesimple/extension/fill`. **Host access is
+  request-on-demand:** no `host_permissions`, only `activeTab` + `optional_host_permissions` — the
+  server's host is requested when the user saves the server URL, an image's host on Apply
+  (`src/lib/hostAccess.ts`); a request must start synchronously in a click handler.
 - **gateway** (`@eesimple/gateway`) — Fastify reverse proxy, the production entrypoint (`server.js`).
 
-Build order: types → middleware → client. The gateway has no build step.
+Build order: types → extension → middleware → client. The gateway has no build step.
 
 ## Key commands
 
