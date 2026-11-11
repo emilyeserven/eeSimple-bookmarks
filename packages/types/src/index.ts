@@ -24,6 +24,7 @@ import type { WebsiteScanObservation } from "./websiteScanObservations.js";
 
 export * from "./aiPromptBuilder.js";
 export * from "./autofillMerge.js";
+export * from "./backups.js";
 export * from "./amazon.js";
 export * from "./bookmarkAddForm.js";
 export * from "./bookmarkContentKind.js";

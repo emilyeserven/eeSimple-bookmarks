@@ -16,6 +16,20 @@ boot step is slow on modest hardware — keep that ordering when adding boot ste
 on the middleware with a configurable timeout (`MIDDLEWARE_WAIT_TIMEOUT_MS`, default 60s; database
 readiness uses `DB_WAIT_TIMEOUT_MS`).
 
+### Scheduled backups
+
+Settings → Advanced → Backups configures a cron schedule (run in-process by
+[Croner](https://github.com/Hexagon/croner), started after `app.listen()` like the other boot steps)
+that runs `pg_dump --format=custom`, uploads the dump to an S3-compatible bucket on another machine
+(typically Garage or MinIO on a Tailscale address), optionally mirrors new image-bucket objects, and
+prunes old dumps to the retention count. Config lives on `app_settings` (`backup_settings`,
+`backup_secret_access_key` encrypted with `APP_SECRET`, `backup_last_run`); code is
+`services/backupConfig.ts`, `backupRun.ts`, `backupScheduler.ts`, `utils/backupStore.ts`. The
+final Docker stage installs `postgresql-client-18` from the PostgreSQL apt repo, because pg_dump
+refuses to dump a server newer than itself and Debian bookworm only ships 15. The destination is
+operator-configured, so it is allowed to be a private/tailnet address (the AWS SDK does not go through
+the SSRF-guarded fetch).
+
 ## Environment variables
 
 | Variable | Where | Purpose |
