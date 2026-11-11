@@ -1,0 +1,53 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    ":semanticCommitTypeAll(chore)",
+    "group:monorepos"
+  ],
+  "schedule": ["before 6am on monday"],
+  "prConcurrentLimit": 5,
+  "labels": ["dependencies"],
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "schedule": ["at any time"],
+    "semanticCommitType": "fix",
+    "labels": ["dependencies", "security"]
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on the first day of the month"]
+  },
+  "packageRules": [
+    {
+      "description": "One weekly PR for every non-major npm update, so the lockfile churns once.",
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "all non-major dependencies",
+      "groupSlug": "all-minor-patch"
+    },
+    {
+      "description": "GitHub Actions updates in their own PR.",
+      "matchManagers": ["github-actions"],
+      "groupName": "github actions"
+    },
+    {
+      "description": "Majors arrive one per PR and wait for a manual tick on the Dependency Dashboard.",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "fallow vendors a skill: after merging, run `pnpm fallow:sync-skill` or the fallow-audit check fails.",
+      "matchPackageNames": ["fallow"],
+      "groupName": null,
+      "prBodyNotes": ["⚠️ Run `pnpm fallow:sync-skill` and commit `.claude/skills/fallow/` before merging (CI's `fallow:check-skill` will fail otherwise)."]
+    },
+    {
+      "description": "Node is pinned to 22 in engines/CI/Dockerfile; bump it deliberately.",
+      "matchPackageNames": ["node", "@types/node"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    }
+  ]
+}
