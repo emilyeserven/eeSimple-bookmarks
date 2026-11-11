@@ -5,6 +5,8 @@ description: Add the "favorite/starring + sidebar flyout" system to an entity in
 
 # Entity favorites (starring + sidebar flyouts)
 
+> **Background reference:** the former CLAUDE.md section "Favorite (starring) & sidebar flyouts" and "Settings page starring" now lives in [`reference.md`](reference.md) beside this file. Read it before changing this area.
+
 Any slug-routed entity (and any custom-taxonomy **term**) can be **starred**. Starring flips a per-row
 `isFavorite` flag; the entity's sidebar item grows a hover **flyout** listing its starred members, and
 the star toggle appears on the header strip, the listing row, and the CMD+K palette. The plumbing is

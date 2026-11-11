@@ -15,6 +15,8 @@ description: >-
 
 # Decomposing an over-cap component or hook
 
+> **Background reference:** the former CLAUDE.md section "Large-form / over-cap decomposition" now lives in [`reference.md`](reference.md) beside this file. Read it before changing this area.
+
 **Diagnose before cutting.** fallow scores **each function independently** — nested function bodies
 are *not* rolled into the parent, so extracting handlers into lambdas inside the same component does
 nothing. Get the real drivers first:
