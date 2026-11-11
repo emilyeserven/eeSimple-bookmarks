@@ -15,6 +15,8 @@ description: >-
 
 # Work on the Locations map subsystem
 
+> **Background reference:** the former CLAUDE.md section "Locations & maps" now lives in [`reference.md`](reference.md) beside this file. Read it before changing this area.
+
 This is the codebase's most-churned area, historically fixed one symptom at a time because the state
 model was never written down. **The spec now lives in the top-of-file doc block of
 `packages/client/src/lib/locationLevels.ts` — read it first**; this skill is the map of where each part

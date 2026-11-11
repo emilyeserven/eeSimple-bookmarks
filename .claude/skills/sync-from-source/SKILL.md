@@ -13,6 +13,8 @@ description: >-
 
 # Sync from outside source
 
+> **Background reference:** the former CLAUDE.md section "Outside-source sync" now lives in [`reference.md`](reference.md) beside this file. Read it before changing this area.
+
 The header-strip **Sync** button lets a user re-pull an entity's fields from its outside source, review
 a **current vs source** diff, tick which fields to overwrite, and apply. It's the review layer over the
 scattered one-shot "rescan"/"re-fetch image" actions. Nothing persists until the entity's own save path
