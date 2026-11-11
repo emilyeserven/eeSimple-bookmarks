@@ -152,6 +152,7 @@ import { Route as SettingsAdvancedManageMediaRouteImport } from './routes/settin
 import { Route as SettingsAdvancedManageDataRouteImport } from './routes/settings.advanced.manage-data'
 import { Route as SettingsAdvancedLinkHealthRouteImport } from './routes/settings.advanced.link-health'
 import { Route as SettingsAdvancedLayoutIssuesRouteImport } from './routes/settings.advanced.layout-issues'
+import { Route as SettingsAdvancedImportBookmarksRouteImport } from './routes/settings.advanced.import-bookmarks'
 import { Route as SettingsAdvancedDuplicatesRouteImport } from './routes/settings.advanced.duplicates'
 import { Route as SettingsAdvancedDatabaseUsageRouteImport } from './routes/settings.advanced.database-usage'
 import { Route as SettingsAdvancedConnectorsRouteImport } from './routes/settings.advanced.connectors'
@@ -1049,6 +1050,12 @@ const SettingsAdvancedLayoutIssuesRoute =
     path: '/layout-issues',
     getParentRoute: () => SettingsAdvancedRoute,
   } as any)
+const SettingsAdvancedImportBookmarksRoute =
+  SettingsAdvancedImportBookmarksRouteImport.update({
+    id: '/import-bookmarks',
+    path: '/import-bookmarks',
+    getParentRoute: () => SettingsAdvancedRoute,
+  } as any)
 const SettingsAdvancedDuplicatesRoute =
   SettingsAdvancedDuplicatesRouteImport.update({
     id: '/duplicates',
@@ -1857,6 +1864,7 @@ export interface FileRoutesByFullPath {
   '/settings/advanced/connectors': typeof SettingsAdvancedConnectorsRoute
   '/settings/advanced/database-usage': typeof SettingsAdvancedDatabaseUsageRoute
   '/settings/advanced/duplicates': typeof SettingsAdvancedDuplicatesRoute
+  '/settings/advanced/import-bookmarks': typeof SettingsAdvancedImportBookmarksRoute
   '/settings/advanced/layout-issues': typeof SettingsAdvancedLayoutIssuesRoute
   '/settings/advanced/link-health': typeof SettingsAdvancedLinkHealthRoute
   '/settings/advanced/manage-data': typeof SettingsAdvancedManageDataRoute
@@ -2073,6 +2081,7 @@ export interface FileRoutesByTo {
   '/settings/advanced/connectors': typeof SettingsAdvancedConnectorsRoute
   '/settings/advanced/database-usage': typeof SettingsAdvancedDatabaseUsageRoute
   '/settings/advanced/duplicates': typeof SettingsAdvancedDuplicatesRoute
+  '/settings/advanced/import-bookmarks': typeof SettingsAdvancedImportBookmarksRoute
   '/settings/advanced/layout-issues': typeof SettingsAdvancedLayoutIssuesRoute
   '/settings/advanced/link-health': typeof SettingsAdvancedLinkHealthRoute
   '/settings/advanced/manage-data': typeof SettingsAdvancedManageDataRoute
@@ -2300,6 +2309,7 @@ export interface FileRoutesById {
   '/settings/advanced/connectors': typeof SettingsAdvancedConnectorsRoute
   '/settings/advanced/database-usage': typeof SettingsAdvancedDatabaseUsageRoute
   '/settings/advanced/duplicates': typeof SettingsAdvancedDuplicatesRoute
+  '/settings/advanced/import-bookmarks': typeof SettingsAdvancedImportBookmarksRoute
   '/settings/advanced/layout-issues': typeof SettingsAdvancedLayoutIssuesRoute
   '/settings/advanced/link-health': typeof SettingsAdvancedLinkHealthRoute
   '/settings/advanced/manage-data': typeof SettingsAdvancedManageDataRoute
@@ -2569,6 +2579,7 @@ export interface FileRouteTypes {
     | '/settings/advanced/connectors'
     | '/settings/advanced/database-usage'
     | '/settings/advanced/duplicates'
+    | '/settings/advanced/import-bookmarks'
     | '/settings/advanced/layout-issues'
     | '/settings/advanced/link-health'
     | '/settings/advanced/manage-data'
@@ -2785,6 +2796,7 @@ export interface FileRouteTypes {
     | '/settings/advanced/connectors'
     | '/settings/advanced/database-usage'
     | '/settings/advanced/duplicates'
+    | '/settings/advanced/import-bookmarks'
     | '/settings/advanced/layout-issues'
     | '/settings/advanced/link-health'
     | '/settings/advanced/manage-data'
@@ -3011,6 +3023,7 @@ export interface FileRouteTypes {
     | '/settings/advanced/connectors'
     | '/settings/advanced/database-usage'
     | '/settings/advanced/duplicates'
+    | '/settings/advanced/import-bookmarks'
     | '/settings/advanced/layout-issues'
     | '/settings/advanced/link-health'
     | '/settings/advanced/manage-data'
@@ -4231,6 +4244,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsAdvancedLayoutIssuesRouteImport
       parentRoute: typeof SettingsAdvancedRoute
     }
+    '/settings/advanced/import-bookmarks': {
+      id: '/settings/advanced/import-bookmarks'
+      path: '/import-bookmarks'
+      fullPath: '/settings/advanced/import-bookmarks'
+      preLoaderRoute: typeof SettingsAdvancedImportBookmarksRouteImport
+      parentRoute: typeof SettingsAdvancedRoute
+    }
     '/settings/advanced/duplicates': {
       id: '/settings/advanced/duplicates'
       path: '/duplicates'
@@ -5413,6 +5433,7 @@ interface SettingsAdvancedRouteChildren {
   SettingsAdvancedConnectorsRoute: typeof SettingsAdvancedConnectorsRoute
   SettingsAdvancedDatabaseUsageRoute: typeof SettingsAdvancedDatabaseUsageRoute
   SettingsAdvancedDuplicatesRoute: typeof SettingsAdvancedDuplicatesRoute
+  SettingsAdvancedImportBookmarksRoute: typeof SettingsAdvancedImportBookmarksRoute
   SettingsAdvancedLayoutIssuesRoute: typeof SettingsAdvancedLayoutIssuesRoute
   SettingsAdvancedLinkHealthRoute: typeof SettingsAdvancedLinkHealthRoute
   SettingsAdvancedManageDataRoute: typeof SettingsAdvancedManageDataRoute
@@ -5426,6 +5447,7 @@ const SettingsAdvancedRouteChildren: SettingsAdvancedRouteChildren = {
   SettingsAdvancedConnectorsRoute: SettingsAdvancedConnectorsRoute,
   SettingsAdvancedDatabaseUsageRoute: SettingsAdvancedDatabaseUsageRoute,
   SettingsAdvancedDuplicatesRoute: SettingsAdvancedDuplicatesRoute,
+  SettingsAdvancedImportBookmarksRoute: SettingsAdvancedImportBookmarksRoute,
   SettingsAdvancedLayoutIssuesRoute: SettingsAdvancedLayoutIssuesRoute,
   SettingsAdvancedLinkHealthRoute: SettingsAdvancedLinkHealthRoute,
   SettingsAdvancedManageDataRoute: SettingsAdvancedManageDataRoute,
