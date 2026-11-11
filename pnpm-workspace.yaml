@@ -10,3 +10,10 @@ onlyBuiltDependencies:
 
 syncInjectedDepsAfterScripts:
   - build
+
+# Security floors for transitive deps whose parents haven't released a fixed range yet.
+# Remove an entry once `pnpm why <pkg>` shows every parent already resolves a patched version.
+overrides:
+  # @emilyeserven/eslint-config pins concurrently@9, which pulls a vulnerable shell-quote
+  # (GHSA critical/high, fixed in 1.11.0).
+  shell-quote: ">=1.11.0"

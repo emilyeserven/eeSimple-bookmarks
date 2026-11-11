@@ -54,8 +54,9 @@ describe("SidebarScratchpad", () => {
       const strong = container.querySelector("strong");
       expect(strong?.textContent).toBe("note");
     });
-    // Read mode has no editing textarea.
-    expect(screen.queryByRole("textbox")).toBeNull();
+    // Read mode has no editing textarea. (Query the element, not the "textbox" role: Tiptap ≥3.33
+    // gives its read-only editor root role="textbox" too.)
+    expect(container.querySelector("textarea")).toBeNull();
   });
 
   it("swaps to a mono textarea seeded with the raw Markdown when editing, and saves on blur", async () => {
