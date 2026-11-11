@@ -12,6 +12,8 @@ description: >-
 
 # Database schema changes
 
+> **Background reference:** the former CLAUDE.md section "Database schema changes" now lives in [`reference.md`](reference.md) beside this file. Read it before changing this area.
+
 There is **no versioned-migration folder** (no `drizzle/`, no journal, no `generate`). On boot the
 gateway runs `dist/db/migrate.js` (the runtime pre-steps), then `drizzle-kit push` **without
 `--force`**, which diffs `packages/middleware/src/db/schema.ts` against the live database. The whole
@@ -25,6 +27,7 @@ prompt-free.** Route every change through this decision table:
 | **Single-column unique constraint** on a table with data; **NOT NULL** column (even with a DEFAULT) | `schema.ts` **plus** a pre-step in `migrate.ts` — push alone hits the interactive `pgSuggestions` prompt and **crashes the non-TTY deploy** (`--force` does not bypass it). |
 | **COMPOSITE (multi-column) unique** | Declare it as **`uniqueIndex()`**, **never** a table `unique()` constraint. A composite `unique()` can make push **re-propose it every deploy even when it already exists and matches** → truncate prompt → same non-TTY silent-skip as new tables (below). For an existing table also add a `migrate.ts` step: `DROP CONSTRAINT IF EXISTS` then `CREATE UNIQUE INDEX IF NOT EXISTS`. Bit `tags_parent_name_unique`, then `language_usage_levels`/`language_usages` (#914). Single-column `unique()` (slugs, names) is fine and stays a `unique()`. |
 | Drop / rename a column or table; `ALTER TYPE … ADD VALUE`; data-preserving transform | `migrate.ts` pre-step (guarded), then update `schema.ts` to match — push never destroys data itself. |
+| **New foreign-key column** (a `.references()` column, or a junction table) | Also add `index("<table>_<column>_idx").on(table.<column>)` unless the column already leads the table's PK, a unique, or another index. Postgres does not index the referencing side of an FK, and a junction's composite PK only covers its **first** column, so the reverse column needs its own index. Guarded by `tests/schemaForeignKeyIndexes.test.ts`. |
 | Seed rows / backfill values for existing rows | **Not** a migration — an `ensure*` / `backfill*` boot step in the middleware (below). |
 
 **Silent-skip caveat (new tables + companion columns).** Against a populated DB, `drizzle-kit push`

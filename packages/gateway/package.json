@@ -11,8 +11,9 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "@fastify/http-proxy": "^11.4.4",
-    "@fastify/static": "^9.1.1",
-    "fastify": "^5.8.5"
+    "@fastify/helmet": "^13.2.0",
+    "@fastify/http-proxy": "^11.6.6",
+    "@fastify/static": "^10.1.10",
+    "fastify": "^5.12.8"
   }
 }

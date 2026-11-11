@@ -59,10 +59,13 @@ const extensionZipSource = fileURLToPath(new URL("../extension/.output/eesimple-
 
 function extensionZip(): Plugin {
   let outDir = "dist";
+  // Vitest (and the dev server) also fire `closeBundle`, with a placeholder outDir — copy only on `vite build`.
+  let isBuild = false;
   return {
     name: "eesimple-extension-zip",
     configResolved(config) {
       outDir = join(config.root, config.build.outDir);
+      isBuild = config.command === "build" && !process.env.VITEST;
     },
     configureServer(server) {
       server.middlewares.use(EXTENSION_ZIP_URL, (_req, res, next) => {
@@ -72,6 +75,7 @@ function extensionZip(): Plugin {
       });
     },
     closeBundle() {
+      if (!isBuild) return;
       if (!existsSync(extensionZipSource)) {
         this.warn(`${extensionZipSource} not found — build @eesimple/extension first; the Extension settings download will 404.`);
         return;

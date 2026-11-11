@@ -23,6 +23,7 @@ import {
   getActiveHostedProvider,
   getDecryptedHostedApiKey,
 } from "@/services/appSettings";
+import { operatorEndpointFetch } from "@/utils/ssrf";
 
 const HOSTED_TIMEOUT_MS = 15000;
 
@@ -71,7 +72,7 @@ export async function fetchHostedMetadata(url: string): Promise<HostedMetadata |
 
   let html: string;
   try {
-    const res = await fetch(`${endpoint.replace(/\/$/, "")}/chromium/content`, {
+    const res = await operatorEndpointFetch(`${endpoint.replace(/\/$/, "")}/chromium/content`, {
       method: "POST",
       redirect: "follow",
       signal: AbortSignal.timeout(HOSTED_TIMEOUT_MS),

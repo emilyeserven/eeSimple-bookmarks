@@ -16,6 +16,8 @@ import type {
   InboxPreFillDefaults,
   IngestPasteInput,
   IngestUrlInput,
+  MymindImportInput,
+  MymindImportResult,
   Newsletter,
   OrphanCounts,
   OrphanDeleteResult,
@@ -51,6 +53,12 @@ export const importApi = {
     const qs = params.toString();
     return uploadImageFile<Import>(`/imports/ingest/upload${qs ? `?${qs}` : ""}`, file);
   },
+  /** Create bookmarks from one batch of cards parsed from a mymind `cards.csv` export. */
+  importMymind: (input: MymindImportInput) =>
+    request<MymindImportResult>("/imports/mymind", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
   listImports: () => request<ImportSummary[]>("/imports"),
   /** Imports currently in flight (queued/processing) with live progress, for the header indicator. */
   listActive: () => request<ActiveImport[]>("/imports/active"),

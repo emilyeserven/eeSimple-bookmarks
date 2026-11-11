@@ -13,6 +13,8 @@ description: >-
 
 # Add a metadata connector
 
+> **Background reference:** the former CLAUDE.md section "Metadata fetching & connectors" now lives in [`reference.md`](reference.md) beside this file. Read it before changing this area.
+
 Connectors feed the Add Bookmark scan. The pipeline runs server-side and favors **keyless,
 self-hostable** sources; off-box calls that need a key are **Tier 2 — env-gated, default off**.
 Pick the case that matches and follow it. See the **"Metadata fetching & connectors"** section of

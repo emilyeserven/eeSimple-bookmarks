@@ -18,6 +18,7 @@ import type {
   LocationLookupCandidate,
   LocationLookupResult,
 } from "@eesimple/types";
+import { operatorEndpointFetch } from "@/utils/ssrf";
 
 /**
  * The English form of `name`, when it differs from the native/local form and isn't blank; else
@@ -230,7 +231,7 @@ export async function nominatimGeocode(query: string): Promise<LocationLookupRes
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), GEOCODE_TIMEOUT_MS);
   try {
-    const response = await fetch(url, {
+    const response = await operatorEndpointFetch(url, {
       headers: {
         "User-Agent": USER_AGENT,
         "Accept": "application/json",

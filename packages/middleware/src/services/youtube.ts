@@ -17,6 +17,7 @@ import { isYouTubeVideoUrl, parseYouTubeVideo } from "@eesimple/types";
 import { getDecryptedYoutubeApiKey } from "@/services/appSettings";
 import { downloadImage, fetchBodyHtmlResult, isPublicHttpUrl, metaContent } from "@/services/metadata";
 import { normalizeLanguageCode } from "@/utils/languageCodes";
+import { guardedFetch } from "@/utils/ssrf";
 
 // Re-exported so existing intra-package importers (and tests) keep their `@/services/youtube` path;
 // the pure parsers now live in `@eesimple/types` so the client can share them.
@@ -84,9 +85,8 @@ async function fetchOEmbed(videoUrl: string): Promise<OEmbedResponse | null> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), OEMBED_TIMEOUT_MS);
   try {
-    const res = await fetch(endpoint, {
+    const res = await guardedFetch(endpoint, {
       method: "GET",
-      redirect: "follow",
       signal: controller.signal,
       headers: {
         "User-Agent": "eeSimple-bookmarks/0.1 (+youtube-metadata)",

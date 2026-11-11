@@ -21,6 +21,7 @@ import { fetchYouTubeThumbnail, isYouTubeVideoUrl } from "@/services/youtube";
 import { prepareStoredImage, processImage, SVG_CONTENT_TYPE } from "@/utils/image";
 import { deleteObject, putObject } from "@/utils/objectStore";
 import { getActiveHostedEndpoint, getDecryptedHostedApiKey, getImageProcessingOptions, getImageUrlBlacklist } from "@/services/appSettings";
+import { operatorEndpointFetch } from "@/utils/ssrf";
 
 export type SetImageResult = BookmarkImage | "not_found" | "bad_image";
 export type ImageAutoGrabError = "no_image" | "bad_image" | "blocked" | "server_error" | "fetch_error";
@@ -190,7 +191,7 @@ export async function takeAndStoreScreenshot(
 
   let rawBytes: Buffer | null = null;
   try {
-    const res = await fetch(`${endpoint.replace(/\/$/, "")}/chromium/screenshot`, {
+    const res = await operatorEndpointFetch(`${endpoint.replace(/\/$/, "")}/chromium/screenshot`, {
       method: "POST",
       redirect: "follow",
       signal: AbortSignal.timeout(SCREENSHOT_TIMEOUT_MS + (delayMs ?? 0)),

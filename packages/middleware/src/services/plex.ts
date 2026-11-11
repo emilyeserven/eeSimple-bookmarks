@@ -21,6 +21,7 @@ import { bookmarks } from "@/db/schema";
 import { getActivePlexEndpoint, getDecryptedPlexToken } from "@/services/appSettings";
 import { addBookmarkImage } from "@/services/bookmarkImages";
 import { resolveTitleWikidata } from "@/services/wikidataTitle";
+import { operatorEndpointFetch } from "@/utils/ssrf";
 
 const PLEX_TIMEOUT_MS = 10000;
 // /identity is polled indirectly by the frequently-called /api/connectors endpoint; keep it snappy
@@ -77,7 +78,7 @@ async function plexFetch(path: string, timeoutMs = PLEX_TIMEOUT_MS): Promise<Res
   const config = await resolveConfig();
   if (!config) return null;
   try {
-    return await fetch(`${config.baseUrl}${path}`, {
+    return await operatorEndpointFetch(`${config.baseUrl}${path}`, {
       signal: AbortSignal.timeout(timeoutMs),
       headers: {
         "Accept": "application/json",
@@ -299,7 +300,7 @@ async function fetchPlexItemMeta(ratingKey: string): Promise<PlexItemMeta | null
 async function fetchThumbBytes(config: PlexConfig, thumb: string): Promise<Buffer | null> {
   try {
     const sep = thumb.includes("?") ? "&" : "?";
-    const res = await fetch(
+    const res = await operatorEndpointFetch(
       `${config.baseUrl}${thumb}${sep}X-Plex-Token=${encodeURIComponent(config.token)}`,
       {
         signal: AbortSignal.timeout(PLEX_TIMEOUT_MS),
