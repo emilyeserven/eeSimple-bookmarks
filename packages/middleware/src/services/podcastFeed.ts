@@ -19,6 +19,7 @@ import { bookmarks } from "@/db/schema";
 import { addBookmarkImage } from "@/services/bookmarkImages";
 import { downloadImage, extractImageUrl, extractTitle, fetchHeadHtml, isPublicHttpUrl } from "@/services/metadata";
 import { normalizeLanguageCode } from "@/utils/languageCodes";
+import { guardedFetch } from "@/utils/ssrf";
 
 const ITUNES_SEARCH = "https://itunes.apple.com/search";
 const ITUNES_LOOKUP = "https://itunes.apple.com/lookup";
@@ -86,7 +87,8 @@ async function fetchFeedText(feedUrl: string): Promise<string | null> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
-    const response = await fetch(feedUrl, {
+    // A pasted feed URL is untrusted: guard every redirect hop + resolved address.
+    const response = await guardedFetch(feedUrl, {
       headers: {
         "User-Agent": USER_AGENT,
         "Accept": "application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8",
