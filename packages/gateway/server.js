@@ -6,7 +6,8 @@
 //   3. proxies `/api/*` to the middleware,
 //   4. serves the client's static build (with SPA fallback),
 //   5. serves the Storybook static build at `/storybook` when DOCS_ENABLED is on,
-//   6. exposes `/healthz` for orchestrators.
+//   6. exposes `/healthz` for orchestrators,
+//   7. sets browser security headers (CSP, X-Frame-Options, …) via @fastify/helmet.
 //
 // The only configuration it needs in production is `DATABASE_URL`.
 import { spawn } from "node:child_process";
@@ -15,6 +16,7 @@ import { connect } from "node:net";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import fastifyHelmet from "@fastify/helmet";
 import fastifyHttpProxy from "@fastify/http-proxy";
 import fastifyStatic from "@fastify/static";
 import Fastify from "fastify";
@@ -49,6 +51,43 @@ function docsEnabled() {
   return flag === "true" || flag === "1";
 }
 const DOCS_ENABLED = docsEnabled();
+
+// Content-Security-Policy for the client app. The SPA's own scripts/styles/API calls are all
+// same-origin; the only third-party origins it needs are:
+//   - map tiles (Leaflet loads them as plain <img>s): OpenStreetMap and CARTO — see
+//     packages/client/src/lib/basemapTiles.ts,
+//   - remote images (favicons, avatars, og:image previews, YouTube thumbnails) from arbitrary
+//     hosts, so `img-src` allows any http(s) origin rather than a list that would rot,
+//   - the YouTube player iframe (BookmarkDetailMedia), on youtube.com or youtube-nocookie.com.
+// `style-src 'unsafe-inline'` is required: React `style={…}` props and Leaflet's positioning both
+// write inline style attributes.
+//
+// `upgrade-insecure-requests` is deliberately turned off: the app is commonly reached over plain
+// http (a LAN IP or Tailscale address with no TLS), and that directive would make the browser
+// rewrite every same-origin asset request to https, which then fails and blanks the page.
+const CONTENT_SECURITY_POLICY_DIRECTIVES = {
+  "default-src": ["'self'"],
+  "base-uri": ["'self'"],
+  "object-src": ["'none'"],
+  "frame-ancestors": ["'self'"],
+  "form-action": ["'self'"],
+  "script-src": ["'self'"],
+  "script-src-attr": ["'none'"],
+  "style-src": ["'self'", "'unsafe-inline'"],
+  "font-src": ["'self'", "data:"],
+  "img-src": ["'self'", "data:", "blob:", "https:", "http:"],
+  "media-src": ["'self'", "blob:"],
+  "connect-src": ["'self'"],
+  "worker-src": ["'self'"],
+  "manifest-src": ["'self'"],
+  "frame-src": ["https://www.youtube.com", "https://www.youtube-nocookie.com"],
+  "upgrade-insecure-requests": null,
+};
+
+// Storybook's static build (`/storybook`, only served when DOCS_ENABLED) relies on inline
+// bootstrap scripts, so it can't run under the app's CSP. It's a dev/docs surface, so it simply
+// gets no CSP header; every other helmet header still applies.
+const CSP_EXEMPT_PREFIXES = ["/storybook"];
 
 let middlewareChild = null;
 let shuttingDown = false;
@@ -230,6 +269,32 @@ async function waitForMiddleware(timeoutMs = MIDDLEWARE_WAIT_TIMEOUT_MS) {
 async function startGateway() {
   const app = Fastify({
     logger: false,
+  });
+
+  // Security headers on every response (app shell, static assets, proxied /api). Registered first
+  // so its onRequest hook runs before any route. See CONTENT_SECURITY_POLICY_DIRECTIVES above.
+  await app.register(fastifyHelmet, {
+    contentSecurityPolicy: {
+      useDefaults: false,
+      directives: CONTENT_SECURITY_POLICY_DIRECTIVES,
+    },
+    // TLS (if any) is terminated in front of the gateway (Coolify's proxy / Tailscale), and the app
+    // is often served over plain http on the LAN. HSTS belongs to whatever terminates TLS, and on
+    // the gateway it could pin a hostname to https that has no certificate.
+    strictTransportSecurity: false,
+    // Helmet's default (`no-referrer`) breaks two things: OpenStreetMap's tile servers reject
+    // tile requests without a Referer (https://operations.osmfoundation.org/policies/tiles/), and
+    // the YouTube embed player refuses to play without one. This is the browser's own default.
+    referrerPolicy: {
+      policy: "strict-origin-when-cross-origin",
+    },
+  });
+
+  app.addHook("onSend", async (req, reply, payload) => {
+    if (CSP_EXEMPT_PREFIXES.some(prefix => req.url.startsWith(prefix))) {
+      reply.removeHeader("content-security-policy");
+    }
+    return payload;
   });
 
   await app.register(fastifyHttpProxy, {

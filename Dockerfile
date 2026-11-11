@@ -100,5 +100,12 @@ COPY packages/gateway/server.js ./packages/gateway/server.js
 
 WORKDIR /app/packages/gateway
 
+# Run as the unprivileged `node` user (uid 1000) that ships with the official Node image, not root.
+# Everything above stays root-owned and read-only to it: at runtime the app only reads its own files
+# (drizzle-kit push, the migrations hook, and the middleware talk to Postgres/S3 over the network
+# and write nothing to disk), so no chown is needed. Port 3000 is unprivileged, so binding it
+# needs no extra capability.
+USER node
+
 EXPOSE 3000
 CMD ["node", "server.js"]
