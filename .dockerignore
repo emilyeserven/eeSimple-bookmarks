@@ -12,3 +12,5 @@
 !.env.example
 docs
 storybook-static
+**/.output
+**/.wxt

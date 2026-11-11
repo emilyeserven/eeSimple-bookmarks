@@ -13,11 +13,13 @@ the full detail. Skills live in `.claude/skills/<name>/`; topics moved out of th
 - Node 22, pnpm 10, TypeScript 5.9 (strict, ES2022, `moduleResolution: bundler`).
 - Frontend: React 19, Vite, TanStack Router/Query/Form, Tailwind CSS 4.
 - Backend: Fastify 5, Drizzle ORM, PostgreSQL, Swagger UI, `fast-xml-parser`.
-- Tests: Vitest + Testing Library (client), Node test runner (middleware).
+- Tests: Vitest + Testing Library (client), Vitest + jsdom (extension), Node test runner (middleware).
 - Packages: `types` (`@eesimple/types`, shared types, builds to `dist`) → `middleware` (Fastify API:
   `db/`, `routes/`, `services/`, `utils/`, `tests/`) → `client` (React: `routes/`, `components/`, `hooks/`,
-  `lib/`, `stores/`, `test-utils/`). `gateway` is the production Fastify proxy (`server.js`, no build).
-  Build order: types → middleware → client.
+  `lib/`, `stores/`, `test-utils/`). `extension` (`@eesimple/extension`) is the Chrome/Edge MV3
+  browser extension, TypeScript built with [WXT](https://wxt.dev); its zip is copied into the client
+  build. `gateway` is the production Fastify proxy (`server.js`, no build).
+  Build order: types → extension → middleware → client.
 
 Full detail: **`codebase-conventions`** (Tech stack, Monorepo layout).
 

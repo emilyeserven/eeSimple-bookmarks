@@ -49,6 +49,8 @@ jobs:
         run: pnpm --filter=@eesimple/types build
       - name: Test client
         run: pnpm --filter=@eesimple/client run test
+      - name: Test browser extension
+        run: pnpm --filter=@eesimple/extension run test
 
   test-server:
     runs-on: ubuntu-latest

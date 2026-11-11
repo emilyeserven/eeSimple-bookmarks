@@ -49,6 +49,9 @@ export default [
       // Storybook build output and the generated MSW service worker are not source.
       "**/storybook-static/**",
       "packages/client/public/mockServiceWorker.js",
+      // WXT's generated types and build output.
+      "**/.wxt/**",
+      "**/.output/**",
     ],
   },
   ...emilyConfigWithCap,
@@ -85,6 +88,13 @@ export default [
     files: ["packages/client/src/routes/**/*.tsx"],
     rules: {
       "react-refresh/only-export-components": "off",
+    },
+  },
+  {
+    // The extension's injected-script entrypoints import the global declarations for side effect.
+    files: ["packages/extension/src/entrypoints/**/*.ts"],
+    rules: {
+      "import/no-unassigned-import": "off",
     },
   },
   {

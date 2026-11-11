@@ -7,11 +7,11 @@ description: >-
   kinds). Use when asked to "add an extension fill target", "let a fill rule write into X", "add a
   new FillTarget kind", "extend the extension popup's check & fill", "add a target to the Extension
   Fill rules editor", or "why does my new fill target 400 / not appear in the popup". This is the
-  app's most-churned, least-type-safe subsystem: the TS union is the trustworthy anchor, but the wire
-  schema and the whole `public/extension/` popup + fill engine are parallel HAND-MAINTAINED copies
-  with almost no compiler or test coverage — most of the change is silent sync points. Also covers
-  maintaining the feature — "the fill target drops a field on save", "a fill kind renders as
-  unsupported in the popup", "the taxonomy registry mirror drifted".
+  app's most-churned subsystem: the TS union is the anchor and the extension (`packages/extension`,
+  typed TypeScript built with WXT) now switches on it exhaustively, but the wire schema and the
+  editor's kind dropdown are still HAND-MAINTAINED copies — those are the silent sync points. Also
+  covers maintaining the feature — "the fill target drops a field on save", "a fill kind renders as
+  unsupported in the popup".
 ---
 
 # Add an Extension Fill target kind
@@ -28,13 +28,18 @@ add a kind, add a doc-comment arm there — that file *is* the de-facto spec.
 
 ## The one thing to internalize
 
-The TS `FillTarget` union is the **only** trustworthy anchor. It is consumed by **four exhaustive
-`switch (target.kind)` statements with no `default`** — those are your compiler tripwires; miss one
-and `tsc` fails. **Everything else is a parallel hand-maintained copy with no compiler or test net:**
-the Fastify wire schema, the editor's kind-dropdown option list, the middleware context assembly, and
-the *entire* `public/extension/` popup + fill engine (vanilla JS — not bundled, not typed, not
-tested). Most Extension Fill regressions originate in those silent copies, so treat this skill's
-"silent" steps as the real work; the compiler-enforced ones fall out for free.
+The TS `FillTarget` union is the trustworthy anchor. It is consumed by **exhaustive
+`switch (target.kind)` statements** — four in the client editor and one in the extension popup's
+`buildRow` — those are your compiler tripwires; miss one and `tsc` fails. **What's left is a
+parallel hand-maintained copy with no compiler net:** the Fastify wire schema, the editor's
+kind-dropdown option list, and the middleware context assembly. Most Extension Fill regressions
+originate in those silent copies, so treat this skill's "silent" steps as the real work.
+
+The browser extension is its own package, **`packages/extension`** (WXT + TypeScript, typed against
+`@eesimple/types`). It imports `TAXONOMY_ENTITY_SPECS` directly — there is no hand-copied registry
+mirror any more — and the web app's in-app rule preview (`client/src/lib/fillEnginePreview.ts`) and
+Transforms preview (`fillTransformPreview.ts`) import the extension's engine via
+`@eesimple/extension/fill`, so preview and real fill run the same code.
 
 > **There is no `as const` tuple of `FillTarget` kinds.** Unlike *associations*
 > (`TAXONOMY_ENTITY_ASSOCIATIONS`, which drives a `satisfies` check), the kind list lives in two
@@ -100,49 +105,46 @@ branch + loader only if your kind needs server-side context data. Mirror the exi
 (the `mode:"taxonomy"` no-bookmark path), and the property-id collection near the top (extend it if
 your kind references a `propertyId`, like `customProperty`/`sections`).
 
-### 6. The popup — SILENT, HIGHEST RISK (vanilla JS, no typecheck, no test)
-`packages/client/public/extension/popup.js` (~2400 lines, classic script):
-- **Dispatch:** `buildRow` is an `if (kind === "…")` chain; add `if (kind === "yourKind") return
-  buildYourKindRow(...)`. The fallback returns an **"unsupported"** disabled row — so a forgotten kind
-  degrades silently rather than crashing.
-- **Row builder:** add `buildYourKindRow`, mirroring `buildFieldRow` / `buildPropertyRow` /
-  `buildTaxonomyRow` / `buildPublisherRow` / `buildImageRow` / `buildTaxonomyEntityRow` /
-  `buildTaxonomyDirectRow` / `buildSectionsRow`.
-- **Apply:** `applyChanges` partitions checked rows (`imageRows` / `entityRows` / `directRows` /
-  `patchRows`) and runs phase appliers (`applyEntityPatches`, `applyLanguageWrites`, `applyDirectRows`,
-  `applyImageRows`). A kind with a non-standard write path needs a new partition + applier + a summary
-  line. A row that sets no marker prop (`row.image` / `row.entity` / `row.directEntity`) falls into the
-  generic bookmark-PATCH bucket via `row.apply(patch, state)`.
-- If your kind touches associations, the popup's `taxonomyFill.js` `TAXONOMY_ENTITY_PATCH` is a
-  **hand-copied duplicate** of `TAXONOMY_ENTITY_SPECS` — keep it in sync (only `path`+`image` are
-  guarded, see step 8).
+### 6. The popup — compiler-enforced dispatch, but check the apply phase
+`packages/extension/src/popup/fill/` (typed modules):
+- **Dispatch:** `buildRow.ts` is an exhaustive `switch (target.kind)` — a new kind fails `tsc` until
+  it has a builder. (At runtime a kind from a *newer server* still renders as a disabled
+  "unsupported" row rather than throwing.)
+- **Row builder:** add `buildYourKindRow` beside its siblings — bookmark writes in `bookmarkRows.ts`
+  / `propertyRows.ts`, linked-term writes in `entityRows.ts`, page-resolved entity writes in
+  `directRows.ts`. Rows are `FillRow`s (`rowTypes.ts`); start from `baseRow` / `diffRow`.
+- **Apply:** `apply.ts` partitions checked rows by marker prop (`row.image` / `row.entity` /
+  `row.directEntity`; none = the bookmark-PATCH bucket via `row.apply(patch, state)`) and runs the
+  phase appliers (`entityApply.ts`: linked-term PATCHes, language writes, direct entity updates; then
+  image uploads). A kind with a non-standard write path needs a new marker + phase + a
+  `summarizeApply` line. **Host access:** the extension holds no blanket host permission — a phase
+  that downloads from a third-party host must have its URLs covered by `requestImageHostAccess` (run
+  synchronously in the Apply click), or the fetch fails CORS.
 
-### 7. Fill engine (extraction runtime) — SILENT (JS)
-`packages/client/public/extension/fillEngine.js` — `runRules` dispatches structured-result kinds
-(`sections` → `runSectionsRule`, `taxonomyDirect` → `resolveValue`) vs. the flat-value `runRule`. Add
-a branch here only if your kind produces a **structured** result rather than a flat value list.
-(`fillTransformPreview.ts` is the TS mirror of the **transform** runtime, not target dispatch — it is
-a sync point for a new `FillTransform` kind, **not** a `FillTarget` kind.)
+### 7. Fill engine (extraction runtime) — typed
+`packages/extension/src/lib/fill/fillEngine.ts` — `runRules` dispatches structured-result kinds
+(`sections` → `runSectionsRule`, `taxonomyDirect` → `resolveValue`) vs. the flat-value path. Add a
+branch only if your kind produces a **structured** result (extend `FillRunResult`). The transform
+runtime is `fillTransforms.ts` — the single implementation the client preview also runs, so a new
+`FillTransform` kind is one edit there (its `switch` fails `tsc` when a kind is missing).
 
 ### 8. Tests
 - `packages/client/src/lib/extensionFillForm.test.ts` — add coerce/clean/describe cases for your kind
   (this is the net for step 3).
 - `packages/middleware/src/tests/extensionFill.test.ts` — add context-assembly coverage if step 5
   changed.
-- `packages/client/src/lib/fillEngine.test.ts` — engine extraction; note its cross-file guard asserts
-  the popup's `TAXONOMY_ENTITY_PATCH` mirror aligns with `TAXONOMY_ENTITY_SPECS` (only `path`+`image`).
-  This is the **only** automated net over the popup's duplicated registry; nothing checks `buildRow`
-  dispatch or `applyChanges` partitioning, so **manually load the unpacked extension and exercise the
-  new kind** before considering it done.
+- `packages/extension/src/lib/fill/fillEngine.test.ts` — engine extraction (jsdom).
+- `packages/extension/src/popup/fill/buildRow.test.ts` — the row builder's diff + apply for your kind.
+- Then `pnpm --filter=@eesimple/extension build` and load `packages/extension/.output/chrome-mv3`
+  unpacked to exercise the kind end to end (injection and the permission prompts aren't unit-testable).
 
 ## Compiler-enforced vs silent (the summary that matters)
 
 **Fails `tsc` if you miss it (free):** the `FillTarget` union; the `coerceFillTarget` / `cleanTarget`
-/ `describeFillTarget` switches; the `FillTargetValue` switch.
+/ `describeFillTarget` switches; the `FillTargetValue` switch; the extension's `buildRow` switch.
 
 **Ships a runtime bug if you miss it (the real work):** the Fastify schema `enum` + `properties` +
 `allOf` branch (400s the PATCH); the kind-dropdown option literal (invisible in UI); the client
 normalizer completeness vs schema (dropped field, à la `itemUrl`); the middleware `getExtensionFillContext`
-branches (empty popup rows); **the entire `popup.js` dispatch + row builders + apply partitioning**
-(unsupported row or silently-dropped write); the `taxonomyFill.js` registry mirror; the
-`fillEngine.js` structured-result branch.
+branches (empty popup rows); a non-standard write path in the popup's `apply.ts` partitioning; host
+access for any new third-party download.

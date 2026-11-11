@@ -1,0 +1,30 @@
+{
+  "name": "@eesimple/extension",
+  "version": "1.11.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.13.1",
+  "description": "eeSimple Bookmarks browser extension (Chrome / Edge, Manifest V3), built with WXT.",
+  "exports": {
+    "./fill": {
+      "types": "./src/lib/fill/index.ts",
+      "default": "./src/lib/fill/index.ts"
+    }
+  },
+  "scripts": {
+    "dev": "wxt",
+    "build": "wxt zip",
+    "clean": "rm -rf .output",
+    "test": "wxt prepare && vitest run",
+    "typecheck": "wxt prepare && tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@eesimple/types": "workspace:*"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1",
+    "typescript": "5.9.3",
+    "vitest": "^4.1.0",
+    "wxt": "0.21.5"
+  }
+}
