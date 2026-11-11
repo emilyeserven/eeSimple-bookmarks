@@ -35,6 +35,29 @@ test("processImage returns the decode error for non-image bytes", async () => {
   assert.ok(result.error.length > 0);
 });
 
+test("processImage width-bounds a tall full-page capture instead of squashing it", async () => {
+  const tall = await sharp({
+    create: {
+      width: 2400,
+      height: 9600,
+      channels: 3,
+      background: {
+        r: 30,
+        g: 30,
+        b: 200,
+      },
+    },
+  }).png().toBuffer();
+
+  const result = await processImage(tall, {
+    fullPage: true,
+  });
+  assert.ok(!("error" in result), "expected a processed image");
+  // Width capped at the max edge; height follows the aspect ratio rather than being capped at 1200.
+  assert.equal(result.width, MAX_IMAGE_EDGE);
+  assert.equal(result.height, 4800);
+});
+
 test("processImage respects a maxEdge override", async () => {
   const wide = await sharp({
     create: {

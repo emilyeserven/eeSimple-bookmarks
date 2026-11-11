@@ -10,6 +10,7 @@ import fillEngineJsRaw from "../../public/extension/fillEngine.js?raw";
 import manifestJsonRaw from "../../public/extension/manifest.json?raw";
 import popupHtmlRaw from "../../public/extension/popup.html?raw";
 import popupJsRaw from "../../public/extension/popup.js?raw";
+import screenshotCaptureJsRaw from "../../public/extension/screenshotCapture.js?raw";
 import selectorPickerJsRaw from "../../public/extension/selectorPicker.js?raw";
 import taxonomyFillJsRaw from "../../public/extension/taxonomyFill.js?raw";
 import { notifySuccess } from "../lib/notifications";
@@ -40,6 +41,10 @@ const EXTENSION_FILES = [
   {
     file: "taxonomyFill.js",
     content: taxonomyFillJsRaw,
+  },
+  {
+    file: "screenshotCapture.js",
+    content: screenshotCaptureJsRaw,
   },
   {
     file: "fillEngine.js",
@@ -141,7 +146,12 @@ export function ExtensionSettings() {
             checkboxes, and updates the bookmark only when you click
             {" "}
             <strong>Apply</strong>
-            .
+            . On any saved bookmark,
+            {" "}
+            <strong>Capture screenshot</strong>
+            {" "}
+            grabs the visible area or the full page (it scrolls the tab and stitches the frames) and
+            saves it as the bookmark&apos;s screenshot or adds it to the bookmark&apos;s images.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

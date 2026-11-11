@@ -130,6 +130,18 @@
       vertical-align: middle;
     }
 
+    /* Screenshot capture options (built by popup.js above each "Capture screenshot" button) */
+    .capture-options { display: flex; gap: 4px; margin-top: 6px; }
+    .capture-select {
+      flex: 1;
+      min-width: 0;
+      font-size: 11px;
+      padding: 3px 4px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+    }
+    .capture-options + button { margin-top: 4px !important; }
+
     /* bottom countdown bar — duration (5000ms) must match the setTimeout in popup.js */
     #progress {
       position: absolute;
@@ -254,6 +266,7 @@
 
   <div id="progress" class="hidden"><div id="progressBar"></div></div>
   <script src="taxonomyFill.js"></script>
+  <script src="screenshotCapture.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
