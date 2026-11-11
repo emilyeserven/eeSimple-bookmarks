@@ -20,6 +20,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store NODE_ENV=development pnpm fetc
 COPY packages/types/package.json ./packages/types/
 COPY packages/middleware/package.json ./packages/middleware/
 COPY packages/client/package.json ./packages/client/
+COPY packages/extension/package.json ./packages/extension/
 COPY packages/gateway/package.json ./packages/gateway/
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store NODE_ENV=development pnpm install --frozen-lockfile --offline
@@ -47,6 +48,10 @@ RUN pnpm --filter @eesimple/middleware exec tsc -p tsconfig.build.json --noCheck
 
 FROM build-types AS build-client
 
+# The browser extension (WXT) builds first: the client imports its fill engine for the in-app rule
+# preview, and the client build copies its .zip into dist/ for the Extension settings download.
+COPY packages/extension ./packages/extension/
+RUN pnpm --filter @eesimple/extension build
 COPY packages/client ./packages/client/
 RUN pnpm --filter @eesimple/client build
 
@@ -75,9 +80,10 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY packages/types/package.json ./packages/types/
 COPY packages/middleware/package.json ./packages/middleware/
 COPY packages/client/package.json ./packages/client/
+COPY packages/extension/package.json ./packages/extension/
 COPY packages/gateway/package.json ./packages/gateway/
 
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --prod --ignore-scripts --filter '!@eesimple/client'
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --prod --ignore-scripts --filter '!@eesimple/client' --filter '!@eesimple/extension'
 
 
 # Final stage

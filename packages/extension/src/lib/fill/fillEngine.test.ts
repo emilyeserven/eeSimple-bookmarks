@@ -1,12 +1,6 @@
-// Side-effect imports: the classic extension scripts assign `globalThis.eesimpleFillEngine` /
-// `globalThis.eesimpleTaxonomyFill`.
-import "../../public/extension/fillEngine.js";
-import "../../public/extension/taxonomyFill.js";
-
-import type { TaxonomyEntityAssociationSpec } from "@eesimple/types";
-
-import { TAXONOMY_ENTITY_SPECS } from "@eesimple/types";
 import { describe, expect, it, vi } from "vitest";
+
+import { runRules } from "./fillEngine";
 
 interface FillResult {
   ruleId: string;
@@ -18,7 +12,11 @@ interface FillEngine {
   runRules(rules: unknown[], doc?: Document): FillResult[];
 }
 
-const engine = (globalThis as unknown as { eesimpleFillEngine: FillEngine }).eesimpleFillEngine;
+// Fixtures are loose object literals (like the stored JSON the popup receives), so the engine is
+// called through this untyped view.
+const engine = {
+  runRules,
+} as unknown as FillEngine;
 
 /** Parse fixture HTML into an isolated document (also exercises the `doc` parameter). */
 function docFrom(html: string): Document {
@@ -53,7 +51,7 @@ const OREILLY_STATS_HTML = `
   </div>
 `;
 
-describe("eesimpleFillEngine.runRules — PRINT LENGTH worked example (#1239)", () => {
+describe("runRules — PRINT LENGTH worked example (#1239)", () => {
   it("extracts the page count from the O'Reilly stats block", () => {
     const rule = {
       id: "pages",
@@ -78,7 +76,7 @@ describe("eesimpleFillEngine.runRules — PRINT LENGTH worked example (#1239)", 
   });
 });
 
-describe("eesimpleFillEngine.runRules — filters", () => {
+describe("runRules — filters", () => {
   const LIST_HTML = `
     <ul>
       <li class="item">Learn Docker</li>
@@ -339,7 +337,7 @@ describe("eesimpleFillEngine.runRules — filters", () => {
   });
 });
 
-describe("eesimpleFillEngine.runRules — read", () => {
+describe("runRules — read", () => {
   const HTML = "<a class=\"link\" href=\"https://example.com\" data-isbn=\"9781633438460\">Learn Docker</a>";
 
   it("attr — passing reads the attribute value", () => {
@@ -578,7 +576,7 @@ describe("eesimpleFillEngine.runRules — read", () => {
   });
 });
 
-describe("eesimpleFillEngine.runRules — transforms", () => {
+describe("runRules — transforms", () => {
   const html = (text: string) => `<span class="v">${text}</span>`;
   const withTransforms = (transform: unknown[]) => ({
     id: "t",
@@ -748,7 +746,7 @@ describe("eesimpleFillEngine.runRules — transforms", () => {
   });
 });
 
-describe("eesimpleFillEngine.runRules — split & multi-value", () => {
+describe("runRules — split & multi-value", () => {
   const HTML = "<div class=\"creators\">Ada Lovelace, Alan Turing, Ada Lovelace</div>";
 
   it("split — one value becomes many, trimmed and de-duplicated", () => {
@@ -773,7 +771,7 @@ describe("eesimpleFillEngine.runRules — split & multi-value", () => {
   });
 });
 
-describe("eesimpleFillEngine.runRules — errors & isolation", () => {
+describe("runRules — errors & isolation", () => {
   it("invalid selector yields a per-rule error, never a throw", () => {
     const rule = {
       id: "bad-sel",
@@ -872,7 +870,7 @@ describe("eesimpleFillEngine.runRules — errors & isolation", () => {
   });
 });
 
-describe("eesimpleFillEngine.runRules — default document", () => {
+describe("runRules — default document", () => {
   it("falls back to the ambient document when no doc is passed", () => {
     document.body.innerHTML = "<h1 class=\"page-title\">Ambient Title</h1>";
     const rule = {
@@ -889,7 +887,7 @@ describe("eesimpleFillEngine.runRules — default document", () => {
   });
 });
 
-describe("eesimpleFillEngine.runRules — meta-tag source (#extension-fill-meta)", () => {
+describe("runRules — meta-tag source (#extension-fill-meta)", () => {
   const META_HTML = `
     <head>
       <meta name="twitter:creator" content="@OReillyMedia">
@@ -994,7 +992,7 @@ function runSections(rule: unknown, html: string): SectionEntryResult[] {
   return result.entries ?? [];
 }
 
-describe("eesimpleFillEngine.runRules — sections target", () => {
+describe("runRules — sections target", () => {
   // A course accordion: chapter <h3> headers, each grouping sibling <a> video links (name in <p>).
   const ACCORDION_HTML = `
     <div class="acc">
@@ -2192,16 +2190,7 @@ describe("eesimpleFillEngine.runRules — sections target", () => {
   });
 });
 
-interface TaxonomyFill {
-  TAXONOMY_ENTITY_PATCH: Record<string, { path: string;
-    nameKey: string;
-    noun: string;
-    image?: boolean; }>;
-}
-
-const taxonomyFill = (globalThis as unknown as { eesimpleTaxonomyFill: TaxonomyFill }).eesimpleTaxonomyFill;
-
-describe("eesimpleFillEngine.runRules — taxonomyDirect resolve.select (match mode)", () => {
+describe("runRules — taxonomyDirect resolve.select (match mode)", () => {
   const HTML = `
     <main>
       <h1 class="creator">Veritasium</h1>
@@ -2254,19 +2243,7 @@ describe("eesimpleFillEngine.runRules — taxonomyDirect resolve.select (match m
   });
 });
 
-describe("taxonomyFill.js TAXONOMY_ENTITY_PATCH mirror stays aligned with the TS registry", () => {
-  it("marks image: true exactly on the image-capable associations (sync-point guard)", () => {
-    const specs = Object.entries(TAXONOMY_ENTITY_SPECS) as [string, TaxonomyEntityAssociationSpec][];
-    for (const [association, spec] of specs) {
-      const mirror = taxonomyFill.TAXONOMY_ENTITY_PATCH[association];
-      expect(mirror, `missing mirror for ${association}`).toBeDefined();
-      expect(mirror.path).toBe(spec.apiPath);
-      expect(!!mirror.image, `image capability drift for ${association}`).toBe(!!spec.image);
-    }
-  });
-});
-
-describe("eesimpleFillEngine.runRules — ratingScale detect range (per-level detectors)", () => {
+describe("runRules — ratingScale detect range (per-level detectors)", () => {
   // A skills page with two difficulty badges present (Beginner + Intermediate) and one absent (Expert).
   const SKILLS_HTML = `
     <ul class="levels">

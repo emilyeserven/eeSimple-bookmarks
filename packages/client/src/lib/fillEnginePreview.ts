@@ -1,38 +1,14 @@
+import type { FillRunResult } from "@eesimple/extension/fill";
 import type { WebsiteExtensionFillRule } from "@eesimple/types";
 
-// Side-effect import: the classic extension script assigns `globalThis.eesimpleFillEngine`. This is the
-// SAME file the browser extension injects, so an in-app preview matches the extension's extraction
-// exactly (the test suite imports it the same way). It has no exports — the assignment is the point.
-// eslint-disable-next-line import/no-unassigned-import
-import "../../public/extension/fillEngine.js";
+// The SAME engine module the browser extension injects into pages (`packages/extension`), so an in-app
+// preview matches the extension's extraction exactly.
+import { runRules } from "@eesimple/extension/fill";
 
 import { normalizeExtensionFillRules } from "./extensionFillClean";
 
-/** One structured section entry the `sections` extraction produces (ids are assigned later, in the popup). */
-export interface PreviewSectionEntry {
-  name: string;
-  type: string;
-  startValue: string;
-  url?: string;
-  children?: PreviewSectionEntry[];
-}
-
 /** The per-rule result shape returned by the engine's `runRules` (one per input rule, in order). */
-export interface FillEngineResult {
-  ruleId: string;
-  /** Flat extracted values (also the fallback list of a `sections` rule's start values). */
-  values: string[];
-  /** Present for a `sections` target — the structured (optionally tiered) entries. */
-  entries?: PreviewSectionEntry[];
-  /** Present for a `taxonomyDirect` `match`-mode rule — the scraped entity identifier. */
-  resolveValue?: string;
-  /** Present when the rule threw (invalid selector/regex); `values` is then empty. */
-  error?: string;
-}
-
-interface FillEngineGlobal {
-  runRules(rules: unknown[], doc?: Document): FillEngineResult[];
-}
+export type FillEngineResult = FillRunResult;
 
 /**
  * Run the extension fill engine in-app against pasted HTML and return what it captures — the debug
@@ -46,10 +22,8 @@ export function runFillPreview(
   rules: WebsiteExtensionFillRule[],
   html: string,
 ): FillEngineResult[] {
-  const engine = (globalThis as unknown as { eesimpleFillEngine?: FillEngineGlobal }).eesimpleFillEngine;
-  if (!engine) return [];
   const doc = new DOMParser().parseFromString(html, "text/html");
-  return engine.runRules(normalizeExtensionFillRules(rules), doc);
+  return runRules(normalizeExtensionFillRules(rules), doc);
 }
 
 /** The captured value a result is compared/displayed by: the structured entries if present, else the flat values. */
