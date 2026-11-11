@@ -93,3 +93,11 @@ export function useTestBackupDestination() {
     onError: error => notifyError(describeError(error, "Couldn't check the destination")),
   });
 }
+
+/** Write hello.txt ("world" + a timestamp) to the destination and leave it there. */
+export function useSendBackupTestFile() {
+  return useMutation({
+    mutationFn: backupsApi.sendTestFile,
+    onError: error => notifyError(describeError(error, "Couldn't send the test file")),
+  });
+}

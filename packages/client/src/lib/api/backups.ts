@@ -26,6 +26,10 @@ export const backupsApi = {
       method: "POST",
     }),
   files: () => request<BackupFileList>("/backups/files"),
+  sendTestFile: () =>
+    request<BackupDestinationCheck>("/backups/test-file", {
+      method: "POST",
+    }),
   test: () =>
     request<BackupDestinationCheck>("/backups/test", {
       method: "POST",

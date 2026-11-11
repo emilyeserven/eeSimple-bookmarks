@@ -128,7 +128,10 @@ export async function createSftpTarget(dest: SftpDestination): Promise<BackupTar
       // Write to a temporary name, then rename, so a dropped connection never leaves a half-written
       // file that looks like a finished backup.
       const partial = `${full}.partial`;
-      await pipeline(body, sftp.createWriteStream(partial));
+      // Owner-only (0600): a dump holds the whole database.
+      await pipeline(body, sftp.createWriteStream(partial, {
+        mode: 0o600,
+      }));
       await call(cb => sftp.unlink(full, () => cb(null))); // rename fails if the target exists
       await call(cb => sftp.rename(partial, full, cb));
     },

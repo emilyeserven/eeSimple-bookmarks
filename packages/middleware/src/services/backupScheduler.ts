@@ -5,6 +5,7 @@
  * `app.listen()` and rebuilt whenever the backup settings are saved.
  */
 
+import { Readable } from "node:stream";
 import { Cron } from "croner";
 import type { BackupDestinationCheck, BackupStatus } from "@eesimple/types";
 import { describeBackupStoreError } from "@/utils/backupStore";
@@ -92,6 +93,49 @@ export async function checkBackupDestination(): Promise<BackupDestinationCheck> 
     return {
       ok: true,
       error: null,
+    };
+  }
+  catch (err) {
+    return {
+      ok: false,
+      error: describeBackupStoreError(err),
+    };
+  }
+}
+
+/** Name of the test file "Send test file" writes to the destination root. */
+export const TEST_FILE_NAME = "hello.txt";
+
+/** The test file's contents: `world`, then the time it was sent. */
+export function testFileContents(at: Date): string {
+  return `world\nSent by eeSimple Bookmarks at ${at.toISOString()}\n`;
+}
+
+/**
+ * Write `hello.txt` (containing "world" and a timestamp) to the destination root and leave it there,
+ * so the user can open the folder on the other computer and see a real file arrive. Overwrites the
+ * previous test file.
+ */
+export async function sendBackupTestFile(): Promise<BackupDestinationCheck> {
+  const {
+    destination,
+  } = await getBackupRuntimeConfig();
+  if (!destination) return {
+    ok: false,
+    error: "Fill in every destination field first.",
+  };
+  const at = new Date();
+  const body = Buffer.from(testFileContents(at), "utf8");
+  try {
+    const location = await withBackupTarget(destination, async (target) => {
+      await target.put(TEST_FILE_NAME, Readable.from([body]), body.length, "text/plain; charset=utf-8");
+      return target.locate(TEST_FILE_NAME);
+    });
+    return {
+      ok: true,
+      error: null,
+      location,
+      sentAt: at.toISOString(),
     };
   }
   catch (err) {

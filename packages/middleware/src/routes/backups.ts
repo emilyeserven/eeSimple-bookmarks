@@ -3,7 +3,7 @@ import type { FastifyInstance } from "fastify";
 import { BACKUP_DESTINATION_TYPES, BACKUP_FREQUENCIES, BACKUP_SFTP_AUTH_METHODS, MAX_BACKUP_RETENTION } from "@eesimple/types";
 import { generateSftpKeyPair, getBackupSettings, updateBackupSettings } from "@/services/backupConfig";
 import { assertBackupCanStart, listBackupFiles, runBackup } from "@/services/backupRun";
-import { checkBackupDestination, getBackupStatus, rescheduleBackups } from "@/services/backupScheduler";
+import { checkBackupDestination, getBackupStatus, rescheduleBackups, sendBackupTestFile } from "@/services/backupScheduler";
 
 /** `PUT /api/app-settings/backups` body: a partial patch, so each field can auto-save alone. */
 const backupSettingsBody = {
@@ -161,4 +161,11 @@ export async function backupRoutes(app: FastifyInstance): Promise<void> {
       tags: ["maintenance"],
     },
   }, async () => checkBackupDestination());
+
+  // Write hello.txt ("world" + a timestamp) to the destination and leave it, as a visible test.
+  app.post("/api/backups/test-file", {
+    schema: {
+      tags: ["maintenance"],
+    },
+  }, async () => sendBackupTestFile());
 }

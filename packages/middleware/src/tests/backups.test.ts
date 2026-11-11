@@ -16,6 +16,7 @@ import {
   normalizeSftpPath,
   resolveStoredBackupSettings,
 } from "@/services/backupConfig";
+import { testFileContents } from "@/services/backupScheduler";
 import { dumpPathFor, pgEnvFromDatabaseUrl, selectDumpsToPrune } from "@/services/backupRun";
 import { hostKeyFingerprint } from "@/utils/backupSftp";
 import { describeBackupStoreError } from "@/utils/backupStore";
@@ -257,4 +258,11 @@ test("describeBackupStoreError maps common failures to actionable text", () => {
     },
   }), /Bucket not found/);
   assert.equal(describeBackupStoreError(new Error("boom")), "boom");
+});
+
+test("the test file says world, then when it was sent", () => {
+  assert.equal(
+    testFileContents(new Date("2026-11-11T20:31:06.000Z")),
+    "world\nSent by eeSimple Bookmarks at 2026-11-11T20:31:06.000Z\n",
+  );
 });

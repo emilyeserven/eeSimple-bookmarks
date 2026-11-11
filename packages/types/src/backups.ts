@@ -151,9 +151,13 @@ export interface BackupFileList {
   error: string | null;
 }
 
-/** Result of `POST /api/backups/test`: whether the destination answered. */
+/** Result of `POST /api/backups/test` and `POST /api/backups/test-file`: whether the destination answered. */
 export interface BackupDestinationCheck {
   ok: boolean;
   /** Why the check failed, in English; null when it passed. */
   error: string | null;
+  /** Test file only: where `hello.txt` was written (e.g. `my-laptop:eesimple-backups/hello.txt`). */
+  location?: string;
+  /** Test file only: the timestamp written into the file (ISO). */
+  sentAt?: string;
 }
