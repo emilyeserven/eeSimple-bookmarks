@@ -1,6 +1,6 @@
 ---
 name: fallow
-description: Codebase intelligence for JavaScript and TypeScript. Free static layer reports quality, changed-code risk, cleanup opportunities (unused files, exports, types, dependencies), code duplication, circular dependencies, complexity hotspots, architecture boundary violations, feature flag patterns, and opt-in security candidates. Runtime coverage merges production execution data into the same health report for hot-path review, cold-path deletion confidence, and stale-flag evidence, with a single local capture available by default and continuous/cloud runtime monitoring available as an optional mode. 122 framework plugins, zero configuration, sub-second static analysis. Use when asked to analyze code health, audit PR risk, find cleanup opportunities or unused code, detect duplicates, check circular dependencies, audit complexity, check architecture boundaries, detect feature flags, surface security candidates, clean up the codebase, auto-fix issues, merge runtime coverage, or run fallow.
+description: Codebase intelligence for JavaScript and TypeScript. Free static layer reports quality, changed-code risk, cleanup opportunities (unused files, exports, types, dependencies), code duplication, circular dependencies, complexity hotspots, architecture boundary violations, feature flag patterns, and opt-in security candidates. Runtime coverage merges production execution data into the same health report for hot-path review, cold-path deletion confidence, and stale-flag evidence, with a single local capture available by default and continuous/cloud runtime monitoring available as an optional mode. 123 framework plugins, zero configuration, sub-second static analysis. Use when asked to analyze code health, audit PR risk, find cleanup opportunities or unused code, detect duplicates, check circular dependencies, audit complexity, check architecture boundaries, detect feature flags, surface security candidates, clean up the codebase, auto-fix issues, merge runtime coverage, or run fallow.
 license: MIT
 metadata:
   author: Bart Waardenburg
@@ -10,10 +10,9 @@ metadata:
 
 # Fallow: codebase intelligence for JavaScript and TypeScript
 
-Codebase intelligence for JavaScript and TypeScript. The free static layer reports quality, changed-code risk, cleanup opportunities, circular dependencies, code duplication, complexity hotspots, architecture boundary violations, feature flag patterns, and opt-in security candidates. Runtime coverage merges production execution data into the same `fallow health` report for hot-path review, cold-path deletion confidence, and stale-flag evidence, with a single local capture available by default and continuous/cloud runtime monitoring available as an optional mode. 122 framework plugins, zero configuration, sub-second static analysis.
+Codebase intelligence for JavaScript and TypeScript. The free static layer reports quality, changed-code risk, cleanup opportunities, circular dependencies, code duplication, complexity hotspots, architecture boundary violations, feature flag patterns, and opt-in security candidates. Runtime coverage merges production execution data into the same `fallow health` report for hot-path review, cold-path deletion confidence, and stale-flag evidence, with a single local capture available by default and continuous/cloud runtime monitoring available as an optional mode. 123 framework plugins, zero configuration, sub-second static analysis.
 
 ## When to Use
-
 - Finding cleanup opportunities (unused files, exports, types, enum/class members)
 - Finding unused or unlisted dependencies
 - Detecting code duplication and clones
@@ -32,7 +31,6 @@ Codebase intelligence for JavaScript and TypeScript. The free static layer repor
 - Reviewing what fallow has surfaced over time (`fallow impact`)
 
 ## When NOT to Use
-
 - Runtime error analysis or debugging
 - Type checking (use `tsc` for that)
 - Linting style or formatting issues (use ESLint, Biome, Prettier)
@@ -68,7 +66,6 @@ cargo install fallow-cli        # build from source
 ## Onboarding And Insight
 Offer setup only after a human-requested analysis shows findings and all signals match: `fallow config --path` exits 3, not CI, not a pipeline format, `fallow impact --format json --quiet` has `onboarding_declined: false`, and no offer happened this session. Ask after showing value. Choices: guard commits and PRs, baseline the existing backlog and clean by category, add AGENTS.md guidance, or keep as-is. On decline, run `fallow init --decline --quiet` and stay silent for this project. Mutate only after consent. For guards, inspect `fallow hooks status --format json --quiet`, then use `fallow hooks install --target agent` and `fallow hooks install --target git`; for large backlogs, pair the gate with `--save-baseline` / new-only guidance. Offer `fallow impact enable` as local-only value tracking, never as telemetry; also offer it once on already-configured projects when `fallow impact status --format json` has `enabled: false` and `explicit_decision: false`, and record a no with `fallow impact disable --quiet`. Surface value on clear events: if the agent gate blocked a commit or push and a later retry succeeded, mention what was contained; when `next_steps` carries id `impact-report`, run its command and relay the non-zero numbers to the user in one line. On request, summarize non-zero Impact counts. Ask about telemetry only after such a win, only if `fallow telemetry status --format json` has `explicit_decision: false`, and never run `fallow telemetry enable`.
 ## Task Cheat Sheet
-
 Route by intent before reaching for the big analysis commands. Same matrix as `fallow schema` (`task_matrix`) and the generated AGENTS.md section.
 
 <!-- generated:task-matrix:start -->
@@ -96,6 +93,7 @@ Route by intent before reaching for the big analysis commands. Same matrix as `f
 | `dead-code` | Dead code analysis (`check` is an alias) | `--unused-exports`, `--changed-since`, `--changed-workspaces`, `--production`, `--file`, `--include-entry-exports`, `--stale-suppressions`, `--ci`, `--group-by`, `--summary`, `--fail-on-regression`, `--tolerance`, `--regression-baseline`, `--save-regression-baseline` |
 | `watch` | Watch for changes and re-run analysis | `--no-clear` |
 | `inspect` | Compose one evidence bundle for a file or exported symbol | `--file <path>`, `--symbol <file>:<export>` |
+| `trace` | Trace a symbol's call chain (best-effort, syntactic; OFF the ranked path) | `symbol`, `--callers`, `--callees`, `--depth` |
 | `fix` | Auto-remove unused exports/deps | `--dry-run`, `--yes` (required in non-TTY) |
 | `init` | Generate config file, AGENTS.md agent guide, or pre-commit hook | `--toml`, `--agents`, `--hooks`, `--branch` |
 | `hooks` | Inspect, install, or remove fallow-managed Git and agent hooks | `status`, `install --target git`, `install --target agent`, `uninstall --target git`, `uninstall --target agent` |
@@ -108,10 +106,11 @@ Route by intent before reaching for the big analysis commands. Same matrix as `f
 | `list` | Inspect project structure | `--files`, `--entry-points`, `--plugins`, `--boundaries`, `--workspaces` |
 | `workspaces` | Inspect monorepo workspaces + discovery diagnostics (shorthand for `list --workspaces`) | (no flags) |
 | `dupes` | Code duplication detection | `--mode`, `--threshold`, `--top`, `--changed-since`, `--workspace`, `--changed-workspaces`, `--skip-local`, `--cross-language`, `--ignore-imports`, `--no-ignore-imports`, `--explain-skipped`, `--fail-on-regression`, `--tolerance`, `--regression-baseline`, `--save-regression-baseline` |
-| `health` | Function complexity analysis (also covers Angular templates as synthetic `<template>` findings: external `.html` files via `templateUrl` AND inline `@Component({ template: \`...\` })` literals; suppress external with `<!-- fallow-ignore-file complexity -->` at the top of the `.html` file, suppress inline with `// fallow-ignore-next-line complexity` directly above the `@Component` decorator) | `--complexity`, `--max-cyclomatic`, `--max-cognitive`, `--max-crap`, `--top`, `--sort`, `--file-scores`, `--hotspots`, `--ownership`, `--ownership-emails`, `--targets`, `--effort`, `--score`, `--min-score`, `--since`, `--min-commits`, `--save-snapshot`, `--trend`, `--coverage-gaps`, `--coverage`, `--coverage-root`, `--runtime-coverage`, `--min-invocations-hot`, `--min-observation-volume`, `--low-traffic-threshold`, `--workspace`, `--changed-workspaces`, `--baseline`, `--save-baseline` |
+| `health` | Function complexity analysis (also covers Angular templates as synthetic `<template>` findings: external `.html` files via `templateUrl` AND inline `@Component({ template: \`...\` })` literals; suppress external with `<!-- fallow-ignore-file complexity -->` at the top of the `.html` file, suppress inline with `// fallow-ignore-next-line complexity` directly above the `@Component` decorator) | `--complexity`, `--max-cyclomatic`, `--max-cognitive`, `--max-crap`, `--top`, `--sort`, `--file-scores`, `--hotspots`, `--ownership`, `--ownership-emails`, `--targets`, `--effort`, `--score`, `--min-score`, `--since`, `--min-commits`, `--save-snapshot`, `--trend`, `--coverage-gaps`, `--coverage`, `--coverage-root`, `--runtime-coverage`, `--min-invocations-hot`, `--min-observation-volume`, `--low-traffic-threshold`, `--css`, `--complexity-breakdown`, `--min-severity`, `--report-only`, `--workspace`, `--changed-workspaces`, `--baseline`, `--save-baseline` |
 | `flags` | Detect feature flag patterns (env vars, SDK calls, config objects) | `--top` |
 | `explain` | Explain one issue type without running analysis | `<issue-type>`, `--format json` |
-| `audit` | Combined dead-code + complexity + duplication for changed files | `--base`, `--gate`, `--production`, `--production-dead-code`, `--production-health`, `--production-dupes`, `--workspace`, `--changed-workspaces`, `--ci`, `--fail-on-issues`, `--explain`, `--explain-skipped`, `--dead-code-baseline`, `--health-baseline`, `--dupes-baseline`, `--max-crap`, `--coverage`, `--coverage-root`, `--include-entry-exports` |
+| `audit` | Combined dead-code + complexity + duplication for changed files, returns a verdict; `fallow review` is an alias for `fallow audit --brief` (advisory orientation brief, always exits 0) | `--base`, `--gate`, `--brief`, `--max-decisions`, `--walkthrough-guide`, `--walkthrough-file`, `--show-deprioritized`, `--production`, `--production-dead-code`, `--production-health`, `--production-dupes`, `--workspace`, `--changed-workspaces`, `--ci`, `--fail-on-issues`, `--explain`, `--explain-skipped`, `--dead-code-baseline`, `--health-baseline`, `--dupes-baseline`, `--max-crap`, `--coverage`, `--coverage-root`, `--include-entry-exports` |
+| `decision-surface` | Surface the consequential structural DECISIONS a change embeds (the apex of the review brief), each framed as a judgment question with the routed expert to ask | `--max-decisions` |
 | `impact` | Show what fallow has done for you: how many issues it is surfacing, the trend since the last recorded run, and how many commits it contained at the pre-commit gate | `--all`, `--sort`, `--limit` |
 | `security` | Surface opt-in local security candidates for agent verification (not confirmed vulnerabilities). Rule families include the graph rule `client-server-leak`, a data-driven `tainted-sink` catalogue, and the include-required `hardcoded-secret` category for provider-prefix credentials and high-entropy literals assigned to secret-shaped identifiers. Most catalogue rows require non-literal input; narrowly literal-aware rows flag deterministic unsafe literals. Rules default off; suppress a file with `// fallow-ignore-file security-sink`; scope categories with `security.categories`. Add project-local request object names with `security.requestReceivers`; it extends the built-in `req` / `request` / `ctx` / `context` / `event` allowlist for HTTP `query`, `params`, and `body` reads. `hardcoded-secret` runs only when listed in `security.categories.include`. | `--format human\|json\|sarif`, `--changed-since`, `--file`, `--diff-file`, `--workspace`, `--changed-workspaces`, `--surface`, `--ci`, `--fail-on-issues`, `--sarif-file`, `--summary` |
 | `schema` | Dump CLI definition as JSON |  |
@@ -149,10 +148,11 @@ Run `fallow <command> --help` for the full flag list per command (see also refer
 | `circular-dependency` | `--circular-deps` | - | `// fallow-ignore-next-line circular-dependency` | Import cycles in the module graph |
 | `re-export-cycle` | `--re-export-cycles` | - | `// fallow-ignore-file re-export-cycle` | Barrel files re-exporting from each other in a loop (`kind: "multi-node"`) or a barrel re-exporting from itself (`kind: "self-loop"`). Chain propagation through the loop is a structural no-op so imports through any member may silently come up empty. Default `warn`. Distinct from `circular-dependencies` (runtime cycles, sometimes intentional). File-scoped suppression only: `// fallow-ignore-file re-export-cycle` on any member breaks the cycle. |
 | `boundary-violation` | `--boundary-violations` | - | `// fallow-ignore-next-line boundary-violation` | Imports crossing architecture zone boundaries. Presets: `layered`, `hexagonal`, `feature-sliced`, `bulletproof`; `autoDiscover` can create one zone per feature directory; per-rule `allowTypeOnly: [zones]` admits `import type` / `export type` crossings while still blocking value imports. Optional sections: `boundaries.coverage.requireAllFiles` reports unzoned source files (`allowUnmatched` globs exempt intentional ones), and `boundaries.calls.forbidden` bans callee patterns per zone (segment-aware and import-resolved, so `child_process.*` covers `node:child_process` named/namespace/default imports; direct callees only, zoned files only). The whole family shares the `boundary-violation` rule and suppression token (`boundary-call-violation` and `boundary-call-violations` accepted as aliases); start the rule at `warn` for a staged rollout |
-| `boundary-coverage` | - | - | `// fallow-ignore-file boundary-violation` | Source file matches no configured architecture boundary zone; Requires boundaries.coverage.requireAllFiles |
-| `boundary-call-violation` | - | - | `// fallow-ignore-next-line boundary-call-violation` | Zoned file calls a callee its zone forbids; Requires boundaries.calls.forbidden patterns |
+| `boundary-coverage` | `--boundary-violations` | - | `// fallow-ignore-file boundary-violation` | Source file matches no configured architecture boundary zone; Requires boundaries.coverage.requireAllFiles |
+| `boundary-call-violation` | `--boundary-violations` | - | `// fallow-ignore-next-line boundary-call-violation` | Zoned file calls a callee its zone forbids; Requires boundaries.calls.forbidden patterns |
 | `policy-violation` | `--policy-violations` | - | `// fallow-ignore-next-line policy-violation` | Calls, imports, or catalogue-derived effects banned by a declarative rule pack (`rulePacks` config key lists standalone JSON/JSONC files of `banned-call`, `banned-import`, and `banned-effect` rules; pure data, no project code executes). Findings identified as `<pack>/<rule-id>`. Default `warn` master; per-rule `severity` overrides per finding and the exit gate reads the effective severity. Invalid or missing packs fail config load with exit 2. `fallow rule-pack-schema` prints the pack JSON Schema. Use the scoped token to suppress one rule; bare `policy-violation` still covers every pack rule on the line or file. |
 | `stale-suppression` | `--stale-suppressions` | - | - | `fallow-ignore` comments or `@expected-unused` JSDoc tags that no longer match any issue |
+| `missing-suppression-reason` | - | - | - | Suppression comment omits a required reason |
 | `unused-catalog-entry` | `--unused-catalog-entries` | yes | - | `pnpm-workspace.yaml` entries no workspace package.json references via `catalog:` (default `warn`) |
 | `empty-catalog-group` | `--empty-catalog-groups` | - | - | Named `catalogs.<name>:` groups in `pnpm-workspace.yaml` with no entries. Top-level `catalog:` placeholders are ignored. Default `warn`. |
 | `unresolved-catalog-reference` | `--unresolved-catalog-references` | - | - | `package.json` references to `catalog:` / `catalog:<name>` whose catalog does not declare the package; `pnpm install` would fail. Default `error`. Suppress via `ignoreCatalogReferences: [{ package, catalog?, consumer? }]` in fallow config (package.json has no comment syntax). |
@@ -210,7 +210,9 @@ When using fallow via MCP (`fallow-mcp`), the following tools are available:
 | `get_blast_radius` | runtime-coverage | freemium | `coverage`, `group_by` | Runtime-context slice for blast-radius review. Same params as `check_runtime_coverage`; read `runtime_coverage.blast_radius` for stable `fallow:blast:<hash>` IDs, caller counts, traffic-weighted caller reach, optional cloud deploy touch counts, and low/medium/high risk bands. |
 | `get_importance` | runtime-coverage | freemium | `coverage`, `group_by` | Runtime-context slice for production-importance review. Same params as `check_runtime_coverage`; read `runtime_coverage.importance` for stable `fallow:importance:<hash>` IDs, invocations, cyclomatic complexity, owner count, 0-100 score, and templated reason. |
 | `get_cleanup_candidates` | runtime-coverage | freemium | `coverage`, `group_by` | Runtime-context slice for cleanup review. Same params as `check_runtime_coverage`; read `runtime_coverage.findings` for `safe_to_delete`, `review_required`, `low_traffic`, and `coverage_unavailable`. |
+| `get_token_blast_radius` | analysis | free | - | Design-token blast radius for Tailwind v4 @theme tokens AND CSS-in-JS defineVars/createTheme-family token definitions: per token, a consumer_count (static lower bound) and a capped located consumers[] sample tagged theme-var/css-var/utility/apply (Tailwind) or js-member (CSS-in-JS cross-module member access); descriptive context for sizing a token change, never a deletion gate |
 | `audit` | analysis | free | `gate`, `base`, `max_crap`, `coverage`, `runtime_coverage` | Combined dead-code + complexity + duplication for changed files, returns verdict. Set `gate` to `"new-only"` or `"all"`. Optional `runtime_coverage` (V8 dir / V8 JSON / Istanbul JSON) folds runtime findings into the same call; `min_invocations_hot` tunes the hot-path threshold (default 100). Runtime evidence appears under the audit `complexity` sub-result, including `coverage_intelligence` when combined evidence yields actionable recommendations. |
+| `decision_surface` | analysis | free | `base`, `max_decisions`, `workspace` | Surface the few consequential structural decisions a change embeds (coupling, public API, dependency), each as a judgment question with the routed expert; ranked, capped, and signal_id-anchored |
 | `fallow_explain` | introspection | free | `issue_type` | Explain one issue type without running analysis. Required `issue_type`; returns rationale, examples, fix guidance, and docs URL |
 | `fix_preview` | fix | free | `no_create_config` | Dry-run auto-fix preview |
 | `fix_apply` | fix | free | `no_create_config` | Apply auto-fixes (destructive) |
@@ -295,7 +297,7 @@ fallow list --entry-points --format json --quiet
 fallow list --plugins --format json --quiet
 ```
 
-Shows detected entry points and active framework plugins (122 built-in: Next.js, Vite, Ember, Wuchale, Jest, Storybook, Tailwind, PandaCSS, Contentlayer, tap, tsd, etc.).
+Shows detected entry points and active framework plugins (123 built-in: Next.js, Vite, Ember, Wuchale, Jest, Storybook, Tailwind, PandaCSS, Contentlayer, tap, tsd, etc.).
 
 ### Production-only analysis
 ```bash
@@ -441,7 +443,7 @@ When `--format json` is active and exit code is 2, errors are emitted as JSON on
 
 ## Configuration
 
-Fallow reads config from project root: `.fallowrc.json` > `.fallowrc.jsonc` > `fallow.toml` > `.fallow.toml`. Both `.fallowrc.json` and `.fallowrc.jsonc` accept JSON-with-comments syntax (same parser); the `.jsonc` extension lets editors auto-detect JSONC syntax highlighting. Most projects work with zero configuration thanks to 121 auto-detecting framework plugins.
+Fallow reads config from project root: `.fallowrc.json` > `.fallowrc.jsonc` > `fallow.toml` > `.fallow.toml`. Both `.fallowrc.json` and `.fallowrc.jsonc` accept JSON-with-comments syntax (same parser); the `.jsonc` extension lets editors auto-detect JSONC syntax highlighting. Most projects work with zero configuration thanks to 123 auto-detecting framework plugins.
 
 ```jsonc
 {
@@ -478,7 +480,7 @@ export const deprecatedHelper = () => {};
 ## Key Gotchas
 
 - **`fix --yes` is required** in non-TTY (agent) environments. Without it, `fix` exits with code 2
-- **Zero config by default.** 122 framework plugins auto-detect, including Wuchale config, Contentlayer content roots, tap and tsd test entry points. Don't create config unless customization is needed
+- **Zero config by default.** 123 framework plugins auto-detect, including Wuchale config, Contentlayer content roots, tap and tsd test entry points. Don't create config unless customization is needed
 - **Syntactic analysis only.** No TypeScript compiler, so fully dynamic `import(variable)` is not resolved
 - **Function overloads are deduplicated.** TypeScript function overload signatures are merged into a single export (not reported as separate unused exports)
 - **Re-export chains are resolved.** Exports through barrel files are tracked, not falsely flagged

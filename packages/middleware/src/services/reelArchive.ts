@@ -33,6 +33,7 @@ import { fetchInstagramEmbedVideo } from "@/services/instagram";
 import { BROWSER_USER_AGENT, isPublicHttpUrl } from "@/services/metadata";
 import { enqueueReelArchiveJob } from "@/services/reelArchiveQueue";
 import { deleteObject, isObjectStoreConfigured, putObject } from "@/utils/objectStore";
+import { guardedFetch, operatorEndpointFetch } from "@/utils/ssrf";
 
 export type ArchiveReelResult
   = InstagramReelArchive | "not_found" | "not_reel" | "not_configured" | "no_video" | "fetch_error";
@@ -127,7 +128,7 @@ export async function extractReelVideoUrl(reelUrl: string): Promise<ExtractedRee
   const token = await getDecryptedHostedApiKey();
 
   try {
-    const res = await fetch(`${endpoint.replace(/\/$/, "")}/chromium/function`, {
+    const res = await operatorEndpointFetch(`${endpoint.replace(/\/$/, "")}/chromium/function`, {
       method: "POST",
       signal: AbortSignal.timeout(EXTRACT_TIMEOUT_MS),
       headers: {
@@ -172,9 +173,9 @@ export async function extractReelVideoUrl(reelUrl: string): Promise<ExtractedRee
  */
 async function downloadVideo(url: string, referer: string): Promise<Buffer | null> {
   try {
-    const res = await fetch(url, {
+    // The video URL is scraped from Instagram's embed page: SSRF-guard every hop + resolved address.
+    const res = await guardedFetch(url, {
       method: "GET",
-      redirect: "follow",
       signal: AbortSignal.timeout(VIDEO_FETCH_TIMEOUT_MS),
       headers: {
         "User-Agent": BROWSER_USER_AGENT,

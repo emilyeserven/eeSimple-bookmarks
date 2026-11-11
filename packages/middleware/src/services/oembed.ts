@@ -11,6 +11,7 @@
 import { findOEmbedProvider, type NormalizedOEmbed } from "@eesimple/types";
 
 import { downloadImage, isPublicHttpUrl } from "@/services/metadata";
+import { guardedFetch } from "@/utils/ssrf";
 
 const OEMBED_TIMEOUT_MS = 5000;
 
@@ -40,9 +41,9 @@ async function fetchOEmbedJson(endpoint: string): Promise<RawOEmbed | null> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), OEMBED_TIMEOUT_MS);
   try {
-    const res = await fetch(endpoint, {
+    // The endpoint can be autodiscovered from a third-party page's <link rel="oembed">: guard every hop.
+    const res = await guardedFetch(endpoint, {
       method: "GET",
-      redirect: "follow",
       signal: controller.signal,
       headers: {
         "User-Agent": "eeSimple-bookmarks/0.1 (+oembed)",
