@@ -5,9 +5,12 @@ import type {
   IngestPasteInput,
   IngestUrlInput,
   IssueBookmarksInput,
+  MymindImportCard,
+  MymindImportInput,
+  MymindImportOptions,
   UpdateImportItemInput,
 } from "@eesimple/types";
-import { IMPORT_BLACKLIST_KINDS } from "@eesimple/types";
+import { IMPORT_BLACKLIST_KINDS, MYMIND_IMPORT_MAX_BATCH } from "@eesimple/types";
 import { isPublicHttpUrl } from "@/services/metadata";
 import {
   approveImport,
@@ -32,6 +35,7 @@ import {
   unrejectImportItem,
   updateImportItem,
 } from "@/services/imports";
+import { importMymindCards } from "@/services/mymindImport";
 import { isValidUrl } from "@/utils/url";
 import {
   AppError,
@@ -176,6 +180,82 @@ const blockItemBody = {
   },
 } as const;
 
+const nullableString = {
+  type: ["string", "null"],
+} as const;
+
+// Every field of `MymindImportCard` / `MymindImportOptions` must be listed: these bodies are
+// `additionalProperties: false`, so AJV's `removeAdditional` would silently strip an undeclared one.
+// The `satisfies` clauses make a field added to either type fail `tsc` until it's declared here.
+const mymindCardProperties = {
+  mymindIds: {
+    type: "array",
+    items: {
+      type: "string",
+    },
+  },
+  type: {
+    type: "string",
+  },
+  title: {
+    type: "string",
+    minLength: 1,
+  },
+  url: nullableString,
+  description: nullableString,
+  tags: {
+    type: "array",
+    items: {
+      type: "string",
+      minLength: 1,
+    },
+  },
+  createdAt: nullableString,
+} as const satisfies Record<keyof MymindImportCard, unknown>;
+
+const mymindOptionsProperties = {
+  nestPrefixedTags: {
+    type: "boolean",
+  },
+  applyAutofill: {
+    type: "boolean",
+  },
+  keepCreatedDate: {
+    type: "boolean",
+  },
+  matchMediaTypes: {
+    type: "boolean",
+  },
+  categoryId: {
+    type: ["string", "null"],
+    format: "uuid",
+  },
+} as const satisfies Record<keyof MymindImportOptions, unknown>;
+
+const mymindImportBody = {
+  type: "object",
+  required: ["cards", "options"],
+  additionalProperties: false,
+  properties: {
+    cards: {
+      type: "array",
+      maxItems: MYMIND_IMPORT_MAX_BATCH,
+      items: {
+        type: "object",
+        required: Object.keys(mymindCardProperties),
+        additionalProperties: false,
+        properties: mymindCardProperties,
+      },
+    },
+    options: {
+      type: "object",
+      required: Object.keys(mymindOptionsProperties),
+      additionalProperties: false,
+      properties: mymindOptionsProperties,
+    },
+  },
+} as const;
+
 /** Imports: content ingest (paste / fetch-URL / upload) plus the Inbox review-queue CRUD. */
 export async function importRoutes(app: FastifyInstance): Promise<void> {
   // Paste HTML or plain text and extract candidate links.
@@ -263,6 +343,14 @@ export async function importRoutes(app: FastifyInstance): Promise<void> {
       defaultCategoryId: defaultCategoryId ?? null,
     });
   });
+
+  // Import a batch of cards parsed from a mymind `cards.csv` export straight into bookmarks.
+  app.post("/api/imports/mymind", {
+    schema: {
+      tags: ["imports"],
+      body: mymindImportBody,
+    },
+  }, req => importMymindCards(req.body as MymindImportInput));
 
   // List all imports with per-status counts.
   app.get("/api/imports", {

@@ -7,6 +7,7 @@ import {
   CopyCheck,
   Database,
   Filter,
+  FileUp,
   FolderOpen,
   Forward,
   HardDrive,
@@ -177,6 +178,11 @@ export const advancedNav: readonly SettingsTabNavItem[] = [
     to: "/settings/advanced/manage-data",
     label: i18n.t("Manage Data"),
     icon: Database,
+  },
+  {
+    to: "/settings/advanced/import-bookmarks",
+    label: i18n.t("Import Bookmarks"),
+    icon: FileUp,
   },
   {
     to: "/settings/advanced/link-health",
