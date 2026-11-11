@@ -98,6 +98,7 @@ import { Route as SavedFiltersFilterSlugIndexRouteImport } from './routes/saved-
 import { Route as SavedFiltersFilterSlugEditRouteImport } from './routes/saved-filters.$filterSlug.edit'
 import { Route as SavedFiltersFilterSlugInfoRouteImport } from './routes/saved-filters.$filterSlug.info'
 import { Route as SettingsAdvancedIndexRouteImport } from './routes/settings.advanced.index'
+import { Route as SettingsAdvancedBackupsRouteImport } from './routes/settings.advanced.backups'
 import { Route as SettingsAdvancedConnectorsRouteImport } from './routes/settings.advanced.connectors'
 import { Route as SettingsAdvancedDatabaseUsageRouteImport } from './routes/settings.advanced.database-usage'
 import { Route as SettingsAdvancedDuplicatesRouteImport } from './routes/settings.advanced.duplicates'
@@ -736,6 +737,11 @@ const SavedFiltersFilterSlugInfoRoute =
 const SettingsAdvancedIndexRoute = SettingsAdvancedIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => SettingsAdvancedRoute,
+} as any)
+const SettingsAdvancedBackupsRoute = SettingsAdvancedBackupsRouteImport.update({
+  id: '/backups',
+  path: '/backups',
   getParentRoute: () => SettingsAdvancedRoute,
 } as any)
 const SettingsAdvancedConnectorsRoute =
@@ -1861,6 +1867,7 @@ export interface FileRoutesByFullPath {
   '/import-rules/$ruleSlug/info': typeof ImportRulesRuleSlugInfoRoute
   '/saved-filters/$filterSlug/edit': typeof SavedFiltersFilterSlugEditRouteWithChildren
   '/saved-filters/$filterSlug/info': typeof SavedFiltersFilterSlugInfoRoute
+  '/settings/advanced/backups': typeof SettingsAdvancedBackupsRoute
   '/settings/advanced/connectors': typeof SettingsAdvancedConnectorsRoute
   '/settings/advanced/database-usage': typeof SettingsAdvancedDatabaseUsageRoute
   '/settings/advanced/duplicates': typeof SettingsAdvancedDuplicatesRoute
@@ -2078,6 +2085,7 @@ export interface FileRoutesByTo {
   '/custom-properties/$propertySlug/info': typeof CustomPropertiesPropertySlugInfoRoute
   '/import-rules/$ruleSlug/info': typeof ImportRulesRuleSlugInfoRoute
   '/saved-filters/$filterSlug/info': typeof SavedFiltersFilterSlugInfoRoute
+  '/settings/advanced/backups': typeof SettingsAdvancedBackupsRoute
   '/settings/advanced/connectors': typeof SettingsAdvancedConnectorsRoute
   '/settings/advanced/database-usage': typeof SettingsAdvancedDatabaseUsageRoute
   '/settings/advanced/duplicates': typeof SettingsAdvancedDuplicatesRoute
@@ -2306,6 +2314,7 @@ export interface FileRoutesById {
   '/import-rules/$ruleSlug/info': typeof ImportRulesRuleSlugInfoRoute
   '/saved-filters/$filterSlug/edit': typeof SavedFiltersFilterSlugEditRouteWithChildren
   '/saved-filters/$filterSlug/info': typeof SavedFiltersFilterSlugInfoRoute
+  '/settings/advanced/backups': typeof SettingsAdvancedBackupsRoute
   '/settings/advanced/connectors': typeof SettingsAdvancedConnectorsRoute
   '/settings/advanced/database-usage': typeof SettingsAdvancedDatabaseUsageRoute
   '/settings/advanced/duplicates': typeof SettingsAdvancedDuplicatesRoute
@@ -2576,6 +2585,7 @@ export interface FileRouteTypes {
     | '/import-rules/$ruleSlug/info'
     | '/saved-filters/$filterSlug/edit'
     | '/saved-filters/$filterSlug/info'
+    | '/settings/advanced/backups'
     | '/settings/advanced/connectors'
     | '/settings/advanced/database-usage'
     | '/settings/advanced/duplicates'
@@ -2793,6 +2803,7 @@ export interface FileRouteTypes {
     | '/custom-properties/$propertySlug/info'
     | '/import-rules/$ruleSlug/info'
     | '/saved-filters/$filterSlug/info'
+    | '/settings/advanced/backups'
     | '/settings/advanced/connectors'
     | '/settings/advanced/database-usage'
     | '/settings/advanced/duplicates'
@@ -3020,6 +3031,7 @@ export interface FileRouteTypes {
     | '/import-rules/$ruleSlug/info'
     | '/saved-filters/$filterSlug/edit'
     | '/saved-filters/$filterSlug/info'
+    | '/settings/advanced/backups'
     | '/settings/advanced/connectors'
     | '/settings/advanced/database-usage'
     | '/settings/advanced/duplicates'
@@ -3864,6 +3876,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/settings/advanced/'
       preLoaderRoute: typeof SettingsAdvancedIndexRouteImport
+      parentRoute: typeof SettingsAdvancedRoute
+    }
+    '/settings/advanced/backups': {
+      id: '/settings/advanced/backups'
+      path: '/backups'
+      fullPath: '/settings/advanced/backups'
+      preLoaderRoute: typeof SettingsAdvancedBackupsRouteImport
       parentRoute: typeof SettingsAdvancedRoute
     }
     '/settings/advanced/connectors': {
@@ -5430,6 +5449,7 @@ const SavedFiltersRouteWithChildren = SavedFiltersRoute._addFileChildren(
 )
 
 interface SettingsAdvancedRouteChildren {
+  SettingsAdvancedBackupsRoute: typeof SettingsAdvancedBackupsRoute
   SettingsAdvancedConnectorsRoute: typeof SettingsAdvancedConnectorsRoute
   SettingsAdvancedDatabaseUsageRoute: typeof SettingsAdvancedDatabaseUsageRoute
   SettingsAdvancedDuplicatesRoute: typeof SettingsAdvancedDuplicatesRoute
@@ -5444,6 +5464,7 @@ interface SettingsAdvancedRouteChildren {
 }
 
 const SettingsAdvancedRouteChildren: SettingsAdvancedRouteChildren = {
+  SettingsAdvancedBackupsRoute: SettingsAdvancedBackupsRoute,
   SettingsAdvancedConnectorsRoute: SettingsAdvancedConnectorsRoute,
   SettingsAdvancedDatabaseUsageRoute: SettingsAdvancedDatabaseUsageRoute,
   SettingsAdvancedDuplicatesRoute: SettingsAdvancedDuplicatesRoute,

@@ -30,6 +30,7 @@ describe("settingsPages registry", () => {
       "/settings/advanced/manage-data",
       "/settings/advanced/updates",
       "/settings/advanced/database-usage",
+      "/settings/advanced/backups",
       "/settings/locations/level-groups",
       "/settings/locations/pin-style",
       "/settings/locations/place-types",

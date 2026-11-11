@@ -19,7 +19,7 @@ function AdvancedLayout() {
         <div>
           <h2 className="text-xl font-semibold">Advanced</h2>
           <p className="text-sm text-muted-foreground">
-            Connectors, data cleanup, app updates, and database usage.
+            Connectors, data cleanup, app updates, database usage, and backups.
           </p>
         </div>
       )}

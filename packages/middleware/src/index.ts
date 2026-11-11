@@ -11,6 +11,7 @@ import { findInvalidEntityLayouts } from "@/services/entityLayouts";
 import { resetStalledImports } from "@/services/imports";
 import { resetStalledReelArchiveJobs } from "@/services/reelArchive";
 import { ensureHomepageSections } from "@/services/homepageSections";
+import { startBackupScheduler } from "@/services/backupScheduler";
 import { ensureBuiltInMediaTypes } from "@/services/mediaTypes";
 import { ensureBuiltInLanguages } from "@/services/languages";
 import { ensureBuiltInLanguageUsageLevels } from "@/services/languageUsageLevels";
@@ -98,4 +99,15 @@ catch (err) {
   app.log.warn({
     err,
   }, "Startup data step skipped (database not ready?)");
+}
+
+// Scheduled database backups (Settings → Advanced → Backups): start the cron schedule, if one is
+// configured. Its own try so a bad stored schedule never blocks the boot steps above.
+try {
+  await startBackupScheduler(app.log);
+}
+catch (err) {
+  app.log.warn({
+    err,
+  }, "Backup schedule not started");
 }

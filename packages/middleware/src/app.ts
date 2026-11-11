@@ -7,6 +7,7 @@ import { errorHandler } from "@/utils/errorHandler";
 import { aiAutotagRoutes } from "@/routes/aiAutotag";
 import { aiSummarizationRoutes } from "@/routes/aiSummarization";
 import { appSettingsRoutes } from "@/routes/appSettings";
+import { backupRoutes } from "@/routes/backups";
 import { personRoutes } from "@/routes/people";
 import { autofillRoutes } from "@/routes/autofill";
 import { bookmarkRoutes } from "@/routes/bookmarks";
@@ -283,6 +284,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(favoriteSettingsPageRoutes);
   await app.register(customAspectRatioRoutes);
   await app.register(appSettingsRoutes);
+  await app.register(backupRoutes);
   await app.register(aiSummarizationRoutes);
   await app.register(aiAutotagRoutes);
   await app.register(maintenanceRoutes);

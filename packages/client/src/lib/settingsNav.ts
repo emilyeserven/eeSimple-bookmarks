@@ -6,6 +6,7 @@ import {
   Camera,
   CopyCheck,
   Database,
+  DatabaseBackup,
   Filter,
   FileUp,
   FolderOpen,
@@ -203,6 +204,11 @@ export const advancedNav: readonly SettingsTabNavItem[] = [
     to: "/settings/advanced/database-usage",
     label: i18n.t("Database usage"),
     icon: HardDrive,
+  },
+  {
+    to: "/settings/advanced/backups",
+    label: i18n.t("Backups"),
+    icon: DatabaseBackup,
   },
   {
     to: "/settings/advanced/layout-issues",
