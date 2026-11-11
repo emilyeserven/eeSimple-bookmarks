@@ -18,13 +18,13 @@ projects** at config load, by scanning each file's source:
 
 - **`node-fast`** — files containing the `// @vitest-environment node` pragma (and using no
   isolation-dependent `vi.*` API). Node environment, `isolate: false` (persistent workers).
-  e.g. `lib/apiError.test.ts`, `lib/errorMessages.test.ts`, `i18n.test.ts`.
+  e.g. `lib/apiError.test.ts`.
 - **`dom-fast`** — the remaining mock-free files. jsdom, `isolate: false`.
   e.g. `components/ui/data-table.test.tsx`.
 - **`mocked`** — any file calling `vi.mock` / `doMock` / `unmock` / `hoisted` / `stubGlobal` /
   `stubEnv` / `setSystemTime`. jsdom by default (a per-file pragma still wins), full per-file
   isolation — these APIs mutate worker-global state that Vitest only resets under isolation.
-  e.g. `components/ItemsManager.test.tsx` (`stubGlobal("fetch")`), and the node-pragma
+  e.g. `routes/items/-components/ItemsManager.test.tsx` (`stubGlobal("fetch")`), and the node-pragma
   `lib/autoSave.test.ts` / `lib/notifications.test.ts` / `lib/pwa.test.ts` (`vi.mock`).
 
 The config throws at load if the partition ever loses a file, and `sequence.groupOrder` runs the
@@ -79,8 +79,8 @@ builders, zod schemas, reducers, error-code mappers. Nearly everything in
 `src/test-utils/setup.ts` runs for **both** environments, and re-executes **per test file** even in
 the non-isolated projects (the module graph and the jsdom window are what persist). Everything
 DOM-related lives inside `if (typeof window !== "undefined")` so node files don't crash on `Element`.
-Keep any new DOM stub **inside that guard**; the `@testing-library/jest-dom/vitest` and `../i18n`
-imports at the top are environment-safe and stay outside it.
+Keep any new DOM stub **inside that guard**; the `@testing-library/jest-dom/vitest`
+import at the top is environment-safe and stays outside it.
 
 The top of that guard is the **fresh-world reset** the `isolate: false` projects depend on. It
 restores what a fresh environment used to provide:

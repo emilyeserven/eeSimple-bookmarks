@@ -2,21 +2,17 @@
  * Shared error envelope for the API.
  *
  * Every user-facing failure is an {@link AppError}: it carries a stable machine `code`, the HTTP
- * `statusCode`, an English `message` (the fallback shown when the client can't translate the code),
- * and optional interpolation `params`. The central `setErrorHandler` in `app.ts` serializes any
- * thrown `AppError` to `{ message, code, statusCode, params? }` — routes just `throw`, they don't
- * build error bodies. The client maps `code` → a translated phrase (see `lib/errorMessages.ts`);
- * unmapped codes fall back to the English `message`.
- *
- * The middleware stays i18n-free: it emits codes + English, never translated text.
+ * `statusCode`, a human-readable `message` (shown to the user as-is), and optional structured
+ * `params`. The central `setErrorHandler` in `app.ts` serializes any thrown `AppError` to
+ * `{ message, code, statusCode, params? }` — routes just `throw`, they don't build error bodies.
+ * The client surfaces `message` via `describeError` (`lib/apiError.ts`) and can branch on `code`.
  */
 
-/** Interpolation values echoed back to the client so it can render a localized message. */
+/** Structured values echoed back to the client alongside the message (e.g. the clashing name). */
 export type ErrorParams = Record<string, string | number>;
 
 /**
- * Stable error codes. This union is the single source of truth the client's code→phrase map is
- * checked against — add a code here and give it a client mapping (or let it fall back to English).
+ * Stable error codes — the single source of truth for the `code` field the client can branch on.
  */
 export type ErrorCode
   = | "notFound"

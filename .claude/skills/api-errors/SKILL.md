@@ -1,12 +1,12 @@
 ---
 name: api-errors
 description: >-
-  Return and translate API errors in this app — the `AppError` envelope contract every Fastify
-  route/service uses (a stable `code` + HTTP `statusCode` + English `message` + optional `params`,
-  serialized by one `setErrorHandler`, re-mapped to translated phrases client-side). Use when asked to
+  Return and surface API errors in this app — the `AppError` envelope contract every Fastify
+  route/service uses (a stable `code` + HTTP `statusCode` + human-readable `message` + optional
+  `params`, serialized by one `setErrorHandler`, shown verbatim client-side). Use when asked to
   "return an API error", "throw AppError vs reply.code", "add a new error code", "add an ErrorCode /
-  AppError subclass", "what status code for a duplicate/built-in/not-found", "why isn't my error
-  translated", "the client shows raw English for X", "should this route hand-roll reply.code", or when
+  AppError subclass", "what status code for a duplicate/built-in/not-found", "the toast shows the
+  wrong text for X", "should this route hand-roll reply.code", or when
   a route needs to surface an external-fetch failure. Mirrors the `NotFoundError` (404) /
   `DuplicateNameError` (409) / `ValidationError` (400) / `StorageUnconfiguredError` (503) subclasses in
   `utils/errors.ts`. Also covers maintaining the contract — "normalize a route that hand-rolls an error
@@ -16,12 +16,10 @@ description: >-
 # API error envelope: throw `AppError`, one handler, one shape
 
 Every user-facing failure is an **`AppError`**: a stable machine `code`, an HTTP `statusCode`, an
-English `message` (the fallback shown when the client can't translate the code), and optional
-interpolation `params`. Services/routes just **`throw`** — the single `app.setErrorHandler(errorHandler)`
+human-readable `message` (shown to the user as-is), and optional structured `params`. Services/routes just **`throw`** — the single `app.setErrorHandler(errorHandler)`
 in `packages/middleware/src/app.ts` serializes it to the uniform envelope
-`{ message, code, statusCode, params? }`. The middleware stays **i18n-free**: it emits codes + English,
-never translated text. The **client** maps `code` → a localized phrase; an unmapped code falls back to
-the English `message`.
+`{ message, code, statusCode, params? }`. The **server owns the wording**: the client displays
+`message` verbatim and only branches on `code` when it must react to a specific failure.
 
 The invariant: **one throw, one handler, one envelope shape.** Routes don't build error bodies for
 domain failures. The only sanctioned place a route emits its own error body is a *discriminated result
@@ -44,9 +42,8 @@ union* returned by a helper (below), and even then it must use the envelope shap
 - **`packages/types/src/errors.ts`** — `ApiErrorBody`, the shared wire shape of the envelope.
 - **Client** — `request()` in `packages/client/src/lib/api/client.ts` parses a failed response's JSON
   into an `ApiError` (`packages/client/src/lib/apiError.ts`) carrying `code`/`params`.
-  `describeError(err, fallback?)` resolves display text: known `code` → `translateErrorCode(code,
-  params)` (the `ERROR_CODE_MESSAGES` map in `packages/client/src/lib/errorMessages.ts`) → else the
-  server's English `message` → else the translated fallback. Mutations toast with
+  `describeError(err, fallback?)` resolves display text: the server's `message` → else a plain
+  Error's message → else the fallback. Mutations toast with
   `notifyError(describeError(err))` (see `hooks/useItems.ts`).
 
 ## Status conventions
@@ -84,7 +81,7 @@ Ask **"where does the failure come from?"**
   if ("kind" in result) {
     return reply.code(502).send({
       message: "Could not reach the provider",
-      code: result.kind,          // add it to ErrorCode + the client map if it should be translated
+      code: result.kind,          // add it to the ErrorCode union
       statusCode: 502,
       detail: result.detail,      // raw cause, surfaced as ApiError.detail for console logging
     });
@@ -93,14 +90,13 @@ Ask **"where does the failure come from?"**
   ```
 
 If you catch your own service's `AppError` only to change its wording, you're on the wrong side of the
-line — see "Client owns the phrasing" below.
+line — see "Server owns the phrasing" below.
 
 ## Recipe — add / surface an error
 
 1. **Reuse an existing subclass** when the meaning fits — `throw new NotFoundError("Widget")`,
    `throw new DuplicateNameError("widget", name)` (as `services/items.ts` does in `assertNameFree`).
-   `entity` is an English label interpolated into the message and echoed in `params`. Nothing else to
-   do: the code already has a client entry.
+   `entity` is a label interpolated into the message and echoed in `params`. Nothing else to do.
 2. **New subclass** — when the same failure is thrown from several places. Generic, reusable ones go
    in `utils/errors.ts`; a domain-specific one can sit at the top of the service that throws it:
    ```ts
@@ -111,37 +107,28 @@ line — see "Client owns the phrasing" below.
      }
    }
    ```
-   Reuse an existing `code` when the semantics match — the client entry is already there.
+   Reuse an existing `code` when the semantics match.
 3. **New `ErrorCode`** (only when no existing code fits) — add the literal to the `ErrorCode` union in
-   `packages/middleware/src/utils/errors.ts`, **and** — the one sync point the compiler does **not**
-   enforce — add an `i18n.t(...)` entry to `ERROR_CODE_MESSAGES` in
-   `packages/client/src/lib/errorMessages.ts` if it should be localized. That map is `Record<string,
-   …>` (the union isn't shared with the client), so a missing entry silently degrades to the English
-   `message`. Write each entry as a literal `i18n.t("…")` call so `pnpm i18n:extract` sees the key,
-   and add an assertion to `packages/client/src/lib/errorMessages.test.ts`.
-   Codes whose server `message` is bespoke text meant to show verbatim — `validation`,
-   `schemaValidation`, `conflict`, `error`, `internal` — **deliberately have no client entry**.
+   `packages/middleware/src/utils/errors.ts`. If the client needs to react to it (e.g. show an inline
+   field error instead of a toast), branch on `err instanceof ApiError && err.code === "…"`; the union
+   isn't shared with the client, so keep the string in sync by hand.
 
-**Client owns the phrasing.** Because the client keys off `code`, don't reword a message in a route
-(that tends to strip the `code` and make it untranslatable). Change the English source in the subclass
-constructor, or the localized phrase in `errorMessages.ts`.
+**Server owns the phrasing.** The client shows `message` as-is, so write it for a human in the
+subclass constructor (or the bare `AppError` call). Don't catch an `AppError` in a route just to
+reword it — change the source message instead, and keep the `code` intact.
 
 ## Known gaps / deviations
 
-- `builtInImmutable` and `conflict` are in the `ErrorCode` union (and `builtInImmutable` has a client
-  entry) but have **no named subclass** yet — add one (step 2) the first time you need it.
-- `uploadFile()` in `packages/client/src/lib/api/client.ts` builds its `ApiError` from `message` only,
-  dropping `code`/`params`, so upload failures (e.g. `storageUnconfigured`) show the English message
-  instead of the translated phrase. Align it with `request()` if you rely on upload errors.
+- `builtInImmutable` and `conflict` are in the `ErrorCode` union but have **no named subclass** yet —
+  add one (step 2) the first time you need it.
 
 ## Verify
 
 ```
 pnpm typecheck
-pnpm test                # includes tests/errorHandler.test.ts and lib/errorMessages.test.ts
+pnpm test                # includes tests/errorHandler.test.ts and lib/apiError.test.ts
 pnpm lint:fix            # always from the repo root
 ```
 
 Behavioral: a duplicate returns `409` with `{ message, code: "duplicateName", statusCode: 409, params }`
-and the client toast renders the localized phrase; an uncoded/unmapped failure shows the English
-`message`.
+and the client toast shows that `message`.

@@ -37,15 +37,14 @@ Facts worth knowing:
 
 ## Wording standards
 
-- **Name the thing.** `Created "{{name}}"`, `Deleted item`, `Updated Description` — never a bare
+- **Name the thing.** `Created "<name>"`, `Deleted item`, `Updated Description` — never a bare
   "Saved". The log entry must make sense on its own, hours later.
 - **Errors carry the real reason.** Pass the caught error through `describeError(err)`
-  (`lib/apiError.ts`), which maps a known API error `code` to its translated phrase
-  (`lib/errorMessages.ts`) and otherwise falls back to the server's English `message`. Never toast a
+  (`lib/apiError.ts`), which returns the server's `message` (the middleware writes it for humans) or a
+  fallback. Never toast a
   generic "Something went wrong" when a cause is available. See the `api-errors` skill.
-- **Translate the message** with `i18n.t("…")` and `{{var}}` interpolation (see the `i18n` skill).
-  Field labels passed to `notifyFieldSaved` are plain English phrases; `lib/autoSave.ts` translates
-  them — don't hand-write `notifySuccess(\`Updated …\`)` at a call site.
+- **Field toasts go through `lib/autoSave.ts`** — pass a plain field label to `notifyFieldSaved`;
+  don't hand-write `notifySuccess(\`Updated …\`)` at a call site.
 - **One toast per save.** Never toast in both the hook and the call site.
 
 ## Wire a mutation's toasts
@@ -60,7 +59,7 @@ export function useCreateItem() {
     mutationFn: (input: CreateItemInput) => itemsApi.create(input),
     onSuccess: (item) => {
       void invalidate();
-      notifySuccess(i18n.t("Created \"{{name}}\"", { name: item.name }));
+      notifySuccess(`Created "${item.name}"`);
     },
     onError: err => notifyError(describeError(err)),
   });
@@ -74,7 +73,7 @@ site knows which field changed. See the `client-data-hooks` skill for the hook c
 ## Per-field auto-save (the edit-surface convention)
 
 Edit surfaces have **no Save button**. Each field persists on its own trigger and fires a toast that
-**names the field**. Reference: `ItemRow` in `packages/client/src/components/ItemsManager.tsx`:
+**names the field**. Reference: `ItemRow` in `packages/client/src/routes/items/-components/ItemsManager.tsx`:
 
 ```tsx
 const saveDescription = (value: string) => {

@@ -83,6 +83,9 @@ export default [
     // TanStack Router file-based routes export a non-component `Route` object by design,
     // which the fast-refresh rule (dev-only HMR guidance) flags. Disable it for routes.
     files: ["packages/client/src/routes/**/*.tsx"],
+    // Colocated `-components` / `-utils` / `-constants` folders (and `-*.tsx` helpers) are ordinary
+    // modules, not route files, so they keep the fast-refresh rule.
+    ignores: ["packages/client/src/routes/**/-*/**", "packages/client/src/routes/**/-*.tsx"],
     rules: {
       "react-refresh/only-export-components": "off",
     },

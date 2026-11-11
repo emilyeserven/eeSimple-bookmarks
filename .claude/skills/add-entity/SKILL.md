@@ -93,21 +93,24 @@ helper, and `useCreate/Update/DeleteWidget` with toasts. **Decide the invalidati
 other entity's response embeds widget data, its key must be invalidated too. See
 **`client-data-hooks`**.
 
-### 8. Component + route
+### 8. Route + colocated component
 
-- `packages/client/src/components/WidgetsManager.tsx`, modeled on `ItemsManager.tsx` (TanStack Form +
-  zod create form, per-field auto-save on blur with `notifyFieldSaved` — no Save button; see
-  **`toast-notifications`**). Wrap every user-facing string in `t()` (**`i18n`**). If it grows past
-  fallow's complexity cap, split it per **`decompose-over-cap`**.
-- `packages/client/src/routes/widgets.tsx`, copying `routes/items.tsx`:
-  `createFileRoute("/widgets")({ component: WidgetsManager })`.
+Follow the **`tanstack-routes`** skill for naming and colocation. Mirroring Items:
+
+- `packages/client/src/routes/widgets/index.tsx`, copying `routes/items/index.tsx`:
+  `createFileRoute("/widgets/")({ component: WidgetsManager })`.
+- `packages/client/src/routes/widgets/-components/WidgetsManager.tsx`, modeled on
+  `routes/items/-components/ItemsManager.tsx` (TanStack Form + zod create form, per-field auto-save on
+  blur with `notifyFieldSaved` — no Save button; see **`toast-notifications`**). It lives in the
+  route's `-components` folder because only this route uses it; promote it per the colocation rules if
+  another route starts importing it. If it grows past fallow's complexity cap, split it per
+  **`decompose-over-cap`**.
 - Regenerate the route tree: `pnpm --filter=@app/client routeTree` (the Vite plugin also does it during
   `dev`/`build`). Never hand-edit `routeTree.gen.ts`.
 
 ### 9. Sidebar — `packages/client/src/components/AppSidebar.tsx`
 
-Add a `{ to: "/widgets", label: "Widgets", icon: <LucideIcon> }` entry to `NAV_ITEMS`. The label is
-passed through `t()` at render, so it also needs registering by `pnpm i18n:extract`.
+Add a `{ to: "/widgets", label: "Widgets", icon: <LucideIcon> }` entry to `NAV_ITEMS`.
 
 ### 10. Factory, MSW handler, story, test
 
@@ -117,9 +120,9 @@ passed through `t()` at render, so it also needs registering by `pnpm i18n:extra
 - **MSW handlers** — add `sampleWidgets` and GET/POST/PATCH/DELETE `/api/widgets` handlers to
   `apiHandlers` in `packages/client/src/test-utils/story-mocks.ts`. MSW is story-only; unit tests stub
   `fetch`.
-- **Story** — `components/WidgetsManager.stories.tsx`, copying `ItemsManager.stories.tsx` (Default +
+- **Story** — `routes/widgets/-components/WidgetsManager.stories.tsx`, copying `ItemsManager.stories.tsx` (Default +
   Empty via `parameters.msw.handlers`). See **`storybook-story`**.
-- **Test** — `components/WidgetsManager.test.tsx`, copying `ItemsManager.test.tsx`
+- **Test** — `routes/widgets/-components/WidgetsManager.test.tsx`, copying `ItemsManager.test.tsx`
   (`vi.stubGlobal("fetch", …)` + `renderWithRouter` from `test-utils/router.tsx`, asserting on the real
   notification store). A pure `.test.ts` with no DOM gets the `// @vitest-environment node` pragma —
   see **`vitest-node-environment`**.

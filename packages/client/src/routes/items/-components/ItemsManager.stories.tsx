@@ -3,7 +3,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { http, HttpResponse } from "msw";
 
 import { ItemsManager } from "./ItemsManager";
-import { apiHandlers } from "../test-utils/story-mocks";
+
+import { apiHandlers } from "@/test-utils/story-mocks";
 
 const meta = {
   title: "Components/ItemsManager",

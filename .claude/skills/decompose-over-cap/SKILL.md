@@ -58,7 +58,7 @@ small parametrized component first — that alone often clears the cap.
   covered (see the `test-structure` skill for harness choice and the `vitest-node-environment` skill
   for the `// @vitest-environment node` pragma on pure `.test.ts` files). If the logic is hard to test
   in isolation, the seam is wrong — move the seam, don't skip the test.
-- **Behavior-preserving only.** JSX moves verbatim; wording, handlers, `t()` keys, and React `key`s
+- **Behavior-preserving only.** JSX moves verbatim; wording, handlers, and React `key`s
   stay identical. Keep a detailed `key` *inside* the extracted child so remount semantics don't change.
 - **Mind the import cap.** Splitting a file can push a coordinator past ESLint's
   `import/max-dependencies` cap of 20 (`eslint.config.js`). Split further rather than exempting it.

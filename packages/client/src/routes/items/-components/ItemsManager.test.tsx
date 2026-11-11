@@ -2,10 +2,10 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ItemsManager } from "./ItemsManager";
-import { makeItem } from "../test-utils/factories";
-import { renderWithRouter } from "../test-utils/router";
 
 import { useNotificationStore } from "@/stores/notificationStore";
+import { makeItem } from "@/test-utils/factories";
+import { renderWithRouter } from "@/test-utils/router";
 
 /**
  * Reference component test: stub `fetch` for the API, render inside the shared router harness, and

@@ -11,7 +11,7 @@ targets include low-power hosts such as a **Raspberry Pi 4/5 (64-bit)** — keep
 
 - **Runtime & build:** Node 22, pnpm 10, TypeScript 5.9 (strict, ES2022, `moduleResolution: bundler`)
 - **Frontend:** React 19, Vite 8, TanStack Router (file-based) / Query / Form, Tailwind CSS 4,
-  shadcn/ui primitives, react-i18next, zustand, sonner, vite-plugin-pwa
+  shadcn/ui primitives, zustand, sonner, vite-plugin-pwa
 - **Backend:** Fastify 5, Drizzle ORM, PostgreSQL 16, Swagger UI, optional S3-compatible object
   storage (Garage)
 - **Testing:** Vitest + Testing Library (client), Node test runner (middleware/types). See the
@@ -30,9 +30,10 @@ targets include low-power hosts such as a **Raspberry Pi 4/5 (64-bit)** — keep
 - **types** (`@app/types`) — shared TypeScript definitions; builds to `dist` (native ESM).
 - **middleware** (`@app/middleware`) — Fastify API. `src/`: `db/` (Drizzle schema + client +
   `migrate.ts`), `routes/`, `services/`, `utils/`, `tests/`, `app.ts`, `index.ts`.
-- **client** (`@app/client`) — React frontend. `src/`: `routes/` (file-based), `components/`
-  (`ui/` = vendored shadcn), `hooks/`, `lib/` (`api/` per-entity clients), `stores/`, `test-utils/`,
-  `locales/`.
+- **client** (`@app/client`) — React frontend. `src/`: `routes/` (file-based, with route-only code
+  colocated in `-components`/`-utils`/`-constants` folders — see **Routing & colocation**),
+  `components/` (shared components; `ui/` = vendored shadcn), `hooks/`, `lib/` (`api/` per-entity
+  clients), `stores/`, `test-utils/`.
 - **gateway** (`@app/gateway`) — Fastify reverse proxy, the production entrypoint (`server.js`).
 
 Build order: types → middleware → client. The gateway has no build step.
@@ -68,8 +69,8 @@ has the full checklist):
 | Server test | `packages/middleware/src/tests/items.test.ts` (in-memory fake db) |
 | Client API | `packages/client/src/lib/api/items.ts` (`createCrudApi`) |
 | Query hooks | `packages/client/src/hooks/useItems.ts` (module-level query key, toasts on mutations) |
-| UI | `packages/client/src/components/ItemsManager.tsx` + `.test.tsx` + `.stories.tsx` |
-| Page | `packages/client/src/routes/items.tsx` + `NAV_ITEMS` in `components/AppSidebar.tsx` |
+| Page | `packages/client/src/routes/items/index.tsx` + `NAV_ITEMS` in `components/AppSidebar.tsx` |
+| UI | `packages/client/src/routes/items/-components/ItemsManager.tsx` + `.test.tsx` + `.stories.tsx` |
 | Test data | `makeItem` in `test-utils/factories.ts`, MSW handlers in `test-utils/story-mocks.ts` |
 
 ## Conventions
@@ -114,10 +115,9 @@ has the full checklist):
 - **API error envelope — services `throw`, one handler, one shape.** Every user-facing failure is an
   `AppError` (`packages/middleware/src/utils/errors.ts`) with a stable `code`, HTTP `statusCode`,
   English `message`, optional `params`; `utils/errorHandler.ts` serializes it to
-  `{ message, code, statusCode, params? }`. The client maps `code` → a translated phrase in
-  `lib/errorMessages.ts` (unmapped codes fall back to the English message) and `describeError`
-  (`lib/apiError.ts`) is the single place that turns a caught error into toast text. A new
-  translatable code needs an `ErrorCode` union entry **and** an `errorMessages.ts` entry. See the
+  `{ message, code, statusCode, params? }`. The server owns the wording: `describeError`
+  (`lib/apiError.ts`) is the single place that turns a caught error into toast text (the server's
+  `message`), and callers branch on `code` only when they must react to a specific failure. See the
   **`api-errors`** skill.
 - **Data shaping lives server-side.** Endpoints return render-ready shapes; joins, aggregation,
   grouping, counting and tree-building belong in middleware `services/`, not React hooks. Logic that
@@ -142,15 +142,21 @@ has the full checklist):
   Don't add `// fallow-ignore-next-line complexity`. See the **`decompose-over-cap`** skill.
 - **Deprecation sunset:** a `@deprecated` export with zero references gets deleted in the same change.
 
-## Internationalization
+## Routing & colocation
 
-The client is translated with **react-i18next** using **English-phrase (natural) keys** — wrap every
-user-facing string in `t()` (or `i18n.t()` outside components); the key *is* the English phrase, so
-an untranslated locale falls back to readable English. `packages/client/src/locales/ja.json` is the
-secondary-locale catalog. **Owner-authored translations are sacred** — automated sessions may add or
-prune placeholder keys but must never write, machine-translate, or overwrite a real translated value.
-Tooling: `pnpm i18n:extract` / `i18n:status` / `i18n:check-stale` (`scripts/i18n.mjs`); CI runs an
-advisory `i18n` job that never fails the PR. See the **`i18n`** skill.
+The client uses TanStack Router **file-based routing** under `packages/client/src/routes/`; the route
+tree (`routeTree.gen.ts`) is generated. Anything that isn't a route is `-`-prefixed (`-rootLayout.tsx`,
+`-components/`), which the generator ignores. Keep route files thin and colocate route-only code:
+
+- Used by **one route** → that route's own `-components/` / `-utils/` / `-constants/` folder (with its
+  test and story beside it). Reference: `routes/items/-components/ItemsManager.tsx`.
+- Used by a **parent route and routes under it** → promote it to the highest `-` folder covering every
+  user (the nearest common ancestor route), and no higher.
+- Used across `-` folders that **don't share the same direct parent route** → move it to
+  `src/components/` (components) or `src/lib/` (utils/constants).
+
+See the **`tanstack-routes`** skill for file naming (`index`, `$param`, `route.tsx`, `_pathless`,
+`name_` un-nesting, `(group)`, `$` splat), typed search params, and the full rules.
 
 ## Database schema changes
 
@@ -217,5 +223,5 @@ and Coolify instructions, and the env-var table.
 ## Skills index
 
 `add-entity`, `add-endpoint`, `api-errors`, `client-data-hooks`, `db-schema-change`,
-`decompose-over-cap`, `fallow`, `i18n`, `overnight-cleanup`, `storybook-story`, `test-structure`,
-`toast-notifications`, `verify`, `vitest-node-environment`, `what-not-to-test`.
+`decompose-over-cap`, `fallow`, `overnight-cleanup`, `storybook-story`, `tanstack-routes`,
+`test-structure`, `toast-notifications`, `verify`, `vitest-node-environment`, `what-not-to-test`.

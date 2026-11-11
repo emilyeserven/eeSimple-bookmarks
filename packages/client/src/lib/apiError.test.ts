@@ -4,34 +4,17 @@ import { describe, expect, it } from "vitest";
 import { ApiError, describeError } from "./apiError";
 
 describe("describeError", () => {
-  it("translates a known error code to its mapped phrase", () => {
-    // At `lng: "en"` the phrase key resolves to itself; params are interpolated.
-    expect(
-      describeError(new ApiError("Item not found", "notFound", undefined, {
-        entity: "Item",
-      })),
-    ).toBe("Item not found");
-  });
-
-  it("interpolates params into a coded message", () => {
-    expect(
-      describeError(
-        new ApiError("A widget named \"X\" already exists", "duplicateName", undefined, {
-          entity: "widget",
-          name: "X",
-        }),
-      ),
-    ).toBe("A widget named \"X\" already exists");
-  });
-
-  it("falls back to the raw message for an unmapped code", () => {
-    expect(
-      describeError(new ApiError("A widget needs at least two parts", "validation")),
-    ).toBe("A widget needs at least two parts");
-  });
-
-  it("returns just the message for an ApiError without a code", () => {
-    expect(describeError(new ApiError("Tag not found"))).toBe("Tag not found");
+  it("returns the server's message for an ApiError and keeps its code/params", () => {
+    const err = new ApiError("A widget named \"X\" already exists", "duplicateName", undefined, {
+      entity: "widget",
+      name: "X",
+    });
+    expect(describeError(err)).toBe("A widget named \"X\" already exists");
+    expect(err.code).toBe("duplicateName");
+    expect(err.params).toEqual({
+      entity: "widget",
+      name: "X",
+    });
   });
 
   it("returns a plain Error's message", () => {

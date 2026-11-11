@@ -5,7 +5,6 @@
     "packages/middleware/src/tests/**/*.ts",
     "packages/gateway/server.js",
     "packages/client/src/main.tsx",
-    "packages/client/src/routes/**/*.tsx",
     "packages/client/src/test-utils/**/*.{ts,tsx}",
     "**/vite.config.ts",
     "**/drizzle.config.ts",

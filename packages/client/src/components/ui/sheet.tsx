@@ -2,7 +2,6 @@ import * as React from "react";
 
 import * as SheetPrimitive from "@radix-ui/react-dialog";
 import { XIcon } from "lucide-react";
-import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 
@@ -78,9 +77,6 @@ function SheetContent({
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: "top" | "right" | "bottom" | "left";
 }) {
-  const {
-    t,
-  } = useTranslation();
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -136,7 +132,7 @@ function SheetContent({
           "
         >
           <XIcon className="size-4" />
-          <span className="sr-only">{t("Close")}</span>
+          <span className="sr-only">Close</span>
         </SheetPrimitive.Close>
       </SheetPrimitive.Content>
     </SheetPortal>

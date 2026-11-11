@@ -127,10 +127,10 @@ helper) so the graph stays reviewable:
 
 Fire toasts **from the mutation hook**, not the call site, so a bare `.mutate()` can't be silent. Use
 `notifySuccess` / `notifyError` from `lib/notifications.ts`, with `describeError(err)` for the error
-text, and wrap every message in `i18n.t(...)` (see the **`i18n`** skill). The `useItems.ts` convention:
+text. The `useItems.ts` convention:
 
-- **create** → `notifySuccess(i18n.t("Created \"{{name}}\"", { name }))` + `onError: notifyError(...)`.
-- **delete** → `notifySuccess(i18n.t("Deleted item"))` + `onError`.
+- **create** → `notifySuccess(`Created "${item.name}"`)` + `onError: notifyError(...)`.
+- **delete** → `notifySuccess("Deleted item")` + `onError`.
 - **update** → **no toast in the hook** when the UI auto-saves per field: the call site fires a
   field-named `notifyFieldSaved("Description")` / `notifyFieldSaveError(...)` from `lib/autoSave.ts`
   (see `ItemsManager.tsx`), and a generic "saved" toast would double up.

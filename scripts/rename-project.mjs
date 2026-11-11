@@ -46,7 +46,7 @@ const rules = [
   [/S3_BUCKET \?\? "app"/g, `S3_BUCKET ?? "${name}"`],
   [/<title>App<\/title>/g, `<title>${title}</title>`, "packages/client/index.html"],
   [/name: "App",\n(\s+)short_name: "App",/g, `name: "${title}",\n$1short_name: "${title}",`, "packages/client/vite.config.ts"],
-  [/\{t\("App"\)\}/g, `{t("${title}")}`, "packages/client/src/components/AppSidebar.tsx"],
+  [/font-semibold">App</g, `font-semibold">${title}<`, "packages/client/src/components/AppSidebar.tsx"],
 ];
 
 let changed = 0;

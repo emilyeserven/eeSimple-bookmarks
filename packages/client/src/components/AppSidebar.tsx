@@ -2,7 +2,6 @@ import type { LucideIcon } from "lucide-react";
 
 import { Link } from "@tanstack/react-router";
 import { Home, List } from "lucide-react";
-import { useTranslation } from "react-i18next";
 
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
@@ -37,12 +36,9 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 export function AppSidebar() {
-  const {
-    t,
-  } = useTranslation();
   return (
     <Sidebar>
-      <SidebarHeader className="px-4 py-3 text-lg font-semibold">{t("App")}</SidebarHeader>
+      <SidebarHeader className="px-4 py-3 text-lg font-semibold">App</SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
@@ -59,7 +55,7 @@ export function AppSidebar() {
                     }}
                   >
                     <item.icon />
-                    <span>{t(item.label)}</span>
+                    <span>{item.label}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

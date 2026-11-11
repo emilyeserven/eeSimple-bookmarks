@@ -1,13 +1,11 @@
-import type { ErrorParams } from "@/lib/errorMessages";
-
-import i18n from "@/i18n";
-import { translateErrorCode } from "@/lib/errorMessages";
+/** Interpolation values the server echoes back alongside an error code. */
+export type ErrorParams = Record<string, string | number>;
 
 /**
- * An Error subclass that carries a typed error `code` from the API's 4xx/5xx response body, plus an
- * optional `detail` — the raw underlying error message (e.g. a sharp decode error) the server
- * captured but didn't fold into the user-facing `message`, so callers can console-log it — and the
- * optional `params` the server echoed for interpolating the localized message.
+ * An Error subclass that carries the API error envelope's `code` (and `params`) from a 4xx/5xx
+ * response body, plus an optional `detail` — a raw underlying error message the server captured
+ * but didn't fold into the user-facing `message`, so callers can console-log it. Branch on `code`
+ * when a caller needs to react to a specific failure (e.g. `duplicateName`).
  */
 export class ApiError extends Error {
   constructor(
@@ -23,20 +21,11 @@ export class ApiError extends Error {
 
 /**
  * Turn a caught error into specific toast/notification text. The single place that decides what an
- * error "says": for an {@link ApiError} carrying a known `code`, the localized phrase from the
- * error-code map (interpolated with the server's `params`); otherwise the server's raw English
- * `message` (unknown/uncoded errors stay English, by design), a plain Error's message, or the
- * translated `fallback`. Use this everywhere an error toast is fired so the Notifications log records
- * the real reason, not a generic string.
+ * error "says": the server's `message` for an {@link ApiError} (the middleware writes it for humans),
+ * a plain Error's message, or `fallback`. Use this everywhere an error toast is fired so the
+ * Notifications log records the real reason, not a generic string.
  */
 export function describeError(err: unknown, fallback = "Something went wrong"): string {
-  if (err instanceof ApiError) {
-    if (err.code) {
-      const translated = translateErrorCode(err.code, err.params);
-      if (translated) return translated;
-    }
-    return err.message;
-  }
   if (err instanceof Error && err.message) return err.message;
-  return i18n.t(fallback);
+  return fallback;
 }

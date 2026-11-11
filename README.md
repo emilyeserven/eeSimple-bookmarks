@@ -71,7 +71,6 @@ pnpm verify:changed   # lint + typecheck + test only the changed packages
 pnpm fallow           # dead-code / duplication / complexity audit
 pnpm studio           # Drizzle Studio (database GUI)
 pnpm push:dev         # run the migrations hook, then push the schema to the local database
-pnpm i18n:status      # translation coverage for src/locales/ja.json
 ```
 
 To reset the database: `docker compose down -v && docker compose up --wait db && pnpm push:dev`.

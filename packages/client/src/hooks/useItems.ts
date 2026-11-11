@@ -2,7 +2,6 @@ import type { CreateItemInput, UpdateItemInput } from "@app/types";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import i18n from "@/i18n";
 import { itemsApi } from "@/lib/api/items";
 import { describeError } from "@/lib/apiError";
 import { notifyError, notifySuccess } from "@/lib/notifications";
@@ -31,9 +30,7 @@ export function useCreateItem() {
     mutationFn: (input: CreateItemInput) => itemsApi.create(input),
     onSuccess: (item) => {
       void invalidate();
-      notifySuccess(i18n.t("Created \"{{name}}\"", {
-        name: item.name,
-      }));
+      notifySuccess(`Created "${item.name}"`);
     },
     onError: err => notifyError(describeError(err)),
   });
@@ -56,7 +53,7 @@ export function useDeleteItem() {
     mutationFn: (id: string) => itemsApi.remove(id),
     onSuccess: () => {
       void invalidate();
-      notifySuccess(i18n.t("Deleted item"));
+      notifySuccess("Deleted item");
     },
     onError: err => notifyError(describeError(err)),
   });

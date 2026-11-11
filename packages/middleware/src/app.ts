@@ -45,7 +45,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // Single error envelope for the whole API. Routes `throw` an `AppError` (or let a Fastify
   // schema-validation error bubble); the handler serializes it to `{ message, code, statusCode,
-  // params? }` so the client can translate `code` and fall back to the English `message`.
+  // params? }` so the client can show `message` and branch on `code`.
   app.setErrorHandler(errorHandler);
 
   await app.register(cors, {

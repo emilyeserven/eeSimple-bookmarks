@@ -6,7 +6,7 @@ description: >-
   decision rule for fixtures. Use when asked to "add a story for X", "write a Storybook story", "add
   a variant to X's stories", "give this component Storybook coverage", "why does this component's
   story need MSW", or "the Storybook build fails". Mirrors `components/ui/button.stories.tsx`
-  (props-only, no MSW) and `components/ItemsManager.stories.tsx` (MSW, hook-backed). Cross-links the
+  (props-only, no MSW) and `routes/items/-components/ItemsManager.stories.tsx` (MSW, hook-backed). Cross-links the
   `test-structure` skill's "Stories: MSW handlers" section for the MSW mechanism — this skill does
   not re-document it.
 ---
@@ -23,16 +23,17 @@ pnpm --filter=@app/client build-storybook    # static build — CI's `build` job
 Config lives in `packages/client/.storybook/`: `main.ts` globs `../src/**/*.stories.@(ts|tsx)`,
 serves `public/` (for the MSW service worker), and strips the VitePWA plugins it would otherwise
 inherit from `vite.config.ts` (generating a service worker over Storybook's bundle fails the build).
-`preview.tsx` supplies the global decorators — `withI18n` (plus a toolbar `locale` switch, `en`/`ja`),
-`withQueryClient`, `withRouter` — and the `mswLoader`. So any story can render components that use
-`useTranslation`, TanStack Query hooks, or `<Link>` without extra wrapping.
+`preview.tsx` supplies the global decorators — `withQueryClient`, `withRouter` — and the `mswLoader`.
+So any story can render components that use TanStack Query hooks or `<Link>` without extra wrapping.
 
 ## File location and naming
 
 - `<ComponentName>.stories.tsx`, colocated **flat** next to the component — no `stories/` subfolder.
 - `title` namespaces:
-  - `"Components/<ComponentName>"` for app components in `src/components/` (e.g.
-    `"Components/ItemsManager"`), matching the component's name exactly, no sub-paths.
+  - `"Components/<ComponentName>"` for app components — shared ones in `src/components/` and
+    route-colocated ones in a `routes/**/-components/` folder (e.g. `"Components/ItemsManager"` for
+    `routes/items/-components/ItemsManager.tsx`) — matching the component's name exactly, no
+    sub-paths. A story moves with its component when it's promoted (see **`tanstack-routes`**).
   - `"UI/<PrimitiveName>"` for the shadcn primitives in `src/components/ui/` (e.g. `"UI/Button"`).
 
 ## Meta/Story boilerplate
@@ -73,8 +74,6 @@ export const Default: Story = {};
 export const Empty: Story = { /* … */ };
 ```
 
-User-facing strings inside story args should be plain English; the component's own strings go
-through `t()` and the `withI18n` decorator renders them (see the **`i18n`** skill).
 
 ## Fixtures: always factories, never inline literals
 
@@ -98,7 +97,7 @@ Before writing a story, determine how the component gets its data:
 - **Fetches its own data via a hook internally** (e.g. `ItemsManager`, which calls `useItems()` and
   the item mutations) → the story **requires MSW**: import `apiHandlers` from
   `test-utils/story-mocks.ts` and set `parameters: { msw: { handlers: apiHandlers } }` on `meta`.
-  Reference: `components/ItemsManager.stories.tsx`:
+  Reference: `routes/items/-components/ItemsManager.stories.tsx`:
 
   ```tsx
   import { http, HttpResponse } from "msw";
@@ -133,4 +132,3 @@ MSW (`msw`, `http`, `HttpResponse`) is imported **only** in `.stories.tsx` files
 
 - **`test-structure`** — the MSW handler mechanism, decorators, and the tests-vs-stories mocking
   boundary rule.
-- **`i18n`** — the `withI18n` decorator and the `ja` locale toolbar switch.

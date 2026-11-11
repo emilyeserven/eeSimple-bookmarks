@@ -24,7 +24,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useTranslation } from "react-i18next";
 
 import {
   Table,
@@ -86,9 +85,6 @@ export function DataTable<T>({
   onRowClick,
   emptyMessage,
 }: DataTableProps<T>) {
-  const {
-    t,
-  } = useTranslation();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [localColumnSizing, setLocalColumnSizing] = useState<ColumnSizingState>({});
 
@@ -204,7 +200,7 @@ export function DataTable<T>({
                   colSpan={columns.length}
                   className="py-6 text-center text-muted-foreground"
                 >
-                  {emptyMessage ?? t("Nothing to show.")}
+                  {emptyMessage ?? "Nothing to show."}
                 </TableCell>
               </TableRow>
             )

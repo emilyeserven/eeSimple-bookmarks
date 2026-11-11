@@ -2,7 +2,6 @@ import type { Item } from "@app/types";
 
 import { useForm } from "@tanstack/react-form";
 import { Trash2 } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -22,17 +21,14 @@ const nameSchema = z.string().trim().min(1, "Name is required");
  */
 export function ItemsManager() {
   const {
-    t,
-  } = useTranslation();
-  const {
     data: items, isLoading,
   } = useItems();
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <h1 className="text-2xl font-semibold">{t("Items")}</h1>
+      <h1 className="text-2xl font-semibold">Items</h1>
       <CreateItemForm />
-      {isLoading ? <p className="text-muted-foreground">{t("Loading…")}</p> : null}
-      {items?.length === 0 ? <p className="text-sm text-muted-foreground">{t("No items yet.")}</p> : null}
+      {isLoading ? <p className="text-muted-foreground">Loading…</p> : null}
+      {items?.length === 0 ? <p className="text-sm text-muted-foreground">No items yet.</p> : null}
       <ul className="space-y-3">
         {items?.map(item => (
           <li key={item.id}>
@@ -45,9 +41,6 @@ export function ItemsManager() {
 }
 
 function CreateItemForm() {
-  const {
-    t,
-  } = useTranslation();
   const create = useCreateItem();
   const form = useForm({
     defaultValues: {
@@ -78,8 +71,8 @@ function CreateItemForm() {
       >
         {field => (
           <Input
-            aria-label={t("New item name")}
-            placeholder={t("New item name")}
+            aria-label="New item name"
+            placeholder="New item name"
             value={field.state.value}
             onChange={e => field.handleChange(e.target.value)}
             aria-invalid={field.state.meta.errors.length > 0}
@@ -90,7 +83,7 @@ function CreateItemForm() {
         type="submit"
         disabled={create.isPending}
       >
-        {t("Add")}
+        Add
       </Button>
     </form>
   );
@@ -99,9 +92,6 @@ function CreateItemForm() {
 function ItemRow({
   item,
 }: { item: Item }) {
-  const {
-    t,
-  } = useTranslation();
   const update = useUpdateItem();
   const remove = useDeleteItem();
 
@@ -126,17 +116,15 @@ function ItemRow({
         <Button
           variant="ghost"
           size="icon"
-          aria-label={t("Delete {{name}}", {
-            name: item.name,
-          })}
+          aria-label={`Delete ${item.name}`}
           onClick={() => remove.mutate(item.id)}
         >
           <Trash2 />
         </Button>
       </div>
       <Textarea
-        aria-label={t("Description")}
-        placeholder={t("Description")}
+        aria-label="Description"
+        placeholder="Description"
         defaultValue={item.description ?? ""}
         onBlur={e => saveDescription(e.target.value)}
       />

@@ -41,7 +41,7 @@ skill decides *whether* the test should exist at all.
 - **Testing pure middleware helpers** → a plain `node:test` file, no fake. Reference: `tests/slug.test.ts`.
 - **Testing client component behavior** (what renders, what a blur/change fires, which toast is
   recorded) → **`renderWithRouter`** under jsdom, with `fetch` stubbed or the hook module mocked.
-  Fixtures come from the `make*` factories. Reference: `components/ItemsManager.test.tsx`.
+  Fixtures come from the `make*` factories. Reference: `routes/items/-components/ItemsManager.test.tsx`.
 - **Testing a pure client helper** (parser/formatter/predicate/reducer) → a `.test.ts` with the
   line-1 `// @vitest-environment node` pragma. Reference: `lib/apiError.test.ts`.
 - **Feeding a story realistic data** → **MSW `apiHandlers`** from `test-utils/story-mocks.ts`, wired
@@ -170,7 +170,7 @@ the router's settle). Pass `paths` for every route a rendered `<Link>` targets.
 The query cache is **empty**, so any real data hook that runs will hit `fetch`. Cut it off one of two
 ways:
 
-**A. Stub `fetch` and let the real hooks run** (the reference — `components/ItemsManager.test.tsx`).
+**A. Stub `fetch` and let the real hooks run** (the reference — `routes/items/-components/ItemsManager.test.tsx`).
 This exercises the real `hooks/useItems.ts` + `lib/api/items.ts` path, and you assert on the request
 the component made:
 
@@ -258,11 +258,11 @@ Stories mock at the **network** boundary. `test-utils/story-mocks.ts` exports `a
 handlers for the `/api/items` routes the data-driven stories read) plus `sampleItems` built from the
 same `make*` factories. MSW is wired globally in `packages/client/.storybook/preview.tsx`
 (`initialize({ onUnhandledRequest: "bypass" })` + `mswLoader`), alongside the `withQueryClient` /
-`withRouter` / `withI18n` decorators — the Storybook analogues of the test harness, so the real data
+`withRouter` decorators — the Storybook analogues of the test harness, so the real data
 hooks run against MSW in a story.
 
 A story opts in via a parameter, and overrides per-story by putting its handler **first** and
-spreading the defaults after it (from `components/ItemsManager.stories.tsx`):
+spreading the defaults after it (from `routes/items/-components/ItemsManager.stories.tsx`):
 
 ```tsx
 import { apiHandlers } from "../test-utils/story-mocks";

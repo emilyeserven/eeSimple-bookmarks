@@ -1,7 +1,5 @@
 import type { NotificationPage } from "@/stores/notificationStore";
 
-import i18n from "@/i18n";
-
 /**
  * The page the user is currently on, kept as an imperative module-level holder so the
  * `notifySuccess`/`notifyError` helpers — which run outside React (inside mutation callbacks) — can
@@ -33,7 +31,7 @@ export function getCurrentNotificationPage(): NotificationPage {
  */
 export function pageLabelFromPathname(pathname: string): string {
   const segments = pathname.split("/").filter(Boolean);
-  if (segments.length === 0) return i18n.t("Home");
+  if (segments.length === 0) return "Home";
   return segments.map(titleCaseSegment).join(" › ");
 }
 

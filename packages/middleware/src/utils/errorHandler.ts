@@ -6,9 +6,9 @@ import { AppError, errorBody } from "@/utils/errors";
  * The single API error handler (registered via `app.setErrorHandler` in `app.ts`).
  *
  * Serializes a thrown {@link AppError} to the uniform `{ message, code, statusCode, params? }`
- * envelope so the client can translate `code`; a Fastify schema-validation error becomes a
+ * envelope; a Fastify schema-validation error becomes a
  * `schemaValidation`-coded 400; anything else is a generic `error`/`internal` fallback (5xx are
- * logged). The middleware never translates — it emits codes + English text only.
+ * logged).
  */
 export function errorHandler(err: FastifyError, req: FastifyRequest, reply: FastifyReply) {
   if (err instanceof AppError) {
