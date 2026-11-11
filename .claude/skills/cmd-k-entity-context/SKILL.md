@@ -5,6 +5,8 @@ description: Wire a slug-routed entity's detail/edit pages into the CMD+K palett
 
 # CMD+K entity context (registry-driven)
 
+> **Background reference:** the former CLAUDE.md section "CMD+K palette sync" now lives in [`reference.md`](reference.md) beside this file. Read it before changing this area.
+
 When the palette opens on a slug-routed entity's detail/edit page, it shows a **"Current
 \<Entity\>"** group: boolean quick-toggles, single-select choice sub-palettes, View/Edit
 navigation (plus extra edit tabs), Pin/Unpin for pinnable kinds, and New sub-tag/sub-type for

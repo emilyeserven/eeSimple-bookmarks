@@ -10,6 +10,8 @@ description: >-
 
 # Standardized toast / notification wiring
 
+> **Background reference:** the former CLAUDE.md section "Edit-tab auto-save standard" now lives in [`reference.md`](reference.md) beside this file. Read it before changing this area.
+
 Toasts in this app go through two thin pieces, not raw `toast.*`:
 
 - **`notifySuccess(msg)` / `notifyError(msg)`** (`packages/client/src/lib/notifications.ts`) — fire a

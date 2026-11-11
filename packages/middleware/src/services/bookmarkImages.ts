@@ -21,6 +21,7 @@ import { fetchYouTubeThumbnail, isYouTubeVideoUrl } from "@/services/youtube";
 import { prepareStoredImage, processImage, SVG_CONTENT_TYPE } from "@/utils/image";
 import { deleteObject, putObject } from "@/utils/objectStore";
 import { getActiveHostedEndpoint, getDecryptedHostedApiKey, getImageProcessingOptions, getImageUrlBlacklist } from "@/services/appSettings";
+import { operatorEndpointFetch } from "@/utils/ssrf";
 
 export type SetImageResult = BookmarkImage | "not_found" | "bad_image";
 export type ImageAutoGrabError = "no_image" | "bad_image" | "blocked" | "server_error" | "fetch_error";
@@ -190,7 +191,7 @@ export async function takeAndStoreScreenshot(
 
   let rawBytes: Buffer | null = null;
   try {
-    const res = await fetch(`${endpoint.replace(/\/$/, "")}/chromium/screenshot`, {
+    const res = await operatorEndpointFetch(`${endpoint.replace(/\/$/, "")}/chromium/screenshot`, {
       method: "POST",
       redirect: "follow",
       signal: AbortSignal.timeout(SCREENSHOT_TIMEOUT_MS + (delayMs ?? 0)),
@@ -287,6 +288,7 @@ async function storeScreenshotBytes(
 export async function storeUploadedScreenshot(
   bookmarkId: string,
   rawBytes: Buffer,
+  opts?: { fullPage?: boolean },
 ): Promise<BookmarkImage | "not_found" | "bad_image"> {
   const [bookmark] = await db.select({
     id: bookmarks.id,
@@ -294,7 +296,10 @@ export async function storeUploadedScreenshot(
     .from(bookmarks).where(eq(bookmarks.id, bookmarkId));
   if (!bookmark) return "not_found";
 
-  const processed = await processImage(rawBytes, await getImageProcessingOptions());
+  const processed = await processImage(rawBytes, {
+    ...await getImageProcessingOptions(),
+    fullPage: opts?.fullPage === true,
+  });
   if ("error" in processed) return "bad_image";
 
   return storeScreenshotBytes(bookmarkId, processed, {
@@ -407,7 +412,8 @@ export async function addBookmarkImage(
   bookmarkId: string,
   rawBytes: Buffer,
   source: "upload" | "og",
-  opts?: { setMain?: boolean },
+  opts?: { setMain?: boolean;
+    fullPage?: boolean; },
 ): Promise<SetImageResult | "too_many"> {
   const [bookmark] = await db.select({
     id: bookmarks.id,
@@ -417,7 +423,10 @@ export async function addBookmarkImage(
   const existing = await listBookmarkImageRows(bookmarkId);
   if (existing.length >= MAX_BOOKMARK_IMAGES) return "too_many";
 
-  const processed = await prepareStoredImage(rawBytes, await getImageProcessingOptions());
+  const processed = await prepareStoredImage(rawBytes, {
+    ...await getImageProcessingOptions(),
+    fullPage: opts?.fullPage === true,
+  });
   if ("error" in processed) return "bad_image";
 
   const makeMain = opts?.setMain === true || existing.length === 0;

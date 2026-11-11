@@ -316,6 +316,10 @@ function registerBookmarkGalleryRoutes(app: FastifyInstance): void {
           main: {
             type: "boolean",
           },
+          // A tall full-page (scrolling) capture from the extension: width-bound the resize.
+          fullPage: {
+            type: "boolean",
+          },
         },
       },
       consumes: ["multipart/form-data"],
@@ -325,8 +329,9 @@ function registerBookmarkGalleryRoutes(app: FastifyInstance): void {
       id,
     } = req.params as { id: string };
     const {
-      main,
-    } = req.query as { main?: boolean };
+      main, fullPage,
+    } = req.query as { main?: boolean;
+      fullPage?: boolean; };
     if (!isObjectStoreConfigured()) {
       throw new StorageUnconfiguredError();
     }
@@ -346,6 +351,7 @@ function registerBookmarkGalleryRoutes(app: FastifyInstance): void {
     }
     const result = await addBookmarkImage(id, bytes, "upload", {
       setMain: main === true,
+      fullPage: fullPage === true,
     });
     if (result === "not_found") {
       throw new NotFoundError("Bookmark");
@@ -504,12 +510,25 @@ function registerBookmarkGalleryRoutes(app: FastifyInstance): void {
     schema: {
       tags: ["images"],
       params: bookmarkParams,
+      querystring: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          // A tall full-page (scrolling) capture: width-bound the resize instead of longest edge.
+          fullPage: {
+            type: "boolean",
+          },
+        },
+      },
       consumes: ["multipart/form-data"],
     },
   }, async (req, reply) => {
     const {
       id,
     } = req.params as { id: string };
+    const {
+      fullPage,
+    } = req.query as { fullPage?: boolean };
     if (!isObjectStoreConfigured()) {
       throw new StorageUnconfiguredError();
     }
@@ -527,7 +546,9 @@ function registerBookmarkGalleryRoutes(app: FastifyInstance): void {
       }
       throw err;
     }
-    const result = await storeUploadedScreenshot(id, bytes);
+    const result = await storeUploadedScreenshot(id, bytes, {
+      fullPage: fullPage === true,
+    });
     if (result === "not_found") {
       throw new NotFoundError("Bookmark");
     }

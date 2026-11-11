@@ -13,6 +13,12 @@ import sharp from "sharp";
 /** Longest-edge cap (px) for a stored bookmark image. */
 export const MAX_IMAGE_EDGE = 1200;
 
+/**
+ * WebP's hard per-side pixel limit. A full-page (scrolling) screenshot is width-bounded rather than
+ * longest-edge-bounded, so its height is capped here instead.
+ */
+export const MAX_WEBP_DIMENSION = 16383;
+
 /** Content type of a stored SVG image (vector passthrough — never rasterized to WebP). */
 export const SVG_CONTENT_TYPE = "image/svg+xml";
 
@@ -35,6 +41,12 @@ export interface ProcessImageOptions {
   maxEdge?: number;
   /** WebP re-encode quality (1-100). Defaults to 80. */
   quality?: number;
+  /**
+   * Treat the input as a tall full-page (scrolling) screenshot: bound only the **width** by
+   * `maxEdge` (height capped at {@link MAX_WEBP_DIMENSION}) instead of the longest edge, so a
+   * 1280×12000 page capture isn't squashed into a ~130px-wide sliver.
+   */
+  fullPage?: boolean;
 }
 
 /**
@@ -51,6 +63,7 @@ export async function processImage(
 ): Promise<ProcessedImage | ProcessImageError> {
   const maxEdge = opts?.maxEdge ?? MAX_IMAGE_EDGE;
   const quality = opts?.quality ?? 80;
+  const fullPage = opts?.fullPage === true;
   try {
     const {
       data, info,
@@ -61,7 +74,7 @@ export async function processImage(
       .rotate()
       .resize({
         width: maxEdge,
-        height: maxEdge,
+        height: fullPage ? MAX_WEBP_DIMENSION : maxEdge,
         fit: "inside",
         withoutEnlargement: true,
       })

@@ -1,4 +1,4 @@
-/* global chrome */
+/* global chrome, EesimpleCapture */
 const AUTO_CLOSE_MS = 5000; // keep in sync with the #progressBar animation duration in popup.html
 
 const setupEl = document.getElementById("setup");
@@ -1097,51 +1097,115 @@ function cancelCountdown() {
 }
 
 // --- Screenshot capture -------------------------------------------------
-// Reset a screen's "Capture screenshot" button and wire it to the bookmark. Hidden when there's no
-// bookmark to attach to (e.g. the inbox-only success screen). Shown wherever a bookmark id exists.
+// Each bookmark screen has a "Capture screenshot" button plus a small options row (built here, once
+// per button) choosing the area — the visible viewport or the full scrolling page — and where it
+// goes: the bookmark's single screenshot slot, or its image gallery (optionally as the main image).
+// The choice is remembered across popups. Engine: screenshotCapture.js (`EesimpleCapture`).
+const CAPTURE_AREA_OPTIONS = [
+  ["visible", "Visible area"],
+  ["full", "Full page (scroll)"],
+];
+const CAPTURE_DEST_OPTIONS = [
+  ["screenshot", "Save as screenshot"],
+  ["images", "Add to bookmark images"],
+  ["main", "Add as main image"],
+];
+const captureOptionsLoaded = EesimpleCapture.loadOptions();
+
+function buildCaptureSelect(options, value, onChange) {
+  const select = document.createElement("select");
+  select.className = "capture-select";
+  for (const [optValue, label] of options) {
+    const option = document.createElement("option");
+    option.value = optValue;
+    option.textContent = label;
+    select.append(option);
+  }
+  select.value = value;
+  select.onchange = () => onChange(select.value);
+  return select;
+}
+
+// Lazily create the options row directly above the button (shared by every wiring of that button).
+async function ensureCaptureOptionsRow(btn) {
+  if (btn.captureOptionsRow) return btn.captureOptionsRow;
+  const options = await captureOptionsLoaded;
+  const row = document.createElement("div");
+  row.className = "capture-options";
+  const persist = () => EesimpleCapture.saveOptions(options);
+  row.append(
+    buildCaptureSelect(CAPTURE_AREA_OPTIONS, options.area, (value) => {
+      options.area = value;
+      persist();
+    }),
+    buildCaptureSelect(CAPTURE_DEST_OPTIONS, options.dest, (value) => {
+      options.dest = value;
+      persist();
+    }),
+  );
+  row.captureOptions = options;
+  btn.before(row);
+  btn.captureOptionsRow = row;
+  return row;
+}
+
+// Reset a screen's "Capture screenshot" button and wire it to the bookmark. Hidden (with its options
+// row) when there's no bookmark to attach to (e.g. the inbox-only success screen).
 function wireCaptureButton(btn, statusEl, bookmarkId) {
   if (!btn) return;
   if (statusEl) statusEl.textContent = "";
   if (!bookmarkId) {
     btn.classList.add("hidden");
+    if (btn.captureOptionsRow) btn.captureOptionsRow.classList.add("hidden");
     return;
   }
   btn.classList.remove("hidden");
   btn.disabled = false;
   btn.textContent = "Capture screenshot";
   btn.onclick = () => void captureScreenshot(bookmarkId, btn, statusEl);
+  void ensureCaptureOptionsRow(btn).then(row => row.classList.remove("hidden"));
 }
 
-// Capture the visible tab and store it in the bookmark's screenshot slot. Client-side capture works
-// on pages behind a login that the server-side (Browserless) capture can't reach. Cancels the
-// auto-close countdown so the popup stays open while capturing. Best-effort: reports status inline
-// and never throws.
+// Capture the visible area or the full scrolling page and upload it to the chosen destination.
+// Client-side capture works on pages behind a login that the server-side (Browserless) capture
+// can't reach. Cancels the auto-close countdown so the popup stays open while capturing (a full-page
+// capture takes a few seconds). Best-effort: reports status inline and never throws.
 async function captureScreenshot(bookmarkId, btn, statusEl) {
   if (!bookmarkId) return;
   cancelCountdown();
-  btn.disabled = true;
+  const row = await ensureCaptureOptionsRow(btn);
+  const {
+    area, dest,
+  } = row.captureOptions;
+  const selects = row.querySelectorAll("select");
+  const setBusy = (busy) => {
+    btn.disabled = busy;
+    for (const select of selects) select.disabled = busy;
+  };
+  setBusy(true);
   btn.textContent = "Capturing…";
   if (statusEl) statusEl.textContent = "";
   try {
-    const dataUrl = await chrome.tabs.captureVisibleTab(currentTab?.windowId, {
-      format: "jpeg",
-      quality: 92,
-    });
-    const blob = await (await fetch(dataUrl)).blob();
-    if (!blob || blob.size === 0) throw new Error("empty capture");
-    const form = new FormData();
-    form.append("file", blob, "screenshot.jpg");
-    const res = await fetch(`${serverUrl}/api/bookmarks/${bookmarkId}/screenshot/upload`, {
-      method: "POST",
-      body: form,
-    });
-    if (!res.ok) throw new Error(`status ${res.status}`);
-    btn.textContent = "Screenshot saved";
+    const capture = area === "full"
+      ? await EesimpleCapture.captureFullPage(currentTab, (index, count) => {
+        btn.textContent = count > 1 ? `Capturing ${index} of ${count}…` : "Capturing…";
+      })
+      : await EesimpleCapture.captureVisible(currentTab);
+    if (!capture.blob || capture.blob.size === 0) throw new Error("empty capture");
+    btn.textContent = "Uploading…";
+    await EesimpleCapture.uploadCapture(serverUrl, bookmarkId, capture, dest);
+    setBusy(false);
+    btn.textContent = "Capture another";
+    if (statusEl) {
+      const where = dest === "screenshot" ? "Saved as the screenshot" : dest === "main" ? "Added as the main image" : "Added to the bookmark's images";
+      statusEl.textContent = capture.truncated ? `${where} (page was too long, so it was cut off).` : `${where}.`;
+    }
   }
-  catch {
-    btn.disabled = false;
+  catch (err) {
+    setBusy(false);
     btn.textContent = "Capture screenshot";
-    if (statusEl) statusEl.textContent = "Couldn't capture the screenshot. Please try again.";
+    const detail = err instanceof Error && err.message ? ` (${err.message})` : "";
+    if (statusEl) statusEl.textContent = `Couldn't capture the screenshot${detail}. Please try again.`;
   }
 }
 

@@ -12,6 +12,8 @@ description: >-
 
 # Internationalization (i18n)
 
+> **Background reference:** the former CLAUDE.md section "Internationalization" now lives in [`reference.md`](reference.md) beside this file. Read it before changing this area.
+
 The client renders UI strings through **react-i18next** with **English-phrase keys** — the key *is*
 the English text. `t("Save changes")` renders `"Save changes"` when no translation exists, so
 untranslated UI looks exactly as it did before i18n, and the existing text assertions / stories pass

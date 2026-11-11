@@ -7,6 +7,7 @@ import type { SocialLink } from "@eesimple/types";
 import { socialAccountFromUrl } from "@eesimple/types";
 
 import { processImage } from "@/utils/image";
+import { guardedFetch, isPublicHttpUrl } from "@/utils/ssrf";
 
 export const FETCH_TIMEOUT_MS = 5000;
 /** Cap the body we read so a huge response can't exhaust memory. */
@@ -141,11 +142,14 @@ async function fetchHtml(url: string, stopAt: RegExp, maxBytes = MAX_BYTES): Pro
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
-    const res = await fetch(url, {
+    // The page URL is the user's own (a bookmark), so its host is trusted — but a redirect off it
+    // is SSRF-guarded, so a public page can't bounce the server onto the private network.
+    const res = await guardedFetch(url, {
       method: "GET",
-      redirect: "follow",
       signal: controller.signal,
       headers: BROWSER_DOCUMENT_HEADERS,
+    }, {
+      trustInitialHost: true,
     });
     if (!res.ok) return {
       kind: "http_error",
@@ -224,20 +228,21 @@ export type CheckUrlResult
 /**
  * Probe `url` to see whether it still resolves, without downloading the page body. Tries a `HEAD`
  * first and falls back to `GET` for servers that reject HEAD (405/501 or an outright failure).
- * Guarded by the same timeout as the other fetches. Like `fetchPageTitle`, it hits the raw
- * user-entered URL (only `isValidUrl` upstream, not `isPublicHttpUrl`) so intranet/localhost
- * bookmarks stay checkable.
+ * Guarded by the same timeout as the other fetches. Like `fetchPageTitle`, it trusts the raw
+ * user-entered URL's own host (only `isValidUrl` upstream, not `isPublicHttpUrl`) so intranet/localhost
+ * bookmarks stay checkable; a redirect to another host is SSRF-guarded by `guardedFetch`.
  */
 export async function checkUrl(url: string): Promise<CheckUrlResult> {
   async function probe(method: "HEAD" | "GET"): Promise<Response> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     try {
-      return await fetch(url, {
+      return await guardedFetch(url, {
         method,
-        redirect: "follow",
         signal: controller.signal,
         headers: BROWSER_DOCUMENT_HEADERS,
+      }, {
+        trustInitialHost: true,
       });
     }
     finally {
@@ -529,41 +534,8 @@ export function duckDuckGoIconUrl(domain: string): string {
   return `https://icons.duckduckgo.com/ip3/${encodeURIComponent(domain)}.ico`;
 }
 
-/**
- * Reject non-http(s) URLs and obvious internal/loopback/private hosts. The image URL comes from a
- * third-party page, so it's treated as untrusted to limit SSRF on a private network.
- */
-export function isPublicHttpUrl(value: string): boolean {
-  let url: URL;
-  try {
-    url = new URL(value);
-  }
-  catch {
-    return false;
-  }
-  if (url.protocol !== "http:" && url.protocol !== "https:") return false;
-
-  // `url.hostname` returns IPv6 literals bracketed (e.g. "[::1]"); strip them for comparison.
-  const host = url.hostname.toLowerCase().replace(/^\[|\]$/g, "");
-  if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local")) return false;
-
-  // IPv6 literals contain a colon — block loopback (::1) and unique-local/link-local ranges.
-  if (host.includes(":")) {
-    return !(host === "::1" || /^f[cd]/.test(host) || host.startsWith("fe80:"));
-  }
-
-  // IPv4 literals — block loopback, private, and link-local ranges.
-  const ipv4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.\d{1,3}$/.exec(host);
-  if (ipv4) {
-    const a = Number(ipv4[1]);
-    const b = Number(ipv4[2]);
-    if (a === 0 || a === 10 || a === 127) return false;
-    if (a === 169 && b === 254) return false;
-    if (a === 192 && b === 168) return false;
-    if (a === 172 && b >= 16 && b <= 31) return false;
-  }
-  return true;
-}
+// Re-exported so the many existing `@/services/metadata` importers keep working.
+export { isPublicHttpUrl };
 
 /** Typed outcome of an og:image fetch attempt. */
 export type OgImageResult = Buffer | "fetch_error" | "blocked" | "server_error" | "no_image" | "bad_image";
@@ -591,9 +563,9 @@ async function downloadImageResult(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
-    const res = await fetch(url, {
+    // Image URLs come from third-party pages: every hop (and every resolved address) is guarded.
+    const res = await guardedFetch(url, {
       method: "GET",
-      redirect: "follow",
       signal: controller.signal,
       headers: {
         ...BROWSER_CLIENT_HINTS,
