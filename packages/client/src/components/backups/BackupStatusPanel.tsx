@@ -80,7 +80,7 @@ function LastRunSummary({
       {ok
         ? (
           <p className="text-muted-foreground">
-            {t("Dump {{size}}, {{images}} new images copied, {{pruned}} old dumps removed.", {
+            {t("Backup {{size}}, {{images}} new images copied, {{pruned}} old backups removed.", {
               size: formatSize(run.dumpBytes),
               images: run.imagesCopied,
               pruned: run.prunedCount,
@@ -104,7 +104,7 @@ function BackupFileList() {
   } = useBackupFiles(true);
   if (isLoading) return <p className="text-sm text-muted-foreground">{t("Loading…")}</p>;
   if (data?.error) return <p className="text-sm text-destructive">{data.error}</p>;
-  if (!data?.files.length) return <p className="text-sm text-muted-foreground">{t("No dumps at the destination yet.")}</p>;
+  if (!data?.files.length) return <p className="text-sm text-muted-foreground">{t("No backups on the other computer yet.")}</p>;
   return (
     <ul className="divide-y rounded-md border text-sm">
       {data.files.map(file => (
@@ -189,7 +189,7 @@ export function BackupStatusPanel() {
       )}
       {status.destinationConfigured && (
         <div className="space-y-2">
-          <h4 className="text-sm font-medium">{t("Stored dumps")}</h4>
+          <h4 className="text-sm font-medium">{t("Stored backups")}</h4>
           <BackupFileList />
         </div>
       )}

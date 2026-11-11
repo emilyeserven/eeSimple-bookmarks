@@ -16,6 +16,10 @@ export const backupsApi = {
       method: "PUT",
       body: JSON.stringify(input),
     }),
+  generateSftpKey: () =>
+    request<BackupSettings>("/backups/sftp-key", {
+      method: "POST",
+    }),
   status: () => request<BackupStatus>("/backups/status"),
   run: () =>
     request<BackupStatus>("/backups/run", {

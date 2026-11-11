@@ -3,7 +3,7 @@ import { type AnyPgColumn, boolean, index, integer, jsonb, pgTable, primaryKey, 
 import type { BackupRun, BackupSettings, BookmarkAddFormAdvancedRule, BookmarkFieldSort, BookmarkGraphSettings, BookmarkSort, CardDisplaySection, CardFieldZones, CardZoneLayouts, ConditionTree, EntityLayout, ExtensionFillRuleGroup, HomepageWidget, ImportBlacklistEntry, LabeledWebsite, LocationAlternateName, LocationBoundary, ParseTag, PersonSourceLabelSettings, PlaceTypeColorConfig, PlaceTypeDisplayConfig, PlaceTypeIconConfig, PlaceTypeLevelGroupConfig, ShortenedLink, SocialLink, WebsiteExtensionFillRule, WebsiteParamRule, WebsiteScanObservation } from "@eesimple/types";
 
 /** The non-secret backup fields stored in `app_settings.backup_settings`. */
-type StoredBackupSettings = Omit<BackupSettings, "secretAccessKeySet" | "encryptionEnabled">;
+type StoredBackupSettings = Omit<BackupSettings, "sftpPasswordSet" | "s3SecretAccessKeySet" | "encryptionEnabled">;
 
 /** `bookmarks` table — one row per saved bookmark. Tags now live in `bookmark_tags`. */
 export const bookmarks = pgTable("bookmarks", {
@@ -2054,11 +2054,14 @@ export const appSettings = pgTable("app_settings", {
   // the service reads `?? []`.
   bookmarkFormAdvancedRules: jsonb("bookmark_form_advanced_rules").$type<BookmarkAddFormAdvancedRule[]>(),
   // Scheduled database backups (Settings → Advanced → Backups). The non-secret config is one jsonb
-  // blob the service merges over its defaults; the destination's S3 secret key is its own column so
-  // it can be encrypted at rest (`maybeEncrypt`, the connector-key pattern) and never returned; the
-  // last run's outcome is display-only status. All nullable = push-safe additive.
+  // blob the service merges over its defaults; each secret (SFTP password, the app's SFTP private
+  // key, the S3 secret key) is its own column so it can be encrypted at rest (`maybeEncrypt`, the
+  // connector-key pattern) and never returned; the last run's outcome is display-only status. All
+  // nullable = push-safe additive.
   backupSettings: jsonb("backup_settings").$type<Partial<StoredBackupSettings>>(),
-  backupSecretAccessKey: text("backup_secret_access_key"),
+  backupSftpPassword: text("backup_sftp_password"),
+  backupSftpPrivateKey: text("backup_sftp_private_key"),
+  backupS3SecretAccessKey: text("backup_s3_secret_access_key"),
   backupLastRun: jsonb("backup_last_run").$type<BackupRun>(),
 });
 

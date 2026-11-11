@@ -1,6 +1,6 @@
 /**
- * One backup run: `pg_dump --format=custom` to a temp file, upload it to the destination bucket,
- * optionally mirror new image-bucket objects beside it, then prune old dumps down to the retention
+ * One backup run: `pg_dump --format=custom` to a temp file, upload it to the destination (an SFTP
+ * folder or an S3 bucket), optionally mirror new image-bucket objects beside it, then prune old dumps down to the retention
  * count. At most one run at a time; the in-progress run lives in memory and only the finished
  * outcome is persisted (`app_settings.backup_last_run`), so a restart mid-run leaves no stale
  * "running" row behind.
@@ -19,35 +19,25 @@ import { eq } from "drizzle-orm";
 import type { BackupFileList, BackupRun, BackupTrigger } from "@eesimple/types";
 import { db } from "@/db";
 import { appSettings } from "@/db/schema";
-import {
-  createBackupStore,
-  deleteBackupObject,
-  describeBackupStoreError,
-  listBackupObjects,
-  putBackupObject,
-  type BackupStore,
-} from "@/utils/backupStore";
+import { describeBackupStoreError, openBackupTarget } from "@/utils/backupStore";
+import type { BackupTarget } from "@/utils/backupTarget";
 import { AppError, ValidationError } from "@/utils/errors";
 import { getObjectStream, isObjectStoreConfigured, listObjects } from "@/utils/objectStore";
-import { getBackupRuntimeConfig, type BackupDestination } from "./backupConfig";
+import { getBackupRuntimeConfig, rememberSftpHostFingerprint, type BackupDestination } from "./backupConfig";
 import { ROW_ID } from "./appSettingsShared";
 
 const execFileAsync = promisify(execFile);
 
-/** `<prefix>/db/` — where dumps go. */
-export function dumpPrefix(prefix: string): string {
-  return prefix ? `${prefix}/db/` : "db/";
-}
+/** Folder (under the destination root) where dumps go. */
+export const DUMP_DIR = "db";
 
-/** `<prefix>/images/` — where the image-bucket mirror goes. */
-export function imagePrefix(prefix: string): string {
-  return prefix ? `${prefix}/images/` : "images/";
-}
+/** Folder (under the destination root) where the image-bucket mirror goes. */
+export const IMAGE_DIR = "images";
 
-/** The dump's object key: timestamped so keys sort oldest → newest, e.g. `…/db/eesimple-bookmarks-2026-11-11T03-00-00Z.dump`. */
-export function dumpKeyFor(prefix: string, at: Date): string {
+/** The dump's path: timestamped so names sort oldest → newest, e.g. `db/eesimple-bookmarks-2026-11-11T03-00-00Z.dump`. */
+export function dumpPathFor(at: Date): string {
   const stamp = at.toISOString().replace(/\.\d{3}Z$/, "Z").replace(/:/g, "-");
-  return `${dumpPrefix(prefix)}eesimple-bookmarks-${stamp}.dump`;
+  return `${DUMP_DIR}/eesimple-bookmarks-${stamp}.dump`;
 }
 
 /** The dump keys to delete so only the newest `retention` remain. Only `.dump` files are touched. */
@@ -124,18 +114,35 @@ function runPgDump(file: string): Promise<void> {
 }
 
 /** Copy image-bucket objects the destination doesn't have yet. Returns how many were copied. */
-async function mirrorImages(store: BackupStore, prefix: string): Promise<number> {
-  const target = imagePrefix(prefix);
-  const existing = new Set((await listBackupObjects(store, target)).map(o => o.key.slice(target.length)));
+async function mirrorImages(target: BackupTarget): Promise<number> {
+  const existing = new Set((await target.list(IMAGE_DIR)).map(o => o.path.slice(IMAGE_DIR.length + 1)));
   let copied = 0;
   for (const obj of await listObjects()) {
     if (existing.has(obj.key)) continue;
     const source = await getObjectStream(obj.key);
     if (!source) continue;
-    await putBackupObject(store, `${target}${obj.key}`, source.body, source.contentLength ?? obj.size ?? 0, source.contentType);
+    await target.put(`${IMAGE_DIR}/${obj.key}`, source.body, source.contentLength ?? obj.size ?? 0, source.contentType);
     copied++;
   }
   return copied;
+}
+
+/**
+ * Open the destination, run `fn`, and close it. On the first successful SFTP connection, remember
+ * the host's fingerprint so later connections can check it.
+ */
+export async function withBackupTarget<T>(destination: BackupDestination, fn: (target: BackupTarget) => Promise<T>): Promise<T> {
+  const target = await openBackupTarget(destination);
+  try {
+    const result = await fn(target);
+    if (destination.type === "sftp" && !destination.hostFingerprint && target.hostFingerprint) {
+      await rememberSftpHostFingerprint(target.hostFingerprint);
+    }
+    return result;
+  }
+  finally {
+    target.close();
+  }
 }
 
 async function saveLastRun(run: BackupRun): Promise<void> {
@@ -173,32 +180,34 @@ export async function getLastBackupRun(): Promise<BackupRun | null> {
 
 /** The steps of a run, filling in `run` as they go. Throws on the first failure. */
 async function performBackup(run: BackupRun, destination: BackupDestination, retention: number, includeImages: boolean): Promise<void> {
-  const store = createBackupStore(destination);
   const dir = await mkdtemp(join(tmpdir(), "eesimple-backup-"));
   try {
     const file = join(dir, "dump");
+    // Dump first, so a slow dump doesn't hold an idle SSH connection open.
     await runPgDump(file);
     const {
       size,
     } = await stat(file);
-    const key = dumpKeyFor(destination.prefix, new Date(run.startedAt));
-    await putBackupObject(store, key, createReadStream(file), size);
-    run.dumpKey = key;
-    run.dumpBytes = size;
+    await withBackupTarget(destination, async (target) => {
+      const path = dumpPathFor(new Date(run.startedAt));
+      await target.put(path, createReadStream(file), size);
+      run.dumpKey = target.locate(path);
+      run.dumpBytes = size;
+      if (includeImages && isObjectStoreConfigured()) {
+        run.imagesCopied = await mirrorImages(target);
+      }
+      const dumps = await target.list(DUMP_DIR);
+      for (const path of selectDumpsToPrune(dumps.map(d => d.path), retention)) {
+        await target.remove(path);
+        run.prunedCount++;
+      }
+    });
   }
   finally {
     await rm(dir, {
       recursive: true,
       force: true,
     });
-  }
-  if (includeImages && isObjectStoreConfigured()) {
-    run.imagesCopied = await mirrorImages(store, destination.prefix);
-  }
-  const dumps = await listBackupObjects(store, dumpPrefix(destination.prefix));
-  for (const key of selectDumpsToPrune(dumps.map(d => d.key), retention)) {
-    await deleteBackupObject(store, key);
-    run.prunedCount++;
   }
 }
 
@@ -267,20 +276,21 @@ export async function listBackupFiles(): Promise<BackupFileList> {
     files: [],
     error: null,
   };
-  const store = createBackupStore(destination);
   try {
-    const objects = await listBackupObjects(store, dumpPrefix(destination.prefix));
-    return {
-      files: objects
-        .filter(o => o.key.endsWith(".dump"))
-        .sort((a, b) => b.key.localeCompare(a.key))
-        .map(o => ({
-          key: o.key,
-          size: o.size,
-          lastModified: o.lastModified?.toISOString() ?? null,
-        })),
-      error: null,
-    };
+    return await withBackupTarget(destination, async (target) => {
+      const objects = await target.list(DUMP_DIR);
+      return {
+        files: objects
+          .filter(o => o.path.endsWith(".dump"))
+          .sort((a, b) => b.path.localeCompare(a.path))
+          .map(o => ({
+            key: target.locate(o.path),
+            size: o.size,
+            lastModified: o.lastModified?.toISOString() ?? null,
+          })),
+        error: null,
+      };
+    });
   }
   catch (err) {
     return {

@@ -43,7 +43,7 @@ export function BackupSettings() {
             <CardHeader>
               <CardTitle>{t("Schedule")}</CardTitle>
               <CardDescription>
-                {t("When backups run and how many to keep. Each field saves on its own.")}
+                {t("When backups run and how many to keep. Each choice saves on its own.")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -54,7 +54,7 @@ export function BackupSettings() {
             <CardHeader>
               <CardTitle>{t("Destination")}</CardTitle>
               <CardDescription>
-                {t("An S3-compatible bucket on another machine, such as Garage or MinIO running on a computer on your tailnet. Create the bucket and an access key there first.")}
+                {t("Another computer on your Tailscale network that keeps the backups.")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -69,7 +69,7 @@ export function BackupSettings() {
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <p>
-            {t("Download a dump from the destination, then restore it into the app's database with pg_restore (version 18 or newer, which matches the dump):")}
+            {t("Copy a backup file from the other computer, then load it into the app's database with pg_restore (version 18 or newer, which matches the backup):")}
           </p>
           <pre className="overflow-x-auto rounded-md bg-muted p-3 text-xs">
             <code>{RESTORE_COMMAND}</code>

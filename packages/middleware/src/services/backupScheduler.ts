@@ -1,14 +1,15 @@
 /**
- * The in-process backup schedule. Croner (https://github.com/Hexagon/croner) fires `runBackup` on
- * the configured cron expression and time zone; `protect` skips a tick while the previous run is
- * still going. Started after `app.listen()` and rebuilt whenever the backup settings are saved.
+ * The in-process backup schedule. The saved choices (frequency, time, weekday, time zone) become a
+ * cron expression (`cronFromSchedule`) that Croner (https://github.com/Hexagon/croner) fires
+ * `runBackup` on; `protect` skips a tick while the previous run is still going. Started after
+ * `app.listen()` and rebuilt whenever the backup settings are saved.
  */
 
 import { Cron } from "croner";
 import type { BackupDestinationCheck, BackupStatus } from "@eesimple/types";
-import { checkBackupBucket, createBackupStore, describeBackupStoreError } from "@/utils/backupStore";
-import { getBackupRuntimeConfig, isValidBackupSchedule, isValidTimezone } from "./backupConfig";
-import { getCurrentBackupRun, getLastBackupRun, getPgDumpVersion, runBackup } from "./backupRun";
+import { describeBackupStoreError } from "@/utils/backupStore";
+import { cronFromSchedule, getBackupRuntimeConfig } from "./backupConfig";
+import { getCurrentBackupRun, getLastBackupRun, getPgDumpVersion, runBackup, withBackupTarget } from "./backupRun";
 
 /** Minimal logger shape, so this module doesn't depend on Fastify. */
 interface BackupLogger {
@@ -28,8 +29,7 @@ export async function rescheduleBackups(): Promise<void> {
     destination,
   } = await getBackupRuntimeConfig();
   if (!settings.enabled || !destination) return;
-  if (!isValidBackupSchedule(settings.schedule) || !isValidTimezone(settings.timezone)) return;
-  job = new Cron(settings.schedule, {
+  job = new Cron(cronFromSchedule(settings.frequency, settings.time, settings.weekday), {
     timezone: settings.timezone,
     protect: true,
     name: "database-backup",
@@ -78,17 +78,17 @@ export async function getBackupStatus(): Promise<BackupStatus> {
   };
 }
 
-/** Check that the saved destination bucket answers with the saved credentials. */
+/** Check that the saved destination answers with the saved credentials (and, for SFTP, is writable). */
 export async function checkBackupDestination(): Promise<BackupDestinationCheck> {
   const {
     destination,
   } = await getBackupRuntimeConfig();
   if (!destination) return {
     ok: false,
-    error: "Fill in the endpoint, bucket, access key and secret key first.",
+    error: "Fill in every destination field first.",
   };
   try {
-    await checkBackupBucket(createBackupStore(destination));
+    await withBackupTarget(destination, target => target.check());
     return {
       ok: true,
       error: null,

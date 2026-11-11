@@ -40,6 +40,22 @@ export function useUpdateBackupSettings() {
   });
 }
 
+/** Create the app's own SSH key for SFTP sign-in (switches SFTP to key sign-in). */
+export function useGenerateSftpKey() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: backupsApi.generateSftpKey,
+    onSuccess: (saved: BackupSettings) => {
+      queryClient.setQueryData(BACKUP_SETTINGS_KEY, saved);
+      void queryClient.invalidateQueries({
+        queryKey: ["backups"],
+      });
+      notifyFieldSaved("SSH key");
+    },
+    onError: error => notifyFieldSaveError("SSH key", describeError(error, error.message)),
+  });
+}
+
 /** Live backup status; polls only while a run is in progress. */
 export function useBackupStatus() {
   return useQuery({

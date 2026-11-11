@@ -1,33 +1,67 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { DEFAULT_BACKUP_RETENTION, DEFAULT_BACKUP_SCHEDULE, MAX_BACKUP_RETENTION } from "@eesimple/types";
+import { Cron } from "croner";
+import { DEFAULT_BACKUP_RETENTION, MAX_BACKUP_RETENTION } from "@eesimple/types";
 import {
   applyBackupSettingsPatch,
+  type BackupDestination,
+  cronFromSchedule,
   DEFAULT_BACKUP_SETTINGS,
   isDestinationComplete,
-  isValidBackupSchedule,
+  isValidTime,
   isValidTimezone,
   normalizePrefix,
   normalizeRetention,
+  normalizeSftpPath,
   resolveStoredBackupSettings,
 } from "@/services/backupConfig";
-import { dumpKeyFor, dumpPrefix, imagePrefix, pgEnvFromDatabaseUrl, selectDumpsToPrune } from "@/services/backupRun";
+import { dumpPathFor, pgEnvFromDatabaseUrl, selectDumpsToPrune } from "@/services/backupRun";
+import { hostKeyFingerprint } from "@/utils/backupSftp";
 import { describeBackupStoreError } from "@/utils/backupStore";
+import { joinPath } from "@/utils/backupTarget";
 import { AppError } from "@/utils/errors";
 
-test("isValidBackupSchedule accepts five-field cron and nicknames, refuses seconds and junk", () => {
-  for (const ok of ["0 3 * * *", "*/30 * * * *", "0 3 * * 0", "15 2 1 * *", "@daily", "@weekly"]) {
-    assert.equal(isValidBackupSchedule(ok), true, ok);
-  }
-  for (const bad of ["", "   ", "* * * * * *", "0 3 * *", "61 3 * * *", "every day", "0 25 * * *"]) {
-    assert.equal(isValidBackupSchedule(bad), false, bad);
-  }
+/** The next `count` run times (UTC ISO) of a cron expression, starting just after `from`. */
+function nextRuns(cron: string, from: string, count = 3): string[] {
+  return new Cron(cron, {
+    timezone: "UTC",
+    paused: true,
+  }).nextRuns(count, new Date(from)).map(d => d.toISOString());
+}
+
+test("cronFromSchedule turns plain choices into the right run times", () => {
+  assert.deepEqual(nextRuns(cronFromSchedule("daily", "03:00", 0), "2026-11-11T12:00:00Z"), [
+    "2026-11-12T03:00:00.000Z",
+    "2026-11-13T03:00:00.000Z",
+    "2026-11-14T03:00:00.000Z",
+  ]);
+  // 2026-11-15 is a Sunday.
+  assert.deepEqual(nextRuns(cronFromSchedule("weekly", "04:30", 0), "2026-11-11T12:00:00Z", 2), [
+    "2026-11-15T04:30:00.000Z",
+    "2026-11-22T04:30:00.000Z",
+  ]);
+  assert.deepEqual(nextRuns(cronFromSchedule("every12h", "03:15", 0), "2026-11-11T12:00:00Z"), [
+    "2026-11-11T15:15:00.000Z",
+    "2026-11-12T03:15:00.000Z",
+    "2026-11-12T15:15:00.000Z",
+  ]);
+  assert.deepEqual(nextRuns(cronFromSchedule("every6h", "03:00", 0), "2026-11-11T12:00:00Z"), [
+    "2026-11-11T15:00:00.000Z",
+    "2026-11-11T21:00:00.000Z",
+    "2026-11-12T03:00:00.000Z",
+  ]);
+  // A junk time falls back to the default 03:00.
+  assert.equal(cronFromSchedule("daily", "nope", 0), "0 3 * * *");
+});
+
+test("isValidTime accepts HH:MM and refuses junk", () => {
+  for (const ok of ["00:00", "3:05", "23:59"]) assert.equal(isValidTime(ok), true, ok);
+  for (const bad of ["", "24:00", "12:60", "noon", "12"]) assert.equal(isValidTime(bad), false, bad);
 });
 
 test("isValidTimezone knows IANA zones and refuses junk", () => {
   assert.equal(isValidTimezone("UTC"), true);
-  assert.equal(isValidTimezone("Asia/Tokyo"), true);
   assert.equal(isValidTimezone("America/New_York"), true);
   assert.equal(isValidTimezone(""), false);
   assert.equal(isValidTimezone("Mars/Olympus_Mons"), false);
@@ -40,15 +74,19 @@ test("normalizeRetention clamps to 1..MAX and falls back on junk", () => {
   assert.equal(normalizeRetention(-3), 1);
   assert.equal(normalizeRetention(100_000), MAX_BACKUP_RETENTION);
   assert.equal(normalizeRetention("10"), 10);
-  assert.equal(normalizeRetention(null), 1);
+  assert.equal(normalizeRetention(null), DEFAULT_BACKUP_RETENTION);
   assert.equal(normalizeRetention(undefined), DEFAULT_BACKUP_RETENTION);
   assert.equal(normalizeRetention("abc"), DEFAULT_BACKUP_RETENTION);
 });
 
-test("normalizePrefix trims and strips slashes", () => {
+test("path normalizers trim slashes", () => {
   assert.equal(normalizePrefix(" /backups/pi/ "), "backups/pi");
-  assert.equal(normalizePrefix("///"), "");
-  assert.equal(normalizePrefix("eesimple"), "eesimple");
+  assert.equal(normalizeSftpPath(" /srv/backups/ "), "/srv/backups");
+  assert.equal(normalizeSftpPath("Backups/eesimple/"), "Backups/eesimple");
+  assert.equal(normalizeSftpPath("/"), "/");
+  assert.equal(joinPath("/srv/backups", "db/x.dump"), "/srv/backups/db/x.dump");
+  assert.equal(joinPath("", "db/x.dump"), "db/x.dump");
+  assert.equal(joinPath("/", "db/x.dump"), "/db/x.dump");
 });
 
 test("resolveStoredBackupSettings fills defaults and repairs junk", () => {
@@ -56,50 +94,81 @@ test("resolveStoredBackupSettings fills defaults and repairs junk", () => {
   const resolved = resolveStoredBackupSettings({
     enabled: "yes" as unknown as boolean,
     retention: -1,
-    schedule: "",
-    timezone: "  ",
-    bucket: "backups",
+    frequency: "hourly" as never,
+    time: "25:00",
+    weekday: 9,
+    timezone: "Nowhere",
+    destinationType: "ftp" as never,
+    sftpPort: 0,
+    sftpHost: "laptop",
   });
   assert.equal(resolved.enabled, false);
   assert.equal(resolved.retention, 1);
-  assert.equal(resolved.schedule, DEFAULT_BACKUP_SCHEDULE);
+  assert.equal(resolved.frequency, "daily");
+  assert.equal(resolved.time, "03:00");
+  assert.equal(resolved.weekday, 0);
   assert.equal(resolved.timezone, "UTC");
-  assert.equal(resolved.bucket, "backups");
-  assert.equal(resolved.includeImages, true);
+  assert.equal(resolved.destinationType, "sftp");
+  assert.equal(resolved.sftpPort, 22);
+  assert.equal(resolved.sftpHost, "laptop");
 });
 
 test("applyBackupSettingsPatch changes only the given fields and normalizes them", () => {
   const next = applyBackupSettingsPatch(DEFAULT_BACKUP_SETTINGS, {
-    endpoint: " http://100.101.102.103:3900/ ",
-    prefix: "/pi-backups/",
-    region: " ",
+    s3Endpoint: " http://100.101.102.103:3900/ ",
+    s3Prefix: "/pi-backups/",
+    s3Region: " ",
+    sftpPath: "Backups/eesimple/",
+    time: "4:30",
     retention: 30,
   });
-  assert.equal(next.endpoint, "http://100.101.102.103:3900");
-  assert.equal(next.prefix, "pi-backups");
-  assert.equal(next.region, DEFAULT_BACKUP_SETTINGS.region);
+  assert.equal(next.s3Endpoint, "http://100.101.102.103:3900");
+  assert.equal(next.s3Prefix, "pi-backups");
+  assert.equal(next.s3Region, DEFAULT_BACKUP_SETTINGS.s3Region);
+  assert.equal(next.sftpPath, "Backups/eesimple");
+  assert.equal(next.time, "04:30");
   assert.equal(next.retention, 30);
-  assert.equal(next.schedule, DEFAULT_BACKUP_SETTINGS.schedule);
+  assert.equal(next.frequency, DEFAULT_BACKUP_SETTINGS.frequency);
   assert.equal(next.enabled, false);
 });
 
-test("applyBackupSettingsPatch rejects an invalid schedule or time zone with a 400", () => {
-  assert.throws(
-    () => applyBackupSettingsPatch(DEFAULT_BACKUP_SETTINGS, {
-      schedule: "* * * * * *",
-    }),
-    (err: unknown) => err instanceof AppError && err.statusCode === 400,
-  );
-  assert.throws(
-    () => applyBackupSettingsPatch(DEFAULT_BACKUP_SETTINGS, {
-      timezone: "Nowhere/Land",
-    }),
-    (err: unknown) => err instanceof AppError && err.statusCode === 400,
-  );
+test("applyBackupSettingsPatch forgets the host fingerprint only when the host or port changes", () => {
+  const trusted = {
+    ...DEFAULT_BACKUP_SETTINGS,
+    sftpHost: "laptop",
+    sftpHostFingerprint: "SHA256:abc",
+  };
+  assert.equal(applyBackupSettingsPatch(trusted, {
+    sftpHost: " laptop ",
+    sftpUsername: "emily",
+  }).sftpHostFingerprint, "SHA256:abc");
+  assert.equal(applyBackupSettingsPatch(trusted, {
+    sftpHost: "desktop",
+  }).sftpHostFingerprint, "");
+  assert.equal(applyBackupSettingsPatch(trusted, {
+    sftpPort: 2222,
+  }).sftpHostFingerprint, "");
+  assert.equal(applyBackupSettingsPatch(trusted, {
+    forgetSftpHost: true,
+  }).sftpHostFingerprint, "");
 });
 
-test("isDestinationComplete needs endpoint, bucket and both keys", () => {
-  const full = {
+test("applyBackupSettingsPatch rejects an invalid time or time zone with a 400", () => {
+  for (const input of [{
+    time: "25:00",
+  }, {
+    timezone: "Nowhere/Land",
+  }]) {
+    assert.throws(
+      () => applyBackupSettingsPatch(DEFAULT_BACKUP_SETTINGS, input),
+      (err: unknown) => err instanceof AppError && err.statusCode === 400,
+    );
+  }
+});
+
+test("isDestinationComplete checks the fields each destination needs", () => {
+  const s3: BackupDestination = {
+    type: "s3",
     endpoint: "http://100.64.0.2:3900",
     region: "garage",
     bucket: "backups",
@@ -107,42 +176,51 @@ test("isDestinationComplete needs endpoint, bucket and both keys", () => {
     accessKeyId: "GK123",
     secretAccessKey: "secret",
   };
-  assert.equal(isDestinationComplete(full), true);
-  for (const field of ["endpoint", "bucket", "accessKeyId", "secretAccessKey"] as const) {
-    assert.equal(isDestinationComplete({
-      ...full,
-      [field]: "",
-    }), false, field);
-  }
+  assert.equal(isDestinationComplete(s3), true);
+  assert.equal(isDestinationComplete({
+    ...s3,
+    bucket: "",
+  }), false);
+  const sftp: BackupDestination = {
+    type: "sftp",
+    host: "laptop",
+    port: 22,
+    username: "emily",
+    path: "",
+    password: "pw",
+    privateKey: null,
+    hostFingerprint: "",
+  };
+  assert.equal(isDestinationComplete(sftp), true);
+  assert.equal(isDestinationComplete({
+    ...sftp,
+    password: null,
+  }), false);
+  assert.equal(isDestinationComplete({
+    ...sftp,
+    password: null,
+    privateKey: "-----BEGIN OPENSSH PRIVATE KEY-----",
+  }), true);
 });
 
-test("dump and image prefixes sit under the configured prefix", () => {
-  assert.equal(dumpPrefix("pi"), "pi/db/");
-  assert.equal(dumpPrefix(""), "db/");
-  assert.equal(imagePrefix("pi"), "pi/images/");
-  assert.equal(imagePrefix(""), "images/");
-});
-
-test("dumpKeyFor builds a sortable, colon-free key", () => {
-  assert.equal(
-    dumpKeyFor("pi", new Date("2026-11-11T03:00:00.123Z")),
-    "pi/db/eesimple-bookmarks-2026-11-11T03-00-00Z.dump",
-  );
+test("dumpPathFor builds a sortable, colon-free name", () => {
+  assert.equal(dumpPathFor(new Date("2026-11-11T03:00:00.123Z")), "db/eesimple-bookmarks-2026-11-11T03-00-00Z.dump");
 });
 
 test("selectDumpsToPrune keeps the newest N dumps and ignores other files", () => {
   const keys = [
-    "pi/db/eesimple-bookmarks-2026-11-03T03-00-00Z.dump",
-    "pi/db/eesimple-bookmarks-2026-11-01T03-00-00Z.dump",
-    "pi/db/notes.txt",
-    "pi/db/eesimple-bookmarks-2026-11-02T03-00-00Z.dump",
+    "db/eesimple-bookmarks-2026-11-03T03-00-00Z.dump",
+    "db/eesimple-bookmarks-2026-11-01T03-00-00Z.dump",
+    "db/notes.txt",
+    "db/eesimple-bookmarks-2026-11-04T03-00-00Z.dump.partial",
+    "db/eesimple-bookmarks-2026-11-02T03-00-00Z.dump",
   ];
-  assert.deepEqual(selectDumpsToPrune(keys, 2), ["pi/db/eesimple-bookmarks-2026-11-01T03-00-00Z.dump"]);
+  assert.deepEqual(selectDumpsToPrune(keys, 2), ["db/eesimple-bookmarks-2026-11-01T03-00-00Z.dump"]);
   assert.deepEqual(selectDumpsToPrune(keys, 5), []);
   // A retention below 1 still keeps the newest dump.
   assert.deepEqual(selectDumpsToPrune(keys, 0), [
-    "pi/db/eesimple-bookmarks-2026-11-01T03-00-00Z.dump",
-    "pi/db/eesimple-bookmarks-2026-11-02T03-00-00Z.dump",
+    "db/eesimple-bookmarks-2026-11-01T03-00-00Z.dump",
+    "db/eesimple-bookmarks-2026-11-02T03-00-00Z.dump",
   ]);
 });
 
@@ -159,21 +237,24 @@ test("pgEnvFromDatabaseUrl moves the connection into libpq env vars", () => {
   assert.equal(pgEnvFromDatabaseUrl("postgres://localhost/bookmarks").PGPORT, "5432");
 });
 
+test("hostKeyFingerprint matches ssh-keygen's SHA256 format", () => {
+  assert.equal(hostKeyFingerprint(Buffer.from("key")), "SHA256:LHDhK3oGRvkiefQnx7OOczTY5Tic/xZ6HcMOc/gmtoM");
+});
+
 test("describeBackupStoreError maps common failures to actionable text", () => {
   assert.match(describeBackupStoreError({
     code: "ECONNREFUSED",
   }), /Connection refused/);
+  assert.match(describeBackupStoreError({
+    level: "client-authentication",
+    message: "All configured authentication methods failed",
+  }), /Sign-in failed/);
+  assert.match(describeBackupStoreError(new Error("Timed out while waiting for handshake")), /Timed out/);
   assert.match(describeBackupStoreError({
     name: "NotFound",
     $metadata: {
       httpStatusCode: 404,
     },
   }), /Bucket not found/);
-  assert.match(describeBackupStoreError({
-    name: "Forbidden",
-    $metadata: {
-      httpStatusCode: 403,
-    },
-  }), /Access denied/);
   assert.equal(describeBackupStoreError(new Error("boom")), "boom");
 });

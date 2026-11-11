@@ -18,17 +18,20 @@ readiness uses `DB_WAIT_TIMEOUT_MS`).
 
 ### Scheduled backups
 
-Settings → Advanced → Backups configures a cron schedule (run in-process by
-[Croner](https://github.com/Hexagon/croner), started after `app.listen()` like the other boot steps)
-that runs `pg_dump --format=custom`, uploads the dump to an S3-compatible bucket on another machine
-(typically Garage or MinIO on a Tailscale address), optionally mirrors new image-bucket objects, and
-prunes old dumps to the retention count. Config lives on `app_settings` (`backup_settings`,
-`backup_secret_access_key` encrypted with `APP_SECRET`, `backup_last_run`); code is
-`services/backupConfig.ts`, `backupRun.ts`, `backupScheduler.ts`, `utils/backupStore.ts`. The
-final Docker stage installs `postgresql-client-18` from the PostgreSQL apt repo, because pg_dump
-refuses to dump a server newer than itself and Debian bookworm only ships 15. The destination is
-operator-configured, so it is allowed to be a private/tailnet address (the AWS SDK does not go through
-the SSRF-guarded fetch).
+Settings → Advanced → Backups runs `pg_dump --format=custom` on a schedule and sends the dump to
+another computer, usually over Tailscale: into a folder over **SFTP** (the default; any Mac, Linux or
+Windows machine with SSH turned on, signed in with a password or an app-generated ed25519 key, host
+key remembered on first connect) or into an **S3-compatible bucket** (Garage, MinIO). It can mirror
+new image-bucket objects too, and prunes old dumps to the retention count. The schedule is stored as
+plain choices (frequency, time, weekday, browser time zone) and turned into a cron expression by
+`cronFromSchedule`, which [Croner](https://github.com/Hexagon/croner) runs in-process, started after
+`app.listen()`. Config lives on `app_settings` (`backup_settings` jsonb, the encrypted
+`backup_sftp_password` / `backup_sftp_private_key` / `backup_s3_secret_access_key`,
+`backup_last_run`); code is `services/backupConfig.ts`, `backupRun.ts`, `backupScheduler.ts` and
+`utils/backupTarget.ts`, `backupSftp.ts`, `backupStore.ts`. The final Docker stage installs
+`postgresql-client-18` from the PostgreSQL apt repo, because pg_dump refuses to dump a server newer
+than itself and Debian bookworm only ships 15. Destinations are operator-configured private/tailnet
+addresses; SSH and the AWS SDK use Node sockets, not the SSRF-guarded fetch.
 
 ## Environment variables
 
