@@ -42,4 +42,3 @@ storybook-static/
 # Claude Code personal settings: "don't ask again" approvals are saved here verbatim and can
 # contain tokens/passwords typed into commands. Never commit it.
 .claude/settings.local.json
-.mcp.local.json
