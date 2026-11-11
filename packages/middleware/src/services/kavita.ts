@@ -21,6 +21,7 @@ import { bookmarks } from "@/db/schema";
 import { getActiveKavitaEndpoint, getDecryptedKavitaApiKey } from "@/services/appSettings";
 import { addBookmarkImage } from "@/services/bookmarkImages";
 import { extractPdfToc } from "@/services/pdfToc";
+import { operatorEndpointFetch } from "@/utils/ssrf";
 
 const KAVITA_TIMEOUT_MS = 10000;
 // A PDF download is the one slow, large Kavita call: give it a longer timeout and cap its size.
@@ -61,7 +62,7 @@ async function resolveConfig(): Promise<KavitaConfig | null> {
 async function authenticate(config: KavitaConfig): Promise<string | null> {
   try {
     const query = `apiKey=${encodeURIComponent(config.apiKey)}&pluginName=${encodeURIComponent(PLUGIN_NAME)}`;
-    const res = await fetch(`${config.baseUrl}/api/Plugin/authenticate?${query}`, {
+    const res = await operatorEndpointFetch(`${config.baseUrl}/api/Plugin/authenticate?${query}`, {
       method: "POST",
       signal: AbortSignal.timeout(KAVITA_TIMEOUT_MS),
       headers: {
@@ -97,7 +98,7 @@ async function kavitaFetch(path: string, timeoutMs = KAVITA_TIMEOUT_MS): Promise
     for (let attempt = 0; attempt < 2; attempt += 1) {
       const token = await getToken(config);
       if (!token) return null;
-      const res = await fetch(`${config.baseUrl}${path}`, {
+      const res = await operatorEndpointFetch(`${config.baseUrl}${path}`, {
         signal: AbortSignal.timeout(timeoutMs),
         headers: {
           Accept: "application/json",
@@ -554,7 +555,7 @@ export async function fetchKavitaSeriesCover(seriesId: number): Promise<Buffer |
   const config = await resolveConfig();
   if (!config) return null;
   try {
-    const res = await fetch(
+    const res = await operatorEndpointFetch(
       `${config.baseUrl}/api/Image/series-cover?seriesId=${seriesId}&apiKey=${encodeURIComponent(config.apiKey)}`,
       {
         signal: AbortSignal.timeout(KAVITA_TIMEOUT_MS),

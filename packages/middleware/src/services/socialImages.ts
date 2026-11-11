@@ -13,6 +13,7 @@ import type { SocialAccountRef } from "@eesimple/types";
 
 import { fetchInstagramProfileImageUrl } from "@/services/instagram";
 import { FETCH_TIMEOUT_MS } from "@/services/metadata";
+import { operatorEndpointFetch } from "@/utils/ssrf";
 
 /** Whether the Instagram API path is configured (Tier 2 — `INSTAGRAM_API_KEY` is set). */
 export function instagramApiEnabled(): boolean {
@@ -31,7 +32,7 @@ async function fetchInstagramProfileImageViaApi(handle: string): Promise<string 
   if (!key || !endpointTemplate) return null;
   try {
     const endpoint = endpointTemplate.replace("{handle}", encodeURIComponent(handle));
-    const res = await fetch(endpoint, {
+    const res = await operatorEndpointFetch(endpoint, {
       method: "GET",
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       headers: {

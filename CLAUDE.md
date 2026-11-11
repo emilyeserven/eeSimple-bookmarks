@@ -1121,6 +1121,14 @@ configuration are explicitly opt-in (Tier 2, below).
   derives the image URL **from the bookmark's own stored URL** (never a client value), branching
   YouTube → oEmbed provider → og:image scrape. The oEmbed/YouTube thumbnail and every third-party
   image/icon URL passes `isPublicHttpUrl` before fetch.
+- **Outbound fetches of third-party URLs go through `guardedFetch` (`utils/ssrf.ts`), never bare
+  `fetch` with `redirect: "follow"`.** It follows redirects manually, re-checks every hop with
+  `isPublicHttpUrl` (which also blocks CGNAT/Tailscale `100.64.0.0/10` and IPv4-mapped IPv6), and
+  connects through an undici agent whose DNS lookup rejects private answers. A user-typed bookmark URL
+  passes `{ trustInitialHost: true }` so intranet bookmarks stay fetchable while a redirect off that
+  host is still guarded. **Operator-configured endpoints** (Kavita, Plex, Browserless/hosted metadata,
+  Nominatim/Wikidata overrides, the Instagram API) intentionally live on the private network and use
+  `operatorEndpointFetch` instead — never route a scraped/third-party URL through it.
 - **ISBN has a keyless fallback chain.** `services/isbn.ts` tries Open Library, then Google Books;
   the route maps the discriminated outcome to 200 / 404 (not found) / 502 (providers unreachable).
 - **URL→ISBN autodetect in `/api/scan` is gated per-website.** A pasted bookmark URL is scanned for an

@@ -9,6 +9,8 @@
  * on a self-hosted Wikibase mirror.
  */
 
+import { operatorEndpointFetch } from "@/utils/ssrf";
+
 const DEFAULT_ENDPOINT = "https://www.wikidata.org";
 const WIKIDATA_TIMEOUT_MS = 10000;
 const USER_AGENT = "eeSimple-bookmarks/1.0 (media + location taxonomy metadata)";
@@ -59,7 +61,7 @@ export async function fetchJson(url: URL): Promise<unknown> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), WIKIDATA_TIMEOUT_MS);
   try {
-    const response = await fetch(url, {
+    const response = await operatorEndpointFetch(url, {
       headers: {
         "User-Agent": USER_AGENT,
         "Accept": "application/json",

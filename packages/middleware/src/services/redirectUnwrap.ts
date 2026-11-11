@@ -13,6 +13,7 @@ import {
   getDecryptedHostedApiKey,
 } from "@/services/appSettings";
 import { BROWSER_USER_AGENT, FETCH_TIMEOUT_MS, isPublicHttpUrl } from "@/services/metadata";
+import { guardedDispatcher, operatorEndpointFetch } from "@/utils/ssrf";
 
 /** Max redirect hops to follow before giving up (a normal tracker is 1–2). */
 const MAX_HOPS = 5;
@@ -33,14 +34,17 @@ async function probe(url: string, method: "HEAD" | "GET"): Promise<Response> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
+    // Every hop is pre-checked by `unwrapRedirect`; the guarded dispatcher also rejects a public-looking
+    // hostname whose DNS answer is private.
     return await fetch(url, {
       method,
       redirect: "manual",
+      dispatcher: guardedDispatcher,
       signal: controller.signal,
       headers: {
         "User-Agent": BROWSER_USER_AGENT,
       },
-    });
+    } as RequestInit);
   }
   finally {
     clearTimeout(timeout);
@@ -135,7 +139,7 @@ export async function unwrapWithBrowserless(url: string): Promise<string | null>
   const token = await getDecryptedHostedApiKey();
 
   try {
-    const res = await fetch(`${endpoint.replace(/\/$/, "")}/chromium/function`, {
+    const res = await operatorEndpointFetch(`${endpoint.replace(/\/$/, "")}/chromium/function`, {
       method: "POST",
       signal: AbortSignal.timeout(BROWSERLESS_FUNCTION_TIMEOUT_MS),
       headers: {
