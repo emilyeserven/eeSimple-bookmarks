@@ -120,6 +120,12 @@ export const bookmarks = pgTable("bookmarks", {
   // cheap. Plain (not unique) — the boot step is single-process and gates on an in-memory map; a
   // unique index would risk a `drizzle-kit push` prompt on an existing populated table.
   index("bookmarks_migration_source_idx").on(table.migrationSource).where(sql`${table.migrationSource} IS NOT NULL`),
+  index("bookmarks_category_id_idx").on(table.categoryId),
+  index("bookmarks_website_id_idx").on(table.websiteId),
+  index("bookmarks_media_type_id_idx").on(table.mediaTypeId),
+  index("bookmarks_youtube_channel_id_idx").on(table.youtubeChannelId),
+  index("bookmarks_newsletter_id_idx").on(table.newsletterId),
+  index("bookmarks_import_id_idx").on(table.importId),
 ]);
 
 /**
@@ -231,7 +237,9 @@ export const reelArchiveJobs = pgTable("reel_archive_jobs", {
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
-});
+}, table => [
+  index("reel_archive_jobs_bookmark_id_idx").on(table.bookmarkId),
+]);
 
 /**
  * `media_objects` — a full manifest of every object in the storage bucket, reconciled by the
@@ -258,7 +266,9 @@ export const mediaObjects = pgTable("media_objects", {
   lastSeenAt: timestamp("last_seen_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
-});
+}, table => [
+  index("media_objects_bookmark_id_idx").on(table.bookmarkId),
+]);
 
 /**
  * `website_favicons` — 0..1 favicon per website. Mirrors `bookmark_images`: the bytes live in object
@@ -357,6 +367,8 @@ export const websites = pgTable("websites", {
 }, table => [
   unique("websites_domain_unique").on(table.domain),
   unique("websites_slug_unique").on(table.slug),
+  index("websites_category_id_idx").on(table.categoryId),
+  index("websites_media_type_id_idx").on(table.mediaTypeId),
 ]);
 
 /**
@@ -393,6 +405,7 @@ export const mediaTypes = pgTable("media_types", {
 }, table => [
   unique("media_types_name_unique").on(table.name),
   unique("media_types_slug_unique").on(table.slug),
+  index("media_types_parent_id_idx").on(table.parentId),
 ]);
 
 /**
@@ -523,6 +536,9 @@ export const languageUsages = pgTable("language_usages", {
     table.languageId,
     table.usageLevelId,
   ),
+  index("language_usages_language_id_idx").on(table.languageId),
+  index("language_usages_usage_level_id_idx").on(table.usageLevelId),
+  index("language_usages_translation_source_id_idx").on(table.translationSourceId),
 ]);
 
 export type LanguageUsageRow = typeof languageUsages.$inferSelect;
@@ -567,6 +583,7 @@ export const entityNames = pgTable("entity_names", {
     table.ownerId,
     table.languageId,
   ),
+  index("entity_names_language_id_idx").on(table.languageId),
 ]);
 
 export type EntityNameRow = typeof entityNames.$inferSelect;
@@ -636,6 +653,7 @@ export const groups = pgTable("groups", {
 }, table => [
   unique("groups_name_unique").on(table.name),
   unique("groups_slug_unique").on(table.slug),
+  index("groups_group_type_id_idx").on(table.groupTypeId),
 ]);
 
 export type GroupRow = typeof groups.$inferSelect;
@@ -724,6 +742,7 @@ export const youtubeChannels = pgTable("youtube_channels", {
 }, table => [
   unique("youtube_channels_key_unique").on(table.channelKey),
   unique("youtube_channels_slug_unique").on(table.slug),
+  index("youtube_channels_category_id_idx").on(table.categoryId),
 ]);
 
 /**
@@ -777,6 +796,7 @@ export const websiteTags = pgTable("website_tags", {
   primaryKey({
     columns: [table.websiteId, table.tagId],
   }),
+  index("website_tags_tag_id_idx").on(table.tagId),
 ]);
 
 /** `youtube_channel_tags` join — default tags applied to bookmarks saved for a given channel. */
@@ -791,6 +811,7 @@ export const youtubeChannelTags = pgTable("youtube_channel_tags", {
   primaryKey({
     columns: [table.channelId, table.tagId],
   }),
+  index("youtube_channel_tags_tag_id_idx").on(table.tagId),
 ]);
 
 /** `website_youtube_channels` join — YouTube channels associated with a website. Brand-new table; push-safe additive. */
@@ -805,6 +826,7 @@ export const websiteYoutubeChannels = pgTable("website_youtube_channels", {
   primaryKey({
     columns: [table.websiteId, table.channelId],
   }),
+  index("website_youtube_channels_channel_id_idx").on(table.channelId),
 ]);
 
 /**
@@ -839,6 +861,8 @@ export const newsletters = pgTable("newsletters", {
 }, table => [
   unique("newsletters_name_unique").on(table.name),
   unique("newsletters_slug_unique").on(table.slug),
+  index("newsletters_category_id_idx").on(table.categoryId),
+  index("newsletters_media_type_id_idx").on(table.mediaTypeId),
 ]);
 
 /** `newsletter_tags` join — default tags applied to bookmarks imported from a given newsletter. */
@@ -853,6 +877,7 @@ export const newsletterTags = pgTable("newsletter_tags", {
   primaryKey({
     columns: [table.newsletterId, table.tagId],
   }),
+  index("newsletter_tags_tag_id_idx").on(table.tagId),
 ]);
 
 /** `tags` table — a self-referencing tree. `parentId` NULL means a root tag. */
@@ -899,6 +924,7 @@ export const bookmarkTagBlacklist = pgTable("bookmark_tag_blacklist", {
   primaryKey({
     columns: [table.bookmarkId, table.tagId],
   }),
+  index("bookmark_tag_blacklist_tag_id_idx").on(table.tagId),
 ]);
 
 /** `bookmark_tags` join — many-to-many between bookmarks and tags. */
@@ -913,6 +939,7 @@ export const bookmarkTags = pgTable("bookmark_tags", {
   primaryKey({
     columns: [table.bookmarkId, table.tagId],
   }),
+  index("bookmark_tags_tag_id_idx").on(table.tagId),
 ]);
 
 export const tagsRelations = relations(tags, ({
@@ -994,6 +1021,7 @@ export const taxonomyTerms = pgTable("taxonomy_terms", {
   uniqueIndex("taxonomy_terms_tax_parent_name_unique").on(table.taxonomyId, table.parentId, table.name),
   // Slug unique within the taxonomy.
   uniqueIndex("taxonomy_terms_tax_slug_unique").on(table.taxonomyId, table.slug),
+  index("taxonomy_terms_parent_id_idx").on(table.parentId),
 ]);
 
 /**
@@ -1125,6 +1153,8 @@ export const bookmarkLocations = pgTable("bookmark_locations", {
   primaryKey({
     columns: [table.bookmarkId, table.locationId],
   }),
+  index("bookmark_locations_location_id_idx").on(table.locationId),
+  index("bookmark_locations_location_relation_id_idx").on(table.locationRelationId),
 ]);
 
 /** `bookmark_location_blacklist` — locations the user has opted out of autofill auto-apply for a specific bookmark. */
@@ -1139,6 +1169,7 @@ export const bookmarkLocationBlacklist = pgTable("bookmark_location_blacklist", 
   primaryKey({
     columns: [table.bookmarkId, table.locationId],
   }),
+  index("bookmark_location_blacklist_location_id_idx").on(table.locationId),
 ]);
 
 /** `location_tags` join — the "looser" tags (mood / biome / …) associated with a location. */
@@ -1153,6 +1184,7 @@ export const locationTags = pgTable("location_tags", {
   primaryKey({
     columns: [table.locationId, table.tagId],
   }),
+  index("location_tags_tag_id_idx").on(table.tagId),
 ]);
 
 /**
@@ -1247,6 +1279,8 @@ export const bookmarkRelationships = pgTable("bookmark_relationships", {
     table.bookmarkBId,
     table.relationshipTypeId,
   ),
+  index("bookmark_relationships_bookmark_b_id_idx").on(table.bookmarkBId),
+  index("bookmark_relationships_relationship_type_id_idx").on(table.relationshipTypeId),
 ]);
 
 export const bookmarksRelations = relations(bookmarks, ({
@@ -1526,6 +1560,7 @@ export const customProperties = pgTable("custom_properties", {
   }).notNull().defaultNow(),
 }, table => [
   unique("custom_properties_slug_unique").on(table.slug),
+  index("custom_properties_item_in_items_source_property_id_idx").on(table.itemInItemsSourcePropertyId),
 ]);
 
 /** `bookmark_number_values` — one numeric value per (bookmark, number/calculate property). */
@@ -1544,6 +1579,7 @@ export const bookmarkNumberValues = pgTable("bookmark_number_values", {
   primaryKey({
     columns: [table.bookmarkId, table.propertyId],
   }),
+  index("bookmark_number_values_property_id_idx").on(table.propertyId),
 ]);
 
 /** `bookmark_boolean_values` — one true/false value per (bookmark, boolean property). */
@@ -1559,6 +1595,7 @@ export const bookmarkBooleanValues = pgTable("bookmark_boolean_values", {
   primaryKey({
     columns: [table.bookmarkId, table.propertyId],
   }),
+  index("bookmark_boolean_values_property_id_idx").on(table.propertyId),
 ]);
 
 /** `bookmark_datetime_values` — one date/time value per (bookmark, datetime property). */
@@ -1576,6 +1613,7 @@ export const bookmarkDateTimeValues = pgTable("bookmark_datetime_values", {
   primaryKey({
     columns: [table.bookmarkId, table.propertyId],
   }),
+  index("bookmark_datetime_values_property_id_idx").on(table.propertyId),
 ]);
 
 /**
@@ -1608,6 +1646,7 @@ export const bookmarkFileValues = pgTable("bookmark_file_values", {
   primaryKey({
     columns: [table.bookmarkId, table.propertyId],
   }),
+  index("bookmark_file_values_property_id_idx").on(table.propertyId),
 ]);
 
 /**
@@ -1629,6 +1668,7 @@ export const bookmarkChoicesValues = pgTable("bookmark_choices_values", {
   primaryKey({
     columns: [table.bookmarkId, table.propertyId],
   }),
+  index("bookmark_choices_values_property_id_idx").on(table.propertyId),
 ]);
 
 /**
@@ -1657,6 +1697,7 @@ export const bookmarkProgressValues = pgTable("bookmark_progress_values", {
   primaryKey({
     columns: [table.bookmarkId, table.propertyId],
   }),
+  index("bookmark_progress_values_property_id_idx").on(table.propertyId),
 ]);
 
 /**
@@ -1675,6 +1716,7 @@ export const bookmarkSectionsValues = pgTable("bookmark_sections_values", {
   primaryKey({
     columns: [table.bookmarkId, table.propertyId],
   }),
+  index("bookmark_sections_values_property_id_idx").on(table.propertyId),
 ]);
 
 /**
@@ -1692,6 +1734,7 @@ export const bookmarkTextValues = pgTable("bookmark_text_values", {
   primaryKey({
     columns: [table.bookmarkId, table.propertyId],
   }),
+  index("bookmark_text_values_property_id_idx").on(table.propertyId),
 ]);
 
 /**
@@ -1709,6 +1752,7 @@ export const calculatePropertyOperands = pgTable("calculate_property_operands", 
   primaryKey({
     columns: [table.propertyId, table.operandPropertyId],
   }),
+  index("calculate_property_operands_operand_property_id_idx").on(table.operandPropertyId),
 ]);
 
 /** `categories` table — named groups that own bookmarks and group custom properties. */
@@ -2213,7 +2257,10 @@ export const imports = pgTable("imports", {
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
-});
+}, table => [
+  index("imports_newsletter_id_idx").on(table.newsletterId),
+  index("imports_default_category_id_idx").on(table.defaultCategoryId),
+]);
 
 /**
  * `import_items` — one extracted candidate article link per row, awaiting review in the Inbox.
@@ -2263,7 +2310,12 @@ export const importItems = pgTable("import_items", {
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).notNull().defaultNow(),
-});
+}, table => [
+  index("import_items_import_id_idx").on(table.importId),
+  index("import_items_category_id_idx").on(table.categoryId),
+  index("import_items_duplicate_bookmark_id_idx").on(table.duplicateBookmarkId),
+  index("import_items_created_bookmark_id_idx").on(table.createdBookmarkId),
+]);
 
 export const importsRelations = relations(imports, ({
   one,
@@ -2298,6 +2350,7 @@ export const propertyCategories = pgTable("property_categories", {
   primaryKey({
     columns: [table.propertyId, table.categoryId],
   }),
+  index("property_categories_category_id_idx").on(table.categoryId),
 ]);
 
 /** `property_media_types` join — many-to-many between custom properties and media types. */
@@ -2312,6 +2365,7 @@ export const propertyMediaTypes = pgTable("property_media_types", {
   primaryKey({
     columns: [table.propertyId, table.mediaTypeId],
   }),
+  index("property_media_types_media_type_id_idx").on(table.mediaTypeId),
 ]);
 
 /**
@@ -2352,6 +2406,8 @@ export const autofillRules = pgTable("autofill_rules", {
   }).notNull().defaultNow(),
 }, table => [
   unique("autofill_rules_slug_unique").on(table.slug),
+  index("autofill_rules_set_category_id_idx").on(table.setCategoryId),
+  index("autofill_rules_set_media_type_id_idx").on(table.setMediaTypeId),
 ]);
 
 /** `autofill_rule_tags` — tiered tags a rule applies to a matching bookmark. */
@@ -2366,6 +2422,7 @@ export const autofillRuleTags = pgTable("autofill_rule_tags", {
   primaryKey({
     columns: [table.ruleId, table.tagId],
   }),
+  index("autofill_rule_tags_tag_id_idx").on(table.tagId),
 ]);
 
 /** `autofill_rule_locations` — locations a rule applies to a matching bookmark. */
@@ -2380,6 +2437,7 @@ export const autofillRuleLocations = pgTable("autofill_rule_locations", {
   primaryKey({
     columns: [table.ruleId, table.locationId],
   }),
+  index("autofill_rule_locations_location_id_idx").on(table.locationId),
 ]);
 
 /** `autofill_rule_number_values` — number custom-property values a rule applies. */
@@ -2397,6 +2455,7 @@ export const autofillRuleNumberValues = pgTable("autofill_rule_number_values", {
   primaryKey({
     columns: [table.ruleId, table.propertyId],
   }),
+  index("autofill_rule_number_values_property_id_idx").on(table.propertyId),
 ]);
 
 /** `autofill_rule_boolean_values` — boolean custom-property values a rule applies. */
@@ -2412,6 +2471,7 @@ export const autofillRuleBooleanValues = pgTable("autofill_rule_boolean_values",
   primaryKey({
     columns: [table.ruleId, table.propertyId],
   }),
+  index("autofill_rule_boolean_values_property_id_idx").on(table.propertyId),
 ]);
 
 /** `autofill_rule_datetime_values` — date/time custom-property values a rule applies. */
@@ -2427,6 +2487,7 @@ export const autofillRuleDateTimeValues = pgTable("autofill_rule_datetime_values
   primaryKey({
     columns: [table.ruleId, table.propertyId],
   }),
+  index("autofill_rule_datetime_values_property_id_idx").on(table.propertyId),
 ]);
 
 /** `autofill_rule_exemptions` — bookmarks the user has opted out of backfill for a specific rule. */
@@ -2444,6 +2505,7 @@ export const autofillRuleExemptions = pgTable("autofill_rule_exemptions", {
   primaryKey({
     columns: [table.ruleId, table.bookmarkId],
   }),
+  index("autofill_rule_exemptions_bookmark_id_idx").on(table.bookmarkId),
 ]);
 
 /** `import_rules` — ordered rules evaluated against each candidate URL during inbox ingestion. */
@@ -2481,6 +2543,7 @@ export const categoryNumberDefaults = pgTable("category_number_defaults", {
   primaryKey({
     columns: [table.categoryId, table.propertyId],
   }),
+  index("category_number_defaults_property_id_idx").on(table.propertyId),
 ]);
 
 /** `category_boolean_defaults` — default boolean property values for new bookmarks in a category. */
@@ -2496,6 +2559,7 @@ export const categoryBooleanDefaults = pgTable("category_boolean_defaults", {
   primaryKey({
     columns: [table.categoryId, table.propertyId],
   }),
+  index("category_boolean_defaults_property_id_idx").on(table.propertyId),
 ]);
 
 /** `category_datetime_defaults` — default date/time property values for new bookmarks in a category. */
@@ -2511,6 +2575,7 @@ export const categoryDateTimeDefaults = pgTable("category_datetime_defaults", {
   primaryKey({
     columns: [table.categoryId, table.propertyId],
   }),
+  index("category_datetime_defaults_property_id_idx").on(table.propertyId),
 ]);
 
 export const autofillRulesRelations = relations(autofillRules, ({
@@ -2782,6 +2847,7 @@ export const pinnedSidebarItems = pgTable("pinned_sidebar_items", {
   // A `uniqueIndex`, NOT a table `unique()` constraint — see the composite-unique push-prompt rule.
   // `migrate.ts` carries the constraint→index conversion step for existing deployments.
   uniqueIndex("pinned_sidebar_items_entity_unique").on(table.entityType, table.entityId),
+  index("pinned_sidebar_items_section_id_idx").on(table.sectionId),
 ]);
 
 export type PinnedSidebarItemRow = typeof pinnedSidebarItems.$inferSelect;
@@ -2866,6 +2932,7 @@ export const bookmarkPeople = pgTable("bookmark_people", {
   primaryKey({
     columns: [table.bookmarkId, table.personId],
   }),
+  index("bookmark_people_person_id_idx").on(table.personId),
 ]);
 
 /**
@@ -2883,6 +2950,7 @@ export const bookmarkGroups = pgTable("bookmark_groups", {
   primaryKey({
     columns: [table.bookmarkId, table.groupId],
   }),
+  index("bookmark_groups_group_id_idx").on(table.groupId),
 ]);
 
 export type BookmarkGroupRow = typeof bookmarkGroups.$inferSelect;
@@ -2899,6 +2967,7 @@ export const personYoutubeChannels = pgTable("person_youtube_channels", {
   primaryKey({
     columns: [table.personId, table.channelId],
   }),
+  index("person_youtube_channels_channel_id_idx").on(table.channelId),
 ]);
 
 export type PersonYoutubeChannelRow = typeof personYoutubeChannels.$inferSelect;
@@ -2915,6 +2984,7 @@ export const personWebsites = pgTable("person_websites", {
   primaryKey({
     columns: [table.personId, table.websiteId],
   }),
+  index("person_websites_website_id_idx").on(table.websiteId),
 ]);
 
 export type PersonWebsiteRow = typeof personWebsites.$inferSelect;
@@ -2931,6 +3001,7 @@ export const personGroups = pgTable("person_groups", {
   primaryKey({
     columns: [table.personId, table.groupId],
   }),
+  index("person_groups_group_id_idx").on(table.groupId),
 ]);
 
 export type PersonGroupRow = typeof personGroups.$inferSelect;
@@ -2947,6 +3018,7 @@ export const groupYoutubeChannels = pgTable("group_youtube_channels", {
   primaryKey({
     columns: [table.groupId, table.channelId],
   }),
+  index("group_youtube_channels_channel_id_idx").on(table.channelId),
 ]);
 
 export type GroupYoutubeChannelRow = typeof groupYoutubeChannels.$inferSelect;
@@ -2963,6 +3035,7 @@ export const groupWebsites = pgTable("group_websites", {
   primaryKey({
     columns: [table.groupId, table.websiteId],
   }),
+  index("group_websites_website_id_idx").on(table.websiteId),
 ]);
 
 export type GroupWebsiteRow = typeof groupWebsites.$inferSelect;
